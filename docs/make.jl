@@ -64,14 +64,15 @@ if isnothing(folder) && isnothing(file)
     #     build_pages(folder, nothing, target, force)
     # end
 
+
     # # others need to integrate with Pluto
     # for folder ∈ ("alternatives", "misc")
     #     build_pages(folder, nothing, "weave_html", force)
     # end
     build_pages("precalc", "functions", "html", true)
     build_pages("misc", nothing, "weave_html", true)
-    toc = joinpath("build", "misc", "toc.html")
-    cp(toc, joinpath("build","index.html"), force=true)
+#    toc = joinpath("build", "misc", "toc.html")
+#    cp(toc, joinpath("build","index.html"), force=true)
 else
     build_pages(folder, file, target, force)
 end
@@ -86,8 +87,7 @@ end
 # Documenter can also automatically deploy documentation to gh-pages.
 # See "Hosting Documentation" and deploydocs() in the Documenter manual
 # for more information.
-#=
+
 Documenter.deploydocs(
     repo = "github.com/jverzani/CalculusWithJuliaNotes.jl"
 )
-=#
