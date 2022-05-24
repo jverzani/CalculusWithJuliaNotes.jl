@@ -1,0 +1,358 @@
+# Symbolics.jl
+
+The `Symbolics.jl` package is a Computer Algebra System (CAS) built entirely in `Julia`.
+This package is under heavy development.
+
+## Algebraic manipulations
+
+### construction
+
+
+
+
+@variables
+
+SymbolicUtils.@syms  assumptions
+
+
+
+x is a `Num`, `Symbolics.value(x)` is of type `SymbolicUtils{Real, Nothing}
+
+relation to SymbolicUtils
+Num wraps things; Term
+
+
+
+### Substitute
+
+### Simplify
+
+simplify
+expand
+
+rewrite rules
+
+### Solving equations
+
+solve_for
+
+
+
+## Expressions to functions
+
+build_function
+
+## Derivatives
+
+1->1: Symbolics.derivative(x^2 + cos(x), x)
+
+1->3: Symbolics.derivative.([x^2, x, cos(x)], x)
+
+3 -> 1: Symbolics.gradient(x*y^z, [x,y,z])
+
+2 -> 2: Symbolics.jacobian([x,y^z], [x,y])
+
+# higher order
+
+1 -> 1: D(ex, x, n=1) = foldl((ex,_) -> Symbolics.derivative(ex, x), 1:n, init=ex)
+
+2 -> 1: (2nd) Hessian
+
+
+
+
+
+## Differential equations
+
+
+## Integrals
+
+WIP
+
+## ----
+# follow sympy tutorial
+
+using Symbolics
+import SymbolicUtils
+
+@variables x y z
+
+# substitution
+
+ex = cos(x) + 1
+substitute(ex, Dict(x=>y))
+
+substitute(ex, Dict(x=>0)) # does eval
+
+ex = x^y
+substitute(ex, Dict(y=> x^y))
+
+
+
+# expand trig
+r1 = @rule sin(2 * ~x) => 2sin(~x)*cos(~x)
+r2 = @rule cos(2 * ~x) => cos(~x)^2 - sin(~x)^2
+expand_trig(ex) = simplify(ex, RuleSet([r1, r2]))
+
+ex = sin(2x) + cos(2x)
+expand_trig(ex)
+
+## Multiple
+@variables x y z
+ex = x^3 + 4x*y -z
+substitute(ex, Dict(x=>2, y=>4, z=>0))
+
+
+# Converting Strings to Expressions
+# what is sympify?
+
+# evalf
+
+
+# lambdify: symbolic expression -> function
+ex = x^3 + 4x*y -z
+λ = build_function(ex, x,y,z, expression=Val(false))
+λ(2,4,0)
+
+# pretty printing
+using Latexify
+latexify(ex)
+
+
+# Simplify
+@variables x y z t
+
+simplify(sin(x)^2 + cos(x)^2)
+
+
+simplify((x^3 + x^2 - x - 1) / (x^2 + 2x + 1)) # fails, no factor
+simplify(((x+1)*(x^2-1))/((x+1)^2))            # works
+
+import SpecialFunctions: gamma
+
+simplify(gamma(x) / gamma(x-2))                # fails
+
+# Polynomial
+
+## expand
+expand((x+1)^2)
+expand((x+2)*(x-3))
+expand((x+1)*(x-2) - (x-1)*x)
+
+## factor
+### not defined
+
+
+## collect
+COLLECT_RULES = [
+    @rule(~x*x^(~n::SymbolicUtils.isnonnegint) => (~x, ~n))
+    @rule(~x * x => (~x, 1))
+]
+function _collect(ex, x)
+    d = Dict()
+
+    exs = expand(ex)
+    if SymbolicUtils.operation(Symbolics.value(ex)) != +
+        d[0] => ex
+    else
+        for aᵢ ∈ SymbolicUtils.arguments(Symbolics.value(expand(ex)))
+            u = simplify(aᵢ, RuleSet(COLLECT_RULES))
+            if isa(u, Tuple)
+                a,n = u
+            else
+                a,n = u,0
+            end
+            d[n] = get(d, n, 0) + a
+        end
+    end
+    d
+end
+
+
+## cancel -- no factor
+
+## apart -- no factor
+
+## Trignometric simplification
+
+INVERSE_TRIG_RUELS = [@rule(cos(acos(~x)) => ~x)
+                      @rule(acos(cos(~x)) => abs(rem2pi(~x, RoundNearest)))
+                      @rule(sin(asin(~x)) => ~x)
+                      @rule(asin(sin(~x)) => abs(rem2pi(x + pi/2, RoundNearest)) - pi/2)
+                      ]
+
+@variables θ
+simplify(cos(acos(θ)), RuleSet(INVERSE_TRIG_RUELS))
+
+# Copy from https://github.com/JuliaSymbolics/SymbolicUtils.jl/blob/master/src/simplify_rules.jl
+# the TRIG_RULES are applied by simplify by default
+HTRIG_RULES = [
+               @acrule(-sinh(~x)^2 + cosh(~x)^2 => one(~x))
+               @acrule(sinh(~x)^2 + 1        => cosh(~x)^2)
+               @acrule(cosh(~x)^2 + -1        => -sinh(~x)^2)
+
+               @acrule(tanh(~x)^2 + 1*sech(~x)^2 => one(~x))
+               @acrule(-tanh(~x)^2 +  1 => sech(~x)^2)
+               @acrule(sech(~x)^2 + -1 => -tanh(~x)^2)
+
+               @acrule(coth(~x)^2 + -1*csch(~x)^2 => one(~x))
+               @acrule(coth(~x)^2 + -1 => csch(~x)^2)
+               @acrule(csch(~x)^2 +  1 => coth(~x)^2)
+
+    @acrule(tanh(~x) => sinh(~x)/cosh(~x))
+
+    @acrule(sinh(-~x) => -sinh(~x))
+    @acrule(cosh(-~x) => -cosh(~x))
+           ]
+
+trigsimp(ex) = simplify(simplify(ex, RuleSet(HTRIG_RULES)))
+
+trigsimp(sin(x)^2 + cos(x)^2)
+trigsimp(sin(x)^4 -2cos(x)^2*sin(x)^2 + cos(x)^4) # no factor
+trigsimp(cosh(x)^2 + sinh(x)^2)
+trigsimp(sinh(x)/tanh(x))
+
+EXPAND_TRIG_RULES = [
+
+    @acrule(sin(~x+~y) => sin(~x)*cos(~y)   + cos(~x)*sin(~y))
+@acrule(sinh(~x+~y) => sinh(~x)*cosh(~y) + cosh(~x)*sinh(~y))
+
+        @acrule(sin(2*~x)   => 2sin(~x)*cos(~x))
+    @acrule(sinh(2*~x) => 2sinh(~x)*cosh(~x))
+
+
+
+@acrule(cos(~x+~y)  => cos(~x)*cos(~y)   - sin(~x)*sin(~y))
+@acrule(cosh(~x+~y) => cosh(~x)*cosh(~y) + sinh(~x)*sinh(~y))
+
+        @acrule(cos(2*~x)   => cos(~x)^2 - sin(~x)^2)
+    @acrule(cosh(2*~x) => cosh(~x)^2 + sinh(~x)^2)
+
+
+@acrule(tan(~x+~y)  => (tan(~x)  - tan(~y))  / (1 + tan(~x)*tan(~y)))
+    @acrule(tanh(~x+~y) => (tanh(~x) + tanh(~y)) / (1 + tanh(~x)*tanh(~y)))
+
+    @acrule(tan(2*~x) => 2*tan(~x)/(1 - tan(~x)^2))
+    @acrule(tanh(2*~x) => 2*tanh(~x)/(1 + tanh(~x)^2))
+
+]
+
+expandtrig(ex) = simplify(simplify(ex, RuleSet(EXPAND_TRIG_RULES)))
+
+expandtrig(sin(x+y))
+expandtrig(tan(2x))
+
+
+# powers
+
+# in genearl x^a*x^b = x^(a+b)
+@variables x y a b
+simplify(x^a*x^b - x^(a+b)) # 0
+
+# x^a*y^a = (xy)^a When x,y >=0, a ∈ R
+simplify(x^a*y^a - (x*y)^a)
+
+## ??? How to specify such assumptions?
+
+# (x^a)^b = x^(ab) only if b ∈ Int
+@syms x a b
+simplify((x^a)^b - x^(a*b))
+
+@syms x a b::Int
+simplify((x^a)^b - x^(a*b)) # nope
+
+
+ispositive(x) = isa(x, Real) && x > 0
+_isinteger(x) = isa(x, Integer)
+_isinteger(x::SymbolicUtils.Sym{T,S}) where {T <: Integer, S} = true
+POWSIMP_RULES = [
+@acrule((~x::ispositive)^(~a::isreal) * (~y::ispositive)^(~a::isreal) => (~x*~y)^~a)
+@rule(((~x)^(~a))^(~b::_isinteger) => ~x^(~a * ~b))
+]
+powsimp(ex) = simplify(simplify(ex, RuleSet(POWSIMP_RULES)))
+
+@syms x a b::Int
+simplify((x^a)^b - x^(a*b)) # nope
+
+
+EXPAND_POWER_RULES = [
+@rule((~x)^(~a + ~b) => (_~)^(~a) * (~x)^(~b))
+@rule((~x*~y)^(~a) => (~x)^(~a) * (~y)^(~a))
+
+## ... more on simplification...
+
+## Calculus
+@variables x y z
+import Symbolics: derivative
+derivative(cos(x), x)
+derivative(exp(x^2), x)
+
+# multiple derivative
+Symbolics.derivative(ex, x, n::Int) = reduce((ex,_) -> derivative(ex, x), 1:n, init=ex) # helper
+derivative(x^4, x, 3)
+
+ex = exp(x*y*z)
+
+using Chain
+@chain ex begin
+    derivative(x, 3)
+    derivative(y, 3)
+    derivative(z, 3)
+end
+
+# using Differential operator
+expr = exp(x*y*z)
+expr |> Differential(x)^2 |> Differential(y)^3 |> expand_derivatives
+
+# no integrate
+
+# no limit
+
+# Series
+function series(ex, x, x0=0, n=5)
+    Σ = zero(ex)
+    for i ∈ 0:n
+        ex = expand_derivatives((Differential(x))(ex))
+        Σ += substitute(ex, Dict(x=>0)) * x^i / factorial(i)
+    end
+    Σ
+end
+
+# finite differences
+
+
+# Solvers
+
+@variables  x y z  a
+eq = x ~ a
+Symbolics.solve_for(eq, x)
+
+eqs = [x + y + z ~ 1
+       x + y + 2z ~ 3
+       x + 2y + 3z ~ 3
+       ]
+vars = [x,y,z]
+xs = Symbolics.solve_for(eqs, vars)
+
+[reduce((ex, r)->substitute(ex, r), Pair.(vars, xs), init=ex.lhs) for ex ∈ eqs] == [eq.rhs for eq ∈ eqs]
+
+
+A = [1 1; 1 2]
+b = [1, 3]
+xs = Symbolics.solve_for(A*[x,y] .~ b, [x,y])
+A*xs - b
+
+
+A = [1 1 1; 1 1 2]
+b = [1,3]
+A*[x,y,z] - b
+Symbolics.solve_for(A*[x,y,z] .~ b, [x,y,z]) # fails, singular
+
+# nonlinear solve
+# use `λ = mk_function(ex, args, expression=Val(false))`
+
+
+# polynomial roots
+
+
+# differential equations

@@ -1,0 +1,39 @@
+# Usages of unicode symbols
+
+
+`Julia` allows the use of *unicode* symbols to replace variable names and for function calls. Unicode operations are entered in this pattern `\name[tab]`. That is a slash, `\`, the name (e.g., `alpha`), and then a press of the `tab` key.
+
+In these notes, the following may appear as variable or function names
+
+
+| `\Name`          | Symbol | Usage notes                     |
+|:---------------- |:------ |:------------------------------- |
+| `\euler`         | `ℯ`    | The variable `e`                |
+| `\pi`            | `π`    |                                 |
+| `\alpha`         | `α`    |                                 |
+| `\beta`          | `β`    |                                 |
+| `\delta`         | `δ`    |                                 |
+| `\Delta`         | `Δ`    | Change, as in `Δx`              |
+| `\gamma`         | `γ`    |                                 |
+| `\phi`           | `ϕ`    |                                 |
+| `\Phi`           | `Φ`    | Used for parameterized surfaces |
+| `x\_1`           | `x₁`   | Subscripts                      |
+| `r\vec`          | `r⃗`   | Vector annotation               |
+| `T\hat`          | `T̂`    | Unit vector annotation          |
+
+The following are associated with derivatives
+
+| `\Name`          | Symbol | Usage notes                     |
+|:---------------- |:------ |:------------------------------- |
+| `\partial`       | `∂`    |                                 |
+| `\nabla`         | `∇`    | del operator in CwJ package     |
+
+The following are *infix* operators
+
+| `\Name`          | Symbol | Usage notes                     |
+|:---------------- |:------ |:------------------------------- |
+| `\circ`          | `∘`    | composition                     |
+| `\cdot`          | `⋅`    | dot product                     |
+| `\times`         | `×`    | cross product                   |
+
+Infix operators may need parentheses due to precedence rules. For example, to call a composition, one needs `(f ∘ g)(x)` so that composition happens before function evaluation (`g(x)`).

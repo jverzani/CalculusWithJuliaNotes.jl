@@ -1,0 +1,498 @@
+# Partial Fractions
+
+```julia
+using CalculusWithJulia
+using SymPy
+```
+
+
+```julia; echo=false; results="hidden"
+using CalculusWithJulia.WeaveSupport
+
+const frontmatter = (
+        title = "Partial Fractions",
+        description = "Calculus with Julia: Partial Fractions",
+        tags = ["CalculusWithJulia", "integrals", "partial fractions"],
+);
+nothing
+```
+
+----
+
+Integration is facilitated when an antiderivative for $f$ can be found, as then definite integrals can be evaluated through the fundamental theorem of calculus.
+
+However, despite integration being an algorithmic procedure,
+integration is not. There are "tricks" to try, such as substitution
+and integration by parts. These work in some cases. However, there are
+classes of functions for which algorithms exist. For example, the
+`SymPy` `integrate` function mostly implements an algorithm that decides if
+an elementary function has an antiderivative. The
+[elementary](http://en.wikipedia.org/wiki/Elementary_function)
+functions include exponentials, their inverses (logarithms),
+trigonometric functions, their inverses, and powers, including $n$th
+roots. Not every elementary function will have an antiderivative
+comprised of (finite) combinations of elementary functions. The
+typical example is $e^{x^2}$, which has no simple antiderivative,
+despite its ubiquitousness.
+
+There are classes of functions where an (elementary) antiderivative can always be
+found. Polynomials provide a case. More surprisingly, so do their
+ratios, *rational functions*.
+
+## Partial fraction decomposition
+
+Let $f(x) = p(x)/q(x)$, where  $p$ and $q$ are polynomial
+functions with real coefficients. Further, we assume without comment that $p$ and $q$ have no common
+factors. (If they did, we can divide them out, an act which has no
+effect on the integrability of $f(x)$.
+
+
+The function $q(x)$ will factor over the real numbers. The fundamental
+theorem of algebra can be applied to say that $q(x)=q_1(x)^{n_1}
+\cdots q_k(x)^{n_k}$ where $q_i(x)$ is a linear or quadratic
+polynomial and $n_k$ a positive integer.
+
+
+> **Partial Fraction Decomposition**: There are unique polynomials $a_{ij}$ with degree $a_{ij} <$
+> degree $q_i$ such that
+> ```math
+> \frac{p(x)}{q(x)} = a(x) + \sum_{i=1}^k \sum_{j=1}^{n_i} \frac{a_{ij}(x)}{q_i(x)^j}.
+> ```
+
+The method is attributed to John Bernoulli, one of the prolific
+Bernoulli brothers who put a stamp on several areas of math. This
+Bernoulli was a mentor to Euler.
+
+This basically says that each factor $q_i(x)^{n_i}$ contributes a term like:
+
+```math
+\frac{a_{i1}(x)}{q_i(x)^1} + \frac{a_{i2}(x)}{q_i(x)^2} + \cdots + \frac{a_{in_i}(x)}{q_i(x)^{n_i}},
+```
+
+where each $a_{ij}(x)$ has degree less than the degree of $q_i(x)$.
+
+The value of this decomposition is that the terms $a_{ij}(x)/q_i(x)^j$
+each have an antiderivative, and so the sum of them will also have an
+antiderivative.
+
+```julia; echo=false
+note("""
+
+Many calculus texts will give some examples for finding a partial
+fraction decomposition. We push that work off to `SymPy`, as for all
+but the easiest cases - a few are in the problems - it can be a bit tedious.
+
+""")
+```
+
+In `SymPy`, the `apart` function will find the partial fraction
+decomposition when a factorization is available. For example, here we see $n_i$ terms for each power of
+$q_i$
+
+```julia;
+@syms a::real b::real c::real A::real B::real x::real
+```
+
+```julia;
+apart((x-2)*(x-3) / (x*(x-1)^2*(x^2 + 2)^3))
+```
+
+
+### Sketch of proof
+
+A standard proof uses two facts of number systems: the division
+algorithm and a representation of the greatest common divisor in terms
+of sums, extended to polynomials. Our sketch shows how these are used.
+
+Take one of the factors of the denominators, and consider this
+representation of the rational function $P(x)/(q(x)^k Q(x))$ where
+there are no common factors to any of the three polynomials.
+
+Since $q(x)$ and $Q(x)$ share no factors,
+[Bezout's](http://tinyurl.com/kd6prns)
+identity says there exists polynomials $a(x)$ and $b(x)$  with:
+
+```math
+a(x) Q(x) + b(x) q(x) = 1.
+```
+
+
+Then dividing by $q^k(x)Q(x)$ gives the decomposition
+
+```math
+\frac{1}{q(x)^k Q(x)} = \frac{a(x)}{q(x)^k} + \frac{b(x)}{q(x)^{k-1}Q(x)}.
+```
+
+So we get by multiplying the $P(x)$:
+
+```math
+\frac{P(x)}{q(x)^k Q(x)} = \frac{A(x)}{q(x)^k} + \frac{B(x)}{q(x)^{k-1}Q(x)}.
+```
+
+This may look more complicated, but what it does is peel off one term
+(The first) and leave something which is smaller, in this case by a
+factor of $q(x)$. This process can be repeated pulling off a power of a factor at a time until nothing is left to do.
+
+
+What remains is to establish that we can take $A(x) = a(x)\cdot P(x)$ with a degree less than that of $q(x)$.
+
+In Proposition 3.8 of
+[Bradley](http://www.m-hikari.com/imf/imf-2012/29-32-2012/cookIMF29-32-2012.pdf)
+and Cook we can see how. Recall the division algorithm, for example, says there are ``q_k`` and ``r_k`` with ``A=q\cdot q_k + r_k`` where the degree of ``r_k`` is less than that of ``q``, which is linear or quadratic. This is repeatedly applied below:
+
+```math
+\begin{align*}
+\frac{A}{q^k} &= \frac{q\cdot q_k + r_k}{q^k}\\
+&= \frac{r_k}{q^k} + \frac{q_k}{q^{k-1}}\\
+&= \frac{r_k}{q^k} + \frac{q \cdot q_{k-1} + r_{k-1}}{q^{k-1}}\\
+&= \frac{r_k}{q^k} + \frac{r_{k-1}}{q^{k-1}} + \frac{q_{k-1}}{q^{k-2}}\\
+&= \frac{r_k}{q^k} + \frac{r_{k-1}}{q^{k-1}} + \frac{q\cdot q_{k-2} + r_{k-2}}{q^{k-2}}\\
+&= \cdots\\
+&= \frac{r_k}{q^k} + \frac{r_{k-1}}{q^{k-1}} + \cdots + q_1.
+\end{align*}
+```
+
+So the term ``A(x)/q(x)^k`` can be expressed in terms of a sum where the numerators or each term have degree less than ``q(x)``, as expected by the statement of the theorem.
+
+
+
+## Integrating the terms in a partial fraction decomposition
+
+We discuss, by example, how each type of possible term in a partial
+fraction decomposition has an antiderivative. Hence, rational
+functions will *always* have an antiderivative that can be computed.
+
+### Linear factors
+
+For $j=1$, if $q_i$ is linear, then $a_{ij}/q_i^j$ must look like a constant over a linear term, or something like:
+
+```julia;
+p = a/(x-c)
+```
+
+This has a logarithmic antiderivative:
+
+```julia;
+integrate(p, x)
+```
+
+
+For $j > 1$, we have powers.
+
+```julia;
+@syms j::positive
+integrate(a/(x-c)^j, x)
+```
+
+
+### Quadratic factors
+
+When $q_i$ is quadratic, it looks like $ax^2 + bx + c$. Then $a_{ij}$
+can be a constant or a linear polynomial. The latter can be written as
+$Ax + B$.
+
+
+The integral of the following general form is presented below:
+
+```math
+\frac{Ax +B }{(ax^2  + bx + c)^j},
+```
+
+With `SymPy`, we consider a few cases of the following form, which results from a shift of `x`
+
+```math
+\frac{Ax + B}{((ax)^2 \pm 1)^j}
+```
+
+This can be done by finding a $d$ so that $a(x-d)^2 + b(x-d) + c = dx^2 + e = e((\sqrt{d/e}x^2 \pm 1)$.
+
+The integrals of the type $Ax/((ax)^2 \pm 1)$ can completed by $u$-substitution, with $u=(ax)^2 \pm 1$.
+
+For example,
+
+```julia;
+integrate(A*x/((a*x)^2 + 1)^4, x)
+```
+
+The integrals of the type $B/((ax)^2\pm 1)$ are completed by
+trigonometric substitution and various reduction formulas. They can get involved, but are tractable. For
+example:
+
+
+```julia;
+integrate(B/((a*x)^2 + 1)^4, x)
+```
+and
+
+```julia;
+integrate(B/((a*x)^2 - 1)^4, x)
+```
+
+----
+
+
+In [Bronstein](http://www-sop.inria.fr/cafe/Manuel.Bronstein/publications/issac98.pdf) this characterization can be found - "This method, which dates back to Newton, Leibniz and Bernoulli, should not be
+used in practice, yet it remains the method found in most calculus texts and is
+often taught. Its major drawback is the factorization of the denominator of the
+integrand over the real or complex numbers." We can also find the following formulas which formalize the above exploratory calculations (``j>1`` and ``b^2 - 4c < 0`` below):
+
+```math
+\begin{align*}
+\int \frac{A}{(x-a)^j} &= \frac{A}{1-j}\frac{1}{(x-a)^{1-j}}\\
+\int \frac{A}{x-a}     &= A\log(x-a)\\
+\int \frac{Bx+C}{x^2 + bx + c}     &= \frac{B}{2} \log(x^2 + bx + c) + \frac{2C-bB}{\sqrt{4c-b^2}}\cdot \arctan\left(\frac{2x+b}{\sqrt{4c-b^2}}\right)\\
+\int \frac{Bx+C}{(x^2 + bx + c)^j} &= \frac{B' x + C'}{(x^2 + bx + c)^{j-1}} + \int \frac{C''}{(x^2 + bx + c)^{j-1}}
+\end{align*}
+```
+
+
+
+
+
+The first returns a rational function; the second yields a logarithm
+term; the third yields a logarithm and an arctangent term; while the
+last, which has explicit constants available, provides a reduction
+that can be recursively applied;
+
+That is integrating ``f(x)/g(x)``, a rational function, will yield an output that looks like the following, where the functions are polynomials:
+
+```math
+\int f(x)/g(x) = P(x) + \frac{C(x)}{D{x}} + \sum v_i \log(V_i(x)) + \sum w_j \arctan(W_j(x))
+```
+
+
+(Bronstein also sketches the modern method which is to use a Hermite reduction to express ``\int (f/g) dx = p/q + \int (g/h) dx``, where ``h`` is square free (the "`j`" are all ``1``). The latter can be written over the complex numbers as logarithmic terms of the form ``\log(x-a)``, the "`a`s"found following a method due to Trager and Lazard, and Rioboo, which is mentioned in the SymPy documentation as the method used.)
+
+
+
+#### Examples
+
+Find an antiderivative for $1/(x\cdot(x^2+1)^2)$.
+
+We have a partial fraction decomposition is:
+
+```julia;
+q = (x * (x^2 + 1)^2)
+apart(1/q)
+```
+
+We see three terms. The first and second will be done by $u$-substitution, the third by a logarithm:
+
+```julia;
+integrate(1/q, x)
+```
+
+----
+
+Find an antiderivative of $1/(x^2 - 2x-3)$.
+
+We again just let `SymPy` do the work. A partial fraction decomposition is given by:
+
+```julia;
+𝒒 =  (x^2 - 2x - 3)
+apart(1/𝒒)
+```
+
+We see what should yield two logarithmic terms:
+
+```julia;
+integrate(1/𝒒, x)
+```
+
+
+!!! note
+    `SymPy` will find ``\log(x)`` as an antiderivative for ``1/x``, but more
+    generally, ``\log(\lvert x\rvert)`` is one.
+
+
+##### Example
+
+The answers found can become quite involved. [Corless](https://arxiv.org/pdf/1712.01752.pdf), Moir, Maza, and Xie use this example which at first glance seems tame enough:
+
+```julia
+ex = (x^2 - 1) / (x^4 + 5x^2 + 7)
+```
+
+But the integral is something best suited to a computer algebra system:
+
+```julia
+integrate(ex, x)
+```
+
+## Questions
+
+###### Question
+
+The partial fraction decomposition of $1/(x(x-1))$ must be of the form $A/x + B/(x-1)$.
+
+What is $A$? (Use `SymPy` or just put the sum over a common denominator and solve for $A$ and $B$.)
+
+```julia; hold=true; echo=false
+val = -1
+numericq(val)
+```
+
+What is $B$?
+
+```julia; hold=true; echo=false
+val = 1
+numericq(val)
+```
+
+###### Question
+
+The following gives the partial fraction decomposition for a rational expression:
+
+```math
+\frac{3x+5}{(1-2x)^2} = \frac{A}{1-2x} + \frac{B}{(1-2x)^2}.
+```
+
+Find $A$ (being careful with the sign):
+
+```julia; hold=true; echo=false
+numericq(-3/2)
+```
+
+Find $B$:
+
+```julia; hold=true; echo=false
+numericq(13/2)
+```
+
+###### Question
+
+The following specifies the general partial fraction decomposition for a rational expression:
+
+```math
+\frac{1}{(x+1)(x-1)^2} = \frac{A}{x+1} + \frac{B}{x-1} + \frac{C}{(x-1)^2}.
+```
+
+Find $A$:
+
+```julia; hold=true; echo=false
+numericq(1/4)
+```
+
+Find $B$:
+
+```julia; hold=true; echo=false
+numericq(-1/4)
+```
+
+Find $C$:
+
+```julia; hold=true; echo=false
+numericq(1/2)
+```
+
+
+###### Question
+
+Compute the following exactly:
+
+```math
+\int_0^1 \frac{(x-2)(x-3)}{(x-4)^2\cdot(x-5)} dx
+```
+
+Is $-6\log(5) - 5\log(3) - 1/6 + 11\log(4)$ the answer?
+
+```julia; hold=true; echo=false
+yesnoq("yes")
+```
+
+###### Question
+
+In the assumptions for the partial fraction decomposition is the fact that $p(x)$ and $q(x)$ share no common factors. Suppose, this isn't the case and in fact we have:
+
+```math
+\frac{p(x)}{q(x)} = \frac{(x-c)^m s(x)}{(x-c)^n t(x)}.
+```
+
+Here $s$ and $t$ are polynomials such that $s(c)$ and $t(c)$ are non-zero.
+
+If $m > n$, then why can we cancel out the $(x-c)^n$ and not have a concern?
+
+```julia; hold=true; echo=false
+choices = [
+"`SymPy` allows it.",
+L"The value $c$ is a removable singularity, so the integral will be identical.",
+L"The resulting function has an identical domain and is equivalent for all $x$."
+]
+ans = 2
+radioq(choices, ans, keep_order=true)
+```
+
+
+If $m = n$, then why can we cancel out the $(x-c)^n$ and not have a concern?
+
+```julia; hold=true; echo=false
+choices = [
+"`SymPy` allows it.",
+L"The value $c$ is a removable singularity, so the integral will be identical.",
+L"The resulting function has an identical domain and is equivalent for all $x$."
+]
+ans = 2
+radioq(choices, ans, keep_order=true)
+```
+
+
+If $m < n$, then why can we cancel out the $(x-c)^n$ and not have a concern?
+
+```julia; hold=true; echo=false
+choices = [
+"`SymPy` allows it.",
+L"The value $c$ is a removable singularity, so the integral will be identical.",
+L"The resulting function has an identical domain and is equivalent for all $x$."
+]
+ans = 3
+radioq(choices, ans, keep_order=true)
+```
+
+
+##### Question
+
+The partial fraction decomposition, as presented, factors the denominator polynomial into linear and quadratic factors over the real numbers. Alternatively, factoring over the complex numbers is possible, resulting in terms like:
+
+```math
+\frac{a + ib}{x - (\alpha + i \beta)} + \frac{a - ib}{x - (\alpha - i \beta)}
+```
+
+How to see that these give rise to real answers on integration is the point of this question.
+
+Breaking the terms up over ``a`` and ``b`` we have:
+
+```math
+\begin{align*}
+I &= \frac{a}{x - (\alpha + i \beta)} + \frac{a}{x - (\alpha - i \beta)} \\
+II &= i\frac{b}{x - (\alpha + i \beta)} - i\frac{b}{x - (\alpha - i \beta)}
+\end{align*}
+```
+
+Integrating ``I`` leads to two logarithmic terms, which are combined to give:
+
+```math
+\int I dx = a\cdot \log((x-(\alpha+i\beta)) \cdot (x - (\alpha-i\beta)))
+```
+
+This involves no complex numbers, as:
+
+```julia; hold=true; echo=false
+choices = ["The complex numbers are complex conjugates, so the term in the logarithm will simply be ``x - 2\\alpha x + \\alpha^2 + \\beta^2``",
+           "The ``\\beta`` are ``0``, as the polynomials in question are real"]
+radioq(choices, 1)
+```
+
+
+The term ``II`` benefits from this computation (attributed to Rioboo by [Corless et. al](https://arxiv.org/pdf/1712.01752.pdf))
+
+```math
+\frac{d}{dx} i \log(\frac{X+iY}{X-iY}) = 2\frac{d}{dx}\arctan(\frac{X}{Y})
+```
+
+Applying this with ``X=x - \alpha`` and ``Y=-\beta`` shows that ``\int II dx`` will be
+
+```julia; hold=true; echo=false
+choices = ["``-2b\\arctan((x - \\alpha)/(\\beta))``",
+           "``2b\\sec^2(-(x-\\alpha)/(-\\beta))``"]
+radioq(choices, 1)
+```
