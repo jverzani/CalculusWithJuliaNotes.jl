@@ -31,10 +31,10 @@ end
 # build list ⊂ (:script,:html,:weave_html, :pdf,:github,:notebook,:pluto)
 function weave_file(folder, file; build_list=(:html,), force=false, kwargs...)
 
-    jmd_dir = isdir(folder) ? folder : joinpath(repo_directory,"CwJ",folder)
+    jmd_dir = isdir(folder) ? folder : joinpath(repo_directory, "CwJ", folder)
     jmd_file = joinpath(jmd_dir, file)
     bnm = replace(basename(jmd_file), r".jmd$" => "")
-    build_dir = joinpath(repo_directory, "docs", "build")
+    build_dir = joinpath(@__DIR__, "build")
 
     if !force
         #testfile = joinpath(repo_directory, "html", folder, bnm*".html")
