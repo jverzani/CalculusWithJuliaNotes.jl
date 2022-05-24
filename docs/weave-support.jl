@@ -7,6 +7,19 @@ const cssfile =   joinpath(@__DIR__, "..", "templates", "skeleton_css.css")
 const htmlfile =  joinpath(@__DIR__, "..", "templates", "bootstrap.tpl")
 const latexfile = joinpath(@__DIR__, "..", "templates", "julia_tex.tpl")
 
+function build_toc(force=true)
+    infile = joinpath(repo_directory, "misc", "toc.jmd")
+    outfile = joinpath(@__DIR__, "build", "index.html")
+    weave(infile;
+          outpath=outfile,
+          doctype="md2html",
+          fig_ext=".svg",
+          template=htmlfile,
+          fig_path=tempdir())
+end
+
+
+
 # do we build the file?
 function build_file(jmdfile, outfile; force=false)
     force && return true
