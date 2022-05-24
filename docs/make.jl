@@ -71,8 +71,7 @@ if isnothing(folder) && isnothing(file)
     # end
     build_pages("precalc", "functions", "html", true)
     build_pages("misc", nothing, "weave_html", true)
-#    toc = joinpath("build", "misc", "toc.html")
-#    cp(toc, joinpath("build","index.html"), force=true)
+    build_toc()
 else
     build_pages(folder, file, target, force)
 end
