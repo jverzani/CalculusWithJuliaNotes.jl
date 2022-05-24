@@ -11,7 +11,7 @@ function build_toc(force=true)
     infile = joinpath(repo_directory, "misc", "toc.jmd")
     outfile = joinpath(@__DIR__, "build", "index.html")
     weave(infile;
-          outpath=outfile,
+          out_path=outfile,
           doctype="md2html",
           fig_ext=".svg",
           template=htmlfile,
