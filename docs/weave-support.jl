@@ -8,7 +8,7 @@ const htmlfile =  joinpath(@__DIR__, "..", "templates", "bootstrap.tpl")
 const latexfile = joinpath(@__DIR__, "..", "templates", "julia_tex.tpl")
 
 function build_toc(force=true)
-    infile = joinpath(repo_directory, "misc", "toc.jmd")
+    infile = joinpath(repo_directory, "CwJ", "misc", "toc.jmd")
     outfile = joinpath(@__DIR__, "build", "index.html")
     weave(infile;
           out_path=outfile,
