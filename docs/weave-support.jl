@@ -8,14 +8,37 @@ const htmlfile =  joinpath(@__DIR__, "..", "templates", "bootstrap.tpl")
 const latexfile = joinpath(@__DIR__, "..", "templates", "julia_tex.tpl")
 
 function build_toc(force=true)
-    infile = joinpath(repo_directory, "CwJ", "misc", "toc.jmd")
-    outfile = joinpath(@__DIR__, "build", "index.html")
-    weave(infile;
-          out_path=outfile,
-          doctype="md2html",
-          fig_ext=".svg",
-          template=htmlfile,
-          fig_path=tempdir())
+    @info "building table of contents"
+
+    jmd_dir = joinpath(repo_directory, "CwJ", "misc")
+    build_dir = joinpath(@__DIR__, "build")
+
+    file = joinpath(jmd_dir, "toc.jmd")
+
+    outfile = joinpath(build_dir, "index.html")
+
+    cd(jmd_dir)
+
+    build_file(file, outfile, force=force) || return nothing
+
+    header = CalculusWithJulia.WeaveSupport.header_cmd
+    #footer = CalculusWithJulia.WeaveSupport.footer_cmd(bnm, folder)
+    html_content = md2html(file,
+                           header_cmds=(header,),
+                           footer_cmds=()
+                           )
+
+    open(outfile, "w") do io
+        write(io, html_content)
+    end
+
+    # to use weave, not pluto
+    # weave(file;
+    #       out_path=outfile,
+    #       doctype="md2html",
+    #       fig_ext=".svg",
+    #       template=htmlfile,
+    #       fig_path=tempdir())
 end
 
 

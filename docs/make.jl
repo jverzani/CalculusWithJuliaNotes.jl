@@ -58,20 +58,20 @@ force = parse(Bool, d["force"])
 
 
 if isnothing(folder) && isnothing(file)
-    # # build full thing
+    # build full thing
     # for folder ∈ ("precalc", "limits", "derivatives", "integrals", "ODEs",
-    #               "differentiable_vector_calculus", "integral_vector_calculus")
+    #               "differentiable_vector_calculus", "integral_vector_calculus",
+    #               "misc")
     #     build_pages(folder, nothing, target, force)
     # end
+    # # alternatives needs work
+    # build_pages("alternatives", "plotly_plotting", "html", force)
 
-
-    # # others need to integrate with Pluto
-    # for folder ∈ ("alternatives", "misc")
-    #     build_pages(folder, nothing, "weave_html", force)
-    # end
+    # keep it simple for now; uncomment above once build goes through
     build_pages("precalc", "functions", "html", true)
-    build_pages("misc", nothing, "weave_html", true)
+
     build_toc()
+
 else
     build_pages(folder, file, target, force)
 end
@@ -86,7 +86,7 @@ end
 # Documenter can also automatically deploy documentation to gh-pages.
 # See "Hosting Documentation" and deploydocs() in the Documenter manual
 # for more information.
-
-Documenter.deploydocs(
-    repo = "github.com/jverzani/CalculusWithJuliaNotes.jl"
+Documenter.deploydocs(;
+    repo = "github.com/jverzani/CalculusWithJuliaNotes.jl",
+    push_preview=true
 )

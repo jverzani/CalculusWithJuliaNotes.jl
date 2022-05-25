@@ -1,14 +1,19 @@
-# Quick introduction to calculus with Julia
+# Quick introduction to Calculus with Julia
 
-Julia can be downloaded and used like other programming languages.
-
-[launch binder](https://mybinder.org/v2/gh/CalculusWithJulia/CwJScratchPad.git/master)
-
-Julia can be used through the internet for free using the [mybinder.org](https://mybinder.org) service.
-To do so, click on the `CalcululsWithJulia.ipynb` file after launching Binder by clicking on the badge.
+The `Julia` programming language with a design that makes it well suited as a supplement for the learning of calculus, as this collection of notes is intended to illustrate.
 
 
-These notes are transitioning from HTML pages to Pluto HTML pages, meaning they can be downloaded and run as notebooks within Pluto. Pluto will handle the package management for add-on packages automatically, though `Pluto` itself must be installed. In a terminal session, the following commands will install `Pluto`:
+As `Julia` is open source, it can be downloaded and used like many other programming languages.
+
+
+
+Julia can be used through the internet for free using the [mybinder.org](https://mybinder.org) service. This link: [launch binder](https://mybinder.org/v2/gh/CalculusWithJulia/CwJScratchPad.git/master) will take you to website that allows this.
+Just click on the `CalcululsWithJulia.ipynb` file after launching Binder by clicking on the badge. Binder provides the Jupyter interface.
+
+
+These notes are written as Pluto HTML pages. Pluto is a notebook like alternative to Jupyter which is designed for interactive Julia usage using a *reactive model*. The HTML pages
+an be downloaded and run as notebooks within Pluto. (They can also be run through binder, but that will be a disappointing experience due to limitations imposed by binder.)
+Pluto will automatically handle the package management for add-on packages, though `Pluto` itself must be installed. In a terminal session, the following commands will install `Pluto`:
 
 ```julia; eval=false
 import Pkg
@@ -28,12 +33,6 @@ Pluto.run()
 
 ----
 
-```julia; echo=false; results="hidden"
-using CalculusWithJulia
-using CalculusWithJulia.WeaveSupport
-using Plots
-nothing
-```
 
 
 
@@ -62,8 +61,6 @@ Packages need only be installed once, but they must be loaded into *each* sessio
 
 ```julia;
 using CalculusWithJulia
-using Plots
-using SymPy
 ```
 
 Packages can also be loaded through `import PackageName`. Importing does not add the exported objects of a function into the namespace, so is used when there are possible name collisions.
@@ -82,9 +79,13 @@ Functions can be defined four basic ways:
 
 * one statement functions follow traditional mathematics notation:
 
-```julia;
+```julia; hold=true
 f(x) = exp(x) * 2x
 ```
+
+
+!!! note
+    We see in this notebook the use of `let` blocks, which is not typical with `Pluto`. As `Pluto` is reactive -- meaning changes in a variable propagate automatically to variables which reference the changed one -- a variable can only be used *once* per notebook at the top level. The `let` block, like a function body, introduces a separate scope for the binding so `Pluto` doesn't incorporate the binding in its reactive model. This is necessary as we have more than one function named `f`. This is unlike `begin` blocks, which are quite typical in `Pluto`. The `begin` blocks allow one or more commands to occur in a cell, as the design of `Pluto` is one object per cell.
 
 * multi-statement functions are defined with the `function` keyword. The `end` statement ends the definition. The last evaluated command is returned. There is no need for explicit `return` statement, though it can be useful for control flow.
 
@@ -119,7 +120,7 @@ For mathematical functions $f: R^n \rightarrow R^m$ when $n$ or $m$ is bigger th
 
 * When $n =1$ and $m > 1$ we use a "vector" for the return value
 
-```julia;
+```julia; hold=true
 r(t) = [sin(t), cos(t), t]
 ```
 
@@ -127,8 +128,8 @@ r(t) = [sin(t), cos(t), t]
 
 * When $n > 1$ and $m=1$ we use multiple arguments or pass the arguments in a container. This pattern is common, as it allows both calling styles.
 
-```julia;
-f(x,y,z) = x*y + y*z + z*x
+```julia; hold=true
+f(x, y, z) = x*y + y*z + z*x
 f(v) = f(v...)
 ```
 
@@ -136,14 +137,14 @@ Some functions need to pass in a container of values, for this the last definiti
 
 Alternatively, indexing can be used directly, as in:
 
-```julia;
+```julia; hold=true
 f(x) = x[1]*x[2] + x[2]*x[3] + x[3]*x[1]
 ```
 
 * For vector fields ($n,m > 1$) a combination is used:
 
 
-```julia;
+```julia; hold=true
 F(x,y,z) = [-y, x, z]
 F(v) = F(v...)
 ```
@@ -152,7 +153,7 @@ F(v) = F(v...)
 
 Functions are called using parentheses to group the arguments.
 
-```julia;
+```julia; hold=true
 f(t) = sin(t)*sqrt(t)
 sin(1), sqrt(1), f(1)
 ```
@@ -175,7 +176,7 @@ Calling `Area(5)` will call `Area(5,5)` which will return `5*5`.
 
 Similarly, the definition for a vector field:
 
-```julia;
+```julia; hold=true
 F(x,y,z) = [-y, x, z]
 F(v) = F(v...)
 ```
@@ -202,15 +203,19 @@ The main (but not sole) use of keyword arguments will be with plotting, where va
 
 The add-on `SymPy` package allows for symbolic expressions to be used. Symbolic values are defined with `@syms`, as below.
 
-```julia;
+
+```julia
 using SymPy
+```
+
+```julia;
 @syms x y z
 x^2 + y^3 + z
 ```
 
 Assumptions on the variables can be useful, particularly with simplification, as in
 
-```julia;
+```julia; hold=true
 @syms x::real y::integer z::positive
 ```
 
@@ -227,7 +232,6 @@ x - x + 1  # 1 is now symbolic
 ```
 
 The number `PI` is a symbolic `pi`.
-a
 
 ```julia;
 sin(PI), sin(pi)
@@ -252,7 +256,7 @@ sympy.harmonic(10)
 
 Some Sympy methods belong to the object and a called via the pattern `object.method(...)`. This too is the case using SymPy with `Julia`. For example:
 
-```
+```julia; hold=true
 A = [x 1; x 2]
 A.det()   # determinant of symbolic matrix A
 ```
@@ -313,7 +317,7 @@ Vectors and matrices are arrays. As hinted above, arrays have mathematical opera
 
 Destructuring is an alternative to indexing to get at the entries in certain containers:
 
-```julia;
+```julia; hold=true
 a,b,c = x2
 ```
 
@@ -346,13 +350,12 @@ The `for` keyword is useful for iteration, Here is a traditional for loop, as `i
 
 ```julia;
 for i in [1,2,3]
-  print(i)
+  println(i)
 end
 ```
 
-```julia; echo=false
-CalculusWithJulia.WeaveSupport.note("""Technical aside: For assignment within a for loop at the global level, a `global` declaration may be needed to ensure proper scoping.""")
-```
+!!! note
+	Technical aside: For assignment within a for loop at the global level, a `global` declaration may be needed to ensure proper scoping.
 
 List comprehensions are similar, but are useful as they perform the iteration and collect the values:
 
@@ -379,12 +382,13 @@ sin.(xs)   # sin(1), sin(2), sin(3)
 
 This example pairs off the value in `bases` and `xs`:
 
-```juila
+```julia
 bases = [5,5,10]
 log.(bases, xs)  # log(5, 1), log(5,2), log(10, 3)
 ```
 
 This example broadcasts the scalar value for the base with `xs`:
+
 ```julia
 log.(5, xs)
 ```
@@ -393,14 +397,14 @@ Row and column vectors can fill in:
 
 ```julia;
 ys = [4 5] # a row vector
-f(x,y) = (x,y)
-f.(xs, ys)    # broadcasting a column and row vector makes a matrix, then applies f.
+h(x,y) = (x,y)
+h.(xs, ys)    # broadcasting a column and row vector makes a matrix, then applies f.
 ```
 
-This should be contrasted to the case when both `xs` and `ys` are (column) vectors, as then they pair off:
+This should be contrasted to the case when both `xs` and `ys` are (column) vectors, as then they pair off (and here cause a dimension mismatch as they have different lengths):
 
-```
-f.(xs, [4,5])
+```julia;
+h.(xs, [4,5])
 ```
 
 * The `map` function is similar, it applies a function to each element:
@@ -409,29 +413,24 @@ f.(xs, [4,5])
 map(sin, [1,2,3])
 ```
 
-```julia; echo=false
-CalculusWithJulia.WeaveSupport.note("""Many different computer languages implement `map`, broadcasting is less common. `Julia`'s use of the dot syntax to indicate broadcasting is reminiscent of MATLAB, but is quite different.""")
-```
+!!! note
+	Many different computer languages implement `map`, broadcasting is less common. `Julia`'s use of the dot syntax to indicate broadcasting is reminiscent of MATLAB, but is quite different.
 
 ## Plots
 
 
-The following commands use the `Plots` package. The `Plots` package expects a choice of backend. We will use both `plotly` and `gr` (and occasionally `pyplot()`).
+The following commands use the `Plots` package. The `Plots` package expects a choice of backend. We will use `gr` unless, but other can be substituted by calling an appropriate command, suchas `pyplot()` or `plotly()`.
 
 ```julia;
 using Plots
-pyplot()      # select pyplot. Use `gr()` for GR; `plotly()` for Plotly
 ```
 
-```julia; echo=false;
-CalculusWithJulia.WeaveSupport.note("""
-The `plotly` backend and `gr` backends are available by default. The `plotly` backend is has some interactivity, `gr` is for static plots. The `pyplot` package is used for certain surface plots, when `gr` can not be used.
-""")
-```
+!!! note
+	The `plotly` backend and `gr` backends are available by default. The `plotly` backend is has some interactivity, `gr` is for static plots. The `pyplot` package is used for certain surface plots, when `gr` can not be used.
 
 
 
-> Plotting a univariate function $f:R \rightarrow R$
+### Plotting a univariate function $f:R \rightarrow R$
 
 * using `plot(f, a, b)`
 
@@ -441,7 +440,7 @@ plot(sin, 0, 2pi)
 
 Or
 
-```julia;
+```julia; hold=true
 f(x) = exp(-x/2pi)*sin(x)
 plot(f, 0, 2pi)
 ```
@@ -452,10 +451,9 @@ Or with an anonymous function
 plot(x -> sin(x) + sin(2x), 0, 2pi)
 ```
 
-```julia;echo=false
-CalculusWithJulia.WeaveSupport.note("""The time to first plot can be lengthy! This can be removed by creating a custom `Julia` image, but that is not introductory level stuff. As well, standalone plotting packages offer quicker first plots, but the simplicity of `Plots` is preferred. Subsequent plots are not so time consuming, as the initial time is spent compiling functions so their re-use is speedy.
-""")
-```
+!!! note
+	The time to first plot can be lengthy! This can be removed by creating a custom `Julia` image, but that is not introductory level stuff. As well, standalone plotting packages offer quicker first plots, but the simplicity of `Plots` is preferred. Subsequent plots are not so time consuming, as the initial time is spent compiling functions so their re-use is speedy.
+
 
 
 Arguments of interest include
@@ -474,7 +472,7 @@ Arguments of interest include
 
 The lower level interface to `plot` involves directly creating x and y values to plot:
 
-```julia;
+```julia; hold=true
 xs = range(0, 2pi, length=100)
 ys = sin.(xs)
 plot(xs, ys, color=:red)
@@ -485,7 +483,7 @@ plot(xs, ys, color=:red)
 
 A symbolic expression of single variable can be plotted as a function is:
 
-```julia;
+```julia; hold=true
 @syms x
 plot(exp(-x/2pi)*sin(x), 0, 2pi)
 ```
@@ -494,7 +492,7 @@ plot(exp(-x/2pi)*sin(x), 0, 2pi)
 
 The `!` Julia convention to modify an object is used by the `plot` command, so `plot!` will add to the existing plot:
 
-```julia;
+```julia; hold=true
 plot(sin, 0, 2pi, color=:red)
 plot!(cos, 0, 2pi, color=:blue)
 plot!(zero, color=:green)  # no a, b then inherited from graph.
@@ -502,13 +500,13 @@ plot!(zero, color=:green)  # no a, b then inherited from graph.
 
 The `zero` function is just 0 (more generally useful when the type of a number is important, but used here to emphasize the $x$ axis).
 
-> Plotting a parameterized (space) curve function $f:R \rightarrow R^n$, $n = 2$ or $3$
+### Plotting a parameterized (space) curve function $f:R \rightarrow R^n$, $n = 2$ or $3$
 
 * Using `plot(xs, ys)`
 
 Let $f(t) = e^{t/2\pi} \langle \cos(t), \sin(t)\rangle$ be a parameterized function. Then the $t$ values can be generated as follows:
 
-```julia;
+```julia; hold=true
 ts = range(0, 2pi, length = 100)
 xs = [exp(t/2pi) * cos(t) for t in ts]
 ys = [exp(t/2pi) * sin(t) for t in ts]
@@ -517,7 +515,7 @@ plot(xs, ys)
 
 * using `plot(f1, f2, a, b)`. If the two functions describing the components are available, then
 
-```julia;
+```julia; hold=true
 f1(t) = exp(t/2pi) * cos(t)
 f2(t) = exp(t/2pi) * sin(t)
 plot(f1, f2, 0, 2pi)
@@ -532,14 +530,14 @@ plot_parametric(0..2pi, r)
 
 The low-level approach doesn't quite work as easily as desired:
 
-```julia;
+```julia; hold=true
 ts = range(0, 2pi, length = 4)
 vs = r.(ts)
 ```
 
 As seen, the values are a vector of vectors. To plot a reshaping needs to be done:
 
-```julia;
+```julia; hold=true
 ts = range(0, 2pi, length = 100)
 vs = r.(ts)
 xs = [vs[i][1] for i in eachindex(vs)]
@@ -550,7 +548,8 @@ plot(xs, ys)
 This approach is faciliated by the `unzip` function in `CalculusWithJulia` (and used internally by `plot_parametric`):
 
 ```julia;
-plot(unzip(vs)...)
+ts = range(0, 2pi, length = 100)
+plot(unzip(r.(ts))...)
 ```
 
 
@@ -559,13 +558,13 @@ plot(unzip(vs)...)
 
 An arrow in 2D can be plotted with the `quiver` command. We show the `arrow(p, v)` (or `arrow!(p,v)` function) from the `CalculusWithJulia` package, which has an easier syntax (`arrow!(p, v)`, where `p` is a point indicating the placement of the tail, and `v` the vector to represent):
 
-```julia;
+```julia;hold=true
 plot_parametric(0..2pi, r)
 t0 = pi/8
 arrow!(r(t0), r'(t0))
 ```
 
-> Plotting a scalar function $f:R^2 \rightarrow R$
+### Plotting a scalar function $f:R^2 \rightarrow R$
 
 The `surface` and `contour` functions are available to visualize a scalar function of $2$ variables:
 
@@ -573,7 +572,7 @@ The `surface` and `contour` functions are available to visualize a scalar functi
 
 
 
-```julia;
+```julia; hold=true
 f(x, y) = 2 - x^2 + y^2
 xs = ys = range(-2,2, length=25)
 surface(xs, ys, f)
@@ -581,7 +580,9 @@ surface(xs, ys, f)
 
 The function generates the $z$ values, this can be done by the user and then passed to the `surface(xs, ys, zs)` format:
 
-```julia;
+```julia; hold=true
+f(x, y) = 2 - x^2 + y^2
+xs = ys = range(-2,2, length=25)
 surface(xs, ys, f.(xs, ys'))
 ```
 
@@ -593,31 +594,35 @@ surface(xs, ys, f.(xs, ys'))
 
 The `contour` function is like the `surface` function.
 
-```julia;
+```julia; hold=true
+xs = ys = range(-2,2, length=25)
+f(x, y) = 2 - x^2 + y^2
 contour(xs, ys, f)
 ```
 
-```julia;
+The values can be computed easily enough, being careful where the transpose is needed:
+
+```julia; hold=true
+xs = ys = range(-2,2, length=25)
+f(x, y) = 2 - x^2 + y^2
 contour(xs, ys, f.(xs, ys'))
 ```
 
 
 * An implicit equation. The constraint $f(x,y)=c$ generates an
   implicit equation. While `contour` can be used for this type of
-  plot - by adjusting the requested contours - the `ImplicitEquations`
-  package can as well, and, perhaps. is easier.`ImplicitEquations`
-  plots predicates formed by `Eq`, `Le`, `Lt`, `Ge`, and `Gt` (or some
-  unicode counterparts). For example to plot when $f(x,y) = \sin(xy) -
-  \cos(xy) \leq 0$ we have:
+  plot - by adjusting the requested contours - the `ImplicitPlots`
+  package does this to make a plot of the equations ``f(x,y) = 0``"
 
-```julia;
-using ImplicitEquations
+
+```julia; hold=true
+using ImplicitPlots
 f(x,y) = sin(x*y) - cos(x*y)
-plot(Le(f, 0))     # or plot(f ≦ 0) using \leqq[tab] to create that symbol
+implicit_plot(f)
 ```
 
 
-> Plotting a parameterized surface $f:R^2 \rightarrow R^3$
+### Plotting a parameterized surface $f:R^2 \rightarrow R^3$
 
 
 
@@ -625,7 +630,7 @@ The `pyplot` (and `plotly`) backends allow plotting of parameterized surfaces.
 
 The low-level `surface(xs,ys,zs)` is used, and can be specified directly as follows:
 
-```julia;
+```julia; hold=true
 X(theta, phi) = sin(phi)*cos(theta)
 Y(theta, phi) = sin(phi)*sin(theta)
 Z(theta, phi) = cos(phi)
@@ -638,10 +643,11 @@ surface(X.(thetas, phis'), Y.(thetas, phis'), Z.(thetas, phis'))
 
 
 
-> Plotting a vector field $F:R^2 \rightarrow R^2$. The `CalculusWithJulia` package provides `vectorfieldplot`, used as:
+### Plotting a vector field $F:R^2 \rightarrow R^2$.
 
-```julia;
-gr()  # better arrows than plotly()
+The `CalculusWithJulia` package provides `vectorfieldplot`, used as:
+
+```julia; hold=true
 F(x,y) = [-y, x]
 vectorfieldplot(F, xlim=(-2, 2), ylim=(-2,2), nx=10, ny=10)
 ```
@@ -653,7 +659,7 @@ There is also `vectorfieldplot3d`.
 
 Limits can be investigated numerically by forming tables, eg.:
 
-```julia;
+```julia; hold=true
 xs = [1, 1/10, 1/100, 1/1000]
 f(x) = sin(x)/x
 [xs f.(xs)]
@@ -661,14 +667,14 @@ f(x) = sin(x)/x
 
 Symbolically, `SymPy` provides a `limit` function:
 
-```julia;
+```julia; hold=true
 @syms x
 limit(sin(x)/x, x => 0)
 ```
 
 Or
 
-```julia;
+```julia; hold=true
 @syms h x
 limit((sin(x+h) - sin(x))/h, h => 0)
 ```
@@ -678,7 +684,7 @@ limit((sin(x+h) - sin(x))/h, h => 0)
 There are numeric and symbolic approaches  to derivatives. For the numeric approach we use the `ForwardDiff` package, which performs automatic differentiation.
 
 
-> Derivatives of univariate functions
+### Derivatives of univariate functions
 
 Numerically, the `ForwardDiff.derivative(f, x)` function call will find the derivative of the function `f` at the point `x`:
 
@@ -688,7 +694,7 @@ ForwardDiff.derivative(sin, pi/3) - cos(pi/3)
 
 The `CalculusWithJulia` package overides the `'` (`adjoint`) syntax for functions to provide a derivative which takes a function and returns a function, so its usage is familiar
 
-```julia;
+```julia; hold=true
 f(x) = sin(x)
 f'(pi/3) - cos(pi/3)  # or just sin'(pi/3) - cos(pi/3)
 ```
@@ -696,7 +702,7 @@ f'(pi/3) - cos(pi/3)  # or just sin'(pi/3) - cos(pi/3)
 Higher order derivatives are possible as well,
 
 
-```julia;
+```julia; hold=true
 f(x) = sin(x)
 f''''(pi/3) - f(pi/3)
 ```
@@ -706,7 +712,7 @@ f''''(pi/3) - f(pi/3)
 
 Symbolically, the `diff` function of `SymPy` finds derivatives.
 
-```julia;
+```julia; hold=true
 @syms x
 f(x) = exp(-x)*sin(x)
 ex = f(x)  # symbolic expression
@@ -715,28 +721,34 @@ diff(ex, x)   # or just diff(f(x), x)
 
 Higher order derivatives can be specified as well
 
-```julia;
+```julia; hold=true
+@syms x
+ex = exp(-x)*sin(x)
+
 diff(ex, x, x)
 ```
 
 Or with a number:
 
-```julia;
+```julia; hold=true
+@syms x
+ex = exp(-x)*sin(x)
+
 diff(ex, x, 5)
 ```
 
 The variable is important, as this allows parameters to be symbolic
 
-```julia;
+```julia; hold=true
 @syms mu sigma x
 diff(exp(-((x-mu)/sigma)^2/2), x)
 ```
 
-> partial derivatives
+### Partial derivatives
 
 There is no direct partial derivative function provided by `ForwardDiff`, rather we use the result of the `ForwardDiff.gradient` function, which finds the partial derivatives for each variable. To use this, the function must be defined in terms of a point or vector.
 
-```julia;
+```julia; hold=true
 f(x,y,z) = x*y + y*z + z*x
 f(v) = f(v...)               # this is needed for ForwardDiff.gradient
 ForwardDiff.gradient(f, [1,2,3])
@@ -748,7 +760,7 @@ We can see directly that $\partial{f}/\partial{x} = \langle y + z\rangle$. At th
 
 Symbolically, `diff` is used for partial derivatives:
 
-```julia;
+```julia; hold=true
 @syms x y z
 ex = x*y + y*z + z*x
 diff(ex, x)    # ∂f/∂x
@@ -758,7 +770,7 @@ diff(ex, x)    # ∂f/∂x
 
 As seen, the `ForwardDiff.gradient` function finds the gradient at a point. In `CalculusWithJulia`, the gradient is extended to return a function when called with no additional arguments:
 
-```julia;
+```julia; hold=true
 f(x,y,z) =  x*y + y*z + z*x
 f(v) = f(v...)
 gradient(f)(1,2,3) - gradient(f, [1,2,3])
@@ -766,7 +778,9 @@ gradient(f)(1,2,3) - gradient(f, [1,2,3])
 
 The `∇` symbol, formed by entering `\nabla[tab]`, is mathematical syntax for the gradient, and is defined in `CalculusWithJulia`.
 
-```julia;
+```julia; hold=true
+f(x,y,z) =  x*y + y*z + z*x
+f(x) = f(x...)
 ∇(f)(1,2,3)   # same as gradient(f, [1,2,3])
 ```
 
@@ -774,7 +788,7 @@ The `∇` symbol, formed by entering `\nabla[tab]`, is mathematical syntax for t
 
 In `SymPy`, there is no gradient function, though finding the gradient is easy through broadcasting:
 
-```julia;
+```julia; hold=true
 @syms x y z
 ex = x*y + y*z + z*x
 diff.(ex, [x,y,z])  # [diff(ex, x), diff(ex, y), diff(ex, z)]
@@ -782,22 +796,28 @@ diff.(ex, [x,y,z])  # [diff(ex, x), diff(ex, y), diff(ex, z)]
 
 The  `CalculusWithJulia` package provides a method for `gradient`:
 
-```julia;
+```julia; hold=true
+@syms x y z
+ex = x*y + y*z + z*x
+
 gradient(ex, [x,y,z])
 ```
 
 The `∇` symbol is an alias. It can guess the order of the free symbols, but generally specifying them is needed. This is done with a tuple:
 
-```julia;
+```julia; hold=true
+@syms x y z
+ex = x*y + y*z + z*x
+
 ∇((ex, [x,y,z]))  # for this, ∇(ex) also works
 ```
 
 
-> Jacobian
+### Jacobian
 
 The Jacobian of a function $f:R^n \rightarrow R^m$ is a $m\times n$ matrix of partial derivatives. Numerically, `ForwardDiff.jacobian` can find the Jacobian of a function at a point:
 
-```julia;
+```julia; hold=true
 F(u,v) = [u*cos(v), u*sin(v), u]
 F(v) = F(v...)    # needed for ForwardDiff.jacobian
 pt = [1, pi/4]
@@ -808,24 +828,30 @@ ForwardDiff.jacobian(F , pt)
 
 Symbolically, the `jacobian` function is a method of a *matrix*, so the calling pattern is different. (Of the form `object.method(arguments...)`.)
 
-```julia;
+```julia; hold=true
 @syms u v
+F(u,v) = [u*cos(v), u*sin(v), u]
+F(v) = F(v...)
+
 ex = F(u,v)
 ex.jacobian([u,v])
 ```
 
 As the Jacobian can be identified as the matrix with rows given by the transpose of the gradient of the component, it can be computed directly, but it is more difficult:
 
-```julia;
+```julia; hold=true
 @syms u::real v::real
+F(u,v) = [u*cos(v), u*sin(v), u]
+F(v) = F(v...)
+
 vcat([diff.(ex, [u,v])' for ex in F(u,v)]...)
 ```
 
-> Divergence
+### Divergence
 
 Numerically, the divergence can be computed from the Jacobian by adding the diagonal elements. This is a numerically inefficient, as the other partial derivates must be found and discarded, but this is generally not an issue for these notes. The following uses `tr` (the trace from the `LinearAlgebra` package) to find the sum of a diagonal.
 
-```julia;
+```julia; hold=true
 F(x,y,z) = [-y, x, z]
 F(v) = F(v...)
 pt = [1,2,3]
@@ -834,7 +860,10 @@ tr(ForwardDiff.jacobian(F , pt))
 
 The `CalculusWithJulia` package provides `divergence` to compute the divergence and provides the `∇ ⋅` notation (`\nabla[tab]\cdot[tab]`):
 
-```julia;
+```julia; hold=true
+F(x,y,z) = [-y, x, z]
+F(v) = F(v...)
+
 divergence(F, [1,2,3])
 (∇⋅F)(1,2,3)    # not ∇⋅F(1,2,3) as that evaluates F(1,2,3) before the divergence
 ```
@@ -844,47 +873,60 @@ divergence(F, [1,2,3])
 
 Symbolically, the divergence can be found directly:
 
-```julia;
+```julia;hold=true
 @syms x y z
-ex = F(x,y,z)
+ex = [-y, x, z]
+
 sum(diff.(ex, [x,y,z]))    # sum of [diff(ex[1], x), diff(ex[2],y), diff(ex[3], z)]
 ```
 
 The `divergence` function can be used for symbolic expressions:
 
-```julia;
+```julia; hold=true
+@syms x y z
+ex = [-y, x, z]
+
 divergence(ex, [x,y,z])
-∇⋅(F(x,y,z), [x,y,z])   # For this, ∇ ⋅ F(x,y,z) also works
+∇⋅(ex, [x,y,z])   # For this, ∇ ⋅ F(x,y,z) also works
 ```
 
-> Curl
+### Curl
 
 The curl can be computed from the off-diagonal elements of the Jacobian. The calculation follows the formula. The `CalculusWithJulia` package provides `curl` to compute this:
 
-```julia;
+```julia; hold=true
 F(x,y,z) = [-y, x, 1]
 F(v) = F(v...)
+
 curl(F, [1,2,3])
 ```
 
 As well, if no point is specified, a function is returned for which a point may be specified using 3 coordinates or a vector
 
-```julia;
+```julia; hold=true
+F(x,y,z) = [-y, x, 1]
+F(v) = F(v...)
+
 curl(F)(1,2,3), curl(F)([1,2,3])
 ```
 
 Finally, the `∇ ×` (`\nabla[tab]\times[tab]` notation is available)
-```julia;
+
+```julia; ohld=true
+F(x,y,z) = [-y, x, 1]
+F(v) = F(v...)
+
 (∇×F)(1,2,3)
 ```
 
-For symbolic expressions, we have
+For symbolic expressions, we have the `∇ ×` times notation is available **if** the symbolic vector contains all ``3`` variables
 
-```
-∇×F(1,2,3)
-```
+```julia; hold=true
+@syms x y z
+F = [-y, x, z]  #  but not [-y, x, 1] which errs; use `curl` with variables specified
 
-(Do note the subtle difference in the use of parentheses between the numeric and the symbolic. For the symbolic, `F(x,y,z)` is evaluated *before* being passed to `∇×`, where as for the numeric approach `∇×F` is evaluated *before* passing a point to compute the value there.)
+curl([-y, x, 1], (x,y,z)),  ∇×F
+```
 
 ## Integrals
 
@@ -894,7 +936,7 @@ Numeric integration is provided by the `QuadGK` package, for univariate integral
 using QuadGK, HCubature
 ```
 
-> Integrals of univariate functions
+### Integrals of univariate functions
 
 A definite integral may be computed numerically using `quadgk`
 
@@ -916,7 +958,7 @@ quadgk(x->1/x^(1/2), 0, 1)
 SymPy provides the `integrate` function to compute both definite and indefinite integrals.
 
 
-```julia;
+```julia; hold=true
 @syms a::real x::real
 integrate(exp(a*x)*sin(x), x)
 ```
@@ -925,28 +967,31 @@ Like `diff` the variable to integrate is specified.
 
 Definite integrals use a tuple, `(variable, a, b)`, to specify the variable and range to integrate over:
 
-```julia;
+```julia; hold=true
+@syms a::real x::real
 integrate(sin(a + x), (x, 0, PI))   #  ∫_0^PI sin(a+x) dx
 ```
 
 
 
 
-> 2D and 3D iterated integrals
+### 2D and 3D iterated integrals
 
 Two and three dimensional integrals over box-like regions are computed numerically with the `hcubature` function from the `HCubature` package. If the box is $[x_1, y_1]\times[x_2,y_2]\times\cdots\times[x_n,y_n]$ then the limits are specified through tuples of the form $(x_1,x_2,\dots,x_n)$ and $(y_1,y_2,\dots,y_n)$.
 
-```julia;
+```julia; hold=true
 f(x,y) = x*y^2
 f(v) = f(v...)
+
 hcubature(f, (0,0), (1, 2))  # computes ∫₀¹∫₀² f(x,y) dy dx
 ```
 
 The calling pattern for more dimensions is identical.
 
-```julia;
+```julia; hold=true
 f(x,y,z) = x*y^2*z^3
 f(v) = f(v...)
+
 hcubature(f, (0,0,0), (1, 2,3)) # computes ∫₀¹∫₀²∫₀³ f(x,y,z) dz dy dx
 ```
 
@@ -958,7 +1003,7 @@ $$~
 
 Here we implement this:
 
-```julia;
+```julia; hold=true
 f(x,y) = x*y^2
 f(v) = f(v...)
 Phi(r, theta) = r * [cos(theta), sin(theta)]
@@ -967,26 +1012,18 @@ integrand(rtheta) = f(Phi(rtheta)) * det(ForwardDiff.jacobian(Phi, rtheta))
 hcubature(integrand, (0.0,-pi/2), (1.0, pi/2))
 ```
 
-In `CalculusWithJulia` a `fubini` function is provided to compute numeric integrals over regions which can be described by curves represented by functions. E.g., for this problem:
-
-```julia;
-CalculusWithJulia.fubini(f, (x -> -sqrt(1-x^2), x -> sqrt(1-x^2)), (0, 1))
-```
-
-This function is for convenience, but is not performant. It is not exported, so is used as above, through qualification.
-
 
 ----
 
 Symbolically, the `integrate` function allows additional terms to be specified. For example, the above could be done through:
 
-```julia;
+```julia; hold=true
 @syms x::real y::real
 integrate(x * y^2, (y, -sqrt(1-x^2), sqrt(1-x^2)), (x, 0, 1))
 ```
 
 
-> Line integrals
+### Line integrals
 
 A line integral of $f$ parameterized by $\vec{r}(t)$ is computed by:
 
@@ -996,17 +1033,18 @@ $$~
 
 For example, if $f(x,y) = 2 - x^2 - y^2$ and $r(t) = 1/t \langle \cos(t), \sin(t) \rangle$, then the line integral over $[1,2]$ is given by:
 
-```julia;
+```julia; hold=true
 f(x,y) = 2 - x^2 - y^2
 f(v) = f(v...)
 r(t) = [cos(t), sin(t)]/t
+
 integrand(t) = (f∘r)(t) * norm(r'(t))
 quadgk(integrand, 1, 2)
 ```
 
 To integrate a line integral through a vector field, say $\int_C F \cdot\hat{T} ds=\int_C F\cdot \vec{r}'(t) dt$ we have, for example,
 
-```julia;
+```julia; hold=true
 F(x,y) = [-y, x]
 F(v) = F(v...)
 r(t) =  [cos(t), sin(t)]/t
@@ -1018,23 +1056,24 @@ quadgk(integrand, 1, 2)
 
 Symbolically, there is no real difference from a 1-dimensional integral. Let $\phi = 1/\|r\|$ and integrate the gradient field over one turn of the helix $\vec{r}(t) = \langle \cos(t), \sin(t), t\rangle$.
 
-```julia;
+```julia; hold=true
 @syms x::real y::real z::real t::real
 phi(x,y,z) = 1/sqrt(x^2 + y^2 + z^2)
 r(t) = [cos(t), sin(t), t]
 ∇phi = diff.(phi(x,y,z), [x,y,z])
 ∇phi_r = subs.(∇phi, x.=> r(t)[1], y.=>r(t)[2], z.=>r(t)[3])
 rp = diff.(r(t), t)
-ex = simplify(∇phi_r ⋅ rp )
+global helix = simplify(∇phi_r ⋅ rp )
 ```
 
 Then
 
 ```julia;
-integrate(ex, (t, 0, 2PI))
+@syms t::real
+integrate(helix, (t, 0, 2PI))
 ```
 
-> Surface integrals
+### Surface integrals
 
 
 The surface integral for a parameterized surface involves a surface element $\|\partial\Phi/\partial{u} \times \partial\Phi/\partial{v}\|$. This can be computed numerically with:
@@ -1061,9 +1100,9 @@ Symbolically, the approach is similar:
 
 ```julia;
 @syms u::real v::real
-ex = Phi(u,v)
-J = ex.jacobian([u,v])
-SurfEl = norm(J[:,1] × J[:,2]) |> simplify
+exₚ = Phi(u,v)
+Jₚ = exₚ.jacobian([u,v])
+SurfEl = norm(Jₚ[:,1] × Jₚ[:,2]) |> simplify
 ```
 
 Then
@@ -1074,8 +1113,8 @@ integrate(SurfEl, (u, 0, 1), (v, 0, 2PI))
 
 Integrating a vector field over the surface, would be similar:
 
-```julia;
+```julia; hold=true
 F(x,y,z) = [x, y, z]
-ex = F(Phi(u,v)...)  ⋅ (J[:,1] × J[:,2])
+ex = F(Phi(u,v)...)  ⋅ (Jₚ[:,1] × Jₚ[:,2])
 integrate(ex, (u,0,1), (v, 0, 2PI))
 ```
