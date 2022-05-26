@@ -12,6 +12,7 @@ function build_toc(force=true)
 
     jmd_dir = joinpath(repo_directory, "CwJ", "misc")
     build_dir = joinpath(@__DIR__, "build")
+    isdir(build_dir) || mkpath(build_dir)
 
     file = joinpath(jmd_dir, "toc.jmd")
 
@@ -58,6 +59,7 @@ function weave_file(folder, file; build_list=(:html,), force=false, kwargs...)
     jmd_file = joinpath(jmd_dir, file)
     bnm = replace(basename(jmd_file), r".jmd$" => "")
     build_dir = joinpath(@__DIR__, "build")
+    isdir(build_dir) || mkpath(build_dir)
 
     if !force
         #testfile = joinpath(repo_directory, "html", folder, bnm*".html")
