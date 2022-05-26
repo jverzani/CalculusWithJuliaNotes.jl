@@ -8,14 +8,38 @@ const htmlfile =  joinpath(@__DIR__, "..", "templates", "bootstrap.tpl")
 const latexfile = joinpath(@__DIR__, "..", "templates", "julia_tex.tpl")
 
 function build_toc(force=true)
-    infile = joinpath(repo_directory, "CwJ", "misc", "toc.jmd")
-    outfile = joinpath(@__DIR__, "build", "index.html")
-    weave(infile;
-          out_path=outfile,
-          doctype="md2html",
-          fig_ext=".svg",
-          template=htmlfile,
-          fig_path=tempdir())
+    @info "building table of contents"
+
+    jmd_dir = joinpath(repo_directory, "CwJ", "misc")
+    build_dir = joinpath(@__DIR__, "build")
+    isdir(build_dir) || mkpath(build_dir)
+
+    file = joinpath(jmd_dir, "toc.jmd")
+
+    outfile = joinpath(build_dir, "index.html")
+
+    cd(jmd_dir)
+
+    build_file(file, outfile, force=force) || return nothing
+
+    header = CalculusWithJulia.WeaveSupport.header_cmd
+    #footer = CalculusWithJulia.WeaveSupport.footer_cmd(bnm, folder)
+    html_content = md2html(file,
+                           header_cmds=(header,),
+                           footer_cmds=()
+                           )
+
+    open(outfile, "w") do io
+        write(io, html_content)
+    end
+
+    # to use weave, not pluto
+    # weave(file;
+    #       out_path=outfile,
+    #       doctype="md2html",
+    #       fig_ext=".svg",
+    #       template=htmlfile,
+    #       fig_path=tempdir())
 end
 
 
@@ -31,10 +55,11 @@ end
 # build list ⊂ (:script,:html,:weave_html, :pdf,:github,:notebook,:pluto)
 function weave_file(folder, file; build_list=(:html,), force=false, kwargs...)
 
-    jmd_dir = isdir(folder) ? folder : joinpath(repo_directory,"CwJ",folder)
+    jmd_dir = isdir(folder) ? folder : joinpath(repo_directory, "CwJ", folder)
     jmd_file = joinpath(jmd_dir, file)
     bnm = replace(basename(jmd_file), r".jmd$" => "")
-    build_dir = joinpath(repo_directory, "docs", "build")
+    build_dir = joinpath(@__DIR__, "build")
+    isdir(build_dir) || mkpath(build_dir)
 
     if !force
         #testfile = joinpath(repo_directory, "html", folder, bnm*".html")
