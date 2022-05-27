@@ -292,20 +292,26 @@ The files will be built as subdirectories in the package directory. This is retu
 
 """
 function weave_all(;force=false, build_list=(:script,:html,:pdf,:github,:notebook))
-    for folder in readdir(joinpath(repo_directory,"CwJ"))
-        folder == "test.jmd" && continue
-        weave_folder(folder; force=force, build_list=build_list)
-    end
+    folders = readdir(joinpath(repo_directory,"CwJ"))
+    folders = filter(F -> isdir(joinpath(repo_directory, "CwJ", F)), folders)
+    asyncmap(F -> weave_folder(F; force=force, build_list=build_list), folders)
+#    for folder in readdir(joinpath(repo_directory,"CwJ"))
+#        folder == "test.jmd" && continue
+#        weave_folder(folder; force=force, build_list=build_list)
+#    end
 end
 
 function weave_folder(folder; force=false, build_list=(:html,))
     !isnothing(match(r"\.ico$", folder)) && return nothing
-    for file in readdir(joinpath(repo_directory,"CwJ",folder))
-        !occursin(r".jmd$", basename(file)) && continue
-        println("Building $(joinpath(folder,file))")
-        try
-            weave_file(folder,file; force=force, build_list=build_list)
-        catch
-        end
-    end
+    files = readdir(joinpath(repo_directory,"CwJ",folder))
+    files = filter(f -> occursin(r".jmd$", basename(f)), files)
+    asyncmap(file -> weave_file(folder, file; force=force, build_list=build_list), files)
+    # for file in readdir(joinpath(repo_directory,"CwJ",folder))
+    #     !occursin(r".jmd$", basename(file)) && continue
+    #     println("Building $(joinpath(folder,file))")
+    #     try
+    #         weave_file(folder,file; force=force, build_list=build_list)
+    #     catch
+    #     end
+    # end
 end
