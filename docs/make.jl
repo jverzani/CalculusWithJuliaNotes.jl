@@ -67,12 +67,8 @@ if isnothing(folder) && isnothing(file)
     # # alternatives needs work
     # build_pages("alternatives", "plotly_plotting", :html, force)
 
-    folders =  ("precalc", "limits", "derivatives", "integrals", "ODEs",
-                "differentiable_vector_calculus", "integral_vector_calculus",
-                "misc")
-
     # keep it simple for now; uncomment above once build goes through
-    build_pages("precalc", nothing, :html, true)
+    build_pages("precalc", nothing, :html, force)
 
     build_toc()
 
