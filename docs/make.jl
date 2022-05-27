@@ -68,7 +68,7 @@ if isnothing(folder) && isnothing(file)
     # build_pages("alternatives", "plotly_plotting", :html, force)
 
     # keep it simple for now; uncomment above once build goes through
-    build_pages("precalc", "functions", :html, true)
+    build_pages("precalc", nothing, :html, true)
 
     build_toc()
 
