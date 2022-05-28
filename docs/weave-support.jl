@@ -105,6 +105,8 @@ function build_file(folder, file, force)
     ## use jmd -> pluto notebook -> generate_html
     @info "Building HTML: $file"
 
+    occursin(r"\.jmd$", file) || (file *=  ".jmd")
+
     o = build_fileq(folder, file, force=force)
     o || return false
 
