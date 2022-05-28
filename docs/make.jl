@@ -39,11 +39,9 @@ force = parse(Bool, d["force"])
 
 
 if isnothing(folder) && isnothing(file)
-    # keep it simple for now; uncomment above once build goes through
-    #build_all(force)
-    build_pages("precalc", nothing, :html, force)
 
-    #build_toc()
+    build_pages(nothing, nothing, :html, force)
+    build_toc()
 
 else
     build_pages(folder, file, :html, force)
