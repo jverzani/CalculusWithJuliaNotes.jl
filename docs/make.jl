@@ -2,11 +2,7 @@ using Documenter
 using ArgParse
 
 using CalculusWithJuliaNotes
-using CalculusWithJulia
-using Weave
-using Pkg
-import Markdown
-import Pluto
+
 
 include("weave-support.jl")
 include("markdown-to-pluto.jl")
@@ -34,21 +30,6 @@ function parse_commandline()
     return parse_args(s)
 end
 
-# what to build
-function build_pages(folder=nothing, file=nothing, target=:html, force=false)
-    build_list = (target, )
-    if folder != nothing && file !=nothing
-        weave_file(folder, file * ".jmd", build_list=build_list, force=force)
-    elseif folder != nothing
-        if folder == "all"
-            weave_all(; build_list=build_list, force=all)
-        else
-            weave_folder(folder, build_list = build_list, force=force)
-        end
-    elseif force
-        weave_all(; build_list=build_list, force=true)
-    end
-end
 
 # build pages
 d = parse_commandline()
@@ -58,22 +39,14 @@ force = parse(Bool, d["force"])
 
 
 if isnothing(folder) && isnothing(file)
-    # build full thing
-    # for folder ∈ ("precalc", "limits", "derivatives", "integrals", "ODEs",
-    #               "differentiable_vector_calculus", "integral_vector_calculus",
-    #               "misc")
-    #     build_pages(folder, nothing, target, force)
-    # end
-    # # alternatives needs work
-    # build_pages("alternatives", "plotly_plotting", :html, force)
-
     # keep it simple for now; uncomment above once build goes through
-    build_pages("precalc", nothing, :html, true)
+    #build_all(force)
+    build_pages("precalc", nothing, :html, force)
 
-    build_toc()
+    #build_toc()
 
 else
-    build_pages(folder, file, target, force)
+    build_pages(folder, file, :html, force)
 end
 
 
