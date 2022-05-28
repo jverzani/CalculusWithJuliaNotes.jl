@@ -29,6 +29,7 @@ write_cache(D) =
 
 function write_sha(folder, file)
     file = replace(file, r"\.jmd$"=>"")
+
     key = join((folder, file), "_")
     jmd_sha = sha(jmd_file(folder, file))
     # may need to block!
@@ -38,12 +39,16 @@ function write_sha(folder, file)
 end
 
 # build file check sha in cache
-jmd_file(folder, file) = joinpath(repo_directory, "CwJ", folder, file)
+function jmd_file(folder, file)
+    occursin(r"\.jmd$", file) || (file *=  ".jmd")
+    joinpath(repo_directory, "CwJ", folder, file)
+end
 
 # should we build this file?
 function build_fileq(folder, file; force=true)
     force && return force
 
+    file = replace(file, r"\.jmd$"=>"")
     key = join((folder, file), "_")
     D = read_cache()
 
@@ -66,11 +71,12 @@ function build_toc(force=true)
 
     outfile = joinpath(build_dir, "index.html")
 
-    cd(jmd_dir)
+    # cd(jmd_dir)
 
     build_fileq(file, outfile, force=force) || return nothing
     header = CalculusWithJulia.WeaveSupport.header_cmd
     #footer = CalculusWithJulia.WeaveSupport.footer_cmd(bnm, folder)
+
     html_content = md2html(file,
                            header_cmds=(header,),
                            footer_cmds=()
@@ -113,16 +119,10 @@ function build_file(folder, file, force)
     bnm = replace(file, r"\.jmd$"=>"")
 
     jmd_dir = joinpath(repo_directory, "CwJ", folder)
-    cd(jmd_dir)
+    #cd(jmd_dir)
 
     dir = joinpath(build_dir, folder)
     isdir(dir) || mkpath(dir)
-
-    ext = ".html"
-    outfile = joinpath(build_dir, folder, bnm*ext)
-
-
-
 
     header = CalculusWithJulia.WeaveSupport.header_cmd
     footer = CalculusWithJulia.WeaveSupport.footer_cmd(bnm, folder)
@@ -131,6 +131,7 @@ function build_file(folder, file, force)
                            footer_cmds=(footer,)
                            )
 
+    outfile = joinpath(build_dir, folder, bnm * ".html")
     open(outfile, "w") do io
         write(io, html_content)
     end
