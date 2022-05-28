@@ -9,6 +9,7 @@ using Pkg
 using SHA
 using TOML
 
+const _map = map # asyncmap
 
 const repo_directory = joinpath(@__DIR__,"..")
 const cache_file = joinpath(@__DIR__, "build_cache.toml")
@@ -146,14 +147,14 @@ end
 function build_all(force)
     folders = readdir(joinpath(repo_directory,"CwJ"))
     folders = filter(F -> isdir(joinpath(repo_directory, "CwJ", F)), folders)
-    asyncmap(F -> build_folder(F, force), folders)
+    _map(F -> build_folder(F, force), folders)
 end
 
 function build_folder(folder, force)
     !isnothing(match(r"\.ico$", folder)) && return nothing
     files = readdir(joinpath(repo_directory,"CwJ",folder))
     files = filter(f -> occursin(r".jmd$", basename(f)), files)
-    asyncmap(file -> build_file(folder, file, force), files)
+    _map(file -> build_file(folder, file, force), files)
 
 end
 
