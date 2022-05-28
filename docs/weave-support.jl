@@ -28,6 +28,7 @@ write_cache(D) =
     end
 
 function write_sha(folder, file)
+    file = replace(file, r"\.jmd$"=>"")
     key = join((folder, file), "_")
     jmd_sha = sha(jmd_file(folder, file))
     # may need to block!
