@@ -479,13 +479,13 @@ That is, any ladder less than this length can get around the hallway.
 Ethan Hunt, a top secret spy, has a mission to chase a bad guy. Here
 is what we know:
 
-* Ethan likes to run. He can run at 10 miles per hour.
-* He can drive a car - usually some concept car by BMW - at 30 miles per hour, but only on the road.
+* Ethan likes to run. He can run at ``10`` miles per hour.
+* He can drive a car - usually some concept car by BMW - at ``30`` miles per hour, but only on the road.
 
-For his mission, he needs to go 10 miles west and 5 miles north. He
+For his mission, he needs to go ``10`` miles west and ``5`` `miles north. He
 can do this by:
 
-* just driving 10 miles west then 5 miles north, or
+* just driving ``8.310`` miles west then ``5`` miles north, or
 * just running the diagonal distance, or
 * driving $0 < x < 10$ miles west, then running on the diagonal
 
@@ -524,14 +524,14 @@ The minimum happens way out near 8. We zoom in a bit:
 plot(T, 7, 9)
 ```
 
-It appears to be around 8.3. We now use `find_zero` to refine our
+It appears to be around ``8.3``. We now use `find_zero` to refine our
 guess at the critical point using $[7,9]$:
 
 ```julia;
 α = find_zero(T', (7, 9))
 ```
 
-Okay, got it. Around 8.23. So is  our minimum time
+Okay, got it. Around``8.23``. So is  our minimum time
 
 ```julia;
 T(α)
@@ -615,7 +615,7 @@ p.coeffs()
 ```
 
 Fourth degree polynomials can be solved. The critical points of the
-original equation will be among the 4 solutions given. However, the result
+original equation will be among the ``4`` solutions given. However, the result
 is complicated.  The
 [article](http://www.ams.org/samplings/feature-column/fc-2016-05) -- from
 which the figure came -- states that "In today's textbooks the problem,
@@ -706,7 +706,7 @@ Here the extreme value theorem doesn't technically apply, as we don't
 have a closed interval. However, **if** we can eliminate the endpoints as
 candidates, then we should be able to convince ourselves the maximum
 must occur at a critical point of $f(x)$. (If not, then convince yourself for all sufficiently large $M$ the maximum over $[0,M]$ occurs at
-a critical point, not an endpoint. Then let $M$ go to infinity.)
+a critical point, not an endpoint. Then let $M$ go to infinity. In general, for an optimization problem of a continuous function on the interval ``(a,b)`` if the right limit at ``a`` and left limit at ``b`` can be ruled out as candidates, the optimal value must occur at a critical point.)
 
 So to approach this problem we first graph it over a wide interval.
 
@@ -715,7 +715,7 @@ f(x) = x * exp(-x^2)
 plot(f, 0, 100)
 ```
 
-Clearly the action is nearer to 1 than 100. We try graphing the
+Clearly the action is nearer to ``1`` than ``100``. We try graphing the
 derivative near that area:
 
 ```julia;
@@ -852,11 +852,22 @@ numericq(val)
 
 ###### Question
 
-A rancher with 10 meters of fence wishes to make a pen adjacent to an
+A rancher with ``10`` meters of fence wishes to make a pen adjacent to an
 existing fence. The pen will be a rectangle with one edge using the
 existing fence. Say that has length $x$, then $10 = 2y + x$, with $y$
 the other dimension of the pen. What is the maximum area that can be
 made?
+
+```julia; hold=true; echo=false
+p = plot(; legend=false, aspect_ratio=:equal, axis=nothing, border=:none)
+plot!([0,10, 10, 0, 0], [0,0,10,10,0]; linewidth=3)
+plot!(p, [10,14,14,10], [2, 2, 8,8]; linewidth = 1)
+annotate!(p, [(15, 5, "x"), (12,1, "y")])
+p
+```
+
+
+
 
 ```julia; hold=true; echo=false
 Ar(y) = (10-2y)*y;
@@ -905,6 +916,79 @@ choices = [
 ans = 1
 radioq(choices, ans)
 ```
+
+###### Question
+
+A cardboard box is to be designed with a square base and an open top holding a fixed volume ``V``. What dimensions yield the minimal surface area?
+
+
+
+If this problem were approached symbolically, we might see the following code. First:
+
+```julia;eval=false
+@syms V::positive x::positive z::positive
+SA = 1 * x * x + 4 * x * z
+```
+
+What does this express?
+
+```julia; hold=true; echo=false
+radioq((
+"The box has a square base with open top, so `x*x` is the amount of material in the base; the 4 sides each have `x*z` area.",
+"The volume is a fixed amount, so is `x*x*z`, with sides suitably labeled",
+"The surface area of a box is `6x*x`, so this is wrong."
+), 1)
+```
+
+What does this command express?
+
+```julia; eval=false
+SA = subs(SA, z => V / x^2)
+```
+
+```julia; hold=true; echo=false
+radioq((
+"This command replaces `z` with an expression in `x` using the constraint of  fixed volume `V`",
+"This command replaces `z`, reparameterizing in `V` instead.",
+"This command is merely algebraic simplification"
+), 1)
+```
+
+What does this command find?
+
+```julia; eval=false
+solve(diff(SA, x) ~ 0, x)
+```
+
+
+```julia; hold=true; echo=false
+radioq((
+"This solves ``SA'=0``, that is it find critical points of a continuously differentiable function",
+"This solves for ``V`` the fixed, but unknown volume",
+"This checks the values of `SA` at the end points of the domain"
+), 1)
+```
+
+What do these commands do?
+
+```julia; eval=false
+cps = solve(diff(SA, x) ~ 0, x)
+xx = filter(isreal, cps)[1]
+diff(SA, x, x)(xx) > 0
+```
+
+```julia; hold=true; echo=false
+radioq((
+"This applies the second derivative test to the lone *real* critical point showing there is a local minimum at that point.",
+"This applies the first derivative test to the lone *real* critical point showing there is a local minimum at that point.",
+"This finds the ``4`th derivative of `SA`"
+), 1)
+```
+
+
+
+
+
 
 ###### Question
 
@@ -1264,4 +1348,60 @@ raw" ``1``",
 raw" ``\sqrt{3}/2 \cdot (a/b)^{2/3}``"
 ]
 radioq(choices, 1)
+```
+
+###### Question
+
+In [Hall](https://www.maa.org/sites/default/files/hall03010308158.pdf) we can find a dozen optimization problems related to the following figure of the parabola ``y=x^2`` a point ``P=(a,a^2)``, ``a > 0``, and its normal line. We will do two.
+
+
+```julia; hold=true, echo=false
+p = plot(; legend=false, aspect_ratio=:equal, axis=nothing, border=:none)
+	b = 2.
+	plot!(p, x -> x^2, -b, b)
+	plot!(p, [-b,b], [0,0])
+	plot!(p, [0,0], [0, b^2])
+	a = 1
+	scatter!(p, [a],[a^2])
+	m = 2a
+	plot!(p, x -> a^2 + m*(x-a), 1/2, b)
+	mₚ = -1/m
+	plot!(p, x -> a^2 + mₚ*(x-a))
+	scatter!(p, [-3/2], [(3/2)^2])
+	annotate!(p, [(1+1/4, 1+1/8, "P"), (-3/2-1/4, (-3/2)^2-1/4, "Q")])
+p
+```
+
+What do these commands do?
+
+```julia; hold=true;
+@syms x::real, a::real
+mₚ = - 1 / diff(x^2, x)(a)
+solve(x^2 - (a^2 + mₚ*(x-a)) ~ 0, x)
+```
+
+```julia; hold=true; echo=false
+radioq((
+"It finds the ``x`` value of the intersection points of the normal line and the parabola",
+"It finds the tangent line",
+"It finds the point ``P``"
+), 1)
+```
+
+Numerically, find the value of ``a`` that minimizes the ``y`` coordinate of ``Q``.
+
+```julia; hold=true; echo=false
+y(a) = (-a - 1/(2a))^2
+a = find_zero(y', 1)
+numericq(a)
+```
+
+
+Numerically find the value of ``a`` that minimizes the length of the line seqment ``PQ``.
+
+```juila; hold=true; echo=false
+x(a) = -a - 1/(2a)
+d(a) = (a-x(a))^2 + (a^2 - x(a)^2)^2
+a = find_zero(d', 1)
+numericq(a)
 ```

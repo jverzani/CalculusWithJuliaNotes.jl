@@ -46,20 +46,39 @@ function jmd_file(folder, file)
     joinpath(repo_directory, "CwJ", folder, file)
 end
 
-# should we build this file?
-function build_fileq(folder, file; force=true)
-    force && return force
-
-    file = replace(file, r"\.jmd$"=>"")
-    key = join((folder, file), "_")
-
-    D = read_cache()
-
-    jmd_sha = sha(jmd_file(folder, file))
-    cache_sha = get(D, key, nothing)
-    Δ = jmd_sha != cache_sha
-    return Δ
+function out_file(folder, file; ext=".html")
+    file = replace(file, r"\.jmd$" => "")
+    joinpath(build_dir, folder, file * ext)
 end
+
+
+# should we build this file? keep cache
+# too much
+# function build_fileq(folder, file; force=true)
+#     force && return force
+
+#     file = replace(file, r"\.jmd$"=>"")
+#     key = join((folder, file), "_")
+
+#     D = read_cache()
+
+#     jmd_sha = sha(jmd_file(folder, file))
+#     cache_sha = get(D, key, nothing)
+#     Δ = jmd_sha != cache_sha
+#     return Δ
+# end
+
+# do we build the file check mtime
+function build_fileq(folder, file; force=false)
+    force && return true
+
+    jmdfile = jmd_file(folder, file)
+    outfile = out_file(folder, file)
+    !isfile(outfile) && return true
+    mtime(outfile) < mtime(jmdfile) && return true
+    return false
+end
+
 
 ## ----
 
@@ -127,12 +146,20 @@ function build_file(folder, file, force)
     dir = joinpath(build_dir, folder)
     isdir(dir) || mkpath(dir)
 
-    header = CalculusWithJulia.WeaveSupport.header_cmd
-    footer = CalculusWithJulia.WeaveSupport.footer_cmd(bnm, folder)
-    html_content = md2html(jmd_file(folder, file),
-                           header_cmds=(header,),
-                           footer_cmds=(footer,)
-                           )
+    html_content = try
+        header = CalculusWithJulia.WeaveSupport.header_cmd
+        footer = CalculusWithJulia.WeaveSupport.footer_cmd(bnm, folder)
+        md2html(jmd_file(folder, file),
+                header_cmds=(header,),
+                footer_cmds=(footer,)
+                )
+    catch err
+        @info "Error with $folder / $bnm"
+        header = CalculusWithJulia.WeaveSupport.header_cmd
+        md2html(jmd_file(folder, file),
+                header_cmds=(header,)
+                )
+    end
 
     outfile = joinpath(build_dir, folder, bnm * ".html")
     open(outfile, "w") do io
@@ -147,11 +174,12 @@ end
 function build_all(force)
     folders = readdir(joinpath(repo_directory,"CwJ"))
     folders = filter(F -> isdir(joinpath(repo_directory, "CwJ", F)), folders)
-    _map(F -> build_folder(F, force), folders)
+    asyncmap(F -> build_folder(F, force), folders) # _map
 end
 
 function build_folder(folder, force)
     !isnothing(match(r"\.ico$", folder)) && return nothing
+    @info "Build $(folder)/..."
     files = readdir(joinpath(repo_directory,"CwJ",folder))
     files = filter(f -> occursin(r".jmd$", basename(f)), files)
     _map(file -> build_file(folder, file, force), files)

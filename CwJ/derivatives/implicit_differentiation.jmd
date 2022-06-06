@@ -46,12 +46,12 @@ equations, we may have ``0``, ``1`` or more ``y`` values for a given ``x`` and
 even more problematic is we may have no rule to find these values.
 
 
-There are a few options for plotting implicit equations in `Julia`. We will use `ImplicitPlots`, but note both `ImplicitEquations` and `IntervalConstraintProgramming` offer alternatives that are a bit more flexible.
+There are a few options for plotting  equations in `Julia`. We will use `ImplicitPlots` in this section, but note both `ImplicitEquations` and `IntervalConstraintProgramming` offer alternatives that are a bit more flexible.
 
 
-To plot an implicit equation using `ImplicitPlots` requires expressing the relationship in terms of a function equation `f(x,y) = 0`. In practice this simply requires all the terms be moved to one side of an equals sign.
+To plot an implicit equation using `ImplicitPlots` requires expressing the relationship in terms of a function, and then plotting the equation `f(x,y) = 0`. In practice this simply requires all the terms be moved to one side of an equals sign.
 
-To plot the circle of radius ``2``, or the equations ``x^2 + y^2 = 2^2`` we would solve ``x^2 + y^2 - 2^2 = 0`` and then express the left hand side through a function:
+To plot the circle of radius ``2``, or the equations ``x^2 + y^2 = 2^2`` we would move all terms to one side ``x^2 + y^2 - 2^2 = 0`` and then express the left hand side through a function:
 
 ```julia;
 f(x,y) = x^2 + y^2 - 2^2
@@ -65,13 +65,11 @@ implicit_plot(f)
 ```
 
 
-```julia; echo=false
-note("""
+!!! note
+	The `f` is a function of *two* variables, used here to express one side of an equation. `Julia` makes this easy to do - just make sure two variables are in the signature of `f` when it is defined. Using functions like this, we can express our equation in the form ``f(x,y) = c`` or, more generally, as ``f(x,y) = g(x,y)``. The latter of which can be expressed as ``h(x,y) = f(x,y) - g(x,y) = 0``. That is, only the form ``f(x,y)=0`` is needed to represent an equation.
 
-The `f` is a function of *two* variables, used here to express one side of an equation. `Julia` makes this easy to do - just make sure two variables are in the signature of `f` when it is defined. Using functions like this, we can express our equation in the form ``f(x,y) = c`` or, more generally, as ``f(x,y) = g(x,y)``. The latter of which can be expressed as ``h(x,y) = f(x,y) - g(x,y) = 0``. That is, only the form ``f(x,y)=0`` is needed to represent an equation.
-
-""")
-```
+!!! note
+    There are two different styles in `Julia` to add simple plot recipes. `ImplicitPlots` adds a new plotting function (`implicit_plot`); alternatively many packages add a new recipe for the generic `plot` method using new types. (For example, `SymPy` has a plot recipe for symbolic types.
 
 
 Of course, more complicated equations are possible and the steps are
@@ -90,7 +88,7 @@ illustration purposes, a narrower viewing window is specified below using `xlims
 ```julia; hold=true
 a,b = -1,2
 f(x,y) =  y^4 - x^4 + a*y^2 + b*x^2
-implicit_plot(f, xlims=(-3,3), ylims=(-3,3))
+implicit_plot(f; xlims=(-3,3), ylims=(-3,3), legend=false)
 ```
 
 ## Tangent lines, implicit differentiation
@@ -98,7 +96,7 @@ implicit_plot(f, xlims=(-3,3), ylims=(-3,3))
 
 The graph ``x^2 + y^2 = 1`` has well-defined tangent lines at all points except
 ``(-1,0)`` and ``(0, 1)`` and even at these two points, we could call the vertical lines
-``x=-1`` and ``x=1`` tangent lines. However, to recover the slope would
+``x=-1`` and ``x=1`` tangent lines. However, to recover the slope of these tangent lines would
 need us to express ``y`` as a function of ``x`` and then differentiate
 that function. Of course, in this example, we would need two functions:
 ``f(x) = \sqrt{1-x^2}`` and ``g(x) = - \sqrt{1-x^2}`` to do this
@@ -126,7 +124,7 @@ For example,  starting with ``x^2 + y^2 = 1``, differentiating both sides in ``x
 2x + 2y\cdot \frac{dy}{dx} = 0.
 ```
 
-The chain rule was used to find ``(d/dx)(y^2) = 2y \cdot dy/dx``. From this we can solve for ``dy/dx`` (the resulting equations are linear in ``dy/dx``, so can always be solved explicitly):
+The chain rule was used to find ``(d/dx)(y^2) = [y(x)^2]' = 2y \cdot dy/dx``. From this we can solve for ``dy/dx`` (the resulting equations are linear in ``dy/dx``, so can always be solved explicitly):
 
 ```math
 \frac{dy}{dx} = -\frac{x}{y}.
@@ -137,7 +135,7 @@ This says the slope of the tangent line depends on the point ``(x,y)`` through t
 
 As a check, we compare to what we would have found had we solved for
 ``y= \sqrt{1 - x^2}`` (for ``(x,y)`` with ``y \geq 0``). We would have
-found: ``dy/dx = 1/2 \cdot 1/\sqrt{1 - x^2} \cdot -2x``. Which can be
+found: ``dy/dx = 1/2 \cdot 1/\sqrt{1 - x^2} \cdot (-2x)``. Which can be
 simplified to ``-x/y``. This should show that the method
 above - assuming ``y`` is a function of ``x`` and differentiating - is not
 only more general, but can even be easier.
@@ -275,7 +273,7 @@ implicit_plot(F, xlims=(-2, 2), ylims=(-2, 2), aspect_ratio=:equal)
 plot!(tl)
 ```
 
-We added *both* ``F ⩵ 1`` and the tangent line to the graph.
+We added *both* the implicit plot of ``F`` and the tangent line to the graph at the given point.
 
 
 ##### Example
@@ -356,7 +354,7 @@ Assume ``y`` is a function of ``x``, called `u(x)`, this substitution is just a 
 ex1 = ex(y => u(x))
 ```
 
-At this point,  we differentiate both sides in `x`:
+At this point,  we differentiate in `x`:
 
 ```julia;
 ex2 = diff(ex1, x)
@@ -393,7 +391,7 @@ Let ``a = b = c = d = 1``, then ``(1,4)`` is a point on the curve. We can draw a
 H = ex(a=>1, b=>1, c=>1, d=>1)
 x0, y0 = 1, 4
 𝒎 = dydx₁(x=>1, y=>4, a=>1, b=>1, c=>1, d=>1)
-implicit_plot(lambdify(H), xlims=(-5,5), ylims=(-5,5))
+implicit_plot(lambdify(H); xlims=(-5,5), ylims=(-5,5), legend=false)
 plot!(y0 + 𝒎 * (x-x0))
 ```
 
@@ -491,7 +489,7 @@ As inverses are unique, their notation, ``f^{-1}(x)``, reflects the name of the 
 
 The chain rule can be used to give the derivative of an inverse
 function when applied to ``f(f^{-1}(x)) = x``. Solving gives,
-``[f^{-1}(x)]' = 1 / f'(g(x))``.
+``[f^{-1}(x)]' = 1 / f'(f^{-1}(x))``.
 
 This is great - if we can remember the rules. If not, sometimes implicit
 differentiation can also help.
@@ -501,6 +499,8 @@ Consider the inverse function for the tangent, which exists when the domain of t
 ```math
 \sec(y)^2 \frac{dy}{dx} = 1.
 ```
+
+Or ``dy/dx = 1/\sec^2(y)``.
 
 But ``\sec(y)^2 = 1 + \tan(y)^2 = 1 + x^2``, as can be seen by right-triangle trigonometry. This yields the formula ``dy/dx = [\tan^{-1}(x)]' = 1 / (1 + x^2)``.
 
@@ -955,7 +955,7 @@ There are other packages in the `Julia` ecosystem that can plot implicit equatio
 
 The `ImplicitEquations` packages can plot equations and inequalities. The use is somewhat similar to the examples above, but the object plotted is a predicate, not a function. These predicates are created with functions like `Eq` or `Lt`.
 
-For example, the `ImplicitPlots` manual shows this function ``f(x,y) = (x^4 + y^4 - 1) * (x^2 + y^2 - 2) + x^5 * y`` to plot. Using `ImplicitEquations`, this equation would be plotted with:
+For example, the `ImplicitPlots` manual shows this function ``f(x,y) = (x^4 + y^4 - 1) \cdot (x^2 + y^2 - 2) + x^5 \cdot y`` to plot. Using `ImplicitEquations`, this equation would be plotted with:
 
 ```julia; hold=true
 using ImplicitEquations
