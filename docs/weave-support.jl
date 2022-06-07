@@ -9,10 +9,21 @@ using Pkg
 using SHA
 using TOML
 
+include("toc.jl")
 
+const _map = map # asyncmap
+
+# Unfortunately, trying to build files during CI proves too time
+# intensive, so we keep a copy of built html files in ./html
+# build files in CwJ -> html_dir
+# cp html_dir -> build_dir during build
 const repo_directory = joinpath(@__DIR__,"..")
-const cache_file = joinpath(@__DIR__, "build_cache.toml")
+const html_dir = joinpath(repo_directory, "html")
 const build_dir = joinpath(@__DIR__, "build")
+
+
+# cache SHA for each .jmd file to monitor changes
+const cache_file = joinpath(@__DIR__, "build_cache.toml")
 
 sha(s::IO) = bytes2hex(sha256(s))
 sha(path::AbstractString) = open(path, "r") do io
@@ -39,14 +50,23 @@ function write_sha(folder, file)
     write_cache(D)
 end
 
-# build file check sha in cache
+
+# get jmd file from (folder, file) pair
 function jmd_file(folder, file)
     occursin(r"\.jmd$", file) || (file *=  ".jmd")
     joinpath(repo_directory, "CwJ", folder, file)
 end
 
-# should we build this file?
+# where to write html file from (folder, file) pair
+function out_file(folder, file; ext=".html")
+    file = replace(file, r"\.jmd$" => "")
+    joinpath(html_dir, folder, file * ext)
+end
+
+
+# should we build this file? Consult cache
 function build_fileq(folder, file; force=true)
+    occursin(r"index.html", file) && return false
     force && return force
 
     file = replace(file, r"\.jmd$"=>"")
@@ -60,52 +80,30 @@ function build_fileq(folder, file; force=true)
     return Δ
 end
 
-## ----
-
-function build_toc(force=true)
-    @info "building table of contents"
-
-    jmd_dir = joinpath(repo_directory, "CwJ", "misc")
-    build_dir = joinpath(@__DIR__, "build")
-    isdir(build_dir) || mkpath(build_dir)
-
-    file = joinpath(jmd_dir, "toc.jmd")
-
-    outfile = joinpath(build_dir, "index.html")
-
-    # cd(jmd_dir)
-
-    build_fileq(file, outfile, force=force) || return nothing
-    header = CalculusWithJulia.WeaveSupport.header_cmd
-    #footer = CalculusWithJulia.WeaveSupport.footer_cmd(bnm, folder)
-
-    html_content = md2html(file,
-                           header_cmds=(header,),
-                           footer_cmds=()
-                           )
-
-    open(outfile, "w") do io
-        write(io, html_content)
-    end
-
-    # to use weave, not pluto
-    # weave(file;
-    #       out_path=outfile,
-    #       doctype="md2html",
-    #       fig_ext=".svg",
-    #       template=htmlfile,
-    #       fig_path=tempdir())
-end
-
-
-# do we build the file check mtime
-# function build_file(jmdfile, outfile; force=false)
-
+# # do we build the file check mtime
+# function build_fileq(folder, file; force=false)
 #     force && return true
+
+#     jmdfile = jmd_file(folder, file)
+#     outfile = out_file(folder, file)
 #     !isfile(outfile) && return true
 #     mtime(outfile) < mtime(jmdfile) && return true
 #     return false
 # end
+
+
+## ----
+
+function build_toc(force=true)
+    @info "building table of contents"
+    # copy misc/toc.html to index.html
+    a = joinpath(html_dir, "misc", "toc.html")
+    b = joinpath(build_dir, "index.html")
+    isdir(build_dir) || mkdir(build_dir)
+    cp(a, b; force=true)
+end
+
+
 
 # build pluto html
 # file **has**  ".jmd" extension
@@ -121,19 +119,26 @@ function build_file(folder, file, force)
     bnm = replace(file, r"\.jmd$"=>"")
 
     jmd_dir = joinpath(repo_directory, "CwJ", folder)
-    #cd(jmd_dir)
+    out_dir = joinpath(html_dir, folder)
+    isdir(out_dir) || mkpath(oud_dir)
 
-    dir = joinpath(build_dir, folder)
-    isdir(dir) || mkpath(dir)
+    html_content = try
+        header = header_cmd
+        footer = footer_cmd(bnm, folder)
+        md2html(jmd_file(folder, file),
+                header_cmds=(header,),
+                footer_cmds=(footer,)
+                )
+    catch err
+        @info "Error with $folder / $bnm"
+        header = header_cmd
+        md2html(jmd_file(folder, file),
+                header_cmds=(header,)
+                )
+    end
 
-    header = CalculusWithJulia.WeaveSupport.header_cmd
-    footer = CalculusWithJulia.WeaveSupport.footer_cmd(bnm, folder)
-    html_content = md2html(jmd_file(folder, file),
-                           header_cmds=(header,),
-                           footer_cmds=(footer,)
-                           )
-
-    outfile = joinpath(build_dir, folder, bnm * ".html")
+    #outfile = joinpath(build_dir, folder, bnm * ".html")
+    outfile = joinpath(out_dir, bnm * ".html")
     open(outfile, "w") do io
         write(io, html_content)
     end
@@ -146,14 +151,15 @@ end
 function build_all(force)
     folders = readdir(joinpath(repo_directory,"CwJ"))
     folders = filter(F -> isdir(joinpath(repo_directory, "CwJ", F)), folders)
-    asyncmap(F -> build_folder(F, force), folders)
+    _map(F -> build_folder(F, force), folders)
 end
 
 function build_folder(folder, force)
     !isnothing(match(r"\.ico$", folder)) && return nothing
+    @info "Build $(folder)/..."
     files = readdir(joinpath(repo_directory,"CwJ",folder))
     files = filter(f -> occursin(r".jmd$", basename(f)), files)
-    asyncmap(file -> build_file(folder, file, force), files)
+    _map(file -> build_file(folder, file, force), files)
 
 end
 
@@ -168,8 +174,29 @@ function build_pages(folder=nothing, file=nothing, target=:html, force=false)
     end
 end
 
+"""
+Copy files from /html to /docs/build
+recurse one level deep
+"""
+function build_deploy(;dir=html_dir)
+    isdir(build_dir) || mkdir(build_dir)
+
+    ds = readdir(dir)
+    for d ∈ ds
+        D = joinpath(build_dir, d)
+        isdir(D) || mkdir(D)
+        for dᵢ ∈ readdir(joinpath(dir,d))
+            a = joinpath(dir, d, dᵢ)
+            b = joinpath(D, dᵢ)
+            cp(a, b; force=true)
+        end
+    end
+end
+
+
+
 # ## --------------------------------------------------
-# ##  Build more generally, but not use right now
+# ##  Build more generally, but not used right now
 # const cssfile =   joinpath(@__DIR__, "..", "templates", "skeleton_css.css")
 # const htmlfile =  joinpath(@__DIR__, "..", "templates", "bootstrap.tpl")
 # const latexfile = joinpath(@__DIR__, "..", "templates", "julia_tex.tpl")

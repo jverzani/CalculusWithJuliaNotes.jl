@@ -105,7 +105,7 @@ function md2notebook(fname; header_cmds=(), footer_cmds=())
     footer_cmds = vcat(footer_cmds...,
                        "using PlutoUI",
                        "PlutoUI.TableOfContents()",
-                       "html\"\"\"<script src=\"https://utteranc.es/client.js\" repo=\"jverzani/CalculusWithJulia.jl\" issue-term=\"pathname\" theme=\"github-light\" crossorigin=\"anonymous\" async> </script>\"\"\""
+                       "html\"\"\"<script src=\"https://utteranc.es/client.js\" repo=\"jverzani/CalculusWithJuliaNotes.jl\" issue-term=\"pathname\" theme=\"github-light\" crossorigin=\"anonymous\" async> </script>\"\"\""
                        )
     for cmd ∈ footer_cmds
         cell = Pluto.Cell(cmd)
