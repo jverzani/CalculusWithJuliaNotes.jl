@@ -41,10 +41,11 @@ force = parse(Bool, d["force"])
 if isnothing(folder) && isnothing(file)
     build_pages(nothing, nothing, :html, force)
     build_toc()
-
 else
     build_pages(folder, file, :html, force)
 end
+
+build_deploy()
 
 
 
