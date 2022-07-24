@@ -1,0 +1,865 @@
+# L'Hospital's Rule
+
+
+```{julia}
+#| echo: false
+
+import Logging
+Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
+Logging.disable_logging(Logging.Warn)
+
+import SymPy
+function Base.show(io::IO, ::MIME"text/html", x::T) where {T <: SymPy.SymbolicObject}
+    println(io, "<span class=\"math-left-align\" style=\"padding-left: 4px; width:0; float:left;\"> ")
+    println(io, "\\[")
+    println(io, sympy.latex(x))
+    println(io, "\\]")
+    println(io, "</span>")
+end
+
+# hack to work around issue
+import Markdown
+import CalculusWithJulia
+function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
+    nm = joinpath("..", string(d), f)
+    u = "![$caption]($nm)"
+    Markdown.parse(u)
+end
+
+nothing
+```
+
+This section uses these add-on packages:
+
+
+```{julia}
+using CalculusWithJulia
+using Plots
+using SymPy
+
+```
+
+```{julia}
+#| echo: false
+#| results: "hidden"
+using CalculusWithJulia.WeaveSupport
+using Roots
+
+fig_size=(800, 600)
+const frontmatter = (
+        title = "L'Hospital's Rule",
+        description = "Calculus with Julia: L'Hospital's Rule",
+        tags = ["CalculusWithJulia", "derivatives", "l'hospital's rule"],
+);
+
+nothing
+```
+
+---
+
+
+Let's return to limits of the form $\lim_{x \rightarrow c}f(x)/g(x)$ which have an indeterminate form of $0/0$ if both are evaluated at $c$. The typical example being the limit considered by Euler:
+
+
+$$
+\lim_{x\rightarrow 0} \frac{\sin(x)}{x}.
+$$
+
+We know this is $1$ using a bound from geometry, but might also guess this is one, as we know from linearization near $0$ that we have $\sin(x) \approx x$ or, more specifically:
+
+
+$$
+\sin(x) = x - \sin(\xi)x^2/2, \quad 0 < \xi < x.
+$$
+
+This would yield:
+
+
+$$
+\lim_{x \rightarrow 0} \frac{\sin(x)}{x} = \lim_{x\rightarrow 0} \frac{x -\sin(\xi) x^2/2}{x} = \lim_{x\rightarrow 0} 1 + \sin(\xi) \cdot x/2 = 1.
+$$
+
+This is because we know $\sin(\xi) x/2$  has a limit of $0$, when $|\xi| \leq |x|$.
+
+
+That doesn't look any easier, as we worried about the error term, but if just mentally replaced $\sin(x)$ with $x$ - which it basically is near $0$ - then we can see that the limit should be the same as $x/x$ which we know is $1$ without thinking.
+
+
+Basically, we found that in terms of limits, if both $f(x)$ and $g(x)$ are $0$ at $c$, that we *might* be able to just take this limit: $(f(c) + f'(c) \cdot(x-c)) / (g(c) + g'(c) \cdot (x-c))$ which is just $f'(c)/g'(c)$.
+
+
+Wouldn't that be nice? We could find difficult limits just by differentiating the top and the bottom at $c$ (and not use the messy quotient rule).
+
+
+Well, in fact that is more or less true, a fact that dates back to [L'Hospital](http://en.wikipedia.org/wiki/L%27H%C3%B4pital%27s_rule) - who wrote the first textbook on differential calculus - though this result is likely due to one of the Bernoulli brothers.
+
+
+> *L'Hospital's rule*: Suppose:
+>
+>   * that $\lim_{x\rightarrow c+} f(c) =0$ and $\lim_{x\rightarrow c+} g(c) =0$,
+>   * that $f$ and $g$ are differentiable in $(c,b)$, and
+>   * that $g(x)$ exists and is non-zero for *all* $x$ in $(c,b)$,
+>
+> then **if** the following limit exists: $\lim_{x\rightarrow c+}f'(x)/g'(x)=L$ it follows that $\lim_{x \rightarrow c+}f(x)/g(x) = L$.
+
+
+
+That is *if* the right limit of $f(x)/g(x)$ is indeterminate of the form $0/0$, but the right limit of $f'(x)/g'(x)$ is known, possibly by simple continuity, then the right limit of $f(x)/g(x)$ exists and is equal to that of $f'(x)/g'(x)$.
+
+
+The rule equally applies to *left limits* and *limits* at $c$. Later it will see there are other generalizations.
+
+
+To apply this rule to Euler's example, $\sin(x)/x$, we just need to consider that:
+
+
+$$
+L = 1 = \lim_{x \rightarrow 0}\frac{\cos(x)}{1},
+$$
+
+So, as well, $\lim_{x \rightarrow 0} \sin(x)/x = 1$.
+
+
+This is due to $\cos(x)$ being continuous at $0$, so this limit is just $\cos(0)/1$. (More importantly, the tangent line expansion of $\sin(x)$ at $0$ is $\sin(0) + \cos(0)x$, so that $\cos(0)$ is why this answer is as it is, but we don't need to think in terms of $\cos(0)$, but rather the tangent-line expansion, which is $\sin(x) \approx x$, as $\cos(0)$ appears as the coefficient.
+
+
+:::{.callout-note}
+## Note
+In [Gruntz](http://www.cybertester.com/data/gruntz.pdf), in a reference attributed to Speiss, we learn that L'Hospital was a French Marquis who was taught in $1692$ the calculus of Leibniz by Johann Bernoulli. They made a contract obliging Bernoulli to leave his mathematical inventions to L'Hospital in exchange for a regular compensation. This result was discovered in $1694$ and appeared in L'Hospital's book of $1696$.
+
+:::
+
+##### Examples
+
+
+  * Consider this limit at $0$: $(a^x - 1)/x$. We have $f(x) =a^x-1$ has $f(0) = 0$, so this limit is indeterminate of the form $0/0$. The derivative of $f(x)$ is $f'(x) = a^x \log(a)$ which has $f'(0) = \log(a)$. The derivative of the bottom is also $1$ at $0$, so we have:
+
+
+$$
+\log(a) = \frac{\log(a)}{1} = \frac{f'(0)}{g'(0)} = \lim_{x \rightarrow 0}\frac{f'(x)}{g'(x)} = \lim_{x \rightarrow 0}\frac{f(x)}{g(x)}
+= \lim_{x \rightarrow 0}\frac{a^x - 1}{x}.
+$$
+
+:::{.callout-note}
+## Note
+Why rewrite in the "opposite" direction? Because the theorem's result – $L$ is the limit – is only true if the related limit involving the derivative exists. We don't do this in the following, but did so here to emphasize the need for the limit of the ratio of the derivatives to exist.
+
+:::
+
+  * Consider this limit:
+
+
+$$
+\lim_{x \rightarrow 0} \frac{e^x - e^{-x}}{x}.
+$$
+
+It too is of the indeterminate form $0/0$. The derivative of the top is $e^x + e^{-x}$, which is $2$ when $x=0$, so the ratio of $f'(0)/g'(0)$ is seen to be $2$ By continuity, the limit of the ratio of the derivatives is $2$. Then by L'Hospital's rule, the limit above is $2$.
+
+
+  * Sometimes, L'Hospital's rule must be applied twice. Consider this limit:
+
+
+$$
+\lim_{x \rightarrow 0} \frac{\cos(x)}{1 - x^2}
+$$
+
+By L'Hospital's rule *if* this following limit exists, the two will be equal:
+
+
+$$
+\lim_{x \rightarrow 0} \frac{-\sin(x)}{-2x}.
+$$
+
+But if we didn't guess the answer, we see that this new problem is *also* indeterminate of the form $0/0$. So, repeating the process, this new limit will exist and be equal to the following limit, should it exist:
+
+
+$$
+\lim_{x \rightarrow 0} \frac{-\cos(x)}{-2} = 1/2.
+$$
+
+As $L = 1/2$ for this related limit, it must also be the limit of the original problem, by L'Hospital's rule.
+
+
+  * Our "intuitive" limits can bump into issues. Take for example the limit of $(\sin(x)-x)/x^2$ as $x$ goes to $0$. Using $\sin(x) \approx x$ makes this look like $0/x^2$ which is still indeterminate. (Because the difference is higher order than $x$.) Using L'Hospitals, says this limit will exist (and be equal) if the following one does:
+
+
+$$
+\lim_{x \rightarrow 0} \frac{\cos(x) - 1}{2x}.
+$$
+
+This particular limit is indeterminate of the form $0/0$, so we again try L'Hospital's rule and consider
+
+
+$$
+\lim_{x \rightarrow 0} \frac{-\sin(x)}{2} = 0
+$$
+
+So as this limit exists, working backwards, the original limit in question will also be $0$.
+
+
+  * This example comes from the Wikipedia page. It "proves" a discrete approximation for the second derivative.
+
+
+Show if $f''(x)$ exists at $c$ and is continuous at $c$, then
+
+
+$$
+f''(c) = \lim_{h \rightarrow 0} \frac{f(c + h) - 2f(c) + f(c-h)}{h^2}.
+$$
+
+This will follow from two applications of L'Hospital's rule to the right-hand side. The first says, the limit on the right is equal to this limit, should it exist:
+
+
+$$
+\lim_{h \rightarrow 0} \frac{f'(c+h) - 0 - f'(c-h)}{2h}.
+$$
+
+We have to be careful, as we differentiate in the $h$ variable, not the $c$ one, so the chain rule brings out the minus sign. But again, as we still have an indeterminate form $0/0$, this limit will equal the following limit should it exist:
+
+
+$$
+\lim_{h \rightarrow 0} \frac{f''(c+h) - 0 - (-f''(c-h))}{2} =
+\lim_{c \rightarrow 0}\frac{f''(c+h) + f''(c-h)}{2} = f''(c).
+$$
+
+That last equality follows, as it is assumed that $f''(x)$ exists at $c$ and is continuous, that is, $f''(c \pm h) \rightarrow f''(c)$.
+
+
+The expression above finds use when second derivatives are numerically approximated. (The middle expression is the basis of the central-finite difference approximation to the derivative.)
+
+
+  * L'Hospital himself was interested in this limit for $a > 0$ ([math overflow](http://mathoverflow.net/questions/51685/how-did-bernoulli-prove-lh%C3%B4pitals-rule))
+
+
+$$
+\lim_{x \rightarrow a} \frac{\sqrt{2a^3\cdot x-x^4} - a\cdot(a^2\cdot x)^{1/3}}{ a - (a\cdot x^3)^{1/4}}.
+$$
+
+These derivatives can be done by hand, but to avoid any minor mistakes we utilize `SymPy` taking care to use rational numbers for the fractional powers, so as not to lose precision through floating point roundoff:
+
+
+```{julia}
+@syms a::positive x::positive
+f(x) = sqrt(2a^3*x - x^4) - a * (a^2*x)^(1//3)
+g(x) = a - (a*x^3)^(1//4)
+```
+
+We can see that at $x=a$ we have the indeterminate form $0/0$:
+
+
+```{julia}
+f(a), g(a)
+```
+
+What about the derivatives?
+
+
+```{julia}
+fp, gp = diff(f(x),x), diff(g(x),x)
+fp(x=>a), gp(x=>a)
+```
+
+Their ratio will not be indeterminate, so the limit in question is just the ratio:
+
+
+```{julia}
+fp(x=>a) / gp(x=>a)
+```
+
+Of course, we could have just relied on `limit`, which knows about L'Hospital's rule:
+
+
+```{julia}
+limit(f(x)/g(x), x, a)
+```
+
+## Idea behind L'Hospital's rule
+
+
+A first proof of L'Hospital's rule takes advantage of Cauchy's [generalization](http://en.wikipedia.org/wiki/Mean_value_theorem#Cauchy.27s_mean_value_theorem) of the mean value theorem to two functions. Suppose $f(x)$ and $g(x)$ are continuous on $[c,b]$ and differentiable on $(c,b)$. On $(c,x)$, $c < x < b$ there exists a $\xi$ with $f'(\xi) \cdot (f(x) - f(c)) = g'(\xi) \cdot (g(x) - g(c))$. In our formulation, both $f(c)$ and $g(c)$ are zero, so we have, provided we know that $g(x)$ is non zero, that $f(x)/g(x) = f'(\xi)/g'(\xi)$ for some $\xi$, $c < \xi < c + x$. That the right-hand side has a limit as $x \rightarrow c+$ is true by the assumption that the limit of the ratio of the derivatives exists. (The $\xi$ part can be removed by considering it as a composition of a function going to $c$.) Thus the right limit of the ratio $f/g$ is known.
+
+
+---
+
+
+```{julia}
+#| echo: false
+#| cache: true
+let
+## {{{lhopitals_picture}}}
+
+function lhopitals_picture_graph(n)
+
+    g = (x) -> sqrt(1 + x) - 1 - x^2
+    f = (x) -> x^2
+    ts = range(-1/2, stop=1/2, length=50)
+
+
+    a, b = 0, 1/2^n * 1/2
+    m = (f(b)-f(a)) /  (g(b)-g(a))
+
+    ## get bounds
+    tl = (x) -> g(0) + m * (x - f(0))
+
+    lx = max(find_zero(x -> tl(x) - (-0.05), (-1000, 1000)), -0.6)
+    rx = min(find_zero(x -> tl(x) - (0.25),  (-1000, 1000)), 0.2)
+    xs = [lx, rx]
+    ys = map(tl, xs)
+
+    plt = plot(g, f, -1/2, 1/2, legend=false, size=fig_size, xlim=(-.6, .5), ylim=(-.1, .3))
+    plot!(plt, xs, ys, color=:orange)
+    scatter!(plt, [g(a),g(b)], [f(a),f(b)], markersize=5, color=:orange)
+    plt
+end
+
+caption = L"""
+
+Geometric interpretation of ``L=\lim_{x \rightarrow 0} x^2 / (\sqrt{1 +
+x} - 1 - x^2)``. At ``0`` this limit is indeterminate of the form
+``0/0``. The value for a fixed ``x`` can be seen as the slope of a secant
+line of a parametric plot of the two functions, plotted as ``(g,
+f)``. In this figure, the limiting "tangent" line has ``0`` slope,
+corresponding to the limit ``L``. In general, L'Hospital's rule is
+nothing more than a statement about slopes of tangent lines.
+
+"""
+
+n = 6
+anim = @animate for i=1:n
+    lhopitals_picture_graph(i)
+end
+
+imgfile = tempname() * ".gif"
+gif(anim, imgfile, fps = 1)
+
+
+plotly()
+    ImageFile(imgfile, caption)
+end
+```
+
+## Generalizations
+
+
+L'Hospital's rule generalizes to other indeterminate forms, in particular the indeterminate form $\infty/\infty$ can be proved at the same time as $0/0$ with a more careful [proof](http://en.wikipedia.org/wiki/L%27H%C3%B4pital%27s_rule#General_proof).
+
+
+The value $c$ in the limit can also be infinite. Consider this case with $c=\infty$:
+
+
+$$
+\begin{align*}
+\lim_{x \rightarrow \infty} \frac{f(x)}{g(x)} &=
+\lim_{x \rightarrow 0} \frac{f(1/x)}{g(1/x)}
+\end{align*}
+$$
+
+L'Hospital's limit applies as $x \rightarrow 0$, so we differentiate to get:
+
+
+$$
+\begin{align*}
+\lim_{x \rightarrow 0} \frac{[f(1/x)]'}{[g(1/x)]'}
+&= \lim_{x \rightarrow 0} \frac{f'(1/x)\cdot(-1/x^2)}{g'(1/x)\cdot(-1/x^2)}\\
+&= \lim_{x \rightarrow 0} \frac{f'(1/x)}{g'(1/x)}\\
+&= \lim_{x \rightarrow \infty} \frac{f'(x)}{g'(x)},
+\end{align*}
+$$
+
+*assuming* the latter limit exists, L'Hospital's rule assures the equality
+
+
+$$
+\lim_{x \rightarrow \infty} \frac{f(x)}{g(x)} =
+\lim_{x \rightarrow \infty} \frac{f'(x)}{g'(x)},
+$$
+
+##### Examples
+
+
+For example, consider
+
+
+$$
+\lim_{x \rightarrow \infty} \frac{x}{e^x}.
+$$
+
+We see it is of the form $\infty/\infty$. Taking advantage of the fact that L'Hospital's rule applies to  limits at $\infty$, we have that this limit will exist and be equal to this one, should it exist:
+
+
+$$
+\lim_{x \rightarrow \infty} \frac{1}{e^x}.
+$$
+
+This limit is, of course, $0$, as it is of the form $1/\infty$. It is not hard to build up from here to show that for any integer value of $n>0$ that:
+
+
+$$
+\lim_{x \rightarrow \infty} \frac{x^n}{e^x} = 0.
+$$
+
+This is an expression of the fact that exponential functions grow faster than polynomial functions.
+
+
+Similarly, powers grow faster than logarithms, as this limit shows, which is indeterminate of the form $\infty/\infty$:
+
+
+$$
+\lim_{x \rightarrow \infty} \frac{\log(x)}{x} =
+\lim_{x \rightarrow \infty} \frac{1/x}{1} = 0,
+$$
+
+the first equality by L'Hospital's rule, as the second limit exists.
+
+
+## Other indeterminate forms
+
+
+Indeterminate forms of the type $0 \cdot \infty$, $0^0$, $\infty^\infty$, $\infty - \infty$ can be re-expressed to be in the form $0/0$ or $\infty/\infty$ and then L'Hospital's theorem can be applied.
+
+
+###### Example: rewriting $0 \cdot \infty$
+
+
+What is the limit $x \log(x)$ as $x \rightarrow 0+$? The form is $0\cdot \infty$, rewriting, we see this is just:
+
+
+$$
+\lim_{x \rightarrow 0+}\frac{\log(x)}{1/x}.
+$$
+
+L'Hospital's rule clearly applies to one-sided limits, as well as two (our proof sketch used one-sided limits), so this limit will equal the following, should it exist:
+
+
+$$
+\lim_{x \rightarrow 0+}\frac{1/x}{-1/x^2} = \lim_{x \rightarrow 0+} -x = 0.
+$$
+
+###### Example: rewriting $0^0$
+
+
+What is the limit $x^x$ as $x \rightarrow 0+$? The expression is of the form $0^0$, which is indeterminate. (Even though floating point math defines the value as $1$.) We can rewrite this by taking a log:
+
+
+$$
+x^x = \exp(\log(x^x)) = \exp(x \log(x)) = \exp(\log(x)/(1/x)).
+$$
+
+Be just saw that $\lim_{x \rightarrow 0+}\log(x)/(1/x) = 0$. So by the rules for limits of compositions and the fact that $e^x$ is continuous, we see $\lim_{x \rightarrow 0+} x^x = e^0 = 1$.
+
+
+##### Example: rewriting $\infty - \infty$
+
+
+A limit $\lim_{x \rightarrow c} f(x) - g(x)$ of indeterminate form $\infty - \infty$ can be reexpressed to be of the from $0/0$ through the transformation:
+
+
+$$
+\begin{align*}
+f(x) - g(x) &= f(x)g(x) \cdot (\frac{1}{g(x)} - \frac{1}{f(x)}) \\
+&= \frac{\frac{1}{g(x)} - \frac{1}{f(x)}}{\frac{1}{f(x)g(x)}}.
+\end{align*}
+$$
+
+Applying this to
+
+
+$$
+L = \lim_{x \rightarrow 1} \big(\frac{x}{x-1} - \frac{1}{\log(x)}\big)
+$$
+
+We get that $L$ is equal to the following limit:
+
+
+$$
+\lim_{x \rightarrow 1} \frac{\log(x) - \frac{x-1}{x}}{\frac{x-1}{x} \log(x)}
+=
+\lim_{x \rightarrow 1} \frac{x\log(x)-(x-1)}{(x-1)\log(x)}
+$$
+
+In `SymPy` we have:
+
+
+```{julia}
+𝒇 = x*log(x) - (x-1)
+𝒈 = (x-1)*log(x)
+𝒇(1), 𝒈(1)
+```
+
+L'Hospital's rule applies to the form $0/0$, so we try:
+
+
+```{julia}
+𝒇′ = diff(𝒇, x)
+𝒈′ = diff(𝒈, x)
+𝒇′(1), 𝒈′(1)
+```
+
+Again, we get the indeterminate form $0/0$, so we try again with second derivatives:
+
+
+```{julia}
+𝒇′′ = diff(𝒇, x, x)
+𝒈′′ = diff(𝒈, x, x)
+𝒇′′(1), 𝒈′′(1)
+```
+
+From this we see the limit is $1/2$, as could have been done directly:
+
+
+```{julia}
+limit(𝒇/𝒈, x=>1)
+```
+
+## The assumptions are necessary
+
+
+##### Example: the limit existing is necessary
+
+
+The following limit is *easily* seen by comparing terms of largest growth:
+
+
+$$
+1 = \lim_{x \rightarrow \infty} \frac{x - \sin(x)}{x}
+$$
+
+However, the limit of the ratio of the derivatives *does* not exist:
+
+
+$$
+\lim_{x \rightarrow \infty} \frac{1 - \cos(x)}{1},
+$$
+
+as the function just oscillates. This shows that L'Hospital's rule does not apply when the limit of the the ratio of the derivatives does not exist.
+
+
+##### Example: the assumptions matter
+
+
+This example comes from the thesis of Gruntz to highlight possible issues when computer systems do simplifications.
+
+
+Consider:
+
+
+$$
+\lim_{x \rightarrow \infty} \frac{1/2\sin(2x) +x}{\exp(\sin(x))\cdot(\cos(x)\sin(x)+x)}.
+$$
+
+If we apply L'Hospital's rule using simplification we have:
+
+
+```{julia}
+u(x) = 1//2*sin(2x) + x
+v(x) = exp(sin(x))*(cos(x)*sin(x) + x)
+up, vp = diff(u(x),x), diff(v(x),x)
+limit(simplify(up/vp), x => oo)
+```
+
+However, this answer is incorrect. The reason being subtle. The simplification cancels a term of $\cos(x)$ that appears in the numerator and denominator. Before cancellation, we have `vp` will have infinitely many zero's as $x$ approaches $\infty$ so L'Hospital's won't apply (the limit won't exist, as every $2\pi$ the ratio is undefined so the function is never eventually close to some $L$).
+
+
+This ratio has no limit, as it oscillates, as confirmed by `SymPy`:
+
+
+```{julia}
+limit(u(x)/v(x), x=> oo)
+```
+
+## Questions
+
+
+###### Question
+
+
+This function $f(x) = \sin(5x)/x$ is *indeterminate* at $x=0$. What type?
+
+
+```{julia}
+#| echo: false
+lh_choices = [
+"``0/0``",
+"``\\infty/\\infty``",
+"``0^0``",
+"``\\infty - \\infty``",
+"``0 \\cdot \\infty``"
+]
+nothing
+```
+
+```{julia}
+#| hold: true
+#| echo: false
+answ = 1
+radioq(lh_choices, answ, keep_order=true)
+```
+
+###### Question
+
+
+This function $f(x) = \sin(x)^{\sin(x)}$ is *indeterminate* at $x=0$. What type?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+answ =3
+radioq(lh_choices, answ, keep_order=true)
+```
+
+###### Question
+
+
+This function $f(x) = (x-2)/(x^2 - 4)$ is *indeterminate* at $x=2$. What type?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+answ = 1
+radioq(lh_choices, answ, keep_order=true)
+```
+
+###### Question
+
+
+This function $f(x) = (g(x+h) - g(x-h)) / (2h)$ ($g$ is continuous) is *indeterminate* at $h=0$. What type?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+answ = 1
+radioq(lh_choices, answ, keep_order=true)
+```
+
+###### Question
+
+
+This function $f(x) = x \log(x)$ is *indeterminate* at $x=0$. What type?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+answ = 5
+radioq(lh_choices, answ, keep_order=true)
+```
+
+###### Question
+
+
+Does L'Hospital's rule apply to this limit:
+
+
+$$
+\lim_{x \rightarrow \pi} \frac{\sin(\pi x)}{\pi x}.
+$$
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+"Yes. It is of the form ``0/0``",
+"No. It is not indeterminate"
+]
+answ = 2
+radioq(choices, answ)
+```
+
+###### Question
+
+
+Use L'Hospital's rule to find the limit
+
+
+$$
+L = \lim_{x \rightarrow 0} \frac{4x - \sin(x)}{x}.
+$$
+
+What is $L$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = (4x - sin(x))/x
+L = float(N(limit(f, 0)))
+numericq(L)
+```
+
+###### Question
+
+
+Use L'Hospital's rule to find the limit
+
+
+$$
+L = \lim_{x \rightarrow 0} \frac{\sqrt{1+x} - 1}{x}.
+$$
+
+What is $L$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = (sqrt(1+x) - 1)/x
+L = float(N(limit(f, 0)))
+numericq(L)
+```
+
+###### Question
+
+
+Use L'Hospital's rule *one* or more times to find the limit
+
+
+$$
+L = \lim_{x \rightarrow 0} \frac{x - \sin(x)}{x^3}.
+$$
+
+What is $L$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = (x - sin(x))/x^3
+L = float(N(limit(f, 0)))
+numericq(L)
+```
+
+###### Question
+
+
+Use L'Hospital's rule *one* or more times to find the limit
+
+
+$$
+L = \lim_{x \rightarrow 0} \frac{1 - x^2/2 - \cos(x)}{x^3}.
+$$
+
+What is $L$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = (1 - x^2/2 - cos(x))/x^3
+L = float(N(limit(f, 0)))
+numericq(L)
+```
+
+###### Question
+
+
+Use L'Hospital's rule *one* or more times to find the limit
+
+
+$$
+L = \lim_{x \rightarrow \infty} \frac{\log(\log(x))}{\log(x)}.
+$$
+
+What is $L$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = log(log(x))/log(x)
+L = N(limit(f(x), x=> oo))
+numericq(L)
+```
+
+###### Question
+
+
+By using a common denominator to rewrite this expression, use L'Hospital's rule to find the limit
+
+
+$$
+L = \lim_{x \rightarrow 0} \frac{1}{x} - \frac{1}{\sin(x)}.
+$$
+
+What is $L$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = 1/x - 1/sin(x)
+L = float(N(limit(f, 0)))
+numericq(L)
+```
+
+##### Question
+
+
+Use  L'Hospital's rule  to find the limit
+
+
+$$
+L = \lim_{x \rightarrow \infty} \log(x)/x
+$$
+
+What is $L$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+L = float(N(limit(log(x)/x, x=>oo)))
+numericq(L)
+```
+
+##### Question
+
+
+Using  L'Hospital's rule, does
+
+
+$$
+\lim_{x \rightarrow 0+} x^{\log(x)}
+$$
+
+exist?
+
+
+Consider $x^{\log(x)} = e^{\log(x)\log(x)}$.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+yesnoq(false)
+```
+
+##### Question
+
+
+Using  L'Hospital's rule, find the limit of
+
+
+$$
+\lim_{x \rightarrow 1} (2-x)^{\tan(\pi/2 \cdot x)}.
+$$
+
+(Hint, express as $\exp^{\tan(\pi/2 \cdot x) \cdot \log(2-x)}$ and take the limit of the resulting exponent.)
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+"``e^{2/\\pi}``",
+"``{2\\pi}``",
+"``1``",
+"``0``",
+"It does not exist"
+]
+answ = 1
+radioq(choices, answ)
+```
+

@@ -1,0 +1,107 @@
+# Using interval arithemetic
+
+Highlighted here is the use of interval arithmetic for calculus problems.
+
+Unlike floating point math, where floating point values are an *approximation* to real numbers, interval arithmetic uses *interval* which are **guaranteed** to contain the given value. We use the `IntervalArithmetic` package and friends to work below, but note there is nothing magic about the concept.
+
+## Basic XXX
+
+
+
+## Using `IntervalRootFinding` to identify zeros of a function
+
+The `IntervalRootFinding` package provides a more *rigorous* alternative to `find_zeros`. This packages leverages the interval arithmetic features of `IntervalArithmetic`.
+The `IntervalRootFinding` package provides a function `roots`, with usage similar to `find_zeros`. Intervals are specified with the notation `a..b`. In the following, we *qualify* `roots` to not conflict with the `roots` function from `SymPy`, which has already been loaded:
+
+```julia
+import IntervalArithmetic
+import IntervalRootFinding
+```
+
+```julia
+u(x) = sin(x) - 0.1*x^2 + 1
+𝑱 = IntervalArithmetic.Interval(-10, 10) # cumbersome -10..10; needed here: .. means something in CalculusWithJulia
+rts = IntervalRootFinding.roots(u, 𝑱)
+```
+
+The "zeros" are returned with an enclosing interval and a flag, which for the above indicates a unique zero in the interval.
+
+The intervals with a unique answer can be filtered and refined with a construct like the following:
+
+```julia
+[find_zero(u, (IntervalArithmetic.interval(I).lo, IntervalArithmetic.interval(I).hi)) for I in rts if I.status == :unique]
+```
+
+The midpoint of the returned interval can be found by composing the `mid` function with the `interval` function of the package:
+
+```julia
+[(IntervalArithmetic.mid ∘ IntervalArithmetic.interval)(I) for I in rts if I.status == :unique]
+```
+
+
+
+For some problems, `find_zeros` is more direct, as with this one:
+
+
+```julia
+find_zeros(u, (-10, 10))
+```
+
+Which can be useful if there is some prior understanding of the zeros expected to be found.
+However, `IntervalRootFinding` is more efficient computationally and *offers a guarantee* on the values found.
+
+
+
+For functions where roots are not "unique" a different output may appear:
+
+```julia; hold=true;
+f(x) = x*(x-1)^2
+rts = IntervalRootFinding.roots(f, 𝑱)
+```
+
+The interval labeled `:unknown` contains a `0`, but it can't be proved by `roots`.
+
+
+Interval arithmetic finds **rigorous** **bounds** on the range of `f` values over a closed interval `a..b` (the range is `f(a..b)`).  "Rigorous" means the bounds are truthful and account for possible floating point issues. "Bounds" means the answer lies within, but the bound need not be the answer.
+
+This allows one -- for some functions -- to answer affirmatively questions like:
+
+* Is the function *always* positive on `a..b`? Negative? This can be done by checking if `0` is in the bound given by `f(a..b)`. If it isn't then one of the two characterizations is true.
+
+* Is the function *strictly increasing* on `a..b`? Strictly decreasing? These questions can be answered using the (upcoming) [derivative](../derivatives/derivatives.html). If the derivative is positive on `a..b` then `f` is strictly increasing, if negative on `a..b` then `f` is strictly decreasing. Finding the derivative can be done within the `IntervalArithmetic` framework using [automatic differentiation](../derivatives/numeric_derivatives.html), a blackbox operation  denoted `f'` below.
+
+Combined, for some functions and some intervals these two questions can be answered affirmatively:
+
+* the interval does not contain a zero (`0 !in f(a..b)`)
+* over the interval, the function crosses the `x` axis *once* (`f(a..a)` and `f(b..b)` are one positive and one negative *and* `f` is strictly monotone, or `0 !in f'(a..b)`)
+
+This allows the following (simplified) bisection-like algorithm to be used:
+
+* consider an interval `a..b`
+* if the function is *always* positive or negative, it can be discarded as no zero can be in the interval
+* if the function crosses the `x` axis *once* over this interval **then** there is a "unique" zero in the interval and the interval can be marked so and set aside
+* if neither of the above  *and* `a..b` is not too small already, then *sub-divide* the interval and repeat the above with *both* smaller intervals
+* if `a..b` is too small, stop and mark it as "unknown"
+
+When terminated there will be intervals with unique zeros flagged and smaller intervals with an unknown status.
+
+Compared to the *bisection* algorithm -- which only knows for some intervals if that interval has one or more crossings -- this algorithm gives a more rigorous means to get all the zeros in `a..b`.
+
+
+
+
+
+
+For a last example of the value of this package, this function, which appeared in our discussion on limits, is *positive* for **every** floating point number, but has two zeros snuck in at values within the floating point neighbors of $15/11$
+
+```julia
+t(x) = x^2 + 1 +log(abs( 11*x-15 ))/99
+```
+
+The `find_zeros` function will fail on identifying any potential zeros of this function. Even the basic call of `roots` will fail, due to it relying on some smoothness of `f`. However, explicitly asking for `Bisection` shows the *potential* for one or more zeros near $15/11$:
+
+```julia
+IntervalRootFinding.roots(t, 𝑱, IntervalRootFinding.Bisection)
+```
+
+(The basic algorithm above can be sped up using a variant of [Newton's](../derivatives/newton_method.html) method, this variant assumes some "smoothness" in the function `f`, whereas this `f` is not continuous at the point ``x=15/11``.)

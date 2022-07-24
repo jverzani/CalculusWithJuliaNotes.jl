@@ -1,0 +1,763 @@
+# JavaScript based plotting libraries
+
+
+```{julia}
+#| echo: false
+
+import Logging
+Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
+Logging.disable_logging(Logging.Warn)
+
+import SymPy
+function Base.show(io::IO, ::MIME"text/html", x::T) where {T <: SymPy.SymbolicObject}
+    println(io, "<span class=\"math-left-align\" style=\"padding-left: 4px; width:0; float:left;\"> ")
+    println(io, "\\[")
+    println(io, sympy.latex(x))
+    println(io, "\\]")
+    println(io, "</span>")
+end
+
+# hack to work around issue
+import Markdown
+import CalculusWithJulia
+function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
+    nm = joinpath("..", string(d), f)
+    u = "![$caption]($nm)"
+    Markdown.parse(u)
+end
+
+nothing
+```
+
+This section uses this add-on package:
+
+
+```{julia}
+using PlotlyLight
+```
+
+To avoid a dependence on the `CalculusWithJulia` package, we load two utility packages:
+
+
+```{julia}
+using PlotUtils
+using SplitApplyCombine
+```
+
+---
+
+
+`Julia` has different interfaces to a few JavaScript plotting libraries, notably the [vega](https://vega.github.io/vega/) and [vega-lite](https://vega.github.io/vega-lite/)  through the [VegaLite.jl](https://github.com/queryverse/VegaLite.jl) package, and [plotly](https://plotly.com/javascript/) through several interfaces: `Plots.jl`, `PlotlyJS.jl`, and `PlotlyLight.jl`. These all make web-based graphics, for display through a web browser.
+
+
+The `Plots.jl` interface is a backend for the familiar `Plots` package, making the calling syntax familiar, as is used throughout these notes. The `plotly()` command, from `Plots`, switches to this backend.
+
+
+The `PlotlyJS.jl` interface offers direct translation from `Julia` structures to the underlying `JSON` structures needed by plotly, and has mechanisms to call back into `Julia` from `JavaScript`. This allows complicated interfaces to be produced.
+
+
+Here we discuss `PlotlyLight` which conveniently provides the translation from `Julia` structures to the `JSON` structures needed in a light-weight package, which plots quickly, without the delays due to compilation of the more complicated interfaces. Minor modifications would be needed to adjust the examples to work with `PlotlyJS` or `PlotlyBase`. The documentation for the `JavaScript` [library](https://plotly.com/javascript/) provides numerous examples which can easily be translated. The [one-page-reference](https://plotly.com/javascript/reference/) gives specific details, and is quoted from below, at times.
+
+
+This discussion covers the basic of graphing for calculus purposes. It does not cover, for example, the faceting common in statistical usages, or the chart types common in business and statistics uses. The `plotly` library is much more extensive than what is reviewed below.
+
+
+## Julia dictionaries to JSON
+
+
+`PlotlyLight` uses the `JavaScript` interface for the `plotly` libraries. Unlike more developed interfaces, like the one for `Python`, `PlotlyLight` only manages the translation from `Julia` structures to `JavaScript` structures and the display of the results.
+
+
+The key to translation is the mapping for `Julia`'s dictionaries to the nested `JSON` structures needed by the `JavaScript` library.
+
+
+For example, an introductory [example](https://plotly.com/javascript/line-and-scatter/) for a scatter plot includes this `JSON` structure:
+
+
+```{julia}
+#| eval: false
+var trace1 = {
+  x: [1, 2, 3, 4],
+  y: [10, 15, 13, 17],
+  mode: 'markers',
+  type: 'scatter'
+};
+```
+
+The `{}` create a list, the `[]` an Array (or vector, as it does with `Julia`), the `name:` are keys. The above is simply translated via:
+
+
+```{julia}
+Config(x = [1,2,3,4],
+       y = [10, 15, 13, 17],
+       mode = "markers",
+       type = "scatter"
+       )
+```
+
+The `Config` constructor (from the `EasyConfig` package loaded with `PlotlyLight`) is an interface for a dictionary whose keys are symbols, which are produced by the named arguments passed to `Config`. By nesting `Config` statements, nested `JavaScript` structures can be built up. As well, these can be built on the fly using `.` notation, as in:
+
+
+```{julia}
+#| hold: true
+cfg = Config()
+cfg.key1.key2.key3 = "value"
+cfg
+```
+
+To produce a figure with `PlotlyLight` then is fairly straightforward: data and, optionally, a layout are created using `Config`, then passed along to the `Plot` command producing a `Plot` object which has `display` methods defined for it. This will be illustrated through the examples.
+
+
+## Scatter plot
+
+
+A basic scatter plot of points $(x,y)$ is created as follows:
+
+
+```{julia}
+#| hold: true
+xs = 1:5
+ys = rand(5)
+data = Config(x = xs,
+              y = ys,
+              type="scatter",
+              mode="markers"
+              )
+Plot(data)
+```
+
+The symbols `x` and `y` (and later `z`) specify the data to `plotly`. Here the `mode` is specified to show markers.
+
+
+The `type` key specifies the chart or trace type. The `mode` specification sets the drawing mode for the trace. Above it is "markers". It can be any combination of "lines", "markers", or "text" joined with a "+" if more than one is desired.
+
+
+## Line plot
+
+
+A line plot is very similar, save for a different `mode` specification:
+
+
+```{julia}
+#| hold: true
+xs = 1:5
+ys = rand(5)
+data = Config(x = xs,
+              y = ys,
+              type="scatter",
+              mode="lines"
+              )
+Plot(data)
+```
+
+The difference is solely the specification of the `mode` value, for a line plot it is "lines," for a scatter plot it is "markers" The `mode` "lines+markers" will plot both. The default for the "scatter" types is to use "lines+markers" for small data sets, and "lines" for others, so for this example, `mode` could be left off.
+
+
+### Nothing
+
+
+The line graph plays connect-the-dots with the points specified by paired `x` and `y` values. *Typically*, when and `x` value is `NaN` that "dot" (or point) is skipped. However, `NaN` doesn't pass through the JSON conversion – `nothing` can be used.
+
+
+```{julia}
+#| hold: true
+data = Config(
+    x=[0,1,nothing,3,4,5],
+	y = [0,1,2,3,4,5],
+    type="scatter", mode="markers+lines")
+Plot(data)
+```
+
+## Multiple plots
+
+
+More than one graph or layer can appear on a plot. The `data` argument can be a vector of `Config` values, each describing a plot. For example, here we make a scatter plot and a line plot:
+
+
+```{julia}
+#| hold: true
+data = [Config(x = 1:5,
+               y = rand(5),
+               type = "scatter",
+               mode = "markers",
+               name = "scatter plot"),
+        Config(x = 1:5,
+               y = rand(5),
+               type = "scatter",
+               mode = "lines",
+               name = "line plot")
+        ]
+Plot(data)
+```
+
+The `name` argument adjusts the name in the legend referencing the plot. This is produced by default.
+
+
+### Adding a layer
+
+
+In `PlotlyLight`, the `Plot` object has a field `data` for storing a vector of configurations, as above. After a plot is made, this field can have values pushed onto it and the corresponding layers will be rendered when the plot is redisplayed.
+
+
+For example, here we plot the graphs of both the $\sin(x)$ and $\cos(x)$ over $[0,2\pi]$. We used the utility `PlotUtils.adapted_grid` to select the points to use for the graph.
+
+
+```{julia}
+#| hold: true
+a, b = 0, 2pi
+
+xs, ys = PlotUtils.adapted_grid(sin, (a,b))
+p = Plot(Config(x=xs, y=ys, name="sin"))
+
+xs, ys = PlotUtils.adapted_grid(cos, (a,b))
+push!(p.data, Config(x=xs, y=ys, name="cos"))
+
+p   # to display the plot
+```
+
+The values for `a` and `b` are used to generate the $x$- and $y$-values. These can also be gathered from the existing plot object. Here is one way, where for each trace with an `x` key, the extrema are consulted to update a list of left and right ranges.
+
+
+```{julia}
+#| hold: true
+xs, ys = PlotUtils.adapted_grid(x -> x^5 - x - 1, (0, 2))  # answer is (0,2)
+p = Plot([Config(x=xs, y=ys, name="Polynomial"),
+         Config(x=xs, y=0 .* ys, name="x-axis", mode="lines", line=Config(width=5))]
+         )
+ds = filter(d -> !isnothing(get(d, :x, nothing)), p.data)
+a=reduce(min, [minimum(d.x) for d ∈ ds]; init=Inf)
+b=reduce(max, [maximum(d.x) for d ∈ ds]; init=-Inf)
+(a, b)
+```
+
+## Interactivity
+
+
+`JavaScript` allows interaction with a plot as it is presented within a browser. (Not the `Julia` process which produced the data or the plot. For that interaction, `PlotlyJS` may be used.) The basic *default* features are:
+
+
+  * The data producing a graphic are displayed on hover using flags.
+  * The legend may be clicked to toggle whether the corresponding graph is displayed.
+  * The viewing region can be narrowed using the mouse for selection.
+  * The toolbar has several features for panning and zooming, as well as adjusting the information shown on hover.
+
+
+Later we will see that $3$-dimensional surfaces can be rotated interactively.
+
+
+## Plot attributes
+
+
+Attributes of the markers and lines may be adjusted when the data configuration is specified. A selection is shown below. Consult the reference for the extensive list.
+
+
+### Marker attributes
+
+
+A marker's attributes can be adjusted by values passed to the `marker` key. Labels for each marker can be assigned through a `text` key and adding `text` to the `mode` key. For example:
+
+
+```{julia}
+#| hold: true
+data = Config(x = 1:5,
+              y = rand(5),
+              mode="markers+text",
+              type="scatter",
+              name="scatter plot",
+              text = ["marker $i" for i in 1:5],
+              textposition = "top center",
+              marker = Config(size=12, color=:blue)
+              )
+Plot(data)
+```
+
+The `text` mode specification is necessary to have text be displayed on the chart, and not just appear on hover.  The `size` and `color` attributes are recycled; they can be specified using a vector for per-marker styling. Here the symbol `:blue` is used to specify a color, which could also be a name, such as `"blue"`.
+
+
+#### RGB Colors
+
+
+The `ColorTypes` package is the standard `Julia` package providing an `RGB` type (among others) for specifying red-green-blue colors. To make this work with `Config` and `JSON3` requires some type-piracy (modifying `Base.string` for the `RGB` type) to get, say, `RGB(0.5, 0.5, 0.5)` to output as `"rgb(0.5, 0.5, 0.5)"`.  (RGB values in JavaScript are integers between $0$ and $255$ or floating point values between $0$ and $1$.) A string with this content can be specified. Otherwise, something like the following can be used to avoid the type piracy:
+
+
+```{julia}
+struct rgb
+    r
+    g
+    b
+end
+PlotlyLight.JSON3.StructTypes.StructType(::Type{rgb}) = PlotlyLight.JSON3.StructTypes.StringType()
+Base.string(x::rgb) = "rgb($(x.r), $(x.g), $(x.b))"
+```
+
+With these defined, red-green-blue values can be used for colors. For example to give a range of colors, we might have:
+
+
+```{julia}
+#| hold: true
+cols = [rgb(i,i,i) for i in range(10, 245, length=5)]
+sizes = [12, 16, 20, 24, 28]
+data = Config(x = 1:5,
+              y = rand(5),
+              mode="markers+text",
+              type="scatter",
+              name="scatter plot",
+              text = ["marker $i" for i in 1:5],
+              textposition = "top center",
+              marker = Config(size=sizes, color=cols)
+              )
+Plot(data)
+```
+
+The `opacity` key can be used to control the transparency, with a value between $0$ and $1$.
+
+
+#### Marker symbols
+
+
+The `marker_symbol` key can be used to set a marker shape, with the basic values being: `circle`, `square`, `diamond`, `cross`, `x`, `triangle`, `pentagon`, `hexagram`, `star`, `diamond`, `hourglass`, `bowtie`, `asterisk`, `hash`, `y`, and `line`. Add `-open` or `-open-dot` modifies the basic shape.
+
+
+```{julia}
+#| hold: true
+markers = ["circle", "square", "diamond", "cross", "x", "triangle", "pentagon",
+           "hexagram", "star", "diamond", "hourglass", "bowtie", "asterisk",
+           "hash", "y", "line"]
+n = length(markers)
+data = [Config(x=1:n, y=1:n, mode="markers",
+               marker = Config(symbol=markers, size=10)),
+        Config(x=1:n, y=2 .+ (1:n), mode="markers",
+               marker = Config(symbol=markers .* "-open", size=10)),
+        Config(x=1:n, y=4 .+ (1:n), mode="markers",
+               marker = Config(symbol=markers .* "-open-dot", size=10))
+        ]
+Plot(data)
+```
+
+### Line attributes
+
+
+The `line` key can be used to specify line attributes, such as `width` (pixel width), `color`, or `dash`.
+
+
+The `width` key specifies the line width in pixels.
+
+
+The `color` key specifies the color of the line drawn.
+
+
+The `dash` key specifies the style for the drawn line. Values can be set by string from "solid", "dot", "dash", "longdash", "dashdot", or "longdashdot" or set by specifying a pattern in pixels, e.g. "5px,10px,2px,2px".
+
+
+The `shape` attribute determine how the points are connected. The default is `linear`, but other possibilities are `hv`, `vh`, `hvh`, `vhv`, `spline` for various patterns of connectivity. The following example, from the plotly documentation, shows the differences:
+
+
+```{julia}
+#| hold: true
+shapes = ["linear", "hv", "vh", "hvh", "vhv", "spline"]
+data = [Config(x = 1:5, y = 5*(i-1) .+ [1,3,2,3,1], mode="lines+markers", type="scatter",
+               name=shape,
+               line=Config(shape=shape)
+               ) for (i, shape) ∈ enumerate(shapes)]
+Plot(data)
+```
+
+### Text
+
+
+The text associated with each point can be drawn on the chart, when "text" is  included in the `mode` or shown on hover.
+
+
+The onscreen text is passed to the `text` attribute. The [`texttemplate`](https://plotly.com/javascript/reference/scatter/#scatter-texttemplate) key can be used to format the text with details in the accompanying link.
+
+
+Similarly, the `hovertext` key specifies the text shown on hover, with [`hovertemplate`](https://plotly.com/javascript/reference/scatter/#scatter-hovertemplate) used to format the displayed text.
+
+
+### Filled regions
+
+
+The `fill` key for a chart of mode `line` specifies how the area around a chart should be colored, or filled. The specification are declarative, with values in "none", "tozeroy", "tozerox", "tonexty", "tonextx", "toself", and "tonext". The value of "none" is the default, unless stacked traces are used.
+
+
+In the following, to highlight the difference between $f(x) = \cos(x)$ and $p(x) = 1 - x^2/2$ the area from $f$ to the next $y$ is declared; for $p$, the area to $0$ is declared.
+
+
+```{julia}
+#| hold: true
+xs = range(-1, 1, 100)
+data = [
+    Config(
+	    x=xs, y=cos.(xs),
+	    fill = "tonexty",
+	    fillcolor = "rgba(0,0,255,0.25)", # to get transparency
+	    line = Config(color=:blue)
+    ),
+	Config(
+		x=xs, y=[1 - x^2/2 for x ∈ xs ],
+		fill = "tozeroy",
+		fillcolor = "rgba(255,0,0,0.25)", # to get transparency
+		line = Config(color=:red)
+	)
+]
+Plot(data)
+```
+
+The `toself` declaration is used below to fill in a polygon:
+
+
+```{julia}
+#| hold: true
+data = Config(
+	x=[-1,1,1,-1,-1], y = [-1,1,-1,1,-1],
+	fill="toself",
+	type="scatter")
+Plot(data)
+```
+
+## Layout attributes
+
+
+The `title` key sets the main title; the `title` key in the `xaxis` configuration sets the $x$-axis title (similarly for the $y$ axis).
+
+
+The legend is shown when $2$ or more charts or specified, by default. This can be adjusted with the `showlegend` key, as below. The legend shows the corresponding `name` for each chart.
+
+
+```{julia}
+#| hold: true
+data = Config(x=1:5, y=rand(5), type="scatter", mode="markers", name="legend label")
+lyt = Config(title = "Main chart title",
+             xaxis = Config(title="x-axis label"),
+             yaxis = Config(title="y-axis label"),
+             showlegend=true
+             )
+Plot(data, lyt)
+```
+
+The `xaxis` and `yaxis` keys have many customizations. For example: `nticks` specifies the maximum number of ticks; `range` to set the range of the axis; `type` to specify the axis type from "linear", "log", "date", "category", or "multicategory;" and `visible`
+
+
+The aspect ratio of the chart can be set to be equal through the `scaleanchor` key, which specifies another axis to take a value from. For example, here is a parametric plot of a circle:
+
+
+```{julia}
+#| hold: true
+ts = range(0, 2pi, length=100)
+data = Config(x = sin.(ts), y = cos.(ts), mode="lines", type="scatter")
+lyt = Config(title = "A circle",
+             xaxis = Config(title = "x"),
+             yaxis = Config(title = "y",
+                            scaleanchor = "x")
+             )
+Plot(data, lyt)
+```
+
+#### Annotations
+
+
+Text annotations may be specified as part of the layout object. Annotations may or may not show an arrow. Here is a simple example using a vector of annotations.
+
+
+```{julia}
+#| hold: true
+data = Config(x = [0, 1], y = [0, 1], mode="markers", type="scatter")
+layout = Config(title = "Annotations",
+                xaxis = Config(title="x",
+                               range = (-0.5, 1.5)),
+                yaxis = Config(title="y",
+                               range = (-0.5, 1.5)),
+                annotations = [
+                    Config(x=0, y=0, text = "(0,0)"),
+                    Config(x=1, y=1.2, text = "(1,1)", showarrow=false)
+                ]
+                )
+Plot(data, layout)
+```
+
+The following example is more complicated use of the elements previously described. It mimics an image from [Wikipedia](https://en.wikipedia.org/wiki/List_of_trigonometric_identities) for trigonometric identities. The use of $\LaTeX$ does not seem to be supported through the `JavaScript` interface; unicode symbols are used instead. The `xanchor` and `yanchor` keys are used to position annotations away from the default. The `textangle` key is used to rotate text, as desired.
+
+
+```{julia, hold=true}
+alpha = pi/6
+beta = pi/5
+xₘ = cos(alpha)*cos(beta)
+yₘ = sin(alpha+beta)
+r₀ = 0.1
+
+data = [
+	Config(
+		x = [0,xₘ, xₘ, 0, 0],
+		y = [0, 0, yₘ, yₘ, 0],
+		type="scatter", mode="line"
+	),
+	Config(
+		x = [0, xₘ],
+		y = [0, sin(alpha)*cos(beta)],
+		fill = "tozeroy",
+		fillcolor = "rgba(100, 100, 100, 0.5)"
+	),
+	Config(
+		x = [0, cos(alpha+beta), xₘ],
+		y = [0, yₘ, sin(alpha)*cos(beta)],
+		fill = "tonexty",
+		fillcolor = "rgba(200, 0, 100, 0.5)",
+	),
+	Config(
+		x = [0, cos(alpha+beta)],
+		y = [0, yₘ],
+		line = Config(width=5, color=:black)
+	)
+]
+
+lyt = Config(
+	height=450,
+	showlegend=false,
+	xaxis=Config(visible=false),
+	yaxis = Config(visible=false, scaleanchor="x"),
+	annotations = [
+
+		Config(x = r₀*cos(alpha/2), y = r₀*sin(alpha/2),
+			   text="α", showarrow=false),
+		Config(x = r₀*cos(alpha+beta/2), y = r₀*sin(alpha+beta/2),
+			   text="β", showarrow=false),
+		Config(x = cos(alpha+beta) + r₀*cos(pi+(alpha+beta)/2),
+			   y = yₘ + r₀*sin(pi+(alpha+beta)/2),
+			   xanchor="center", yanchor="center",
+			   text="α+β", showarrow=false),
+		Config(x = xₘ + r₀*cos(pi/2+alpha/2),
+			   y = sin(alpha)*cos(beta) + r₀ * sin(pi/2 + alpha/2),
+			   text="α", showarrow=false),
+		Config(x = 1/2 * cos(alpha+beta),
+               y = 1/2 * sin(alpha+beta),
+			   text = "1"),
+		Config(x = xₘ/2*cos(alpha), y = xₘ/2*sin(alpha),
+			   xanchor="center", yanchor="bottom",
+			   text = "cos(β)",
+			   textangle=-rad2deg(alpha),
+			   showarrow=false),
+		Config(x = xₘ + sin(beta)/2*cos(pi/2 + alpha),
+			   y = sin(alpha)*cos(beta) + sin(beta)/2*sin(pi/2 + alpha),
+			   xanchor="center", yanchor="top",
+			   text = "sin(β)",
+			   textangle = rad2deg(pi/2-alpha),
+			   showarrow=false),
+
+		Config(x = xₘ/2,
+               y = 0,
+			   xanchor="center", yanchor="top",
+			   text = "cos(α)⋅cos(β)", showarrow=false),
+		Config(x = 0,
+               y = yₘ/2,
+			   xanchor="right", yanchor="center",
+			   text = "sin(α+β)",
+			   textangle=-90,
+			   showarrow=false),
+		Config(x = cos(alpha+beta)/2,
+               y = yₘ,
+			   xanchor="center", yanchor="bottom",
+			   text = "cos(α+β)", showarrow=false),
+		Config(x = cos(alpha+beta) + (xₘ - cos(alpha+beta))/2,
+               y = yₘ,
+			   xanchor="center", yanchor="bottom",
+			   text = "sin(α)⋅sin(β)", showarrow=false),
+		Config(x = xₘ, y=sin(alpha)*cos(beta) + (yₘ - sin(alpha)*cos(beta))/2,
+			   xanchor="left", yanchor="center",
+			   text = "cos(α)⋅sin(β)",
+			   textangle=90,
+			   showarrow=false),
+		Config(x = xₘ,
+               y = sin(alpha)*cos(beta)/2,
+			   xanchor="left", yanchor="center",
+			   text = "sin(α)⋅cos(β)",
+			   textangle=90,
+			   showarrow=false)
+	]
+)
+
+Plot(data, lyt)
+```
+
+## Parameterized curves
+
+
+In $2$-dimensions, the plotting of a parameterized curve is similar to that of plotting a function. In $3$-dimensions, an extra $z$-coordinate is included.
+
+
+To help, we define an `unzip` function as an interface to `SplitApplyCombine`'s `invert` function:
+
+
+```{julia}
+unzip(v) = SplitApplyCombine.invert(v)
+```
+
+Earlier, we plotted a two dimensional circle, here we plot the related helix.
+
+
+```{julia}
+#| hold: true
+helix(t) = [cos(t), sin(t), t]
+
+ts = range(0, 4pi, length=200)
+
+xs, ys, zs = unzip(helix.(ts))
+
+data = Config(x=xs, y=ys, z=zs,
+              type = "scatter3d",  # <<- note the 3d
+              mode = "lines",
+              line=(width=2,
+                    color=:red)
+              )
+
+Plot(data)
+```
+
+The main difference is the chart type, as this is a $3$-dimensional plot, "scatter3d" is used.
+
+
+### Quiver plots
+
+
+There is no `quiver` plot for `plotly` using JavaScript. In $2$-dimensions a text-less annotation could be employed. In $3$-dimensions, the following (from [stackoverflow.com](https://stackoverflow.com/questions/43164909/plotlypython-how-to-plot-arrows-in-3d)) is a possible workaround where a line segment is drawn and capped with a small cone. Somewhat opaquely, we use `NamedTuple` for an iterator to create the keys for the data below:
+
+
+```{julia}
+#| hold: true
+helix(t) = [cos(t), sin(t), t]
+helix′(t) = [-sin(t), cos(t), 1]
+ts = range(0, 4pi, length=200)
+xs, ys, zs = unzip(helix.(ts))
+helix_trace = Config(; NamedTuple(zip((:x,:y,:z), unzip(helix.(ts))))...,
+                     type = "scatter3d",  # <<- note the 3d
+                     mode = "lines",
+                     line=(width=2,
+                           color=:red)
+                     )
+
+tss = pi/2:pi/2:7pi/2
+rs, r′s = helix.(tss), helix′.(tss)
+
+arrows = [
+	Config(x = [x[1], x[1]+x′[1]],
+		   y = [x[2], x[2]+x′[2]],
+		   z = [x[3], x[3]+x′[3]],
+		   mode="lines", type="scatter3d")
+	for (x, x′) ∈ zip(rs, r′s)
+]
+
+tips = rs .+ r′s
+lengths = 0.1 * r′s
+
+caps = Config(;
+		NamedTuple(zip([:x,:y,:z], unzip(tips)))...,
+		NamedTuple(zip([:u,:v,:w], unzip(lengths)))...,
+		type="cone", anchor="tail")
+
+data = vcat(helix_trace, arrows, caps)
+
+Plot(data)
+```
+
+If several arrows are to be drawn, it might be more efficient to pass multiple values in for the `x`, `y`, ... values. They expect a vector. In the above, we create $1$-element vectors.
+
+
+## Contour plots
+
+
+A contour plot is created by the "contour" trace type. The data is prepared as a vector of vectors, not a matrix. The following has the interior vector corresponding to slices ranging over $x$ for a fixed $y$. With this, the construction is straightforward using a comprehension:
+
+
+```{julia}
+#| hold: true
+f(x,y) = x^2 - 2y^2
+
+xs = range(0,2,length=25)
+ys = range(0,2, length=50)
+zs = [[f(x,y) for x in xs] for y in ys]
+
+data = Config(
+	x=xs, y=ys, z=zs,
+	type="contour"
+)
+
+Plot(data)
+```
+
+The same `zs` data can be achieved by broadcasting and then collecting as follows:
+
+
+```{julia}
+#| hold: true
+f(x,y) = x^2 - 2y^2
+
+xs = range(0,2,length=25)
+ys = range(0,2, length=50)
+zs = collect(eachrow(f.(xs', ys)))
+
+data = Config(
+	x=xs, y=ys, z=zs,
+	type="contour"
+)
+
+Plot(data)
+```
+
+The use of just `f.(xs', ys)` or `f.(xs, ys')`, as with other plotting packages, is not effective, as `JSON3` writes matrices as vectors (with linear indexing).
+
+
+## Surface plots
+
+
+The chart type "surface" allows surfaces in $3$ dimensions to be plotted.
+
+
+### Surfaces defined by $z = f(x,y)$
+
+
+Surfaces defined through a scalar-valued function are drawn quite naturally, save for needing to express the height data ($z$ axis) using a vector of vectors, and not a matrix.
+
+
+```{julia}
+#| hold: true
+peaks(x,y) = 3 * (1-x)^2 * exp(-(x^2) - (y+1)^2) -
+    10*(x/5 - x^3 - y^5) * exp(-x^2-y^2) - 1/3 * exp(-(x+1)^2 - y^2)
+
+xs = range(-3,3, length=50)
+ys = range(-3,3, length=50)
+zs = [[peaks(x,y) for x in xs] for y in  ys]
+
+data = Config(x=xs, y=ys, z=zs,
+              type="surface")
+
+Plot(data)
+```
+
+### Parametrically defined surfaces
+
+
+For parametrically defined surfaces, the $x$ and $y$ values also correspond to matrices. Her we see a pattern to plot a torus. The [`aspectmode`](https://plotly.com/javascript/reference/layout/scene/#layout-scene-aspectmode) instructs the scene's axes to be drawn in proportion with the axes' ranges.
+
+
+```{julia}
+#| hold: true
+r, R = 1, 5
+X(theta,phi) = [(r*cos(theta)+R)*cos(phi), (r*cos(theta)+R)*sin(phi), r*sin(theta)]
+
+us = range(0, 2pi, length=25)
+vs = range(0, pi, length=25)
+
+xs = [[X(u,v)[1] for u in us] for v in vs]
+ys = [[X(u,v)[2] for u in us] for v in vs]
+zs = [[X(u,v)[3] for u in us] for v in vs]
+
+data = Config(
+	x = xs, y = ys, z = zs,
+	type="surface",
+	mode="scatter3d"
+)
+
+lyt = Config(scene=Config(aspectmode="data"))
+
+Plot(data, lyt)
+```
+

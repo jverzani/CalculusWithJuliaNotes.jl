@@ -416,17 +416,19 @@ g'  +   0   -   0   -   0   +     g'-sign
 Consider the function $f(x) = x^2$. Over this function we draw some
 secant lines for a few pairs of $x$ values:
 
-```julia; hold=true; echo=false
-f(x) = x^2
-seca(f,a,b) = x -> f(a) + (f(b) - f(a)) / (b-a) * (x-a)
-p = plot(f, -2, 3, legend=false, linewidth=5, xlim=(-2,3), ylim=(-2, 9))
-plot!(p,seca(f, -1, 2))
-a,b = -1, 2; xs = range(a, stop=b, length=50)
-plot!(xs, seca(f, a, b).(xs), linewidth=5)
-plot!(p,seca(f, 0, 3/2))
-a,b = 0, 3/2; xs = range(a, stop=b, length=50)
-plot!(xs, seca(f, a, b).(xs), linewidth=5)
-p
+```julia;  echo=false
+let
+    f(x) = x^2
+    seca(f,a,b) = x -> f(a) + (f(b) - f(a)) / (b-a) * (x-a)
+    p = plot(f, -2, 3, legend=false, linewidth=5, xlim=(-2,3), ylim=(-2, 9))
+    plot!(p,seca(f, -1, 2))
+    a,b = -1, 2; xs = range(a, stop=b, length=50)
+    plot!(xs, seca(f, a, b).(xs), linewidth=5)
+    plot!(p,seca(f, 0, 3/2))
+    a,b = 0, 3/2; xs = range(a, stop=b, length=50)
+    plot!(xs, seca(f, a, b).(xs), linewidth=5)
+    p
+end
 ```
 
 The graph attempts to illustrate that for this function the secant
@@ -573,11 +575,11 @@ One way to visualize the second derivative test is to *locally* overlay on a cri
 ```julia; hold=true;
 f(x) = sin(x) + sin(2x) + sin(3x)
 p = plot(f, 0, 2pi, legend=false, color=:blue, linewidth=3)
-cps = fzeros(f', 0, 2pi)
-h = 0.5
+cps = find_zeros(f', (0, 2pi))
+Δ = 0.5
 for c in cps
     parabola(x) = f(c) + (f''(c)/2) * (x-c)^2
-    plot!(parabola, c-h, c+h, color=:red, linewidth=5, alpha=0.6)
+    plot!(parabola, c - Δ, c + Δ, color=:red, linewidth=5, alpha=0.6)
 end
 p
 ```
@@ -637,16 +639,18 @@ find_zeros(k'', -3, 3)
 A car travels from a stop for 1 mile in 2 minutes. A graph of its
 position as a function of time might look like any of these graphs:
 
-```julia; hold=true; echo=false
-v(t) = 30/60*t
-w(t) = t < 1/2 ? 0.0 : (t > 3/2 ? 1.0 : (t-1/2))
-y(t) = 1 / (1 + exp(-t))
-y1(t) = y(2(t-1))
-y2(t) = y1(t) - y1(0)
-y3(t) = 1/y2(2) * y2(t)
-plot(v, 0, 2, label="f1")
-plot!(w, label="f2")
-plot!(y3, label="f3")
+```julia;  echo=false
+let
+    v(t) = 30/60*t
+    w(t) = t < 1/2 ? 0.0 : (t > 3/2 ? 1.0 : (t-1/2))
+    y(t) = 1 / (1 + exp(-t))
+    y1(t) = y(2(t-1))
+    y2(t) = y1(t) - y1(0)
+    y3(t) = 1/y2(2) * y2(t)
+    plot(v, 0, 2, label="f1")
+    plot!(w, label="f2")
+    plot!(y3, label="f3")
+end
 ```
 
 All three graphs have the same *average* velocity which is just the
@@ -696,8 +700,8 @@ choices=[
 "``(-5, -4.2)``",
 "``(-5, -4.2)`` and ``(-2.5, 0)``",
 "``(-4.2, -2.5)``"]
-ans = 3
-radioq(choices, ans)
+answ = 3
+radioq(choices, answ)
 ```
 
 
@@ -718,8 +722,8 @@ choices=[
 "``(-25.0, 0.0)``",
 "``(-5.0, -4.0)`` and ``(-4, -3)``",
 "``(-4.0, -3.0)``"]
-ans = 4
-radioq(choices, ans)
+answ = 4
+radioq(choices, answ)
 ```
 
 ###### Question
@@ -740,8 +744,8 @@ choices=[
 "``(-4.7, -3.0)``",
 "``(-0.17, 0.17)``"
 ]
-ans = 3
-radioq(choices, ans)
+answ = 3
+radioq(choices, answ)
 ```
 
 ###### Question
@@ -763,8 +767,8 @@ choices=[
 "``(-0.6, 0.6)``",
 " ``(-3.0, -0.6)`` and ``(0.6, 3.0)``"
 ]
-ans = 4
-radioq(choices, ans)
+answ = 4
+radioq(choices, answ)
 ```
 
 
@@ -786,8 +790,8 @@ choices = [
     "That the critical point at ``0`` is a relative maximum",
     "That the critical point at ``0`` is a relative minimum"
 ]
-ans = 2
-radioq(choices, ans, keep_order=true)
+answ = 2
+radioq(choices, answ, keep_order=true)
 ```
 
 ###### Question
@@ -801,8 +805,8 @@ choices = [
 " ``f(x)`` is continuous and differentiable at ``2`` and has a critical point",
 " ``f(x)`` is continuous and differentiable at ``2`` and has a critical point that is a relative minimum by the second derivative test"
 ]
-ans = 3
-radioq(choices, ans, keep_order=true)
+answ = 3
+radioq(choices, answ, keep_order=true)
 ```
 
 
@@ -810,22 +814,26 @@ radioq(choices, ans, keep_order=true)
 
 Find  the smallest critical point of $f(x) = x^3 e^{-x}$.
 
-```julia; hold=true; echo=false
-f(x)= x^3*exp(-x)
-cps = find_zeros(D(f), -5, 10)
-val = minimum(cps)
-numericq(val)
+```julia;  echo=false
+let
+    f(x)= x^3*exp(-x)
+    cps = find_zeros(D(f), -5, 10)
+    val = minimum(cps)
+    numericq(val)
+end
 ```
 
 ###### Question
 
 How many critical points does $f(x) = x^5 - x + 1$ have?
 
-```julia; hold=true; echo=false
-f(x) = x^5 - x + 1
-cps = find_zeros(D(f), -3, 3)
-val = length(cps)
-numericq(val)
+```julia; echo=false
+let
+    f(x) = x^5 - x + 1
+    cps = find_zeros(D(f), -3, 3)
+    val = length(cps)
+    numericq(val)
+end
 ```
 
 ###### Question
@@ -833,11 +841,13 @@ numericq(val)
 How many inflection points does $f(x) = x^5 - x + 1$ have?
 
 
-```julia; hold=true; echo=false
-f(x) = x^5 - x + 1
-cps = find_zeros(D(f,2), -3, 3)
-val = length(cps)
-numericq(val)
+```julia;  echo=false
+let
+    f(x) = x^5 - x + 1
+    cps = find_zeros(D(f,2), -3, 3)
+    val = length(cps)
+    numericq(val)
+end
 ```
 
 ###### Question
@@ -850,8 +860,8 @@ choices = [
 "No, the second derivative test is possibly inconclusive",
 "Yes"
 ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 
@@ -865,15 +875,17 @@ choices = [
 "No, the second derivative test is possibly inconclusive if ``c=0``, but otherwise yes",
 "Yes"
 ]
-ans = 2
-radioq(choices, ans)
+answ = 2
+radioq(choices, answ)
 ```
 
 ###### Question
 
-```julia; hold=true; echo=false
-f(x) = exp(-x) * sin(pi*x)
-plot(D(f), 0, 3)
+```julia;  echo=false
+let
+    f(x) = exp(-x) * sin(pi*x)
+    plot(D(f), 0, 3)
+end
 ```
 
 The graph shows $f'(x)$. Is it possible that $f(x) = e^{-x} \sin(\pi x)$?
@@ -931,8 +943,8 @@ choices = [
 "The critical points are at ``x=1`` (a relative minimum), ``x=2`` (not a relative extrema), and ``x=3`` (a relative minimum).",
 "The critical points are at ``x=1`` (a relative minimum), ``x=2`` (a relative minimum), and ``x=3`` (a relative minimum).",
 ]
-ans=1
-radioq(choices, ans)
+answ=1
+radioq(choices, answ)
 ```
 
 ##### Question
@@ -945,8 +957,8 @@ choices = [
 "The function is decreasing over ``(-\\infty, 1)`` and increasing over ``(1, \\infty)``",
 "The function is negative over ``(-\\infty, 1)`` and positive over ``(1, \\infty)``",
 ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 ##### Question
@@ -957,8 +969,8 @@ While driving we accelerate to get through a light before it turns red. However,
 choices = ["A zero of the function",
 "A critical point for the function",
 "An inflection point for the function"]
-ans = 3
-radioq(choices, ans, keep_order=true)
+answ = 3
+radioq(choices, answ, keep_order=true)
 ```
 
 ###### Question
