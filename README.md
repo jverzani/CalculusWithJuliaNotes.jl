@@ -1,6 +1,6 @@
 # CalculusWithJuliaNotes
 
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://jverzani.github.io/CalculusWithJuliaNotes.jl/dev/)
+[![Read Notes](https://img.shields.io/badge/docs-latests-blue.svg)](https://jverzani.github.io/CalculusWithJuliaNotes.jl/)
 
 
-A collection of [notes]((https://jverzani.github.io/CalculusWithJuliaNotes.jl/dev/)) related to using `Julia` in the study of Calculus.
+A collection of [notes]((https://jverzani.github.io/CalculusWithJuliaNotes.jl/)) related to using `Julia` in the study of Calculus.
