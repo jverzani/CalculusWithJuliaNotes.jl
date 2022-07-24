@@ -43,6 +43,8 @@ for DIR ∈ DIRS
                     end
                 end
             else
+                _, ext = splitext(f)
+                ext == ".toml" && continue
                 @show :cp, f
                 try
                     force = isfile(joinpath(DIR, f))
