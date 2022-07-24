@@ -1,0 +1,37 @@
+# Using Pluto
+
+
+```{julia}
+#| echo: false
+
+import Logging
+Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
+Logging.disable_logging(Logging.Warn)
+
+import SymPy
+function Base.show(io::IO, ::MIME"text/html", x::T) where {T <: SymPy.SymbolicObject}
+    println(io, "<span class=\"math-left-align\" style=\"padding-left: 4px; width:0; float:left;\"> ")
+    println(io, "\\[")
+    println(io, sympy.latex(x))
+    println(io, "\\]")
+    println(io, "</span>")
+end
+
+# hack to work around issue
+import Markdown
+import CalculusWithJulia
+function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
+    nm = joinpath("..", string(d), f)
+    u = "![$caption]($nm)"
+    Markdown.parse(u)
+end
+
+nothing
+```
+
+:::{.callout-note}
+## Note
+We see in this notebook the use of `let` blocks, which is not typical with `Pluto`. As `Pluto` is reactive – meaning changes in a variable propagate automatically to variables which reference the changed one – a variable can only be used *once* per notebook at the top level. The `let` block, like a function body, introduces a separate scope for the binding so `Pluto` doesn't incorporate the binding in its reactive model. This is necessary as we have more than one function named `f`. This is unlike `begin` blocks, which are quite typical in `Pluto`. The `begin` blocks allow one or more commands to occur in a cell, as the design of `Pluto` is one object per cell.
+
+:::
+

@@ -1,0 +1,2465 @@
+# Scalar functions
+
+
+```{julia}
+#| echo: false
+
+import Logging
+Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
+Logging.disable_logging(Logging.Warn)
+
+import SymPy
+function Base.show(io::IO, ::MIME"text/html", x::T) where {T <: SymPy.SymbolicObject}
+    println(io, "<span class=\"math-left-align\" style=\"padding-left: 4px; width:0; float:left;\"> ")
+    println(io, "\\[")
+    println(io, sympy.latex(x))
+    println(io, "\\]")
+    println(io, "</span>")
+end
+
+# hack to work around issue
+import Markdown
+import CalculusWithJulia
+function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
+    nm = joinpath("..", string(d), f)
+    u = "![$caption]($nm)"
+    Markdown.parse(u)
+end
+
+nothing
+```
+
+This section uses these add-on packages:
+
+
+```{julia}
+using CalculusWithJulia
+using Plots
+using ForwardDiff
+using SymPy
+using Roots
+using QuadGK
+using JSON
+```
+
+Also, these methods from the `Contour` package:
+
+
+```{julia}
+import Contour: contours, levels, level, lines, coordinates
+```
+
+```{julia}
+#| echo: false
+#| results: "hidden"
+using CalculusWithJulia.WeaveSupport
+using CSV, DataFrames
+
+const frontmatter = (
+        title = "Scalar functions",
+        description = "Calculus with Julia: Scalar functions",
+        tags = ["CalculusWithJulia", "differentiable_vector_calculus", "scalar functions"],
+);
+
+nothing
+```
+
+---
+
+
+Consider a function $f: R^n \rightarrow R$. It has multiple arguments for its input (an $x_1, x_2, \dots, x_n$) and only one, *scalar*, value for an output. Some simple examples might be:
+
+
+$$
+\begin{align}
+f(x,y) &= x^2 + y^2\\
+g(x,y) &= x \cdot y\\
+h(x,y) &= \sin(x) \cdot \sin(y)
+\end{align}
+$$
+
+For two examples from real life consider the elevation Point Query Service (of the [USGS](https://nationalmap.gov/epqs/)) returns the elevation in international feet or meters for a specific latitude/longitude within the United States. The longitude can be associated to an $x$ coordinate, the latitude to a $y$ coordinate, and the elevation a $z$ coordinate, and as long as the region is small enough, the $x$-$y$ coordinates can be thought to lie on a plane. (A flat earth assumption.)
+
+
+Similarly,  a weather map, say of the United States, may show the maximum predicted temperature for a given day. This describes a function that take a position ($x$, $y$) and returns a predicted temperature ($z$).
+
+
+Mathematically, we may describe the values $(x,y)$ in terms of a point, $P=(x,y)$ or a vector $\vec{v} = \langle x, y \rangle$ using the identification of a point with a vector. As convenient, we may write any of $f(x,y)$, $f(P)$, or $f(\vec{v})$ to describe the evaluation of $f$ at the value $x$ and $y$
+
+
+---
+
+
+Returning to the task at hand, in `Julia`, defining a scalar function is straightforward, the syntax following mathematical notation:
+
+
+```{julia}
+f(x,y) = x^2 + y^2
+g(x,y) = x * y
+h(x,y) = sin(x) * sin(y)
+```
+
+To call a scalar function for specific values of $x$ and $y$ is also similar to the mathematical case:
+
+
+```{julia}
+f(1,2), g(2, 3), h(3,4)
+```
+
+It may be advantageous to have the values as a vector or a point, as in `v=[x,y]`. Splatting can be used to turn a vector or tuple into two arguments:
+
+
+```{julia}
+v = [1,2]
+f(v...)
+```
+
+Alternatively, the function may be defined using a vector argument:
+
+
+```{julia}
+f(v) = v[1]^2 + v[2]^2
+```
+
+A style required for other packages within the `Julia` ecosystem, as there are many advantages to passing containers of values: they can have arbitrary length, they can be modified inside a function, the functions can be more generic, etc.
+
+
+More verbosely, but avoiding index notation, we can use multiline functions:
+
+
+```{julia}
+function g(v)
+    x, y = v
+    x * y
+end
+```
+
+Then we have
+
+
+```{julia}
+f(v), g([2,3])
+```
+
+---
+
+
+More elegantly, perhaps – and the approach we will use in this section – is to mirror the mathematical notation through multiple dispatch. If we define `j` for multiple variables, say with:
+
+
+```{julia}
+j(x,y) = x^2 - 2x*y^2
+```
+
+The we can define an alternative method with just a single variable and use splatting to turn it into multiple variables:
+
+
+```{julia}
+j(v) = j(v...)
+```
+
+The we can call `j` with a vector or point:
+
+
+```{julia}
+j([1,2])
+```
+
+or by passing in the individual components:
+
+
+```{julia}
+j(1,2)
+```
+
+---
+
+
+Following a calculus perspective, we take up the question of how to visualize scalar functions within `Julia`? Further, how to describe the change in the function between nearby values?
+
+
+## Visualizing scalar functions
+
+
+Suppose for the moment that $f:R^2 \rightarrow R$. The equation $z = f(x,y)$ may be visualized by the set of points in $3$-dimensions $\{(x,y,z): z = f(x,y)\}$. This will render as a surface, and that surface will pass a "vertical line test", in that each $(x,y)$ value corresponds to at most one $z$ value. We will see alternatives for describing surfaces beyond through a function of the form $z=f(x,y)$. These are similar to how a curve in the $x$-$y$ plane can be described by a function of the form $y=f(x)$ but also through an equation of the form $F(x,y) = c$ or through a parametric description, such as is used for planar curves. For now though we focus on the case where $z=f(x,y)$.
+
+
+In `Julia`, plotting such a surface requires a generalization to plotting a univariate function where, typically, a grid of evenly spaced values is given between some $a$ and $b$, the corresponding $y$ or $f(x)$ values are found, and then the points are connected in a dot-to-dot manner.
+
+
+Here, a two-dimensional grid of $x$-$y$ values needs specifying, and the corresponding $z$ values found. As the grid will be assumed to be regular only the $x$ and $y$ values need specifying, the set of pairs can be computed. The $z$ values, it will be seen, are easily computed. This cloud of points is plotted and each cell in the $x$-$y$ plane is plotted with a surface giving the $x$-$y$-$z$, $3$-dimensional, view. One way to plot such a surface is to tessalate the cell and then for each triangle, represent a plane made up of the $3$ boundary points.
+
+
+Here is an example:
+
+
+```{julia}
+𝒇(x, y) = x^2 + y^2
+```
+
+```{julia}
+xs = range(-2, 2, length=100)
+ys = range(-2, 2, length=100)
+
+surface(xs, ys, 𝒇)
+```
+
+The `surface` function will generate the surface.
+
+
+:::{.callout-note}
+## Note
+Using `surface` as a function name is equivalent to `plot(xs, ys, f, seriestype=:surface)`.
+
+:::
+
+We can also use `surface(xs, ys, zs)` where `zs` is not a vector, but rather a *matrix* of values corresponding to a grid described by the `xs` and `ys`. A matrix is a rectangular collection of values indexed by row and column through indices `i` and `j`. Here the values in `zs` should satisfy: the $i$th row and $j$th column entry should be $z_{ij} = f(x_i, y_j)$ where $x_i$ is the $i$th entry from the `xs` and $y_j$ the $j$th entry from the `ys`.
+
+
+We can generate this using a comprehension:
+
+
+```{julia}
+#| hold: true
+zs = [𝒇(x,y) for y in ys, x in xs]
+surface(xs, ys, zs)
+```
+
+If remembering that the $y$ values go first, and then the $x$ values in the above is too hard, then an alternative can be used. Broadcasting `f.(xs,ys)` may not make sense, were the `xs` and `ys` not of commensurate lengths, and when it does, this call pairs off `xs` and `ys` values and passes them to `f`. What is desired here is different, where for each `xs` value there are pairs for each of the `ys` values. The syntax `xs'` can ve viewed as creating a *row* vector, where `xs` is a *column* vector. Broadcasting will create a *matrix*  of values in this case. So the following is identical to the above:
+
+
+```{julia}
+surface(xs, ys, 𝒇.(xs', ys))
+```
+
+(This is still subtle. The use of the adjoint operation on `ys` will error if the dimensions are not square, but will produce an incorrect surface if not. It would be best to simply pass the function and let `Plots` handle this detail which for the alternative `Makie` is reversed.)
+
+
+---
+
+
+An alternate to `surface` is `wireframe` – which may not use shading in all backenends. This displays a grid in the $x$-$y$ plane mapped to the surface:
+
+
+```{julia}
+#| hold: true
+xs = ys = range(-2,2, length=10) # downsample to see the frame
+wireframe(xs, ys, 𝒇)   # gr() or pyplot() wireplots render better than plotly()
+```
+
+##### Example
+
+
+The surface $f(x,y) = x^2 - y^2$ has a "saddle," as this shows:
+
+
+```{julia}
+#| hold : true
+f(x,y) = x^2 - y^2
+xs = ys = range(-2, 2, length=100)
+surface(xs, ys, f)
+```
+
+##### Example
+
+
+As mentioned. In plots of univariate functions, a dot-to-dot algorithm is followed. For surfaces, the two dots are replaced by four points, which over determines a plane. Some choice is made to partition that rectangle into two triangles, and for each triangle, the $3$ resulting points determines a plane, which can be suitably rendered.
+
+
+We can see this in the default `gr` toolkit by forcing the surface to show just one cell, as the `xs` and `ys` below only contain $2$ values:
+
+
+```{julia}
+#| hold: true
+xs = [-1,1]; ys = [-1,1]
+f(x,y) = x*y
+surface(xs, ys, f)
+```
+
+Compare this, to the same region, but with many cells to represent the surface:
+
+
+```{julia}
+#| hold: true
+xs = ys = range(-1, 1, length=100)
+f(x,y) = x*y
+surface(xs, ys, f)
+```
+
+### Contour plots and heatmaps
+
+
+```{julia}
+#| echo: false
+#n,m = 25,50
+#xs = range(-74.3129825592041, -74.2722129821777, length=n)
+#ys = range(40.7261855236006, 40.7869834960339, length=m)
+#d = DataFrame(xs =reshape([m[1] for m in [(xi,yi) for xi in xs, yi in ys]], (n*m),),
+#       ys = reshape([m[2] for m in [(xi,yi) for xi in xs, yi in ys]], (n*m,)))
+# In RCall
+#using RCall
+#z = R"""
+#library(elevatr)
+#z = get_elev_point($d, prj="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
+#z = data.frame(z)
+#"""
+#elev = rcopy(DataFrame, z).elevation
+#zs = reshape(elev, m, n)
+#D = Dict(:xs => xs, :ys=>ys, :zs => elev)
+#io = open("data/somocon.json", "w")
+#JSON.print(io, D)
+#close(io)
+nothing
+```
+
+Consider the example of latitude, longitude, and elevation data describing a surface. The following graph is generated from such data, which was retrieved from the USGS website for a given area. The grid points are chosen about every $150$m, so this is not too fine grained.
+
+
+```{julia}
+#| echo: false
+somocon = """
+{"ys":[40.7261855236006,40.72742629854822,40.728667073495835,40.72990784844345,40.73114862339107,40.73238939833869,40.73363017328631,40.734870948233926,40.736111723181544,40.73735249812916,40.73859327307678,40.7398340480244,40.74107482297202,40.742315597919635,40.74355637286725,40.74479714781487,40.74603792276249,40.74727869771011,40.748519472657726,40.749760247605344,40.75100102255296,40.75224179750058,40.7534825724482,40.75472334739582,40.755964122343435,40.75720489729106,40.75844567223868,40.7596864471863,40.760927222133915,40.762167997081534,40.76340877202915,40.76464954697677,40.76589032192439,40.767131096872006,40.768371871819625,40.76961264676724,40.77085342171486,40.77209419666248,40.7733349716101,40.774575746557716,40.775816521505334,40.77705729645295,40.77829807140057,40.77953884634819,40.78077962129581,40.782020396243425,40.78326117119104,40.78450194613866,40.78574272108628,40.7869834960339],"zs":[56.01,51.48,51.74,44.9,45.6,48.76,51.94,61.55,73.28,66.29,63.29,61.46,58.49,50.06,44.18,41.35,39.9,39.84,36.59,39.0,32.85,30.03,33.51,41.28,48.27,62.42,60.31,47.04,45.5,48.2,53.46,64.52,90.94,99.45,88.22,77.94,74.07,67.39,57.02,48.88,45.05,48.09,43.18,39.9,39.08,40.62,33.1,31.9,36.77,43.92,71.71,69.82,57.64,46.98,60.73,60.83,96.1,142.76,137.34,115.32,94.89,84.02,76.91,67.68,56.16,48.75,51.23,49.58,44.37,39.98,41.33,39.08,33.27,34.35,38.63,74.36,76.11,64.27,50.65,61.01,87.64,127.37,144.27,154.88,154.21,121.78,101.25,89.54,78.44,65.93,57.72,53.51,54.97,50.69,45.22,40.48,37.04,35.56,33.26,36.96,77.43,64.79,71.06,63.36,57.43,106.1,134.93,142.34,148.85,155.99,159.95,124.49,103.86,87.97,76.57,68.22,60.35,57.23,55.58,51.15,42.79,40.6,41.94,34.53,34.96,78.13,73.79,75.67,56.64,60.87,96.08,128.31,138.22,143.42,153.35,161.87,155.41,122.68,104.06,87.5,77.81,68.75,64.85,60.88,59.44,47.98,44.57,45.44,42.71,35.23,77.37,77.0,77.61,59.73,63.84,99.1,113.48,135.22,152.77,151.16,158.9,162.84,153.3,120.58,103.98,87.91,79.23,73.92,67.96,64.94,53.54,44.0,50.07,46.93,43.32,88.65,84.02,80.83,65.49,59.07,77.84,103.68,125.53,147.66,160.47,159.49,164.66,165.91,146.24,118.18,102.01,88.47,80.25,74.83,70.48,62.1,49.47,48.1,53.33,48.34,99.44,88.01,84.27,82.97,60.09,69.83,92.51,113.41,135.15,149.8,164.15,160.75,163.8,167.33,147.47,118.41,101.95,88.65,82.18,78.29,69.59,55.74,49.71,51.8,57.88,102.64,104.12,97.82,74.39,68.53,60.14,77.6,99.22,117.22,130.03,153.71,162.09,161.09,164.47,167.19,139.18,114.62,97.97,87.68,83.73,76.03,60.99,51.93,49.41,59.15,114.76,115.62,99.65,95.47,95.31,70.6,60.14,75.41,100.54,122.61,141.39,157.32,160.93,163.17,167.0,158.25,129.02,112.59,96.6,89.03,80.11,65.83,56.0,49.52,54.51,121.11,111.04,114.21,111.8,105.23,102.43,66.8,74.98,99.48,111.59,126.23,144.81,163.02,164.44,165.56,165.01,157.87,129.18,108.67,96.9,87.28,74.81,60.53,53.12,52.44,123.96,126.43,127.51,124.19,107.58,92.65,67.27,74.09,95.48,102.63,123.05,143.73,153.72,166.16,164.96,166.27,166.6,156.49,122.54,104.98,94.24,81.41,70.53,60.0,55.06,132.49,128.75,142.22,132.8,116.22,95.17,78.05,65.54,73.44,94.77,122.63,150.45,159.95,162.54,164.74,165.55,167.95,167.5,141.39,116.28,102.84,88.36,78.59,68.04,59.33,135.9,129.63,135.65,149.65,131.83,109.12,92.13,67.31,71.28,95.2,105.78,133.74,155.48,169.13,167.16,163.63,164.41,168.11,159.05,128.09,109.31,95.72,85.54,79.65,67.48,139.88,133.57,135.32,141.51,145.89,119.2,96.72,77.69,69.21,80.55,95.18,129.15,144.98,165.06,158.96,167.14,159.53,164.18,156.31,133.83,121.74,108.38,93.46,86.54,79.24,142.73,152.05,156.37,143.59,147.61,126.53,103.08,90.34,92.32,71.97,83.82,113.32,135.91,156.39,150.75,161.93,157.2,155.83,154.93,150.37,140.2,119.8,102.33,94.4,90.57,136.21,140.78,156.4,162.33,152.52,138.31,127.93,95.01,89.0,83.32,74.11,102.61,125.18,134.58,135.15,151.46,152.13,149.58,153.91,156.0,162.27,132.0,115.84,105.2,99.94,133.21,139.49,147.1,157.23,167.48,154.91,135.91,111.99,94.57,90.76,78.29,83.11,102.76,112.19,120.68,136.88,137.72,144.85,153.46,161.94,169.27,165.91,133.39,118.98,107.7,136.68,139.87,152.59,158.63,167.04,165.88,161.25,126.56,102.07,93.71,79.93,81.49,96.21,93.82,101.26,124.57,146.39,150.26,147.96,158.73,168.95,173.35,156.12,130.89,116.13,131.8,135.34,149.18,158.94,158.41,153.19,153.96,152.89,109.61,101.17,103.41,91.12,79.35,83.68,90.6,118.7,139.47,152.39,155.23,154.36,163.94,171.28,171.87,141.11,123.49,128.26,127.93,136.81,138.07,139.58,140.93,137.3,139.21,119.46,103.23,100.02,95.77,81.51,93.65,103.9,120.91,126.51,147.94,160.93,159.58,158.97,170.02,173.4,171.77,133.46,129.34,123.57,125.8,127.17,134.63,140.14,141.37,132.18,121.88,112.02,104.23,98.86,81.28,97.91,96.43,113.3,139.2,143.14,155.76,166.2,158.24,165.4,171.77,172.06,140.75,112.75,119.41,120.86,124.88,134.42,145.88,159.11,160.31,147.24,125.13,112.38,100.79,87.49,88.87,99.02,114.24,130.88,155.17,156.39,166.16,161.29,161.34,161.94,158.02,158.28,106.87,113.99,118.24,122.56,133.41,145.66,155.71,165.71,165.42,155.14,127.78,111.46,91.2,91.16,97.31,106.22,134.23,149.23,164.3,163.19,170.52,162.95,168.76,152.24,161.13,121.83,121.15,119.0,121.56,129.72,140.09,153.12,162.86,168.34,168.92,161.0,128.69,108.79,89.1,87.66,99.02,125.32,149.07,162.35,168.22,170.28,171.39,167.62,172.27,174.12,124.29,121.09,122.74,121.68,128.9,135.39,145.94,155.36,157.98,166.38,171.83,161.26,117.38,101.24,92.25,90.26,111.61,132.57,145.7,165.92,169.35,170.59,169.76,175.52,175.58,127.46,123.56,122.96,122.32,125.0,129.83,139.32,144.75,145.12,151.16,159.37,163.38,125.29,108.04,102.34,100.38,100.38,118.72,144.25,162.56,168.8,175.06,173.27,175.9,176.65,129.23,123.85,124.3,124.41,126.73,127.33,130.66,135.53,143.09,163.18,161.45,160.31,146.71,123.03,104.09,100.38,100.38,104.73,136.26,158.26,162.47,172.58,172.73,171.67,176.73,120.55,127.56,125.67,126.14,127.67,129.82,129.3,132.26,143.3,161.39,171.13,173.89,171.66,131.8,107.61,100.38,100.38,102.62,126.85,144.66,154.41,172.86,175.48,172.4,173.72,116.01,126.43,125.59,126.5,131.19,129.04,134.07,136.27,135.63,142.09,159.11,175.01,179.52,138.05,101.75,102.8,100.38,100.38,112.51,127.4,152.04,170.15,172.66,169.62,171.11,110.18,130.36,129.34,129.04,134.03,141.08,139.77,145.16,147.8,149.31,165.49,172.97,175.88,134.81,108.36,103.24,100.38,100.38,106.34,121.12,144.63,160.44,166.56,164.1,169.59,104.51,119.17,134.58,130.33,134.6,141.51,155.8,151.57,159.5,155.76,158.77,163.45,159.48,143.39,111.96,107.48,100.38,100.38,104.99,113.14,132.14,150.97,163.91,158.67,167.88,96.5,107.46,121.18,145.9,141.42,141.48,145.83,143.74,150.62,145.75,144.48,148.36,146.6,149.51,122.77,111.64,104.44,100.38,102.92,111.09,126.52,143.73,159.52,155.23,163.23,90.59,97.17,112.25,134.94,140.29,135.93,137.72,134.54,137.69,132.11,135.01,141.86,149.14,153.19,150.77,116.52,106.07,101.64,102.67,106.72,122.36,136.38,153.14,160.57,154.01,84.27,91.0,99.89,120.09,123.15,120.86,128.41,127.42,126.42,129.29,143.8,149.59,165.05,163.71,156.91,126.17,110.32,103.98,102.7,105.38,113.28,126.0,141.28,156.94,142.7,79.52,85.85,89.72,96.0,103.94,109.11,113.31,125.44,129.86,134.67,139.17,154.89,169.61,178.97,171.75,153.95,122.39,110.25,101.31,104.01,111.03,119.34,127.07,138.48,150.35,78.71,83.85,92.84,103.12,118.74,123.26,124.38,132.82,135.71,139.43,142.35,153.33,166.66,178.73,179.83,177.3,146.91,115.31,103.65,102.19,108.29,120.87,140.26,153.15,161.64,76.53,81.19,85.54,97.94,114.77,120.33,127.56,136.91,150.14,148.19,151.04,158.93,159.35,167.55,176.78,177.43,168.22,122.85,106.91,103.39,105.17,112.83,127.37,149.56,158.63,76.9,80.11,83.05,89.9,103.9,107.88,113.18,128.27,146.95,157.8,156.48,162.97,152.02,155.46,175.3,175.85,165.8,124.73,118.12,105.54,104.85,113.42,120.65,135.84,155.64,76.36,79.74,86.01,86.54,92.08,95.01,105.42,123.23,141.01,149.2,147.39,149.84,141.68,150.58,164.87,169.4,157.16,159.46,134.27,110.78,103.99,110.46,118.75,135.33,152.69,78.1,78.68,86.48,90.58,93.27,92.16,97.28,110.67,126.28,130.56,128.0,128.45,127.66,137.06,149.28,153.26,160.61,169.86,156.81,123.71,103.82,106.59,113.73,127.34,148.38,82.35,80.09,82.09,88.63,95.05,96.56,97.26,100.99,110.38,113.98,120.77,132.22,134.76,147.55,166.07,170.47,169.35,168.89,155.55,134.24,110.96,104.36,108.32,118.05,136.24,84.15,84.23,82.32,87.76,91.64,93.12,96.96,106.33,111.31,106.79,119.35,132.95,147.96,153.55,165.8,178.43,178.35,170.88,165.74,140.36,119.17,107.65,106.75,113.56,127.58,82.99,85.54,84.77,84.53,90.08,95.19,95.25,105.43,118.46,119.85,116.2,129.13,142.15,149.56,155.14,171.6,179.44,174.73,161.75,142.72,129.9,115.26,107.99,111.72,121.99,83.01,84.0,87.7,86.06,85.61,94.36,100.3,105.68,117.92,125.39,115.72,129.22,138.43,141.11,151.63,160.55,168.46,164.25,159.16,150.23,136.74,122.5,113.66,108.45,114.78,84.11,84.63,86.98,90.22,88.1,91.68,100.12,113.41,115.57,121.86,128.81,118.67,129.66,133.23,141.51,145.97,148.93,150.71,162.12,166.27,141.86,130.13,115.63,109.05,112.53,85.03,84.97,87.49,89.39,93.67,94.55,102.32,113.85,127.45,126.0,130.58,124.19,132.07,132.58,131.1,139.71,148.52,162.21,157.78,164.7,149.31,142.46,128.04,109.0,110.09,85.93,87.73,89.92,90.55,93.51,98.52,103.9,118.72,129.55,133.86,136.06,137.44,136.47,146.6,143.25,136.06,157.12,172.07,169.4,168.79,158.26,144.45,138.0,111.86,109.03,87.34,90.39,91.4,93.1,91.44,93.54,97.58,115.07,124.02,123.47,137.17,141.91,149.48,150.24,151.28,139.57,144.66,162.92,170.62,177.08,172.96,151.89,129.57,120.07,112.54],"xs":[-74.3129825592041,-74.311283826828,-74.3095850944519,-74.3078863620758,-74.3061876296997,-74.30448889732361,-74.30279016494751,-74.3010914325714,-74.2993927001953,-74.2976939678192,-74.2959952354431,-74.294296503067,-74.2925977706909,-74.2908990383148,-74.2892003059387,-74.28750157356261,-74.28580284118651,-74.28410410881041,-74.2824053764343,-74.2807066440582,-74.2790079116821,-74.277309179306,-74.2756104469299,-74.2739117145538,-74.2722129821777]}
+"""
+lenape_csv = """
+"","elevation","elev_units","longitude","latitude"
+"1",126.85,"meters",-74.2986363,40.7541939
+"2",125.19,"meters",-74.298561,40.754122
+"3",123.52,"meters",-74.298505,40.754049
+"4",121.92,"meters",-74.298435,40.753972
+"5",119.86,"meters",-74.298402,40.753872
+"6",119.86,"meters",-74.298416,40.753818
+"7",119.86,"meters",-74.298393,40.753805
+"8",118.32,"meters",-74.298233,40.753717
+"9",118.48,"meters",-74.298113,40.753706
+"10",118.48,"meters",-74.298079,40.753714
+"11",110.65,"meters",-74.297548,40.753434
+"12",108.68,"meters",-74.297364,40.753392
+"13",108.68,"meters",-74.2973338,40.7533463
+"14",107.67,"meters",-74.2972265,40.7533169
+"15",107.54,"meters",-74.297087,40.753356
+"16",107.54,"meters",-74.2970438,40.7533584
+"17",106.74,"meters",-74.296979,40.753397
+"18",107.69,"meters",-74.29689,40.753533
+"19",108.01,"meters",-74.296812,40.753661
+"20",108.34,"meters",-74.296718,40.753785
+"21",108.93,"meters",-74.296627,40.753874
+"22",109.26,"meters",-74.296514,40.753973
+"23",109.44,"meters",-74.296377,40.754026
+"24",107.8,"meters",-74.296184,40.754049
+"25",108.14,"meters",-74.29596,40.754119
+"26",108.31,"meters",-74.295761,40.754191
+"27",107.08,"meters",-74.295542,40.754277
+"28",106.54,"meters",-74.295345,40.754276
+"29",105.18,"meters",-74.295177,40.754295
+"30",104.93,"meters",-74.2951,40.754358
+"31",103.79,"meters",-74.294976,40.754381
+"32",103.79,"meters",-74.294943,40.754379
+"33",103.62,"meters",-74.294873,40.754362
+"34",103.46,"meters",-74.294805,40.754359
+"35",102.68,"meters",-74.294687,40.754349
+"36",102.78,"meters",-74.294537,40.754269
+"37",100.91,"meters",-74.294341,40.754248
+"38",101.24,"meters",-74.294228,40.754249
+"39",101.15,"meters",-74.294146,40.75427
+"40",100.73,"meters",-74.294043,40.754277
+"41",100.77,"meters",-74.293997,40.75418
+"42",97.54,"meters",-74.293672,40.75418
+"43",97.58,"meters",-74.293539,40.754324
+"44",97.41,"meters",-74.293442,40.754447
+"45",97.02,"meters",-74.29342,40.754555
+"46",96.78,"meters",-74.293397,40.754677
+"47",96.72,"meters",-74.293319,40.754787
+"48",96.98,"meters",-74.2933093,40.7549621
+"49",97.04,"meters",-74.2931914,40.7550903
+"50",95.89,"meters",-74.2931359,40.7552002
+"51",95.48,"meters",-74.293124,40.75528
+"52",95.43,"meters",-74.293142,40.755375
+"53",95.58,"meters",-74.293163,40.7554692
+"54",95.58,"meters",-74.2931806,40.7555174
+"55",95.31,"meters",-74.2930826,40.7555402
+"56",95.45,"meters",-74.2930283,40.7555572
+"57",94.19,"meters",-74.2929292,40.7555853
+"58",93.57,"meters",-74.2928114,40.7556067
+"59",92.9,"meters",-74.2927408,40.7556127
+"60",92.9,"meters",-74.2926921,40.7556257
+"61",91.46,"meters",-74.2926528,40.7556602
+"62",91.46,"meters",-74.2926104,40.7556888
+"63",88.42,"meters",-74.2925696,40.7557042
+"64",88.42,"meters",-74.2925272,40.7556876
+"65",85.62,"meters",-74.2924927,40.7556674
+"66",85.32,"meters",-74.2924503,40.755646
+"67",85.32,"meters",-74.2924377,40.7556222
+"68",85.32,"meters",-74.2924377,40.7555877
+"69",84.49,"meters",-74.2924346,40.7555365
+"70",84.49,"meters",-74.2924236,40.755502
+"71",84.36,"meters",-74.2923562,40.7554961
+"""
+nothing
+```
+
+```{julia}
+SC = JSON.parse(somocon)  # defined in a hidden cell
+xsₛ, ysₛ, zsₛ =  [float.(SC[i]) for i in ("xs", "ys","zs")]
+zzsₛ = reshape(zsₛ, (length(xsₛ), length(ysₛ)))' # reshape to matrix
+surface(xsₛ, ysₛ, zzsₛ)
+```
+
+This shows a bit of the topography. If we look at the region from directly above, the graph looks different:
+
+
+```{julia}
+surface(xsₛ, ysₛ, zzsₛ, camera=(0, 90))
+```
+
+The rendering uses different colors to indicate height. A more typical graph, that is somewhat similar to the top down view, is a *contour* map.
+
+
+For a scalar function, Define a *level curve* as the solutions to the equations $f(x,y) = c$ for a given $c$. (Or more generally $f(\vec{x}) = c$ for a vector if dimension $2$ or more.) Plotting a selection of level curves yields a *contour* graph. These are produced with `contour` and called as above. For example, we have:
+
+
+```{julia}
+contour(xsₛ, ysₛ, zzsₛ)
+```
+
+Were one to walk along one of the contour lines, then there would be no change in elevation. The areas of greatest change in elevation - basically the hills - occur where the different contour lines are closest. In this particular area, there is a river that runs from the upper right through to the lower left and this is flanked by hills.
+
+
+The $c$ values for the levels drawn may be specified through the `levels` argument:
+
+
+```{julia}
+contour(xsₛ, ysₛ, zzsₛ, levels=[50,75,100, 125, 150, 175])
+```
+
+That shows the $50$m, $75$m, ... contours.
+
+
+If a fixed number of evenly spaced levels is desirable, then the `nlevels` argument is available.
+
+
+```{julia}
+contour(xsₛ, ysₛ, zzsₛ, nlevels = 5)
+```
+
+If a function describes the surface, then the function may be passed as the third value:
+
+
+```{julia}
+#| hold: true
+f(x, y) = sin(x) - cos(y)
+xs = range(0, 2pi, length=100)
+ys = range(-pi, pi, length = 100)
+contour(xs, ys, f)
+```
+
+##### Example
+
+
+An informative graphic mixes both a surface plot with a contour plot. The `PyPlot` package can be used to generate one, but such graphs are not readily made within the `Plots` framework. Here is a workaround, where the contours are generated through the `Contours` package. At the beginning of this section several of its methods are imported.
+
+
+This example shows how to add a contour at a fixed level ($0$ below). As no hidden line algorithm is used to hide the contour line if the surface were to cover it, a transparency is specified through `alpha=0.5`:
+
+
+```{julia}
+#| hold: true
+
+function surface_contour(xs, ys, f; offset=0)
+  p = surface(xs, ys, f, legend=false, fillalpha=0.5)
+
+  ## we add to the graphic p, then plot
+  zs = [f(x,y) for x in xs, y in ys]  # reverse order for use with Contour package
+  for cl in levels(contours(xs, ys, zs))
+    lvl = level(cl) # the z-value of this contour level
+    for line in lines(cl)
+        _xs, _ys = coordinates(line) # coordinates of this line segment
+        _zs = offset .+ (0 .* _xs)
+        plot!(p, _xs, _ys, _zs, alpha=0.5)        # add curve on x-y plane
+    end
+  end
+  p
+end
+
+xs = ys = range(-pi, stop=pi, length=100)
+f(x,y) = 2 + sin(x) - cos(y)
+
+surface_contour(xs, ys, f)
+```
+
+We can see that at the minimum of the surface, the contour lines are nested closed loops with decreasing area.
+
+
+##### Example
+
+
+The figure shows a weather map from $1943$ with contour lines based on atmospheric pressure. These are also know as *isolines*.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+imgfile = "figures/daily-map.jpg"
+caption = """
+Image from [weather.gov](https://www.weather.gov/unr/1943-01-22) of a contour map showing atmospheric pressures from January 22, 1943 in Rapid City, South Dakota.
+"""
+ImageFile(:differentiable_vector_calculus, imgfile, caption)
+```
+
+This day is highlighted as "The most notable temperature fluctuations occurred on January 22, 1943 when temperatures rose and fell almost 50 degrees in a few minutes. This phenomenon was caused when a frontal boundary separating extremely cold Arctic air from warmer Pacific air rolled like an ocean tide along the northern and eastern slopes of the Black Hills."
+
+
+This frontal boundary is marked with triangles and half circles along the thicker black line. The tight spacing of the contour lines above that marked line show a big change in pressure in a short distance.
+
+
+##### Example
+
+
+Sea surface temperature varies with latitude and other factors, such as water depth. The following figure shows average temperatures for January 1982 around Australia. The filled contours allow for an easier identification of the ranges represented.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+imgfile = "figures/australia.png"
+caption = """
+Image from [IRI](https://iridl.ldeo.columbia.edu/maproom/Global/Ocean_Temp/Monthly_Temp.html) shows mean sea surface temperature near Australia in January 1982. IRI has zoomable graphs for this measurement from 1981 to the present. The contour lines are in 2 degree Celsius increments.
+"""
+ImageFile(:differentiable_vector_calculus, imgfile, caption)
+```
+
+##### Example
+
+
+The filled contour and the heatmap are related figures to a simple contour graph. The heatmap uses a color gradient to indicate the value at $(x,y)$:
+
+
+```{julia}
+#| hold: true
+f(x,y) = exp(-(x^2 + y^2)/5) * sin(x) * cos(y)
+xs= ys = range(-pi, pi, length=100)
+heatmap(xs, ys, f)
+```
+
+The filled contour layers on the contour lines to a heatmap:
+
+
+```{julia}
+#| hold: true
+f(x,y) = exp(-(x^2 + y^2)/5) * sin(x) * cos(y)
+xs= ys = range(-pi, pi, length=100)
+contourf(xs, ys, f)
+```
+
+This function has a prominent peak and a prominent valley, around the middle of the viewing window. The nested contour lines indicate this, and the color key can be used to identify which is the peak and which the valley.
+
+
+## Limits
+
+
+The notion of a limit for a univariate function: as $x$ gets close to $c$ then $f(x)$ gets close to $L$, needs some modification:
+
+
+> Let $f: R^n \rightarrow R$ and $C$ be a point in $R^n$. Then $\lim_{P \rightarrow C}f(P) = L$ if for every $\epsilon > 0$ there exists a $\delta > 0$ such that $|f(P) - L| < \epsilon$ whenever $0 < \| P - C \| < \delta$.
+
+
+
+(If $P=(x_1, x_2, \dots, x_n)$ we use $f(P) = f(x_1, x_2, \dots, x_n)$.)
+
+
+This says, informally, for any scale about $L$ there is a "ball" about $C$ (not including $C$) for which the images of $f$ always sit in the ball. Formally we define a ball of radius $r$ about a point $C$ to be all points $P$ with distance between $P$ and $C$ less than $r$. A ball is an *open* set. An [open](https://en.wikipedia.org/wiki/Open_set#Euclidean_space) is a set $U$ such that for any $x$ in $U$, there is a radius $r$ such that the ball of radius $r$ about $x$ is *still* within $U$. An open set generalizes an open interval. A *closed* set generalizes a *closed* interval. These are [defined](https://en.wikipedia.org/wiki/Closed_set) by a set that contains its boundary. Boundary points are any points that can be approached in the limit by points within the set.
+
+
+In the univariate case, it can be useful to characterize a limit at $x=c$ existing if *both* the left and right limits exist and the two are equal. Generalizing to getting close in $R^m$ leads to the intuitive idea of a limit existing in terms of any continuous "path" that approaches $C$ in the $x$-$y$ plane has a limit and all are equal. Let $\gamma$ describe the path, and $\lim_{s \rightarrow t}\gamma(s) = C$. Then $f \circ \gamma$ will be a univariate function. If there is a limit, $L$, then this composition will also have the same limit as $s \rightarrow t$. Conversely, if for *every* path this composition has the *same* limit, then $f$ will have a limit.
+
+
+The "two path corollary" is a trick to show a limit does not exist - just find two paths where there is a limit, but they differ, then a limit does not exist in general.
+
+
+### Continuity of scalar functions
+
+
+Continuity is defined in a familiar manner: $f(P)$ is continuous at $C$ if $\lim_{P \rightarrow C} f(P) = f(C)$, where we interpret $P \rightarrow C$ in the sense of a ball about $C$.
+
+
+As with univariate functions continuity will be preserved under function addition, subtraction, multiplication, and division (provided there is no dividing by $0$). With this, all these functions are continuous everywhere and so have limits everywhere:
+
+
+$$
+f(x,y) = \sin(x + y), \quad
+g(x,y,z) = x^2 + y^2 + z^2, \quad
+h(w, x,y,z) = \sqrt{w^2 + x^2 + y^2 + z^2}.
+$$
+
+Not all functions will have a limit though. Consider $f(x,y) = 2x^2/(x^2+y^2)$ and $C=(0,0)$. It is not defined at $C$ (dividing by $0$), but may have a limit at $C$. Consider the path $x=0$ (the $y$-axis) parameterized by $\vec\gamma(t) = \langle 0, t\rangle$. Along this path $(f\circ \vec\gamma)(t) = 0/t^2 = 0$ so will have a limit of $0$. If the limit of $f$ exists it must be $0$. But, along  the line $y=0$ (the $x$ axis) parameterized by $\vec{\gamma}(t) = \langle t, 0 \rangle$, the function simplifies to $(f\circ\vec\gamma)(t)=2$, so would have a limit of $2$. As the limit along different paths is different, this function has no limit in general.
+
+
+##### Example
+
+
+If is not enough that a limit exist along many paths to say a limit exists in general. It must be all paths and be equal. An example might be this function:
+
+
+$$
+f(x,y) =
+\begin{cases}
+(x + y)/(x-y) & x \neq y,\\
+0 & x = y
+\end{cases}
+$$
+
+At $\vec{0}$ this will not have a limit. However, along any line $y=mx$ we have a limit. If $m=1$ the function is constantly $0$, and so has the limit. If $m \neq 1$, then we get $f(x, y) = f(x, mx) = (1 + m)/(1-m)$, a constant So for each $m$ there is a different limit. Consequently, the scalar function does not have a limit.
+
+
+## Partial derivatives and the gradient
+
+
+Discussing the behaviour of a scalar function along a path is described mathematically through composition. If $\vec\gamma(t)$ is a path in $R^n$, then the composition $f \circ \vec\gamma$ will be a univariate function. When $n=2$, we can visualize this composition directly, or as a $3$-D path on the surface given by $\vec{r}(t) = \langle \gamma_1(t), \gamma_2(t), \dots, \gamma_n(t), (f \circ \vec\gamma)(t) \rangle$.
+
+
+```{julia}
+f₁(x,y) = 2 - x^2 - 3y^2
+f₁(x) = f₁(x...)
+γ₁(t) = 2 * [t, -t^2]   # use \gamma[tab]
+x₁s = y₁s = range(-1, 1, length=100)
+surface(x₁s, y₁s, f₁)
+r3₁(t) = [γ₁(t)..., f₁(γ₁(t))]  # to plot the path on the surface
+plot_parametric!(0..1/2, r3₁, linewidth=5, color=:black)
+
+r2₁(t) = [γ₁(t)..., 0]
+plot_parametric!(0..1/2, r2₁, linewidth=5, color=:black) # in the $x$-$y$ plane
+```
+
+The vector valued function `r3(t) = [γ(t)..., f(γ(t))]` takes the $2$-dimensional path specified by $\vec\gamma(t)$ and adds a third, $x$, direction by composing the position with `f`. In this way, a $2$-D path is visualized with a $3$-D path. This viewpoint can be reversed, as desired.
+
+
+However, the composition,  $f\circ\vec\gamma$, is a univariate function, so this can also be visualized by
+
+
+```{julia}
+plot(f₁ ∘ γ₁, 0, 1/2)
+```
+
+With this graph, we might be led to ask about derivatives or rates of change. For this example, we can algebraically compute the composition:
+
+
+$$
+(f \circ \vec\gamma)(t) = 2 - (2t) - 3(-2t^2)^2 = 2 - 2t +12t^4
+$$
+
+From here we clearly have $f'(t) = -2 + 48t^3$. But could this be computed in terms of a "derivative" of $f$ and the derivative of $\vec\gamma$?
+
+
+Before answering this, we discuss *directional* derivatives along the simplified paths $\vec\gamma_x(t) = \langle t, c\rangle$ or $\vec\gamma_y(t) = \langle c, t\rangle$.
+
+
+If we compose $f \circ \vec\gamma_x$, we can visualize this as a curve on the surface from $f$ that moves in the $x$-$y$ plane along the line $y=c$. The derivative of this curve will satisfy:
+
+
+$$
+\begin{align}
+(f \circ \vec\gamma_x)'(x) &=
+\lim_{t \rightarrow x} \frac{(f\circ\vec\gamma_x)(t) - (f\circ\vec\gamma_x)(x)}{t-x}\\
+&= \lim_{t\rightarrow x} \frac{f(t, c) - f(x,c)}{t-x}\\
+&= \lim_{h \rightarrow 0} \frac{f(x+h, c) - f(x, c)}{h}.
+\end{align}
+$$
+
+The latter expresses this to be the derivative of the function that holds the $y$ value fixed, but lets the $x$ value vary. It is the rate of change in the $x$ direction. There is special notation for this:
+
+
+$$
+\begin{align}
+\frac{\partial f(x,y)}{\partial x} &=
+\lim_{h \rightarrow 0} \frac{f(x+h, y) - f(x, y)}{h},\quad\text{and analogously}\\
+\frac{\partial f(x,y)}{\partial y} &=
+\lim_{h \rightarrow 0} \frac{f(x, y+h) - f(x, y)}{h}.
+\end{align}
+$$
+
+These are called the *partial* derivatives of $f$. The symbol $\partial$, read as "partial", is reminiscent of "$d$", but indicates the derivative is only in a given direction. Other notations exist for this:
+
+
+$$
+\frac{\partial f}{\partial x}, \quad f_x, \quad \partial_x f,
+$$
+
+and more generally, when $n$ may be $2$ or more,
+
+
+$$
+\frac{\partial f}{\partial x_i}, \quad f_{x_i}, \quad f_i, \quad \partial_{x_i} f, \quad \partial_i f.
+$$
+
+The *gradient* of a scalar function $f$ is the vector comprised of the partial derivatives:
+
+
+$$
+\nabla f(x_1, x_2, \dots, x_n) = \langle
+\frac{\partial f}{\partial x_1},
+\frac{\partial f}{\partial x_2}, \dots,
+\frac{\partial f}{\partial x_n} \rangle.
+$$
+
+As seen, the gradient is a vector-valued function, but has, also, multivariable inputs. It is a function from $R^n \rightarrow R^n$.
+
+
+##### Example
+
+
+Let $f(x,y) = x^2 - 2xy$, then to compute the partials, we just treat the other variables like a constant. (This is consistent with the view that the partial derivative is just a regular derivative along a line where all other variables are constant.)
+
+
+Then
+
+
+$$
+\begin{align}
+\frac{\partial (x^2 - 2xy)}{\partial x} &= 2x - 2y\\
+\frac{\partial (x^2 - 2xy)}{\partial y} &= 0 - 2x = -2x.
+\end{align}
+$$
+
+Combining, gives $\nabla{f} = \langle 2x -2y, -2x \rangle$.
+
+
+If $g(x,y,z) = \sin(x) + z\cos(y)$, then
+
+
+$$
+\begin{align}
+\frac{\partial g }{\partial x} &= \cos(x) + 0 = \cos(x),\\
+\frac{\partial g }{\partial y} &= 0 + z(-\sin(y)) = -z\sin(y),\\
+\frac{\partial g }{\partial z} &= 0 + \cos(y) = \cos(y).
+\end{align}
+$$
+
+Combining, gives $\nabla{g} = \langle \cos(x), -z\sin(y), \cos(y) \rangle$.
+
+
+### Finding partial derivatives in Julia
+
+
+Two different methods are described, one for working with functions, the other symbolic expressions. This mirrors our treatment for vector-valued functions, where `ForwardDiff.derivative` was used for functions, and `SymPy`'s `diff` function for symbolic expressions.
+
+
+Suppose, we consider $f(x,y) = x^2 - 2xy$. We may define it with `Julia` through:
+
+
+```{julia}
+f₂(x,y) = x^2 - 2x*y
+f₂(v) = f₂(v...)       # to handle vectors. Need not be defined each time
+```
+
+The numeric gradient at a point, can be found from the function `ForwardDiff.gradient` through:
+
+
+```{julia}
+pt₂ = [1, 2]
+ForwardDiff.gradient(f₂, pt₂)      # uses the f(v) call above
+```
+
+This, of course matches the computation above, where $\nabla f = \langle (2x -2y, -2x)$, so at $(1,2)$ is $(-2, 2)$, as a point in $R^2$.
+
+
+The `ForwardDiff.gradient` function expects a function that accepts a vector of values, so the method for `f(v)` is needed for the computation.
+
+
+To go from a function that takes a point to a function of that point, we have the following definition. This takes advantage of `Julia`'s multiple dispatch to add a new method for the `gradient` generic. This is done in the `CalculusWithJulia` package along the lines of:
+
+
+```{julia}
+#| eval: false
+FowardDiff.gradient(f::Function) = x -> ForwardDiff.gradient(f, x)
+```
+
+It works as follows, where a vector of values is passed in for the point in question:
+
+
+```{julia}
+gradient(f₂)([1,2]), gradient(f₂)([3,4])
+```
+
+This expects a point or vector for its argument, and not the expanded values. Were that desired, something like this would work:
+
+
+```{julia}
+#| eval: false
+ForwardDiff.gradient(f::Function) = (x, xs...) -> ForwardDiff.gradient(f, vcat(x, xs...))
+```
+
+```{julia}
+gradient(f₂)([1,2]), gradient(f₂)(3,4)
+```
+
+From the gradient, finding the partial derivatives involves extraction of the corresponding component.
+
+
+For example, were it desirable, this function could be used to find the partial in $x$ for some constant $y$:
+
+
+```{julia}
+partial_x(f, y) = x -> ForwardDiff.gradient(f,[x,y])[1]   # first component of gradient
+```
+
+Another alternative would be to hold one variable constant, and use the `derivative` function, as in:
+
+
+```{julia}
+#| hold: true
+partial_x(f, y) = x -> ForwardDiff.derivative(u -> f(u,y), x)
+```
+
+:::{.callout-note}
+## Note
+For vector-valued functions, we can overide the syntax `'` using `Base.adjoint`, as `'` is treated as a postfix operator in `Julia` for the `adjoint` operation. The symbol `\\nabla` is also available in `Julia`, but it is not an operator, so can't be used as mathematically written `∇f` (this could be used as a name though). In `CalculusWithJulia` a definition is made so essentially `∇(f) = x -> ForwardDiff.gradient(f, x)`. It does require parentheses to be called, as in `∇(f)`.
+
+:::
+
+#### Symbolic expressions
+
+
+The partial derivatives are more directly found with `SymPy`. As with univariate functions, the `diff` function is used by simply passing in the variable in which to find the partial derivative:
+
+
+```{julia}
+@syms x y
+ex = x^2 - 2x*y
+diff(ex, x)
+```
+
+And evaluation:
+
+
+```{julia}
+diff(ex,x)(x=>1, y=>2)
+```
+
+Or
+
+
+```{julia}
+diff(ex, y)(x=>1, y=>2)
+```
+
+The gradient would be found by combining the two:
+
+
+```{julia}
+[diff(ex, x), diff(ex, y)]
+```
+
+This can be simplified through broadcasting:
+
+
+```{julia}
+grad_ex = diff.(ex, [x,y])
+```
+
+To evaluate at a point we have:
+
+
+```{julia}
+subs.(grad_ex, x=>1, y=>2)
+```
+
+The above relies on broadcasting treating the pair as a single value so the substitution is repeated for each entry of `grad_ex`.
+
+
+The `gradient` function from `CalculusWithJulia` is defined to find the symbolic gradient. It uses `free_symbols` to specify the number and order of the variables, but that may be wrong; they are specified below:
+
+
+```{julia}
+gradient(ex, [x, y])   # [∂f/∂x, ∂f/∂y]
+```
+
+To use `∇` and specify the variables, a tuple (grouping parentheses) is used:
+
+
+```{julia}
+∇((ex, [x,y]))
+```
+
+---
+
+
+In computer science there are two related concepts [Currying](https://en.wikipedia.org/wiki/Currying) and [Partial application](https://en.wikipedia.org/wiki/Partial_application). For a function $f(x,y)$, say, partial application is the process of fixing one of the variables, producing a new function of fewer variables. For example, fixing $y=c$, the we get a new function (of just $x$ and not $(x,y)$) $g(x) = f(x,c)$. In partial derivatives the partial derivative of $f(x,y)$ with respect to $x$ is the derivative of the function $g$, as defined above.
+
+
+Currying, is related, but technically returns a function, so we think of the curried version of $f$ as a function, $h$, which takes $x$ and returns the function $y \rightarrow f(x,y)$ so that $h(x)(y) = f(x, y)$.
+
+
+### Visualizing the gradient
+
+
+The gradient is not a univariate function, a simple vector-valued function, or a scalar function, but rather a *vector field* (which will  be discussed later). For the case, $f: R^2 \rightarrow R$, the gradient will be a function which takes a point $(x,y)$ and returns a vector , $\langle \partial{f}/\partial{x}(x,y), \partial{f}/\partial{y}(x,y) \rangle$. We can visualize this by plotting a vector at several points on a grid. This task is made easier with a function like the following, which handles the task of vectorizing the values. It is provided within the `CalculusWithJulia` package:
+
+
+```{julia}
+#| eval: false
+function vectorfieldplot!(V; xlim=(-5,5), ylim=(-5,5), nx=10, ny=10, kwargs...)
+
+    dx, dy = (xlim[2]-xlim[1])/nx, (ylim[2]-ylim[1])/ny
+    xs, ys = xlim[1]:dx:xlim[2], ylim[1]:dy:ylim[2]
+
+    ps = [[x,y] for x in xs for y in ys]
+    vs = V.(ps)
+	λ = 0.9 * minimum([u/maximum(getindex.(vs,i)) for (i,u) in enumerate((dx,dy))])
+
+    quiver!(unzip(ps)..., quiver=unzip(λ * vs))
+
+end
+```
+
+Here we show the gradient for the scalar function $f(x,y) = 2 - x^2 - 3y^2$ over the region $[-2, 2]\times[-2,2]$ along with a contour plot:
+
+
+```{julia}
+#| hold: true
+f(x,y) = 2 - x^2 - 3y^2
+f(v) = f(v...)
+
+xs = ys = range(-2,2, length=50)
+
+p = contour(xs, ys, f, nlevels=12)
+vectorfieldplot!(p, gradient(f), xlim=(-2,2), ylim=(-2,2), nx=10, ny=10)
+
+p
+```
+
+The figure suggests a potential geometric relationship between the gradient and the contour line to be explored later.
+
+
+## Differentiable
+
+
+We see here how the gradient of $f$, $\nabla{f} = \langle f_{x_1}, f_{x_2}, \dots, f_{x_n} \rangle$, plays a similar role as the derivative does for univariate functions.
+
+
+First, we consider the role of the derivative for univariate functions. The main characterization - the derivative is the slope of the line that best approximates the function at a point - is quantified by Taylor's theorem. For a function $f$ with a continuous second derivative:
+
+
+$$
+f(c+h) = f(c) = f'(c)h + \frac{1}{2} f''(\xi) h^2,
+$$
+
+for some $\xi$ within $c$ and $c+h$.
+
+
+We re-express this through:
+
+
+$$
+(f(c+h) - f(c)) - f'(c)h  =\frac{1}{2} f''(\xi) h^2.
+$$
+
+The right hand side is the *error* term between the function value at $c+h$ and, in this case, the linear approximation at the same value.
+
+
+If the assumptions are relaxed, and $f$ is just assumed to be *differentiable* at $x=c$, then only this is known:
+
+
+$$
+(f(c+h) - f(c)) - f'(c)h  = \epsilon(h) h,
+$$
+
+where $\epsilon(h) \rightarrow 0$ as $h \rightarrow 0$.
+
+
+It is this characterization of differentiable that is generalized to define when a scalar function is *differentiable*.
+
+
+> *Differentiable*: Let $f$ be a scalar function. Then $f$ is [differentiable](https://tinyurl.com/qj8qcbb) at a point $C$ **if** the first order partial derivatives exist at $C$ **and** for $\vec{h}$ going to $\vec{0}$:
+>
+> $\|f(C + \vec{h}) - f(C) - \nabla{f}(C) \cdot \vec{h}\| = \mathcal{o}(\|\vec{h}\|),$
+>
+> where $\mathcal{o}(\|\vec{h}\|)$ means that dividing the left hand side by $\|\vec{h}\|$ and taking a limit as $\vec{h}\rightarrow 0$ the limit will be $0$..
+
+
+
+The limits here are for limits of scalar functions, which means along any path going to $\vec{0}$, not just straight line paths, as are used to define the partial derivatives. Hidden above, is an assumption that there is some open set around $C$ for which $f$ is defined for $f(C + \vec{h})$ when $C+\vec{h}$ is in this open set.
+
+
+The role of the derivative in the univariate case is played by the gradient in the scalar case, where $f'(c)h$ is replaced by $\nabla{f}(C) \cdot \vec{h}$. For the univariate case, differentiable is simply the derivative existing, but saying a scalar function is differentiable at $C$ is a stronger statement than saying it has a gradient or, equivalently, it has partial derivatives at $C$, as this is assumed in the statement along with the other condition.
+
+
+Later we will see how Taylor's theorem generalizes for scalar functions and interpret the gradient geometrically, as was done for the derivative (it being the slope of the tangent line).
+
+
+## The chain rule to evaluate $f\circ\vec\gamma$
+
+
+In finding a partial derivative, we restricted the surface along a curve in the $x$-$y$ plane, in this case the curve $\vec{\gamma}(t)=\langle t, c\rangle$. In general if we have a curve in the $x$-$y$ plane, $\vec{\gamma}(t)$, we can compose the scalar function $f$ with $\vec{\gamma}$ to create a univariate function. If the functions are "smooth" then this composed function should have a derivative, and some version of a "chain rule" should provide a means to compute the derivative in terms of the "derivative" of $f$ (the gradient) and the derivative of $\vec{\gamma}$ ($\vec{\gamma}'$).
+
+
+> *Chain rule*: Suppose $f$ is *differentiable* at $C$, and $\vec{\gamma}(t)$ is differentiable at $c$ with $\vec{\gamma}(c) = C$. Then $f\circ\vec{\gamma}$ is differentiable at $c$ with derivative $\nabla f(\vec{\gamma}(c)) \cdot \vec{\gamma}'(c)$.
+
+
+
+This is similar to the chain rule for univariate functions $(f\circ g)'(u) = f'(g(u)) g'(u)$ or $df/dx = df/du \cdot du/dx$. However, when we write out in components there are more terms. For example, for $n=2$ we have with $\vec{\gamma} = \langle x(t), y(t) \rangle$:
+
+
+$$
+\frac{d(f\circ\vec{\gamma})}{dt} =
+\frac{\partial f}{\partial x} \frac{dx}{dt} +
+\frac{\partial f}{\partial y} \frac{dy}{dt}.
+$$
+
+The proof is a consequence of the definition of differentiability and will be shown in more generality later.
+
+
+##### Example
+
+
+Consider the function $f(x,y) = 2 - x^2 - y^2$ and the curve $\vec\gamma(t) = t\langle \cos(t), -\sin(t) \rangle$ at $t=\pi/6$. We visualize this below:
+
+
+```{julia}
+f₃(x,y) = 2 - x^2 - y^2
+f₃(x) = f₃(x...)
+γ₃(t) = t*[cos(t), -sin(t)]
+t0₃ = pi/6
+```
+
+```{julia}
+#| hold: true
+xs = ys = range(-3/2, 3/2, length=100)
+surface(xs, ys, f₃, legend=false)
+
+r(t) = [γ₃(t)..., (f₃∘γ₃)(t)]
+plot_parametric!(0..1/2, r, linewidth=5, color=:black)
+
+arrow!(r(t0₃), r'(t0₃), linewidth=5, color=:black)
+```
+
+In three dimensions, the tangent line is seen, but the univariate function $f \circ \vec\gamma$ looks like:
+
+
+```{julia}
+#| hold: true
+plot(f₃ ∘ γ₃, 0, pi/2)
+plot!(t -> (f₃ ∘ γ₃)(t0₃) + (f₃ ∘ γ₃)'(t0₃)*(t - t0₃), 0, pi/2)
+```
+
+From the graph, the slope of the tangent line looks to be about $-1$, using the chain rule gives the exact value:
+
+
+```{julia}
+ForwardDiff.gradient(f₃, γ₃(t0₃)) ⋅ γ₃'(t0₃)
+```
+
+We can compare this to taking the derivative after composition:
+
+
+```{julia}
+(f₃ ∘ γ₃)'(t0₃)
+```
+
+##### Example
+
+
+Consider the following plot showing a hiking trail on a surface:
+
+
+```{julia}
+#| echo: false
+lenape = CSV.File(IOBuffer(lenape_csv)) |> DataFrame
+nothing
+```
+
+```{julia}
+#| hold: true
+#| echo: false
+xs, ys, zs =  [float.(SC[i]) for i in ("xs", "ys","zs")]
+zzs = reshape(zs, (length(xs), length(ys)))' # reshape to matrix
+surface(xs, ys, zzs, legend=false)
+plot!(lenape.longitude, lenape.latitude, lenape.elevation, linewidth=5, color=:black)
+```
+
+Though here it is hard to see the trail  rendered on the surface, for the hiker, such questions are far from the mind. Rather, questions such as what is the steepest part of the trail may come to mind.
+
+
+For this question, we can answer it in turns of the sampled data in the `lenape` variable. The steepness being the change in elevation with respect to distance in the $x$-$y$ direction. Treating latitude and longitude coordinates describing motion in a plane (as opposed to a very big sphere), we can compute the maximum steepness:
+
+
+```{julia}
+#| hold: true
+xs, ys, zs = lenape.longitude, lenape.latitude, lenape.elevation
+dzs = zs[2:end] - zs[1:end-1]
+dxs, dys = xs[2:end] - xs[1:end-1], ys[2:end] - ys[1:end-1]
+deltas = sqrt.(dxs.^2 + dys.^2) * 69 / 1.6 * 1000 # in meters now
+global slopes = abs.(dzs ./ deltas)  # to re-use
+m = maximum(slopes)
+atand(maximum(slopes))   # in degrees due to the `d`
+```
+
+This is certainly too steep for a trail, which should be at most $10$ to $15$ degrees or so, not $58$. This is due to the inaccuracy in the measurements. An average might be better:
+
+
+```{julia}
+import Statistics: mean
+atand(mean(slopes))
+```
+
+Which seems about right for a generally uphill trail section, as this is.
+
+
+In the above example, the data is given in terms of a sample, not a functional representation. Suppose instead, the surface was generated by `f` and the path - in the $x$-$y$ plane - by $\gamma$. Then we could estimate the maximum and average steepness by a process like this:
+
+
+```{julia}
+f₄(x,y) = 2 - x^2 - y^2
+f₄(x) = f₄(x...)
+γ₄(t) = t*[cos(t), -sin(t)]
+```
+
+```{julia}
+#| hold: true
+xs = ys = range(-3/2, 3/2, length=100)
+
+surface(xs, ys, f₄, legend=false)
+r(t) = [γ₄(t)..., (f₄ ∘ γ₄)(t)]
+plot_parametric!(0..1/2, r, linewidth=5, color=:black)
+```
+
+```{julia}
+plot(f₄ ∘ γ₄, 0, pi/2)
+slope(t) = abs((f₄ ∘ γ₄)'(t))
+
+1/(pi/2 - 0) * quadgk(t -> atand(slope(t)), 0, pi/2)[1]  # the average
+```
+
+the average is $50$ degrees. As for the maximum slope:
+
+
+```{julia}
+#| hold: true
+cps = find_zeros(slope, 0, pi/2) # critical points
+
+append!(cps, (0, pi/2))  # add end points
+unique!(cps)
+
+M, i = findmax(slope.(cps))  # max, index
+
+cps[i], slope(cps[i])
+```
+
+The maximum slope occurs at an endpoint.
+
+
+## Directional Derivatives
+
+
+The last example, how steep is the direction we are walking, is a question that can be asked when walking in a straight line in the $x$-$y$ plane. The answer has a simplified answer:
+
+
+Let $\vec\gamma(t) = C + t \langle a, b \rangle$ be a line that goes through the point $C$ parallel, or in the direction of, to $\vec{v} = \langle a , b \rangle$.
+
+
+Then the function $f \circ \vec\gamma(t)$ will have a derivative when $f$ is differentiable and by the chain rule will be:
+
+
+$$
+(f\circ\vec\gamma)'(\vec\gamma(t)) = \nabla{f}(\vec\gamma(t)) \cdot \vec\gamma'(t) =
+\nabla{f}(\vec\gamma(t)) \cdot \langle a, b\rangle =
+\vec{v} \cdot \nabla{f}(\vec\gamma(t)).
+$$
+
+At $t=0$, we see that $(f\circ\vec\gamma)'(C) = \nabla{f}(C)\cdot \vec{v}$.
+
+
+This defines the *directional derivative* at $C$ in the direction $\vec{v}$:
+
+
+$$
+\text{Directional derivative} = \nabla_{\vec{v}}(f) =  \nabla{f} \cdot \vec{v}.
+$$
+
+If $\vec{v}$ is a *unit* vector, then the value of the directional derivative is the rate of increase in $f$ in the direction of $\vec{v}$.
+
+
+This is a *natural* generalization of the partial derivatives, which, in two dimensions, are the directional derivative in the $x$ direction and the directional derivative in the $y$ direction.
+
+
+The following figure shows $C = (1/2, -1/2)$ and the two curves. Planes are added, as it can be easiest to visualize these curves as the intersection of the surface generated by $f$ and the vertical planes $x=C_x$ and $y=C_y$
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x,y) = 2 - x^2 - y^2
+
+xs = ys = range(-3/2, 3/2, length=100)
+surface(xs, ys, f, legend=false)
+M=f(3/2,3/2)
+
+x0,y0 = 1/2, -1/2
+plot!([-3/2, 3/2, 3/2, -3/2, -3/2], y0 .+ [0,0,0,0, 0], [M,M,2,2,M], linestyle=:dash)
+r(x) = [x, y0, f(x,y0)]
+plot_parametric!(-3/2..3/2, r, linewidth=5, color=:black)
+
+
+plot!(x0 .+ [0,0,0,0, 0], [-3/2, 3/2, 3/2, -3/2, -3/2], [M,M,2,2,M], linestyle=:dash)
+r(y) = [x0, y, f(x0, y)]
+plot_parametric!(-3/2..3/2, r, linewidth=5, color=:black)
+
+
+scatter!([x0],[y0],[M])
+arrow!([x0,y0,M], [1,0,0], linewidth=3)
+arrow!([x0,y0,M], [0, 1,0], linewidth=3)
+```
+
+We can then visualize the directional derivative by a plane through $C$ in the direction $\vec{v}$. Here we take $C=(1/2, -1/2)$, as before, and $\vec{v} = \langle 1, 1\rangle$:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x,y) = 2 - x^2 - y^2
+f(x) = f(x...)
+xs = ys = range(-3/2, 3/2, length=100)
+p = surface(xs, ys, f, legend=false)
+M=f(3/2,3/2)
+
+x0,y0 = 1/2, -1/2
+vx, vy = 1, 1
+l1(t) = [x0, y0] .+ t*[vx, vy]
+llx, lly = l1(-1)
+rrx, rry = l1(1)
+plot!([llx, rrx, rrx, llx, llx], [lly, rry, rry, lly, lly], [M,M, 2, 2, M], linestyle=:dash)
+
+r(t) = [l1(t)..., f(l1(t))]
+plot_parametric!(-1..1, r, linewidth=5, color=:black)
+arrow!(r(0), r'(0), linewidth=5, color=:black)
+
+
+scatter!([x0],[y0],[M])
+arrow!([x0,y0,M], [vx, vy,0], linewidth=3)
+```
+
+In this figure, we see that the directional derivative appears to be $0$, unlike the partial derivatives in $x$ and $y$, which are negative and positive, respectively.
+
+
+##### Example
+
+
+Let $f(x,y) = \sin(x+2y)$ and $\vec{v} = \langle 2, 1\rangle$. The directional derivative of $f$ in the direction of $\vec{v}$ at $(x,y)$ is:
+
+
+$$
+\nabla{f}\cdot \frac{\vec{v}}{\|\vec{v}\|} = \langle \cos(x + 2y), 2\cos(x + 2y)\rangle \cdot \frac{\langle 2, 1 \rangle}{\sqrt{5}} = \frac{4}{\sqrt{5}} \cos(x + 2y).
+$$
+
+##### Example
+
+
+Suppose $f(x,y)$ describes a surface, and $\vec\gamma(t)$ parameterizes a path in the $x$-$y$ plane. Then the vector valued function $\vec{r}(t) = \langle \vec\gamma_1(t), \vec\gamma_2(t), (f\circ\vec\gamma)(t)\rangle$ describes a path on the surface. The maximum steepness of the this path is found by maximizing the slope of the directional derivative in the direction of the tangent line. This would be the function of $t$:
+
+
+$$
+\nabla{f}(\vec\gamma(t)) \cdot \vec{T}(t),
+$$
+
+Where $T(t) = \vec\gamma'(t)/\|\vec\gamma'(t)\|$ is the unit tangent vector to $\gamma$.
+
+
+Let $f(x,y) = 2 - x^2 - y^2$ and $\vec\gamma(t) = (\pi-t) \langle \cos(t), \sin(t) \rangle$. What is the maximum steepness?
+
+
+We have $\nabla{f} = \langle -2x, -2y \rangle$ and $\vec\gamma'(t) = -\langle(\cos(t), \sin(t)) + (\pi-t) \langle(-\sin(t), \cos(t)\rangle$. We maximize this over $[0, \pi]$:
+
+
+```{julia}
+#| hold: true
+f(x,y) = 2 - x^2 - y^2
+f(v) = f(v...)
+gamma(t) = (pi-t) * [cos(t), sin(t)]
+dd(t) = gradient(f)(gamma(t)) ⋅ gamma'(t)
+
+cps = find_zeros(dd, 0, pi)
+unique!(append!(cps, (0, pi)))  # add endpoints
+M,i = findmax(dd.(cps))
+M
+```
+
+##### Example: The gradient indicates the direction of steepest ascent
+
+
+Consider this figure showing a surface and a level curve along with a contour line:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x,y) = sqrt(x^2 + y^2)
+f(v) = f(v...)
+
+xs = ys = range(-2, 2, length=100)
+p = surface(xs, ys, f, legend=false)
+
+γ(t) = [cos(t), sin(t), f(cos(t), sin(t))]
+plot_parametric!(0..2pi, γ, linewidth=5)
+
+t =7pi/4;
+scatter!(p, unzip([γ(t)])...)
+
+
+rad(t) = 1 * [cos(t), sin(t)]
+γ(t) = [rad(t)..., 0]
+plot_parametric!(0..2pi, γ, linestyle=:dash)
+
+
+
+arrow!(γ(t), γ'(t))
+arrow!(γ(t), [ForwardDiff.gradient(f, rad(t))..., 0])
+```
+
+We have the level curve for $f(x,y) = c$ represented, and a point $(x,y, f(x,y))$ drawn. At the point $(x,y)$ which sits on the level curve, we have indicated the gradient and the tangent curve to the level curve, or contour line. Worth reiterating, the gradient is not on the surface, but rather is a $2$-dimensional vector, but it does indicate a direction that can be taken on the surface. We will see that this direction indicates the path of steepest ascent.
+
+
+The figure suggests a relationship between the gradient and the tangents to the contour lines. Let's parameterize the contour line by $\vec\gamma(t)$, assuming such a parameterization exists, let $C = (x,y) = \vec\gamma(t)$, for some $t$, be a point on the level curve, and $\vec{T} = \vec\gamma'(t)/\|\vec\gamma'(t)\|$ be the tangent to to the level curve at $C$. Then the directional derivative at $C$ in the direction of $T$ must be $0$, as along the level curve, the function $f\circ \vec\gamma = c$, a constant. But by the chain rule, this says:
+
+
+$$
+0 = (c)' = (f\circ\vec\gamma)'(t) = \nabla{f}(\vec\gamma(t)) \cdot \vec\gamma'(t)
+$$
+
+That is the gradient is *orthogonal* to $\vec{\gamma}'(t)$. As well, is orthogonal to the tangent vector $\vec{T}$ and hence to the level curve at any point. (As the dot product is $0$.)
+
+
+Now, consider a unit vector $\vec{v}$ in the direction of steepest ascent at $C$. Since $\nabla{f}(C)$ and $\vec{T}$ are orthogonal, we can express the unit vector uniquely as $a\nabla{f}(C) + b \vec{T}$ with $a^2 + b^2 = 1$. The directional derivative is then
+
+
+$$
+\nabla{f} \cdot \vec{v} = \nabla{f}  \cdot (a\nabla{f}(C) + b \vec{T}) = a \| \nabla{f} \|^2  + b \nabla{f} \cdot \vec{T} = a \| \nabla{f} \|^2.
+$$
+
+The will be largest when $a=1$ and $b=0$. That is, the direction of greatest ascent in indicated by the gradient. (It is smallest when $a=-1$ and $b=0$, the direction opposite the gradient.
+
+
+In practical terms, if standing on a hill, walking in the direction of the gradient will go uphill the fastest possible way, walking along a contour will not gain any elevation. The two directions are orthogonal.
+
+
+## Other types of compositions and the chain rule
+
+
+The chain rule we discussed was for a composition of $f:R^n \rightarrow R$ with $\vec\gamma:R \rightarrow R^n$ resulting in a function $f\circ\vec\gamma:R \rightarrow R$. There are other possible compositions.
+
+
+For example, suppose we have an economic model for beverage consumption based on temperature given by $c(T)$. But temperature depends on geographic location, so may be modeled through a function $T(x,y)$. The composition $c \circ T$ would be a function from $R^2 \rightarrow R$, so should have partial derivatives with respect to $x$ and $y$ which should be expressible in terms of the derivative of $c$ and the partial derivatives of $T$.
+
+
+Consider a different situation, say we have $f(x,y)$ a scalar function, but want to consider the position in polar coordinates involving $r$ and $\theta$. We can think directly of $F(r,\theta) = f(r\cdot\cos(\theta), r\cdot\sin(\theta))$, but more generally, we have a function $G(r, \theta)$ that is vector valued: $G(r,\theta) = \langle r\cdot\cos(\theta), r\cdot\sin(\theta) \rangle$ ($G:R^2 \rightarrow R^2$). The composition $F=f\circ G$ is a scalar function of $r$ and $\theta$ and the partial derivatives with respect to these should be expressible in terms of the partial derivatives of $f$ and the partial derivatives of $G$.
+
+
+Finding the derivative of a composition in terms of the individual pieces involves some form of the chain rule, which will differ depending on the exact circumstances.
+
+
+### Chain rule for a univariate function composed with a scalar function
+
+
+If $f(t)$ is a univariate function and $G(x,y)$ a scalar function, the $F(x,y) = f(G(x,y))$ will be a scalar function and may have partial derivatives. If $f$ and $G$ are differentiable at a point $P$, then
+
+
+$$
+\frac{\partial F}{\partial x} = f'(G(x,y)) \frac{\partial G}{\partial x}, \quad
+\frac{\partial F}{\partial y} = f'(G(x,y)) \frac{\partial G}{\partial y},
+$$
+
+and
+
+
+$$
+\nabla{F} = \nabla{f \circ G} = f'(G(x,y)) \nabla{G}(x,y).
+$$
+
+The result is an immediate application of the univariate chain rule, when the partial functions are considered.
+
+
+##### Example
+
+
+Imagine a scenario where sales of some commodity (say ice) depend on the temperature which in turn depends on location. Formally, we might have functions $S(T)$ and $T(x,y)$ and then sales would be the composition $S(T(x,y))$. How might sales go up or down if one moved west, or one moved in the northwest direction? These would be a *directional* derivative, answered by $\nabla{S}\cdot \hat{v}$, where $\vec{v}$ is the direction. Of importance would be to compute $\nabla{S}$ which might best be done through the chain rule.
+
+
+For example, if $S(T) = \exp((T - 70)/10)$ and $T(x,y) = (1-x^2)\cdot y$, the gradient of $S(T(x,y))$ would be given by:
+
+
+$$
+S'(T(x,y)) \nabla{T}(x,y) = (S(T(x,y))/10) \langle(-2xy, 1-x^2 \rangle.
+$$
+
+### Chain rule for a scalar function, $f$, composed with a function $G: R^m \rightarrow R^n$.
+
+
+If $G(u_1, \dots, u_m) = \langle G_1, G_2,\dots, G_n\rangle$ is a function of $m$ inputs that returns $n$ outputs we may view it as $G: R^m \rightarrow R^n$. The composition with a scalar function $f(v_1, v_2, \dots, v_n)=z$ from $R^n \rightarrow R$ creates a scalar function from $R^m \rightarrow R$, so the question of partial derivatives is of interest. We have:
+
+
+$$
+\frac{\partial (f \circ G)}{\partial u_i} =
+\frac{\partial f}{\partial v_1} \frac{\partial G}{\partial u_i} +
+\frac{\partial f}{\partial v_2} \frac{\partial G}{\partial u_i} + \dots +
+\frac{\partial f}{\partial v_n} \frac{\partial G}{\partial u_i}.
+$$
+
+The gradient is then:
+
+
+$$
+\nabla(f\circ G) =
+\frac{\partial f}{\partial v_1} \nabla{G_1} +
+\frac{\partial f}{\partial v_2} \nabla{G_2} + \dots +
+\frac{\partial f}{\partial v_n} \nabla{G_n} = \nabla(f) \cdot \langle \nabla{G_1}, \nabla{G_2}, \dots, \nabla{G_n} \rangle,
+$$
+
+The last expression is a suggestion, as it is an abuse of previously used notation: the dot product isn't between vectors of the same type, as the rightmost vector is representing a vector of vectors. The [Jacobian](https://en.wikipedia.org/wiki/Jacobian_matrix_and_determinant) matrix combines these vectors into a rectangular array, though with the vectors written as *row* vectors. If $G: R^m \rightarrow R^n$, then the Jacobian is the $n \times m$ matrix with $(i,j)$ entry given by $\partial G_i, \partial u_j$:
+
+
+$$
+J = \left[
+\begin{align}
+\frac{\partial G_1}{\partial u_1} & \frac{\partial G_1}{\partial u_2} & \dots \frac{\partial G_1}{\partial u_m}\\
+\frac{\partial G_2}{\partial u_1} & \frac{\partial G_2}{\partial u_2} & \dots \frac{\partial G_2}{\partial u_m}\\
+& \vdots & \\
+\frac{\partial G_n}{\partial u_1} & \frac{\partial G_n}{\partial u_2} & \dots \frac{\partial G_n}{\partial u_m}
+\end{align}
+\right].
+$$
+
+With this notation, and matrix multiplication we have $(\nabla(f\circ G))^t = \nabla(f)^t J$.
+
+
+(Later, we will see that the chain rule in general has a familiar form using matrices, not vectors, which will avoid the need for a transpose.)
+
+
+##### Example
+
+
+Let $f(x,y) = x^2 + y^2$ be a scalar function. We have if $G(r, \theta) = \langle r\cos(\theta)(, r\sin(\theta) \rangle$ then after simplification, we have $(f \circ G)(r, \theta) = r^2$. Clearly then $\partial(f\circ G)/\partial r = 2r$ and $\partial(f\circ G)/\partial \theta = 0$.
+
+
+Were this computed through the chain rule, we have:
+
+
+$$
+\begin{align}
+\nabla G_1 &= \langle \frac{\partial r\cos(\theta)}{\partial r}, \frac{\partial r\cos(\theta)}{\partial \theta} \rangle=
+\langle \cos(\theta), -r \sin(\theta) \rangle,\\
+\nabla G_2 &= \langle \frac{\partial r\sin(\theta)}{\partial r}, \frac{\partial r\sin(\theta)}{\partial \theta}  \rangle=
+\langle \sin(\theta), r \cos(\theta) \rangle.
+\end{align}
+$$
+
+We have $\partial f/\partial x = 2x$ and  $\partial f/\partial y = 2y$, which at $G$ are $2r\cos(\theta)$ and $2r\sin(\theta)$, so by the chain rule, we should have
+
+
+$$
+\begin{align}
+\frac{\partial (f\circ G)}{\partial r} &=
+\frac{\partial{f}}{\partial{x}}\frac{\partial G_1}{\partial r} +
+\frac{\partial{f}}{\partial{y}}\frac{\partial G_2}{\partial r} =
+2r\cos(\theta) \cos(\theta) + 2r\sin(\theta) \sin(\theta) =
+2r (\cos^2(\theta) + \sin^2(\theta)) = 2r, \\
+\frac{\partial (f\circ G)}{\partial \theta} &=
+\frac{\partial f}{\partial x}\frac{\partial G_1}{\partial \theta} +
+\frac{\partial f}{\partial y}\frac{\partial G_2}{\partial \theta} =
+2r\cos(\theta)(-r\sin(\theta)) + 2r\sin(\theta)(r\cos(\theta)) = 0.
+\end{align}
+$$
+
+## Higher order partial derivatives
+
+
+If $f:R^n \rightarrow R$, the $\partial f/\partial x_i$ takes $R^n \rightarrow R$ too, so may also have a partial derivative.
+
+
+Consider the case $f: R^2 \rightarrow R$, then there are $4$ possible partial derivatives of order 2: partial in $x$ then $x$, partial in $x$ then $y$, partial in $y$ and then $x$, and, finally, partial in $y$ and then $y$.
+
+
+The notation for the partial in $y$ *of* the partial in $x$ is:
+
+
+$$
+\frac{\partial^2 f}{\partial{y}\partial{x}} = \frac{\partial{\frac{\partial{f}}{\partial{x}}}}{\partial{y}} = \frac{\partial f_x}{\partial{y}} = f_{xy}.
+$$
+
+The placement of $x$ and $y$ indicating the order is different in the two notations.
+
+
+We can compute these for an example easily enough:
+
+
+```{julia}
+#| hold: true
+@syms x y
+f(x, y) = exp(x) * cos(y)
+ex = f(x,y)
+diff(ex, x, x), diff(ex, x, y), diff(ex, y, x), diff(ex, y, y)
+```
+
+In `SymPy` the variable to differentiate by is taken from left to right, so `diff(ex, x, y, x)` would first take the partial in $x$, then $y$, and finally $x$.
+
+
+We see that `diff(ex, x, y)` and `diff(ex, y, x)` are identical. This is not a coincidence, as by [Schwarz's Theorem](https://tinyurl.com/y7sfw9sx) (also known as Clairaut's theorem) this will always be the case under typical assumptions:
+
+
+> Theorem on mixed partials. If the mixed partials $\partial^2 f/\partial x \partial y$ and $\partial^2 f/\partial y \partial x$ exist and are continuous, then they are equal.
+
+
+
+For higher order mixed partials, something similar to Schwarz's theorem still  holds. Say $f:R^n \rightarrow R$ is $C^k$ if $f$ is continuous and all partial derivatives of order $j \leq k$ are continous. If $f$ is $C^k$, and $k=k_1+k_2+\cdots+k_n$ ($k_i \geq 0$) then
+
+
+$$
+\frac{\partial^k f}{\partial x_1^{k_1} \partial x_2^{k_2}  \cdots \partial x_n^{k_n}},
+$$
+
+is uniquely defined. That is, which order the partial derivatives are taken is unimportant if the function is sufficiently smooth.
+
+
+---
+
+
+The [Hessian](https://en.wikipedia.org/wiki/Hessian_matrix) matrix is the matrix of mixed partials defined (for $n=2$) by:
+
+
+$$
+H = \left[
+\begin{align}
+\frac{\partial^2 f}{\partial x \partial x} & \frac{\partial^2 f}{\partial x \partial y}\\
+\frac{\partial^2 f}{\partial y \partial x} & \frac{\partial^2 f}{\partial y \partial y}
+\end{align}
+\right].
+$$
+
+For symbolic expressions, the Hessian may be computed directly in `SymPy` with its `hessian` function:
+
+
+```{julia}
+ex
+```
+
+```{julia}
+hessian(ex, (x, y))
+```
+
+When the mixed partials are continuous, this will be a symmetric matrix. The Hessian matrix plays the role of the second derivative in the multivariate Taylor theorem.
+
+
+For numeric use, `FowardDiff` has a `hessian` function. It expects a scalar function and a point and returns the Hessian matrix. We have for $f(x,y) = e^x\cos(y)$ at the point $(1,2)$, the Hessian matrix is:
+
+
+```{julia}
+#| hold: true
+f(x,y) = exp(x) * cos(y)
+f(v) = f(v...)
+pt = [1, 2]
+
+ForwardDiff.hessian(f, pt)  # symmetric
+```
+
+## Questions
+
+
+###### Question
+
+
+Consider the graph of a function $z= f(x,y)$ presented below:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x,y) = x * exp(-(x^2 + y^2))
+xs = ys = range(-2, stop=2, length=50)
+surface(xs, ys, f)
+```
+
+From the graph, is the value of $f(1/2, 1)$ positive or negative?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = ["positive", "negative"]
+answ = 1
+radioq(choices, answ, keep_order=true)
+```
+
+On which line is the function $0$:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+L"The line $x=0$",
+L"The line $y=0$"
+]
+answ = 1
+radioq(choices, answ, keep_order=true)
+```
+
+Consider the contour plot
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x,y) = x * exp(-(x^2 + y^2))
+xs = ys = range(-2, stop=2, length=50)
+contour(xs, ys, f)
+```
+
+What is the value of $f(1, 0)$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+val = 0.367879
+numericq(val, 1/2)
+```
+
+From this graph, the minimum value over this region is
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+L"is around $(-0.7, 0)$ and with a value less than $-0.4$",
+L"is around $(0.7, 0)$ and with a value less than $-0.4$",
+L"is around $(-2.0, 0)$ and with a value less than $-0.4$",
+L"is around $(2.0, 0)$ and with a value less than $-0.4$"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+From this graph, where is the surface steeper?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+L"near $(1/4, 0)$",
+L"near $(1/2, 0)$",
+L"near $(3/4, 0)$",
+L"near $(1, 0)$"
+]
+answ = 1
+radioq(choices, answ, keep_order=true)
+```
+
+###### Question
+
+
+Consider the contour graph of a function below:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x,y)= sin(x)*cos(x*y)
+xs = ys = range(-3, stop=3, length=50)
+contour(xs, ys, f)
+```
+
+Are there any peaks or valleys (local extrema) indicated?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+L"Yes, the closed loops near $(-1.5, 0)$ and $(1.5, 0)$ will contain these",
+L"No, the vertical lines parallel to $x=0$ show this function to be flat"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+Imagine hiking on this surface within this region. Could you traverse from left to right without having to go up or down?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+yesnoq(false)
+```
+
+Imagine hiking on this surface within this region. Could you traverse from top to bottom without having to go up or down?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+yesnoq(true)
+```
+
+###### Question
+
+
+The figure (taken from [openstreetmap.org](https://www.openstreetmap.org/way/537938655#map=15/46.5308/10.4556&layers=C) shows the [Stelvio](https://en.wikipedia.org/wiki/Stelvio_Pass) Pass  in Northern Italy near the Swiss border.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+ImageFile(:differentiable_vector_calculus, "figures/stelvio-pass.png", "Stelvio Pass")
+```
+
+The road through the pass (on the right) makes a series of switch backs.
+
+
+Are these
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+"running essentially parallel to the contour lines",
+"running essentially perpendicular to the contour lines"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+Why?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+"By being essentially parallel, the steepness of the roadway can be kept to a passable level",
+"By being essentially perpendicular, the road can more quickly climb up the mountain"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+The pass is at about 2700 meters. As shown towards the top and bottom of the figure the contour lines show increasing heights, and to the left and right decreasing heights. The shape of the [pass](https://en.wikipedia.org/wiki/Mountain_pass) would look like:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+"A saddle-like shape, called a *col* or *gap*",
+"A upside down bowl-like shape like the top of a mountain"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+###### Question
+
+
+Limits of scalar functions have the same set of rules as limits of univariate functions. These include limits of constants; limits of sums, differences, and scalar multiples; limits of products; and limits of ratios. The latter with the provision that division by $0$ does not occur at the point in question.
+
+
+Using these, identify any points where the following limit *may* not exist, knowing the limits of the individual functions exist at $\vec{c}$:
+
+
+$$
+\lim_{\vec{x} \rightarrow \vec{x}} \frac{af(\vec{x})g(\vec{x}) + bh(\vec{x})}{ci(\vec{x})}.
+$$
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+L"When $i(\vec{x}) = 0$",
+L"When any of $f(\vec{x})$, $g(\vec{x})$, or $i(\vec{x})$ are zero",
+L"The limit exists everywhere, as the function $f$, $g$, $h$, and $i$ have limits at $\vec{c}$ by assumption"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+###### Question
+
+
+Let $f(x,y) = (x^2 -  y^2) /(x^2 + y^2)$.
+
+
+Fix $y=0$. What is $\lim_{x \rightarrow 0} f(x,0)$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+numericq(1)
+```
+
+Fix $x=0$. What is $\lim_{y \rightarrow 0} f(0, y)$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+numericq(-1)
+```
+
+The two paths technique shows a limit does not exist by finding two paths with *different* limits as $\vec{x}$ approaches $\vec{c}$. Does this apply to $\lim_{\langle x,y\rangle \rightarrow\langle 0, 0 \rangle}f(x,y)$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+yesnoq(true)
+```
+
+###### Question
+
+
+Let $f(x,y) = \langle \sin(x)\cos(2y), \sin(2x)\cos(y) \rangle$
+
+
+Compute $f_x$
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+raw"`` \langle \cos(x)\cos(2y), 2\cos(2x)\cos(y)\rangle``",
+raw"`` \langle \cos(2y), \cos(y) \rangle``",
+raw"`` \langle \sin(x), \sin(2x) \rangle``",
+raw"`` \sin(x)\cos(2y)``"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+Compute $f_y$
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+raw"`` \langle -2\sin(x)\sin(2y), -\sin(2x)\sin(y)  \rangle``",
+raw"`` \langle 2\sin(x), \sin(2x)  \rangle``",
+raw"`` \langle  -2\sin(2y), -\sin(y) \rangle``",
+raw"`` - \sin(2x)\sin(y)``"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+###### Question
+
+
+Let $f(x,y) = x^{y\sin(xy)}$. Using `ForwardDiff`, at the point $(1/2, 1/2)$, compute the following.
+
+
+The value of $f_x$:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x,y) = x^(y*sin(x*y))
+f(v) = f(v...)
+pt  = [1/2, 1/2]
+fx, fy = ForwardDiff.gradient(f, pt)
+numericq(fx)
+```
+
+The value of $\partial{f}/\partial{y}$:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x,y) = x^(y*sin(x*y))
+f(v) = f(v...)
+pt  = [1/2, 1/2]
+fx, fy = ForwardDiff.gradient(f, pt)
+numericq(fy)
+```
+
+###### Question
+
+
+Let $z = f(x,y)$ have gradient $\langle f_x, f_y \rangle$.
+
+
+The gradient is:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = ["two dimensional", "three dimensional"]
+answ = 1
+radioq(choices, answ, keep_order=true)
+```
+
+The surface is:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = ["two dimensional", "three dimensional"]
+answ = 2
+radioq(choices, answ, keep_order=true)
+```
+
+The gradient points in the direction of greatest increase of $f$. If a person were on a hill described by $z=f(x,y)$, what three dimensional vector would they follow to go the steepest way up the hill?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+    raw"`` \langle f_x, f_y, -1 \rangle``",
+    raw"`` \langle -f_x, -f_y, 1 \rangle``",
+    raw"`` \langle f_x, f_y \rangle``"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+##### Question
+
+
+The figure shows climbers on their way to summit Mt. Everest:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+imgfile = "figures/everest.png"
+caption = "Climbers en route to the summit of Mt. Everest"
+ImageFile(:differentiable_vector_calculus, imgfile, caption)
+```
+
+If the surface of the mountain is given by a function $z=f(x,y)$ then the climbers move along a single path parameterized, say, by $\vec{\gamma}(t) = \langle x(t), y(t)\rangle$, as set up by the Sherpas.
+
+
+Consider the composition $(f\circ\vec\gamma)(t)$.
+
+
+For a climber with GPS coordinates $(x,y)$. What describes her elevation?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+    raw"`` f(x,y)``",
+    raw"`` (f\circ\vec\gamma)(x,y)``",
+    raw"`` \vec\gamma(x,y)``"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+A climber leaves base camp at $t_0$. At time $t > t_0$, what describes her elevation?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+    raw"`` (f\circ\vec\gamma)(t)``",
+    raw"`` \vec\gamma(t)``",
+    raw"`` f(t)``"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+What does the vector-valued function $\vec{r}(t) = \langle x(t), y(t), (f\circ\vec\gamma(t))\rangle$ describe:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+    "The three dimensional position of the climber",
+    "The climbers gradient, pointing in the direction of greatest ascent"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+In the figure, the climbers are making a switch back, so as to avoid the steeper direct ascent. Mathematically $\nabla{f}(\vec\gamma(t)) \cdot \vec\gamma'(t)$ describes the directional derivative that they follow. Using $\|\vec{u}\cdot\vec{v}\| = \|\vec{u}\|\|\vec{v}\|\cos(\theta)$, does this route:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+    L"Keep $\cos(\theta)$ smaller than $1$, so that the slope taken is not too great",
+    L"Keep $\cos(\theta)$ as close to $1$ as possible, so the slope taken is as big as possible",
+    L"Keep $̧\cos(\theta)$ as close to $0$ as possible, so that they climbers don't waste energy going up and down"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+Suppose our climber reaches the top at time $t$. What would be $(f\circ\vec\gamma)'(t)$, assuming the derivative exists?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+    L"It would be $0$, as the top would be maximum for $f\circ\vec\gamma$",
+    L"It would be $\langle f_x, f_y\rangle$ and point towards the sky, the direction of greatest ascent",
+    "It would not exist, as there would not be enough oxygen to compute it"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+###### Question
+
+
+Building sustainable hiking trails involves proper water management. Two rules of thumb are 1) the trail should not be steeper than 10 degrees 2) the outward slope (in the steepest downhill direction) should be around 5%. (A trail tread is not flat, but rather sloped downward, similar to the crown on a road, so that water will run to the downhill side of the tread, not along the tread, which would cause erosion. In the best possible world, the outslope will exceed the downward slope.)
+
+
+Suppose a trail height is described parametrically by a composition $(f \circ \vec\gamma)(t))$, where $\vec\gamma(t) = \langle x(t),y(t)\rangle$. The vector $\vec{T}(t) = \langle x(t), y(t), \nabla{f}(\vec\gamma(t)) \rangle$ describes the tangent to the trail at a point ($\vec\gamma(t)$). Let $\hat{T}(t)$ be the unit normal, and $\hat{P}(t)$ be a unit normal in the direction of the *projection* of $\vec{T}$ onto the $x$-$y$ plane. (Make the third component of $\vec{T}$ $0$, and then form a unit vector from that.)
+
+
+What expression below captures point 1 that the steepness should be no more than 10 degrees ($\pi/18$ radians):
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+raw"`` |\hat{T} \cdot \hat{P}| \leq \cos(π/18)``",
+    raw"`` |\hat{T} \cdot \hat{P}| \leq \sin(\pi/18)``",
+    raw"`` |\hat{T} \cdot \hat{P}| \leq \pi/18``"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+The normal to the surface $z=f(x,y)$ is *not* the normal to the trail tread. Suppose $\vec{N}(t)$ is a function that returns this. At the same point $\vec\gamma(t)$, let $\vec{M} = \langle -f_x, -f_y, 0\rangle$ be a vector in 3 dimensions pointing downhill. Let "hats" indicate unit vectors. The outward slope is $\pi/2$ minus the angle between $\hat{N}$ and $\hat{M}$. What condition will ensure this angle is $5$ degrees ($\pi/36$ radians)?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+    raw"`` |\hat{N} \cdot \hat{M}| \leq \cos(\pi/2 - π/36)``",
+    raw"`` |\hat{N} \cdot \hat{M}| \leq \sin(\pi/2 - \pi/18)``",
+    raw"`` |\hat{N} \cdot \hat{M}| \leq \pi/2 - \pi/18``"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+###### Question
+
+
+Let $f(x,y) = x^2 \cdot(x - y^2)$. Let $\vec{v} = \langle 1, 2\rangle$. Find the directional derivative in the direction of $\vec{v}$.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+    raw"`` \frac{\sqrt{5}}{5}\left(2 \cos{\left (3 \right )} - 7 \sin{\left (3 \right )}\right)``",
+    raw"`` 2 \cos{\left (3 \right )} - 7 \sin{\left (3 \right )}``",
+    raw"`` 4 x^{2} y \sin{\left (x - y^{2} \right )} - x^{2} \sin{\left (x - y^{2} \right )} + 2 x \cos{\left (x - y^{2} \right )}``"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+###### Question
+
+
+Let $\vec{v}$ be any non-zero vector. Does $\nabla{f}(\vec{x})\cdot\vec{v}$ give the rate of increase of $f$ per unit of distance in the direction of $\vec{v}$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+    "Yes, by definition",
+    L"No, not unless $\vec{v}$ were a unit vector"
+]
+answ = 2
+radioq(choices, answ)
+```
+
+###### Question
+
+
+Let $f(x,y,z) = x^4 + 2xz + 2xy + y^4$ and $\vec\gamma(t) = \langle t, t^2, t^3\rangle$. Using the chain rule, compute $(f\circ\vec\gamma)'(t)$.
+
+
+The value of $\nabla{f}(x,y,z)$ is
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+    raw"`` \langle 4x^3 + 2x + 2y, 2x + 4y^3, 2x \rangle``",
+    raw"`` \langle 4x^3, 2z, 2y\rangle``",
+    raw"`` \langle x^3 + 2x + 2x, 2y+ y^3, 2x\rangle``"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+The value of $\vec\gamma'(t)$ is:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+    raw"`` \langle 1, 2t, 3t^2\rangle``",
+    raw"`` 1 + 2y + 3t^2``",
+    raw"`` \langle 1,2, 3 \rangle``"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+The value of $(f\circ\vec\gamma)'(t)$ is found by:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+    L"Taking the dot product of  $\nabla{f}(\vec\gamma(t))$ and $\vec\gamma'(t)$",
+    L"Taking the dot product of  $\nabla{f}(\vec\gamma'(t))$ and $\vec\gamma(t)$",
+    L"Taking the dot product of  $\nabla{f}(x,y,z)$ and $\vec\gamma'(t)$"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+###### Question
+
+
+Let $z = f(x,y)$ be some unknown function,
+
+
+From the figure, which drawn vector is the gradient at $(1/2, -3/4)$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x,y) = 2 + x^2 - y^2
+f(v) = f(v...)
+pt = [1/2, -3/4]
+xs = ys = range(-1, stop=1, length=50)
+uvec(x) = x/norm(x)
+
+gradf = ForwardDiff.gradient(f, pt)
+surface(xs, ys, f, legend=false) #, aspect_ratio=:equal)
+arrow!([pt...,0], [uvec(gradf)...,0], color=:blue, linewidth=3)
+arrow!([pt...,0], [-1,0,0], color=:green, linewidth=3)
+arrow!([pt..., f(pt...)], uvec([(-gradf)..., 1]), color=:red, linewidth=3)
+```
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+    "The blue one",
+    "The green one",
+    "The red one"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+From the figure, which drawn vector is the gradient as $(1/2, -3/4)$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x,y) = 2 + x^2 - y^2
+f(v) = f(v...)
+
+uvec(v)=v/norm(v)
+pt = [1/2, -3/4]
+gradf = ForwardDiff.gradient(f, pt)
+xs = ys = range(-3/2, stop=3/2, length=50)
+
+contour(xs, ys, f, aspect_ratio=:equal)
+arrow!(pt, [uvec(gradf)...], color=:blue, linewidth=3)
+arrow!(pt, [-1, 0], color=:green, linewidth=3)
+arrow!([0,0], pt, color=:red, linewidth=3)
+```
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+    "The blue one",
+    "The green one",
+    "The red one"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+###### Question
+
+
+For a function $f(x,y)$ and a point (as a vector, $\vec{c}$) we consider this derived function:
+
+
+$$
+g(\vec{x}) = f(\vec{c}) + \nabla{f}(\vec{c}) \cdot(\vec{x} - \vec{c}) + \frac{1}{2}(\vec{x} - \vec{c})^tH(\vec{c})(\vec{x} - \vec{c}),
+$$
+
+where $H(\vec{c})$ is the Hessian.
+
+
+Further, *suppose* $\nabla{f}(\vec{c}) = \vec{0}$, so in fact:
+
+
+$$
+g(\vec{x}) = f(\vec{c}) + \frac{1}{2}(\vec{x} - \vec{c})^tH(\vec{c})(\vec{x} - \vec{c}).
+$$
+
+If $f$ is a linear function at $\vec{c}$, what does this say about $g$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+    L"Linear means $H$ is the $0$ matrix, so $g(\vec{x})$ is the constant $f(\vec{c})$",
+    L"Linear means $H$ is linear, so $g(\vec{x})$ describes a plane",
+    L"Linear means $H$ is the $0$ matrix, so the gradient couldn't have been $\vec{0}$"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+Suppose, $H$ has the magic property that for *any* vector $\vec{v}^tH\vec{v} < 0$. What does this imply:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+    L"That $g(\vec{x}) \geq f(\vec{c})$",
+    L"That $g(\vec{x}) = f(\vec{c})$",
+    L"That $g(\vec{x}) \leq f(\vec{c})$"
+]
+answ = 1
+radioq(choices, answ, keep_order=true)
+```
+
+###### Question
+
+
+Let $f(x,y) = x^3y^3$. Which partial derivative is identically $0$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+    raw"`` \partial^4{f}/\partial{x^4}``",
+    raw"`` \partial^4{f}/\partial{x^3}\partial{y}``",
+    raw"`` \partial^4{f}/\partial{x^2}\partial{y^2}``",
+    raw"`` \partial^4{f}/\partial{x^1}\partial{y^3}``"
+]
+answ = 1
+radioq(choices, answ, keep_order=true)
+```
+
+###### Question
+
+
+Let $f(x,y) = 3x^2 y$.
+
+
+Which value is greater at the point $(1/2,2)$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+    raw"`` f_x``",
+    raw"`` f_y``",
+    raw"`` f_{xx}``",
+    raw"`` f_{xy}``",
+    raw"`` f_{yy}``"
+]
+x,y=1/2, 2
+val, answ = findmax([6x*y, 3x^2, 6*y, 6x, 0])
+radioq(choices, answ, keep_order=true)
+```
+
+###### Question
+
+
+The order of partial derivatives matters if the mixed partials are not continuous. Take
+
+
+$$
+f(x,y) = \frac{xy ( x^2 - y^2)}{x^2 + y^2}, \quad f(0,0) = 0
+$$
+
+Using the definition of the derivative from a limit, we have
+
+
+$$
+\frac{\partial \frac{\partial f}{\partial x}}{ \partial y} =
+\lim_{\Delta y \rightarrow 0} \lim_{\Delta x \rightarrow 0}
+\frac{f(x+\Delta x, y + \Delta y) - f(x, y+\Delta{y}) - f(x+\Delta x,y) + f(x,y)}{\Delta x \Delta y}.
+$$
+
+Whereas,
+
+
+$$
+\frac{\partial \frac{\partial f}{\partial y}}{ \partial x} =
+\lim_{\Delta x \rightarrow 0} \lim_{\Delta y \rightarrow 0}
+\frac{f(x+\Delta x, y + \Delta y) - f(x, y+\Delta{y}) - f(x+\Delta x,y) + f(x,y)}{\Delta x \Delta y}.
+$$
+
+At $(0,0)$ what is $ \frac{\partial \frac{\partial f}{\partial x}}{ \partial y}$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+answ = -1
+numericq(answ)
+```
+
+At $(0,0)$ what is $ \frac{\partial \frac{\partial f}{\partial y}}{ \partial x}$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+answ = 1
+numericq(answ)
+```
+
+Away from $(0,0)$ the mixed partial is $\frac{x^{6} + 9 x^{4} y^{2} - 9 x^{2} y^{4} - y^{6}}{x^{6} + 3 x^{4} y^{2} + 3 x^{2} y^{4} + y^{6}}$.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+    "As this is the ratio of continuous functions, it is continuous at the origin",
+    L"This is not continuous at $(0,0)$, still the limit along the two paths $x=0$ and $y=0$ are equivalent.",
+    L"This is not continuous at $(0,0)$, as the limit along the two paths $x=0$ and $y=0$ are not equivalent."
+]
+answ = 3
+radioq(choices, answ)
+```
+
+###### Question
+
+
+[Knill](http://www.math.harvard.edu/~knill/teaching/summer2018/handouts/week3.pdf). Clairaut's theorem is the name given to the fact that if the partial derivatives are continuous, the mixed partials are equal, $f_{xy} = f_{yx}$.
+
+
+Consider the following code which computes the mixed partials for the discrete derivative:
+
+
+```{julia}
+#| hold: true
+@syms x::real y::real Δ::real G()
+
+Dx(f,h) = (subs(f, x=>x+h) - f)/h
+Dy(f,h) = (subs(f, y=>y+h) - f)/h
+
+Dy(Dx(G(x,y), Δ), Δ) - Dx(Dy(G(x,y), Δ), Δ)
+```
+
+What does this simplify to?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+numericq(0)
+```
+
+Is continuity required for this to be true?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+yesnoq(false)
+```
+
+###### Question
+
+
+(Examples and descriptions from Krill)
+
+
+What equation does the function $f(x,y) = x^3 - 3xy^2$ satisfy?
+
+
+```{julia}
+#| echo: false
+# 4 questions, don't edit this order!
+ode_choices = [
+L"The wave equation: $f_{tt} = f_{xx}$; governs motion of light or sound",
+L"The heat equation: $f_t = f_{xx}$; describes diffusion of heat",
+L"The Laplace equation: $f_{xx} + f_{yy} = 0$; determines shape of a membrane",
+L"The advection equation: $f_t = f_x$; is used to model transport in a wire",
+L"The eiconal equation: $f_x^2 + f_y^2 = 1$; is used to model evolution of a wave front in optics",
+L"The Burgers equation: $f_t + ff_x = f_{xx}$; describes waves at the beach which break",
+L"The KdV equation: $f_t + 6ff_x+ f_{xxx} = 0$; models water waves in a narrow channel",
+L"The Schrodinger equation: $f_t = (i\hbar/(2m))f_xx$; used to describe a quantum particle of mass $m$"
+]
+answ′ = 3
+radioq(ode_choices, answ′, keep_order=true)
+```
+
+What equation does the function $f(t, x) = sin(x-t) + sin(x+t)$ satisfy?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+answ = 1
+radioq(ode_choices, answ, keep_order=true)
+```
+
+What equation does the function $f(t, x) = e^{-(x+t)^2}$ satisfy?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+answ = 4
+radioq(ode_choices, answ, keep_order=true)
+```
+
+What equation does the function $f(x,y) = \cos(x) + \sin(y)$ satisfy?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+answ = 5
+radioq(ode_choices, answ, keep_order=true)
+```
+

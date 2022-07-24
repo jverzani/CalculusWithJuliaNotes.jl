@@ -14,8 +14,8 @@ using HCubature
 ```julia; echo=false; results="hidden"
 using CalculusWithJulia.WeaveSupport
 
-import PyPlot
-pyplot()
+#import PyPlot
+#pyplot()
 
 
 const frontmatter = (
@@ -89,9 +89,9 @@ As with the one-dimensional case, $f$ is Riemann integrable over $R$ if the limi
 
 When $f$ is Riemann integrable over a rectangular region $R$, we denote the limit by any of:
 
-$$~
+```math
 \iint_R f(x) dV, \quad \iint_R fdV, \quad \iint_R f(x_1, \dots, x_n) dx_1 \cdot\cdots\cdot dx_n, \quad\iint_R f(\vec{x}) d\vec{x}.
-~$$
+```
 
 A key fact, requiring proof, is:
 
@@ -111,25 +111,25 @@ As with one-dimensional integrals, from the Riemann sum definition, several fami
 
 
 * For integrable $f$ and $g$ and constants $a$ and $b$:
-$$~
+```math
 \iint_R (af(x) + bg(x))dV = a\iint_R f(x)dV + b\iint_R g(x) dV.
-~$$
+```
 
 **Disjoint:**
 
 * If $R$ and $R'$ are *disjoint* rectangular regions (possibly sharing a boundary), then the integral over the union is defined by linearity:
 
-$$~
+```math
 \iint_{R \cup R'} f(x) dV = \iint_R f(x)dV + \iint_{R'} f(x) dV.
-~$$
+```
 
 **Monotonicity:**
 
 * As $f$ is bounded, let $m \leq f(x) \leq M$ for all $x$ in $R$. Then
 
-$$~
+```math
 m V(R) \leq \iint_R f(x) dV \leq MV(R).
-~$$
+```
 
 * If $f$ and $g$ are integrable *and* $f(x) \leq g(x)$, then the integrals have the same property, namely $\iint_R f dV \leq \iint_R gdV$.
 
@@ -234,7 +234,7 @@ The answer agrees with that known from the  formula, $4 = (1/3)a^2 h$, but the a
 We might try integrating a function with a condition:
 
 ```julia; hold=true
-function f(x,y, r)
+function f(x, y, r)
     if x^2 + y^2 < r
         sqrt(z - x^2 + y^2)
     else
@@ -246,16 +246,11 @@ end
 **But** `hcubature` is **very** slow to integrate such functions. We will see our instincts are good -- this is the approach taken to discuss integrals over general regions -- but this is not practical here. There are two alternative approaches to be discussed: approach the integral *iteratively*  or *transform* the circular region into a rectangular region and integrate. Before doing so, we discuss how the integral is developed for more general regions.
 
 
-```julia; echo=false
-note("""
-The approach above takes a nice smooth function and makes it non smooth at the boundary. In general this is not a good idea for numeric solutions, as many algorithms work better with assumptions of smoothness.
-""")
-```
+!!! note
+	The approach above takes a nice smooth function and makes it non smooth at the boundary. In general this is not a good idea for numeric solutions, as many algorithms work better with assumptions of smoothness.
 
-```julia; echo=false
-note("""
-The `Quadrature` package provides a uniform interface for `QuadGK`, `HCubature`, and other numeric integration routines available in `Julia`.""")
-```
+!!! note
+	The `Quadrature` package provides a uniform interface for `QuadGK`, `HCubature`, and other numeric integration routines available in `Julia`.
 
 ## Integrals over more general regions
 
@@ -350,10 +345,10 @@ $I(x) =  \int_{-2}^2 f(x,y) dy$. Like partial derivatives, this integrates in $y
 The question then: under what conditions will the three integrals be equal?
 
 > [Fubini](https://math.okstate.edu/people/lebl/osu4153-s16/chapter10-ver1.pdf). Let $R \times S$ be a closed rectangular region in $R^n \times R^m$. Suppose $f$ is bounded. Define $f_x(y) = f(x,y)$ and $f^y(x) = f(x,y)$ where $x$ is in $R^n$ and $y$ in $R^m$.  *If* $f_x$ and $f^y$ are integrable then
-> $$~
+> ```math
 > \iint_{R\times S}fdV = \iint_R \left(\iint_S f_x(y) dy\right) dx
 > = \iint_S \left(\iint_R f^y(x) dx\right) dy.
-> ~$$
+> ```
 
 Similarly, if $f^y$ is integrable for all $y$, then $\iint_{R\times S}fdV =\iint_S \iint_R f(x,y) dx dy$.
 
@@ -380,18 +375,18 @@ A domain, as described above, is known as a [normal](https://en.wikipedia.org/wi
 
 For example, we return to the problem of a square pyramid, only now using symmetry, we integrate only over the triangular region between $0 \leq x \leq a/2$ and $0 \leq y \leq x$. The answer is then (the $8$ by symmetry)
 
-$$~
+```math
 V = 8 \int_0^{a/2} \int_0^x h(l(x,y) - d(x,y))/l(x,y) dy dx.
-~$$
+```
 
 But, using similar triangles, we have $d/x = l/(a/2)$ so $(l-d)/l = 1 - 2x/a$. Continuing, our answer becomes
 
-$$~
+```math
 V = 8 \int_0^{a/2} (\int_0^x h(1-\frac{2x}{a}) dy) dx =
 8 \int_0^{a/2} (h(1-2x/a) \cdot x) dx =
 8 (hx^2_2 \big\lvert_{0}^{a/2} - \frac{2}{a}\frac{x^3}{3}\big\lvert_0^{a/2})=
 8 h(\frac{a^2}{8} - \frac{2}{24}a^2) = \frac{a^2h}{3}.
-~$$
+```
 
 
 
@@ -402,9 +397,9 @@ The `integrate` function of `SymPy` uses various algorithms to symbolically inte
 
 For example, to perform the integral
 
-$$~
+```math
 \int_a^b \int_{h(x)}^{g(x)} f(x,y) dy dx
-~$$
+```
 
 the call would look like:
 
@@ -585,9 +580,9 @@ integrate(rho(x,y), (y, h(x), g(x)), (x, -a, a))
 
 Integrate $\int_0^1 \int_y^1 \cos(x^2) dx dy$ avoiding the *impossible* integral of $\cos(x^2)$. As the integrand is continuous, Fubini's Theorem allows the interchange of the variable of integraton. The region, $R$, is a triangle in the first quadrant below the line $y=x$ and left of the line $x=1$. So we have:
 
-$$~
+```math
 \int_0^1 \int_0^x \cos(x^2) dy dx
-~$$
+```
 
 We can integrate this, as the interior integral leaves $x \cos(x^2)$ to integrate:
 
@@ -692,8 +687,9 @@ sin(1)/2
 
 Triple integrals are identical in theory to double integrals, though the computations can be more involved and the regions more complicated to describe. The main regions (emphasized by Strang) to understand are: box, prism, cylinder, cone, tetrahedron, and sphere.
 
-```julia; hold=true; echo=false
-ts = range(0, pi/2, length=50)
+```julia;  echo=false
+let
+    ts = range(0, pi/2, length=50)
 	O = [0,0,0]
 	bx, by,bz = [1, 0, 0], [0,2,0], [0,0,3]
 
@@ -748,7 +744,8 @@ ts = range(0, pi/2, length=50)
 	push!(ps, p)
 
     l = @layout [a b; c d; e]
-plot(ps..., layout=l)
+    plot(ps..., layout=l)
+end
 ```
 
 
@@ -789,9 +786,9 @@ This is $1/6$th the volume of the box.
 
 * Cone. Consider a cone formed by the function $z = f(x,y) = a - b(x^2+y^2)^{1/2}$ ($a,b > 0$) and the $x$-$y$ plane. This will have radius $r = a/b$ and height $a$. The volume is given by this integral:
 
-$$~
+```math
 \int_{x=-r}^r \int_{y=-\sqrt{r^2 - x^2}}^{\sqrt{r^2-x^2}} \int_0^{a - b(x^2 + y^2)} 1 dz dy dx.
-~$$
+```
 
 This integral is doable, but `SymPy` has trouble with it. We will return to this when cylindrical coordinates are defined.
 
@@ -799,9 +796,9 @@ This integral is doable, but `SymPy` has trouble with it. We will return to this
 
 * Sphere. The sphere $x^2 + y^2 + z^2 \leq 1$ has a known volume. Can we compute it using integration? In Cartesian coordinates, we can describe the region $x^2 + y^2 \leq 1$ and then the $z$-limits will follow:
 
-$$~
+```math
 \int_{x=-1}^1 \int_{y=-\sqrt{1-x^2}}^{\sqrt{1-x^2}} \int_{z=-\sqrt{1 - x^2 - y^2}}^{\sqrt{1-x^2 - y^2}} 1 dz dy dx.
-~$$
+```
 
 This integral is doable, but `SymPy` has trouble with it. We will return to this when spherical coordinates are defined.
 
@@ -813,9 +810,9 @@ This integral is doable, but `SymPy` has trouble with it. We will return to this
 
 The change of variables, or substitution, formula from first-semester calculus is expressed, under assumptions, by:
 
-$$~
+```math
 \int_{g(R)} f(x) dx = \int_R (f\circ g)(u)g'(u) du.
-~$$
+```
 
 The derivation comes from reversing the chain rule. When using it, we start on the right hand side and typically write $x = g(u)$ and from here derive an expression involving differentials: $dx = g'(u) du$ and the rest follows. In practice, this is used to simplify the integrand in the search for an antiderivative, as $(f\circ g)$ is generally more complicated than $f$ alone.
 
@@ -827,23 +824,23 @@ In [Katz](http://www.jstor.org/stable/2689856) a review of the history of "chang
 
 We view $R$ in two coordinate systems $(x,y)$ and $(u,v)$. We have that
 
-$$~
+```math
 \begin{align}
 dx &= A du + B dv\\
 dy &= C du + D dv,
 \end{align}
-~$$
+```
 
 where $A = \partial{x}/\partial{u}$, $B = \partial{x}/\partial{v}$, $C= \partial{y}/\partial{u}$, and $D = \partial{y}/\partial{v}$. Lagrange, following Euler, first sets $x$ to be constant (as is done in iterated integration). Hence, $dx = 0$ and so $du = -C(B/A) dv$ and, after substitution,  $dy = (D-C(B/A))dv$. Then Lagrange set $y$ to be a constant, so $dy = 0$ and hence $dv=0$ so $dx = Adu$. The area "element" $dx dy = A du \cdot (D - (B/A)) dv = (AD - BC) du dv$. Since areas and volumes are non-negative, the absolute value is used. With this, we have "$dxdy = |AD-BC|du dv$" as the analog of $dx = g'(u) du$.
 
 The expression $AD - BC$ was also derived by Euler, by related means. Lagrange extended the analysis to 3 dimensions. Before doing so, it is helpful to understand the problem from a geometric perspective. Euler was attempting to understand the effects of the following change of variable:
 
-$$~
+```math
 \begin{align}
 x &= a + mt + \sqrt{1-m^2} v\\
 y & = b + \sqrt{1-m^2}t -mv
 \end{align}
-~$$
+```
 
 Euler knew this to be a clockwise *rotation* by an angle $\theta$ with $\cos(\theta) = m$,  a *reflection* through the $x$ axis, and a translation by $\langle a, b\rangle$. All these *should* preserve the area represented by $dx dy$, so he was *expecting* $dx dy = dt dv$.
 
@@ -937,7 +934,7 @@ showG(G, 1, 1)
 The arrows are the images of the standard unit vectors. We see some transformations leave these *orthogonal* and some change the respective lengths.
 The area of the associated parallelogram can be found using the determinant of an accompanying matrix. For two dimensions, using the cross product formulation on the embedded vectors, the area is
 
-$$~
+```math
 \| \det\left(\left[
 \begin{array}{}
 \hat{i} & \hat{j} & \hat{k}\\
@@ -961,7 +958,7 @@ v_1 & v_2
 \end{array}
 \right]
 \right)|.
-~$$
+```
 
 
 Using the fact that the two vectors involved are columns in the Jacobian of the transformation, this is just $|\det(J_G)|$. For $3$ dimensions, the determinant gives the volume of the 3-dimensional parallelepiped in the same manner. This holds for higher dimensions.
@@ -970,20 +967,16 @@ The absolute value of the determinant of the Jacobian
 is the multiplying factor that is seen in the change of variable formula for all dimensions:
 
 > [Change of variable](https://en.wikipedia.org/wiki/Integration_by_substitution#Substitution_for_multiple_variables) Let $U$ be an open set in $R^n$, $G:U \rightarrow R^n$ be an *injective* differentiable function with *continuous* partial derivatives. If $f$ is continuous and compactly supported, then
-> $$~
+> ```math
 > \iint_{G(S)} f(\vec{x}) dV = \iint_S (f \circ G)(\vec{u}) |\det(J_G)(\vec{u})| dU.
-> ~$$
+> ```
 
 
 For the one-dimensional case, there is no absolute value, but there the interval is reversed, producing "negative" area. This is not the case here, where $S$ is parameterized to give positive volume.
 
-```julia; echo=false
-note(L"""
+!!! note
+	The term "functional determinant" is found for the value $\det(J_G)$, as is the notation $\partial(x_1, x_2, \dots x_n)/\partial(u_1, u_2, \dots, u_n)$.
 
-The term "functional determinant" is found for the value $\det(J_G)$, as is the notation $\partial(x_1, x_2, \dots x_n)/\partial(u_1, u_2, \dots, u_n)$.
-
-""")
-```
 
 ### Two dimensional change of variables
 
@@ -994,14 +987,14 @@ Now we see several examples of two-dimensional transformations.
 
 We have [seen](../differentiable_vector_calculus/polar_coordinates.html) how to compute area in polar coordinates through the formula $A = \int (1/2) r^2(\theta) d\theta$. This formula can be derived as follows. Consider a region $R$ parameterized in polar coordinates by $r(\theta)$ for $a \leq \theta \leq b$. The area of this region would be $\iint_R fdA$. Let $G(r, \theta) = r \langle \cos\theta, \sin\theta\rangle$. Then
 
-$$~
+```math
 J_G = \left[
 \begin{array}{}
 \cos(\theta) & - r\sin(\theta)\\
 \sin(\theta) & r\cos(\theta)
 \end{array}
 \right],
-~$$
+```
 
 with determinant $r$.
 
@@ -1010,9 +1003,9 @@ That is, for *polar coordinates* $dx dy = r dr d\theta$ ($r \geq 0$).
 
 So by the change of variable formula, we have:
 
-$$~
+```math
 A = \iint_R 1 dx dy = \int_a^b \int_0^{r(\theta)} 1 r dr d\theta = \int_a^b \frac{r^2(\theta)}{2} d\theta.
-~$$
+```
 
 The key is noting that the region, $S$, described by $\theta$ running from $a$ to $b$ and $r$ running from $0$ to $r(\theta)$, maps onto $R$ through the change of variables. As polar coordinates is just a renaming, this is clear to see.
 
@@ -1020,21 +1013,21 @@ The key is noting that the region, $S$, described by $\theta$ running from $a$ t
 
 Now consider finding the volume of a sphere using polar coordinates. We have, with $\rho$ being the radius:
 
-$$~
+```math
 V = 2 \iint_R \sqrt{\rho^2 - x^2 - y^2} dy dx,
-~$$
+```
 
 where $R$ is the disc of radius $\rho$. Using polar coordinates, we have $x^2 + y^2 = r^2$ and the expression becomes:
 
-$$~
+```math
 V = 2 \int_0^{2\pi} \int_0^\rho \sqrt{\rho^2 - r^2} r dr d\theta = 2 \int_0^{2\pi} -(1 - r^2)^{3/2}\frac{1}{3} \mid_0^\rho d\theta = 2\int_0^{2\pi} \frac{\rho^3}{3}d\theta = \frac{4\pi\rho^3}{3}.
-~$$
+```
 
 ##### Linear transformations
 
 Some [transformations](https://en.wikipedia.org/wiki/Transformation_matrix#Examples_in_2D_computer_graphics) from ``2``D computer graphics are represented in matrix notation:
 
-$$~
+```math
 \left[
 \begin{array}{}
 x\\
@@ -1053,7 +1046,7 @@ u\\
 v
 \end{array}
 \right],
-~$$
+```
 
 or $G(u,v) = \langle au+bv, cu+dv\rangle$. The Jacobian of this *linear* transformation is the matrix itself.
 
@@ -1085,7 +1078,7 @@ showG(G)
 
 * **Reflection** If $\vec{l} = \langle l_x, l_y \rangle$ with norm $\|\vec{l}\|$. The reflection through the line in the direction of $\vec{l}$ through the origin is defined, using a matrix, by:
 
-$$~
+```math
 \frac{1}{\| \vec{l} \|^2}
 \left[
 \begin{array}{}
@@ -1093,7 +1086,7 @@ l_x^2 - l_y^2 & 2 l_x l_y\\
 2l_x l_y & l_y^2 - l_x^2
 \end{array}
 \right]
-~$$
+```
 
 For some simple cases: $\langle l_x, l_y \rangle = \langle 1, 1\rangle$, the diagonal, this is $G(u,v) = (1/2) \langle 2v, 2u \rangle$; $\langle l_x, l_y \rangle = \langle 0, 1\rangle$ (the $y$-axis) this is $G(u,v) = \langle -u, v\rangle$.
 
@@ -1126,7 +1119,7 @@ showG(G, lambda=1/3)
 
 The determinant of the Jacobian is
 
-$$~
+```math
 \det(J_G) = \det\left(
 \left[
 \begin{array}{}
@@ -1135,12 +1128,12 @@ v & u
 \end{array}
 \right]
 \right) = u.
-~$$
+```
 
 So,  $\iint_R f(x,y) dA = \int_0^1\int_0^1 f(u, uv) u du dv$. Here we illustrate with a generic monomial:
 
 ```julia;
-@syms n::positive m::positive
+@syms x y n::positive m::positive
 monomial(x,y) = x^n*y^m
 integrate(monomial(x,y), (y, 0, x), (x, 0, 1))
 ```
@@ -1159,10 +1152,13 @@ What about other triangles, say the triangle bounded by $x=0$, $y=0$ and $y-x=1$
 
 This can be seen as a reflection through the line $x=1/2$ of the triangle above. If $G_1$ represents the mapping from $U [0,1]\times[0,1]$ into the triangle of the last problem, and $G_2$ represents the reflection through the line $x=1/2$, then the transformation $G_2 \circ G_1$ will map the box $U$ into the desired region. By the chain rule, we have:
 
-$$~
-\int_{(G_2\circ G_1)(U))} f dx = \int_U (f\circ G_2 \circ G_1) |\det(J_{G_2 \circ G_1}| du =
+```math
+\begin{align*}
+\int_{(G_2\circ G_1)(U))} f dx &= \int_U (f\circ G_2 \circ G_1) |\det(J_{G_2 \circ G_1}| du \\
+&=
 \int_U (f\circ G_2 \circ G_1) |\det(J_{G_2}(G_1(u))||\det J_{G_1}(u)| du.
-~$$
+\end{align*}
+```
 
 (In  [Katz](http://www.jstor.org/stable/2689856) it is mentioned that Jacobi showed this in 1841.)
 
@@ -1255,34 +1251,34 @@ plot(ps..., layout=l)
 
 The center of mass is a balancing point of a region with density $\rho(x,y)$. In two dimensions it is a point $\langle \bar{x}, \bar{y}\rangle$. These are found by the following formulas:
 
-$$~
+```math
 A = \iint_R \rho(x,y) dA, \quad \bar{x} = \frac{1}{A} \iint_R x \rho(x,y) dA, \quad
 \bar{y} = \frac{1}{A} \iint_R y \rho(x,y) dA.
-~$$
+```
 
 The $x$ value can be seen in terms of Fubini by integrating in $y$ first:
 
-$$~
+```math
 \iint_R x \rho(x,y) dA = \int_{x=a}^b (\int_{y=h(x)}^{g(x)} \rho(x,y) dy) dx.
-~$$
+```
 
 The inner integral is the mass of a slice at a value along the $x$ axis. The center of mass is formed then by the mass times the distance from the origin. The center of mass is a "balance" point, in the sense that $\iint_R (x - \bar{x}) dA = 0$ and $\iint_R (y-\bar{y})dA = 0$.
 
 For example, the center of mass of the upper half *unit* disc will have a centroid with $\bar{x} = 0$, by symmetry. We can see this by integrating in *Cartesian* coordinates, as follows
 
-$$~
+```math
 \iint_R x dA = \int_{y=0}^1 \int_{x=-\sqrt{1-y^2}}^{\sqrt{1 - y^2}} x dx dy.
-~$$
+```
 
 The inner integral is $0$ as it an integral of an *odd* function over an interval symmetric about $0$.
 
 
 The value of $\bar{y}$ is found using polar coordinate transformation from:
 
-$$~
+```math
 \iint_R y dA = \int_{r=0}^1 \int_{\theta=0}^{\pi} (r\sin(\theta))r d\theta dr =
 \int_{r=0}^1 r^2 dr \int_{\theta=0}^{\pi}\sin(\theta) = \frac{1}{3} \cdot 2.
-~$$
+```
 
 The third equals sign uses separability. The answer for $\bar{ is this value divided by the area, or $2/(3\pi)$.
 
@@ -1294,9 +1290,9 @@ Let $R$ be the half disc contained by $x^2 + y^2 = 1$ and $y \geq 0$. Let $\rho(
 
 $R$ is best described in polar coordinates, so we try to compute
 
-$$~
+```math
 \int_0^1 \int_{-\pi/2}^{\pi/2} (r\cos(\theta))^2 (r\cos(\theta))(r\sin(\theta)) r d\theta dr.
-~$$
+```
 
 That requires integrating $\sin^2(\theta)\cos^3(\theta)$, a doable task, but best left to SymPy:
 
@@ -1314,9 +1310,9 @@ integrate(x^2 * rho(x, y), (theta, -PI/2, PI/2), (r, 0, 1))
 
 The counterclockwise rotation of the unit square is $G(u,v) = \langle \cos(\alpha)u-\sin(\alpha)v, \sin(\alpha)u + \cos(\alpha) v\rangle$. This comes from the above formula for clockwise rotation using $-\alpha$. This transformation has Jacobian determinant $1$, as the area is not deformed. With this, we have
 
-$$~
+```math
 \iint_R x^2 dA = \iint_{G(U)} (f\circ G)(u) |\det(J_G(u))| dU,
-~$$
+```
 
 which is computed with:
 
@@ -1334,9 +1330,9 @@ Let $R$ be a ring with inner radius $4$ and outer radius $5$. Find its moment of
 
 The integral to compute is:
 
-$$~
+```math
 \iint_R x^2 dA,
-~$$
+```
 
 with domain that is easy to describe in polar coordinates:
 
@@ -1356,9 +1352,9 @@ The change of variables formula is no different between dimensions $2$ and $3$ (
 
 Polar coordinates describe the $x$-$y$ plane in terms of a radius $r$ and angle $\theta$. *Cylindrical* coordinates describe the $x-y-z$ plane in terms of $r, \theta$, and $z$. A transformation is:
 
-$$~
+```math
 G(r,\theta, z) = \langle r\cos(\theta), r\sin(\theta), z\rangle.
-~$$
+```
 
 This has Jacobian determinant $r$, similar to polar coordinates.
 
@@ -1368,18 +1364,18 @@ This has Jacobian determinant $r$, similar to polar coordinates.
 
 Returning to the volume of a cone above the $x$-$y$ plane under $z = a - b(x^2 + y^2)^{12}$. This yielded the integral in Cartesian coordinates:
 
-$$~
+```math
 \int_{x=-r}^r \int_{y=-\sqrt{r^2 - x^2}}^{\sqrt{r^2-x^2}} \int_0^{a - b(x^2 + y^2)} 1 dz dy dx,
-~$$
+```
 
 where $r=a/b$. This is *much* simpler in Cylindrical coordinates, as the region is described by the rectangle in $(r, \theta)$: $[0, \sqrt{b/a}] \times [0, 2\pi]$ and the $z$ range is from $0$ to $a - b r$.
 
 The volume then is:
 
-$$~
+```math
 \int_{theta=0}^{2\pi} \int_{r=0}^{a/b} \int_{z=0}^{a - br} 1 r dz dr d\theta =
 2\pi \int_{r=0}^{a/b} (a-br)r dr = \frac{\pi a^3}{3b^2}.
-~$$
+```
 
 
 This is in agreement with $\pi r^2 h/3$.
@@ -1437,13 +1433,13 @@ Spherical coordinates describe a point in space by a radius from the origin, $r$
 
 The exact formula to relate $(\rho, \theta, \phi)$ to $(x,y,z)$ is given by
 
-$$~
+```math
 G(\rho, \theta, \phi) = \rho \langle
 \sin(\phi)\cos(\theta),
 \sin(\phi)\sin(\theta),
 \cos(\phi)
 \rangle.
-~$$
+```
 
 
 ```julia; hold=true; echo=false
@@ -1465,10 +1461,10 @@ det(G(ρ, theta, phi).jacobian([ρ, theta, phi])) |> simplify |> abs
 
 Computing the volume of a sphere is a challenge (for SymPy) in Cartesian coordinates, but a breeze in spherical coordinates. Using $r^2\sin(\phi)$ as the multiplying factor, the volume is simply:
 
-$$~
+```math
 \int_{\theta=0}^{2\pi} \int_{\phi=0}^{\pi} \int_{r=0}^R 1 \cdot r^2 \sin(\phi) dr d\phi d\theta =
 \int_{\theta=0}^{2\pi} d\theta \int_{\phi=0}^{\pi} \sin(\phi)d\phi \int_{r=0}^R  r^2 dr = (2\pi)(2)\frac{R^3}{3} = \frac{4\pi R^3}{3}.
-~$$
+```
 
 
 
@@ -1478,9 +1474,9 @@ Compute the volume of the ellipsoid, $R$, described by $(x/a)^2 + (y/v)^2 + (z/c
 
 We first change variables via $G(u,v,w) = \langle ua, vb, wc \rangle$. This maps the unit sphere, $S$, given by $u^2 + v^2 + w^2 \leq 1$ into the ellipsoid. Then
 
-$$~
+```math
 \iint_R 1 dV = \iint_S 1 |\det(J_G)| dU
-~$$
+```
 
 But the Jacobian is a constant:
 
@@ -1499,17 +1495,17 @@ So the answer is $abc V(S) = 4\pi abc/3$
 
 Suppose $f(x,y) = f_1(x)f_2(y)$ and $R = [a_1, b_1] \times [a_2,b_2]$ is a rectangular region. Is this true?
 
-$$~
+```math
 \iint_R f dA = (\int_{a_1}^{b_1} f_1(x) dx) \cdot (\int_{a_2}^{b_2} f_2(y) dy).
-~$$
+```
 
 ```julia; hold=true; echo=false
 choices = [
 L"Yes. As an inner integral $\int_{a^2}^{b_2} f(x,y) dy = f_1(x) \int_{a_2}^{b_2} f_2(y) dy$.",
 "No."
 ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 
@@ -1517,9 +1513,9 @@ radioq(choices, ans)
 
 Which integrals of the following are $0$ by symmetry? Let $R$ be the unit disc.
 
-$$~
+```math
 a = \iint_R x dA, \quad b = \iint_R (x^2 + y^2) dA, \quad c = \iint_R xy dA
-~$$
+```
 
 ```julia; hold=true; echo=false
 choices = [
@@ -1527,8 +1523,8 @@ L"Both $a$ and $b$",
 L"Both $a$ and $c$",
 L"Both $b$ and $c$"
 ]
-ans = 2
-radioq(choices, ans)
+answ = 2
+radioq(choices, answ)
 ```
 
 
@@ -1536,11 +1532,11 @@ radioq(choices, ans)
 
 Let $R$ be the unit disc. Which integrals can be found from common geometric formulas (e.g., known formulas for the sphere, cone, pyramid, ellipse, ...)
 
-$$~
+```math
 a = \iint_R (1 - (x^2+y2)) dA, \quad
 b = \iint_R (1 - \sqrt{x^2 + y^2}) dA, \quad
 c = \iint_R (1 - (x^2 + y^2)^2 dA
-~$$
+```
 
 
 ```julia; hold=true; echo=false
@@ -1549,8 +1545,8 @@ L"Both $a$ and $b$",
 L"Both $a$ and $c$",
 L"Both $b$ and $c$"
 ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 
@@ -1567,8 +1563,8 @@ raw" ``\int_0^1 \int_0^{(1-x^3)^{1/3}} 1\cdot dy dx``",
 raw" ``\int_0^1 \int_0^{(1-y^3)^{1/3}} 1\cdot dx dy``",
 raw" ``\int_0^1 \int_0^{(1-y^3)^{1/3}} 1\cdot dy dx``"
 ]
-ans = 3
-radioq(choices, ans, keep_order=true)
+answ = 3
+radioq(choices, answ, keep_order=true)
 ```
 
 
@@ -1583,8 +1579,8 @@ raw" ``\int_0^b\int_{y/b}^{2-y/b} dx dy``",
 raw" ``\int_0^2\int_0^{bx} dy dx``",
 raw" ``\int_0^2 \int_0^{2b - bx} dy dx``"
 ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 
@@ -1598,8 +1594,8 @@ raw" ``\int_a^b \int_0^{f(x)} dy dx``",
 raw" ``\int_a^b \int_0^{f(x)} dx dy``",
 raw" ``\int_0^{f(x)} \int_a^b dx dy``"
 ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 
@@ -1613,8 +1609,8 @@ raw" ``G(u,v) = \langle u-v, u+v \rangle``",
 raw" ``G(u,v) = \langle u^2-v^2, u^2+v^2 \rangle``",
 raw" ``G(u,v) = \langle u-v, u \rangle``"
 ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 
@@ -1636,12 +1632,12 @@ Let $G(u, v) = \langle \cosh(u)\cos(v), \sinh(u)\sin(v) \rangle$. Compute the de
 
 ```julia; hold=true; echo=false
 choices = [
-raw" ``\sin^{2}{\left (v \right )} \cosh^{2}{\left (u \right )} + \cos^{2}{\left (v \right )} \sinh^{2}{\left (u \right )}",
+raw" ``\sin^{2}{\left (v \right )} \cosh^{2}{\left (u \right )} + \cos^{2}{\left (v \right )} \sinh^{2}{\left (u \right )}``",
 raw" ``1``",
 raw" ``\sinh(u)\cosh(v)``"
 ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 
@@ -1655,8 +1651,8 @@ L"It is $1$, as each is area preserving",
 L"It is $r$, as the rotation uses polar coordinates",
 L"It is $r^2 \sin(\phi)$, as the rotations use spherical coordinates"
 ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 ###### Question
@@ -1681,8 +1677,8 @@ L"The value $\bar{x}$ of the centroid",
 L"The value $\bar{y}$ of the centroid",
 L"The moment of inertia of $R$ about the $x$ axis"
 ]
-ans = 1
-radioq(choices, ans, keep_order=true)
+answ = 1
+radioq(choices, answ, keep_order=true)
 ```
 
 What does $B/A$ compute?
@@ -1695,8 +1691,8 @@ L"The value $\bar{x}$ of the centroid",
 L"The value $\bar{y}$ of the centroid",
 L"The moment of inertia of $R$ about the $x$ axis"
 ]
-ans = 2
-radioq(choices, ans, keep_order=true)
+answ = 2
+radioq(choices, answ, keep_order=true)
 ```
 
 
@@ -1710,6 +1706,6 @@ raw" ``dtdv``",
 raw" ``(1-2m^2)dt dv``",
 raw" ``m\sqrt{1-m^2}dt^2+(1-2m^2)dtdv -m\sqrt{1-m^2}dv^2``"
 ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```

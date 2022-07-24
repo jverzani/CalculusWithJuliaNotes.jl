@@ -1,0 +1,987 @@
+# The Graph of a Function
+
+
+```{julia}
+#| echo: false
+
+import Logging
+Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
+Logging.disable_logging(Logging.Warn)
+
+import SymPy
+function Base.show(io::IO, ::MIME"text/html", x::T) where {T <: SymPy.SymbolicObject}
+    println(io, "<span class=\"math-left-align\" style=\"padding-left: 4px; width:0; float:left;\"> ")
+    println(io, "\\[")
+    println(io, sympy.latex(x))
+    println(io, "\\]")
+    println(io, "</span>")
+end
+
+# hack to work around issue
+import Markdown
+import CalculusWithJulia
+function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
+    nm = joinpath("..", string(d), f)
+    u = "![$caption]($nm)"
+    Markdown.parse(u)
+end
+
+nothing
+```
+
+This section will use the following packages:
+
+
+```{julia}
+using CalculusWithJulia
+using Plots
+```
+
+```{julia}
+#| echo: false
+#| results: "hidden"
+using CalculusWithJulia.WeaveSupport
+using Roots
+using SymPy
+using DataFrames
+
+const frontmatter = (
+        title = "The Graph of a Function",
+        description = "Calculus with Julia: The Graph of a Function",
+        tags = ["CalculusWithJulia", "precalc", "the graph of a function"],
+);
+
+nothing
+```
+
+---
+
+
+A scalar, univariate function, such as $f(x) = 1 - x^2/2$, can be thought of in many different ways. For example:
+
+
+  * It can be represented through a rule of what it does to $x$, as above. This is useful for computing numeric values.
+  * it can be interpreted verbally, as in *square* $x$, take half then *subtract* from one. This can give clarity to what the function does.
+  * It can be thought of in terms of its properties: a polynomial, continuous, $U$-shaped, an approximation for $\cos(x)$ near $0$, $\dots$
+  * it can be visualized graphically. This is useful for seeing the qualitative behavior of a function.
+
+
+The graph of a univariate function is just a set of points in the Cartesian plane. These points come from the relation $(x,f(x))$ that defines the function. Operationally, a sketch of the graph will consider a handful of such pairs and then the rest of the points will be imputed.
+
+
+For example, a typical approach to plot $f(x) = 1 - x^2/2$ would be to choose some values for $x$ and find the corresponding values of $y$. This might be organized in a "T"-table:
+
+
+```{verbatim}
+ x | y
+--------
+-2 |  -1
+-1 |  1/2
+ 0 |   1
+ 1 |  1/2
+ 2 |  -1
+ 3 | -7/2
+```
+
+These pairs would be plotted in a Cartesian plane and then connected with curved lines. A good sketch is aided by knowing ahead of time that this function describes a parabola which is curving downwards.
+
+
+We note that this sketch would not include *all* the pairs $(x,f(x))$, as their extent is infinite, rather a well chosen collection of points over some finite domain.
+
+
+## Graphing a function with Julia
+
+
+`Julia` has several different options for rendering graphs, all in external packages. We will focus in these notes on the `Plots` package, which provides a common interface to several different plotting backends. (Click through for instructions for plotting with the [Makie](../alternatives/makie_plotting.html) package or the [PlotlyLight](alternatives/plotly_plotting.html) package.) At the top of this section the accompanying `CalculusWithJulia` package and  the `Plots` package were loaded with the `using` command, like this:
+
+
+```{julia}
+#| eval: false
+using CalculusWithJulia
+using Plots
+```
+
+:::{.callout-note}
+## Note
+`Plots` is a frontend for one of several backends. `Plots` comes with a backend for web-based graphics (call `plotly()` to specify that); a backend for static graphs (call `gr()` for that). If the `PyPlot` package is installed, calling `pyplot()` will set that as a backend. For terminal usage, if the `UnicodePlots` package is installed, calling `unicodeplots()` will enable that usage. There are still other backends.
+
+:::
+
+The `plotly` backend is part of the `Plots` package, as is `gr`. Other backends require installation, such as `PyPlot` and `PlotlyJS`. We use `gr` in these notes, for the most part. (The `plotly` backend is also quite nice for interactive usage, but doesn't work as well with the static HTML pages.)
+
+
+With `Plots` loaded, it is straightforward to graph a function.
+
+
+For example, to graph $f(x) = 1 - x^2/2$ over the interval $[-3,3]$ we have:
+
+
+```{julia}
+f(x) = 1 - x^2/2
+plot(f, -3, 3)
+```
+
+The `plot` command does the hard work behind the scenes. It needs $2$ pieces of information declared:
+
+
+  * **What** to plot. With this invocation, this detail is expressed by passing a function object to `plot`
+  * **Where** to plot; the `xmin` and `xmax` values. As with a sketch, it is impossible in this case to render a graph with all possible $x$ values in the domain of $f$, so we need to pick some viewing window. In the example this is $[-3,3]$ which is expressed by passing the two endpoints as the second and third arguments.
+
+
+Plotting a function is then this simple: `plot(f, xmin, xmax)`.
+
+
+> *A basic template:* Many operations we meet will take the form `action(function, args...)`, as the call to `plot` does. The template shifts the focus to the action to be performed. This is a [declarative](http://en.wikipedia.org/wiki/Declarative_programming) style, where the details to execute the action are only exposed as needed.
+
+
+
+:::{.callout-note}
+## Note
+The time to first plot can feel sluggish, but subsequent plots will be speedy. See the technical note at the end of this section for an explanation.
+
+:::
+
+Let's see some other graphs.
+
+
+The `sin` function over one period is plotted through:
+
+
+```{julia}
+plot(sin, 0, 2pi)
+```
+
+We can make a graph of $f(x) = (1+x^2)^{-1}$ over $[-3,3]$ with
+
+
+```{julia}
+#| hold: true
+f(x) = 1 / (1 + x^2)
+plot(f, -3, 3)
+```
+
+A graph of $f(x) = e^{-x^2/2}$ over $[-2,2]$ is produced with:
+
+
+```{julia}
+#| hold: true
+f(x) = exp(-x^2/2)
+plot(f, -2, 2)
+```
+
+We could skip the first step of defining a function by using an *anonymous function*. For example, to plot $f(x) = \cos(x) - x$ over $[0, \pi/2]$ we could do:
+
+
+```{julia}
+plot(x -> cos(x) - x, 0, pi/2)
+```
+
+Anonymous functions are especially helpful when parameterized functions are involved:
+
+
+```{julia}
+#| hold: true
+mxplusb(x; m=1, b=0) = m*x + b
+plot(x -> mxplusb(x; m=-1, b=1), -1, 2)
+```
+
+Had we parameterized using the `f(x,p)` style, the result would be similar:
+
+
+```{julia}
+function mxplusb(x, p)
+    m, b = p.m, p.b
+    m * x + b
+end
+plot(x -> mxplusb(x, (m=-1, b=1)), -1, 2)
+```
+
+:::{.callout-note}
+## Note
+The function object in the general pattern `action(function, args...)` is commonly specified in one of three ways: by a name, as with `f`; as an anonymous function; or as the return value of some other action through composition.
+
+:::
+
+Anonymous functions are also created by `Julia's` `do` notation, which is useful when the first argument to  function (like `plot`) accepts a function:
+
+
+```{julia}
+plot(0, pi/2) do x
+    cos(x) - x
+end
+```
+
+The `do` notation can be a bit confusing to read when unfamiliar, though its convenience makes it appealing.
+
+
+:::{.callout-note}
+## Note
+Some types we will encounter, such as the one for symbolic values or the special polynomial one, have their own `plot` recipes that allow them to be plotted similarly as above, even though they are not functions.
+
+:::
+
+---
+
+
+Making a graph with `Plots` is easy, but producing a graph that is informative can be a challenge, as the choice of a viewing window can make a big difference in what is seen. For example, trying to make a graph of $f(x) = \tan(x)$, as below, will result in a bit of a mess - the chosen viewing window crosses several places where the function blows up:
+
+
+```{julia}
+#| hold: true
+f(x) = tan(x)
+plot(f, -10, 10)
+```
+
+Though this graph shows the asymptote structure and periodicity, it doesn't give much insight into each period or even into the fact that the function is periodic.
+
+
+## The details of graph making
+
+
+The actual details of making a graph of $f$ over $[a,b]$ are pretty simple and follow the steps in making a "T"-table:
+
+
+  * A set of $x$ values are created between $a$ and $b$.
+  * A corresponding set of $y$ values are created.
+  * The pairs $(x,y)$ are plotted as points and connected with straight lines.
+
+
+The only real difference is that when drawing by hand, we might know to curve the lines connecting points based on an analysis of the function. As `Julia` doesn't consider this, the points are connected with straight lines – like a dot-to-dot puzzle.
+
+
+In general, the `x` values are often generated by `range` or the `colon` operator and the `y` values produced by mapping or broadcasting a function over the generated `x` values.
+
+
+However, the plotting directive `plot(f, xmin, xmax)` calls an adaptive algorithm to use more points where needed, as judged by `PlotUtils.adapted_grid(f, (xmin, xmax))`. It computes both the `x` and `y` values.  This algorithm is wrapped up into the `unzip(f, xmin, xmax)` function from `CalculusWithJulia`.  The algorithm adds more points where the function is more "curvy" and uses fewer points where it is "straighter." Here we see the linear function is identified as needing far fewer points than the oscillating function when plotted over the same range:
+
+
+```{julia}
+pts_needed(f, xmin, xmax) = length(unzip(f, xmin, xmax)[1])
+pts_needed(x -> 10x, 0, 10), pts_needed(x -> sin(10x), 0, 10)
+```
+
+(In fact, the `21` is the minimum number of points used for any function; a linear function only needs two.)
+
+
+---
+
+
+For instances where a *specific* set of $x$ values is desired to be used, the `range` function or colon operator can be used to create the $x$ values and broadcasting used to create the $y$ values. For example, if we were to plot $f(x) = \sin(x)$ over $[0,2\pi]$ using $10$ points, we might do:
+
+
+```{julia}
+𝒙s = range(0, 2pi, length=10)
+𝒚s = sin.(𝒙s)
+```
+
+Finally, to plot the set of points and connect with lines, the $x$ and $y$ values are passed along as vectors:
+
+
+```{julia}
+plot(𝒙s, 𝒚s)
+```
+
+This plots the points as pairs and then connects them in order using straight lines. Basically, it creates a dot-to-dot graph. The above graph looks primitive, as it doesn't utilize enough points.
+
+
+##### Example: Reflections
+
+
+The graph of a function may be reflected through a line, as those seen with a mirror. For example, a reflection through the $y$ axis takes a point $(x,y)$ to the point $(-x, y)$. We can easily see this graphically, when we have sets of $x$ and $y$ values through a judiciously placed minus sign.
+
+
+For example, to plot $\sin(x)$ over $(-\pi,\pi)$ we might do:
+
+
+```{julia}
+xs = range(-pi, pi, length=100)
+ys = sin.(xs)
+plot(xs, ys)
+```
+
+To reflect this graph through the $y$ axis, we only need to plot `-xs` and not `xs`:
+
+
+```{julia}
+plot(-xs, ys)
+```
+
+Looking carefully we see there is a difference. (How?)
+
+
+There are four very common reflections:
+
+
+  * reflection through the $y$-axis takes $(x,y)$ to $(-x, y)$.
+  * reflection through the $x$-axis takes $(x,y)$ to $(x, -y)$.
+  * reflection through the origin takes $(x,y)$ to $(-x, -y)$.
+  * reflection through the line $y=x$ takes $(x,y)$ to $(y,x)$.
+
+
+For the $\sin(x)$ graph, we see that reflecting through the $x$ axis produces the same graph as reflecting through the $y$ axis:
+
+
+```{julia}
+plot(xs, -ys)
+```
+
+However, reflecting through the origin leaves this graph unchanged:
+
+
+```{julia}
+plot(-xs,  -ys)
+```
+
+> An *even function* is one where reflection through the $y$ axis leaves the graph unchanged. That is, $f(-x) = f(x)$.  An *odd function* is one where a reflection through the origin leaves the graph unchanged, or symbolically $f(-x) = -f(x)$.
+
+
+
+If we try reflecting the graph of $\sin(x)$ through the line $y=x$, we have:
+
+
+```{julia}
+plot(ys, xs)
+```
+
+This is the graph of the equation $x = \sin(y)$, but is not the graph of a function as the same $x$ can map to more than one $y$ value. (The new graph does not pass the "vertical line" test.)
+
+
+However, for the sine function we can get a function from this reflection if we choose a narrower viewing window:
+
+
+```{julia}
+#| hold: true
+xs = range(-pi/2, pi/2, length=100)
+ys = sin.(xs)
+plot(ys, xs)
+```
+
+The graph is that of the "inverse function" for $\sin(x), x \text{ in } [-\pi/2, \pi/2]$.
+
+
+#### The `plot(xs, f)` syntax
+
+
+When plotting a univariate function there are three basic patterns that can be employed. We have examples above of:
+
+
+  * `plot(f, xmin, xmax)` uses an adaptive algorithm to identify values for $x$ in the interval `[xmin, xmas]`,
+  * `plot(xs, f.(xs))` to manually choose the values of $x$ to plot points for, and
+
+
+Finally there is a merging of these following either of these patterns:
+
+
+  * `plot(f, xs)` *or*  `plot(xs, f)`
+
+
+Both require a manual choice of the values of the $x$-values to plot, but the broadcasting is carried out in the `plot` command. This style is convenient, for example, to down sample the $x$ range to see the plotting mechanics, such as:
+
+
+```{julia}
+plot(0:pi/4:2pi, sin)
+```
+
+#### NaN values
+
+
+At times it is not desirable to draw lines between each succesive point. For example, if there is a discontinuity in the function or if there were a vertical asymptote, such as what happens at $0$ with $f(x) = 1/x$.
+
+
+The most straightforward plot is dominated by the vertical asymptote at $x=0$:
+
+
+```{julia}
+q(x) = 1/x
+plot(q, -1, 1)
+```
+
+We can attempt to improve this graph by adjusting the viewport. The *viewport* of a graph is the $x$-$y$ range of the viewing window.  By default, the $y$-part of the viewport is determined by the range of the function over the specified interval, $[a,b]$. As just seen, this approach can produce poor graphs.  The `ylims=(ymin, ymax)` argument can modify what part of the $y$ axis is shown. (Similarly `xlims=(xmin, xmax)` will modify the viewport in the $x$ direction.)
+
+
+As we see, even with this adjustment, the spurious line connecting the points with $x$ values closest to $0$ is still drawn:
+
+
+```{julia}
+plot(q, -1, 1, ylims=(-10,10))
+```
+
+The dot-to-dot algorithm, at some level, assumes the underlying function is continuous; here $q(x)=1/x$ is not.
+
+
+There is a convention for most plotting programs that **if** the $y$ value for a point is `NaN` that no lines will connect to that point, `(x,NaN)`. `NaN` conveniently appears in many cases where a plot may have an issue, though not with $1/x$ as `1/0` is `Inf` and not `NaN`. (Unlike, say, `0/0` which is NaN.)
+
+
+Here is one way to plot $q(x) = 1/x$ over $[-1,1]$ taking advantage of this convention:
+
+
+```{julia}
+#| hold: true
+xs = range(-1, 1, length=251)
+ys = q.(xs)
+ys[xs .== 0.0] .= NaN
+plot(xs, ys)
+```
+
+By using an odd number of points, we should have that $0.0$ is amongst the `xs`. The next to last line replaces the $y$ value that would be infinite with `NaN`.
+
+
+As a recommended alternative, we might modify the function so that if it is too large, the values are replaced by `NaN`. Here is one such function consuming a function and returning a modified function put to use to make this graph:
+
+
+```{julia}
+rangeclamp(f, hi=20, lo=-hi; replacement=NaN) = x -> lo < f(x) < hi ? f(x) : replacement
+plot(rangeclamp(x -> 1/x), -1, 1)
+```
+
+(The `clamp` function is a base `Julia` function which clamps a number between `lo` and `hi`, returning `lo` or `hi` if `x` is outside that range.)
+
+
+## Layers
+
+
+Graphing more than one function over the same viewing window is often desirable. Though this is easily done in `Plots` by specifying a vector of functions as the first argument to `plot` instead of a single function object, we instead focus on building the graph layer by layer.
+
+
+For example, to see that a polynomial and the cosine function are "close" near $0$, we can plot *both* $\cos(x)$ and the function $f(x) = 1 - x^2/2$ over $[-\pi/2,\pi/2]$:
+
+
+```{julia}
+#| hold: true
+f(x) = 1 - x^2/2
+plot(cos, -pi/2, pi/2, label="cos")
+plot!(f, -pi/2, pi/2, label="f")
+```
+
+Another useful function to add to a plot is one to highlight the $x$ axis. This makes identifying zeros of the function easier. The anonymous function `x -> 0` will do this. But, perhaps less cryptically, so will the base function `zero`. For example
+
+
+```{julia}
+#| hold: true
+f(x) = x^5 - x + 1
+plot(f, -1.5, 1.4, label="f")
+plot!(zero, label="zero")
+```
+
+(The job of `zero` is to return "$0$" in the appropriate type. There is also a similar `one` function in base `Julia`.)
+
+
+The `plot!` call adds a layer. We could still specify the limits for the plot, though as this can be computed from the figure, to plot `zero` we let `Plots` do it.
+
+
+For another example, suppose we wish to plot the function $f(x)=x\cdot(x-1)$ over the interval $[-1,2]$ and emphasize with points the fact that $0$ and $1$ are zeros. We can do this with three layers: the first to graph the function, the second to emphasize the $x$ axis, the third to graph the points.
+
+
+```{julia}
+#| hold: true
+f(x) = x*(x-1)
+plot(f, -1, 2, legend=false)   # turn off legend
+plot!(zero)
+scatter!([0,1], [0,0])
+```
+
+The $3$ main functions used in these notes for adding layers are:
+
+
+  * `plot!(f, a, b)` to add the graph of the function `f`; also `plot!(xs, ys)`
+  * `scatter!(xs, ys)` to add points $(x_1, y_1), (x_2, y_2), \dots$.
+  * `annotate!((x,y, label))` to add a label at $(x,y)$
+
+
+:::{.callout-warning}
+## Warning
+Julia has a convention to use functions named with a `!` suffix to indicate that they mutate some object. In this case, the object is the current graph, though it is implicit. Both `plot!`, `scatter!`, and `annotate!` (others too) do this by adding a layer.
+
+:::
+
+## Additional arguments
+
+
+The `Plots` package provides many arguments for adjusting a graphic, here we mention just a few of the [attributes](https://docs.juliaplots.org/latest/attributes/):
+
+
+  * `plot(..., title="main title", xlab="x axis label", ylab="y axis label")`: add title and label information to a graphic
+  * `plot(..., color="green")`: this argument can be used to adjust the color of the drawn figure (color can be a string,`"green"`, or a symbol, `:green`, among other specifications)
+  * `plot(..., linewidth=5)`: this argument can be used to adjust the width of drawn lines
+  * `plot(..., xlims=(a,b), ylims=(c,d)`: either or both `xlims` and `ylims` can be used to control the viewing window
+  * `plot(..., linestyle=:dash)`: will change the line style of the plotted lines to dashed lines. Also `:dot`, ...
+  * `plot(..., aspect_ratio=:equal)`: will keep $x$ and $y$ axis on same scale so that squares look square.
+  * `plot(..., legend=false)`: by default, different layers will be indicated with a legend, this will turn off this feature
+  * `plot(..., label="a label")` the `label` attribute will show up when a legend is present. Using an empty string, `""`, will suppress add the layer to the legend.
+
+
+For plotting points with `scatter`, or `scatter!` the markers can be adjusted via
+
+
+  * `scatter(..., markersize=5)`: increase marker size
+  * `scatter(..., marker=:square)`: change the marker (uses a symbol, not a string to specify)
+
+
+Of course, zero, one, or more of these can be used on any given call to `plot`, `plot!`, `scatter` or `scatter!`.
+
+
+## Graphs of parametric equations
+
+
+If we have two functions $f(x)$ and $g(x)$ there are a few ways to investigate their joint behavior. As just mentioned, we can graph both $f$ and $g$ over the same interval using layers. Such a graph allows an easy comparison of the shape of the two functions and can be useful in solving $f(x) = g(x)$. For the latter, the graph of $h(x) = f(x) - g(x)$ is also of value: solutions to $f(x)=g(x)$ appear as crossing points on the graphs of `f` and `g`, whereas they appear as zeros (crossings of the $x$-axis) when `h` is plotted.
+
+
+A different graph can be made to compare the two functions side-by-side. This is a parametric plot. Rather than plotting points $(x,f(x))$ and $(x,g(x))$ with two separate graphs, the graph consists of points $(f(x), g(x))$. We illustrate with some examples below:
+
+
+##### Example
+
+
+The most "famous" parametric graph is one that is likely already familiar, as it follows the parametrization of points on the unit circle by the angle made between the $x$ axis and the ray from the origin through the point. (If not familiar, this will soon be discussed in these notes.)
+
+
+```{julia}
+𝒇(x) = cos(x); 𝒈(x) = sin(x)
+𝒕s = range(0, 2pi, length=100)
+plot(𝒇.(𝒕s), 𝒈.(𝒕s), aspect_ratio=:equal)   # make equal axes
+```
+
+Any point $(a,b)$ on this graph is represented by $(\cos(t), \sin(t))$ for some value of $t$, and in fact multiple values of $t$, since $t + 2k\pi$ will produce the same $(a,b)$ value as $t$ will.
+
+
+Making the parametric plot is similar to creating a plot using lower level commands. There  a sequence of values is generated to approximate the $x$ values in the graph (`xs`), a set of commands to create the corresponding function values (e.g., `f.(xs)`), and some instruction on how to represent the values, in this case with lines connecting the points (the default for `plot` for two sets of numbers).
+
+
+In this next plot, the angle values are chosen to be the familiar ones, so the mechanics of the graph can be emphasized. Only the upper half is plotted:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+θs =[0, PI/6, PI/4, PI/3, PI/2, 2PI/3, 3PI/4,5PI/6, PI]
+DataFrame(θ=θs, x=cos.(θs), y=sin.(θs))
+```
+
+```{julia}
+#| hold: true
+θs =[0, pi/6, pi/4, pi/3, pi/2, 2pi/3, 3pi/4, 5pi/6, pi]
+plot(𝒇.(θs), 𝒈.(θs), legend=false, aspect_ratio=:equal)
+scatter!(𝒇.(θs), 𝒈.(θs))
+```
+
+---
+
+
+As with the plot of a univariate function, there is a convenience interface for these plots - just pass the two functions in:
+
+
+```{julia}
+plot(𝒇, 𝒈, 0, 2pi, aspect_ratio=:equal)
+```
+
+##### Example
+
+
+Looking at growth. Comparing $x^2$ with $x^3$ can run into issues, as the scale gets big:
+
+
+```{julia}
+x²(x) = x^2
+x³(x) = x^3
+plot(x², 0, 25)
+plot!(x³, 0, 25)
+```
+
+In the above, `x³` is already $25$ times larger on the scale of $[0,25]$ and this only gets worse if the viewing window were to get larger. However, the parametric graph is quite different:
+
+
+```{julia}
+plot(x², x³, 0, 25)
+```
+
+In this graph, as $x^3/x^2 = x$, as $x$ gets large, the ratio stays reasonable.
+
+
+##### Example
+
+
+Parametric plots are useful to compare the ratio of values near a point. In the above example, we see how this is helpful for large `x`. This example shows it is convenient for a fixed `x`, in this case `x=0`.
+
+
+Plot $f(x) = x^3$ and $g(x) = x - \sin(x)$ around $x=0$:
+
+
+```{julia}
+#| hold: true
+f(x) = x^3
+g(x) = x - sin(x)
+plot(f, g, -pi/2, pi/2)
+```
+
+This graph is *nearly* a straight line. At the point $(0,0)=(g(0), g(0))$, we see that both functions are behaving in a similar manner, though the slope is not $1$, so they do not increase at exactly the same rate.
+
+
+##### Example: Etch A Sketch
+
+
+[Etch A sketch](http://en.wikipedia.org/wiki/Etch_A_Sketch) is a drawing toy where two knobs control the motion of a pointer, one knob controlling the $x$ motion, the other the $y$ motion. The trace of the movement of the pointer is recorded until the display is cleared by shaking. Shake to clear is now a motion incorporated by some smart-phone apps.
+
+
+Playing with the toy makes a few things become clear:
+
+
+  * Twisting just the left knob (the horizontal or $x$ motion) will move the pointer left or right, leaving a horizontal line. Parametrically, this would follow the equations $f(t) = \xi(t)$ for some $\xi$ and $g(t) = c$.
+  * Twisting just the right knob (the vertical or $y$ motion) will move the pointer up or down, leaving a vertical line.  Parametrically, this would follow the equations $f(t) = c$  and $g(t) = \psi(t)$ for some $\psi$.
+  * Drawing a line with a slope different from $0$ or $\infty$ requires moving both knobs at the same time. A $45$$^\circ$ line with slope $m=1$ can be made by twisting both at the same rate, say through $f(t) = ct$, $g(t)=ct$. It doesn't matter how big $c$ is, just that it is the same for both $f$ and $g$. Creating a different slope is done by twisting at different rates, say $f(t)=ct$ and $g(t)=dt$. The slope of the resulting line will be $d/c$.
+  * Drawing a curve is done by twisting the two knobs with varying rates.
+
+
+These all apply to parametric plots, as the Etch A Sketch trace is no more than a plot of $(f(t), g(t))$ over some range of values for $t$, where $f$ describes the movement in time of the left knob and $g$ the movement in time of the right.
+
+
+Now, we revist the last problem in the context of this. We saw in the last problem that the parametric graph was nearly a line - so close the eye can't really tell otherwise. That means that the growth in  both $f(t) = t^3$ and $g(t)=t - \sin(t)$ for $t$ around $0$ are in a nearly fixed ratio, as otherwise the graph would have more curve in it.
+
+
+##### Example: Spirograph
+
+
+Parametric plots can describe a richer set of curves than can plots of functions. Plots of functions must pass the "vertical-line test", as there can be at most one $y$ value for a given $x$ value. This is not so for parametric plots, as the circle example above shows. Plotting sines and cosines this way is the basis for the once popular [Spirograph](http://en.wikipedia.org/wiki/Spirograph#Mathematical_basis) toy. The curves drawn there are parametric plots where the functions come from rolling a smaller disc either around the outside or inside of a larger disc.
+
+
+Here is an example using a parameterization provided on the Wikipedia page where $R$ is the radius of the larger disc, $r$ the radius of the smaller disc and $\rho < r$ indicating the position of the pencil within the smaller disc.
+
+
+```{julia}
+#| hold: true
+R, r, rho = 1, 1/4, 1/4
+f(t) = (R-r) * cos(t) + rho * cos((R-r)/r * t)
+g(t) = (R-r) * sin(t) - rho * sin((R-r)/r * t)
+
+plot(f, g, 0, max((R-r)/r, r/(R-r))*2pi)
+```
+
+In the above, one can fix $R=1$. Then different values for `r` and `rho` will produce different graphs. These graphs will be periodic if $(R-r)/r$ is a rational. (Nothing about these equations requires $\rho < r$.)
+
+
+## Questions
+
+
+###### Question
+
+
+Plot the function $f(x) = x^3 - x$. When is the function positive?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = ["`(-Inf, -1)` and `(0,1)`",
+	"`(-Inf, -0.577)` and `(0.577, Inf)`",
+	"`(-1, 0)` and `(1, Inf)`"
+	];
+answ=3;
+radioq(choices, answ)
+```
+
+###### Question
+
+
+Plot the function $f(x) = 3x^4 + 8x^3 - 18x^2$. Where (what $x$ value) is the smallest value? (That is, for which input $x$ is the output $f(x)$ as small as possible.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = 3x^4 + 8x^3 - 18x^2
+val = -3;
+numericq(val, 0.25)
+```
+
+###### Question
+
+
+Plot the function $f(x) = 3x^4 + 8x^3 - 18x^2$. When is the function increasing?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = ["`(-Inf, -3)` and `(0, 1)`",
+	"`(-3, 0)` and `(1, Inf)`",
+	"`(-Inf, -4.1)` and `(1.455, Inf)`"
+	];
+answ=2;
+radioq(choices, answ)
+```
+
+###### Question
+
+
+Graphing both `f` and the line $y=0$  helps focus on the *zeros* of `f`. When `f(x)=log(x)-2`, plot `f` and the line $y=0$.  Identify the lone zero.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+val = find_zero(x -> log(x) - 2, 8)
+numericq(val, .5)
+```
+
+###### Question
+
+
+Plot the function $f(x) = x^3 - x$ over $[-2,2]$. How many zeros are there?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+val = 3;
+numericq(val, 1e-16)
+```
+
+###### Question
+
+
+The function $f(x) = (x^3 - 2x) / (2x^2 -10)$ is a rational function with issues when $2x^2 = 10$, or $x = -\sqrt{5}$ or $\sqrt{5}$.
+
+
+Plot this function from $-5$ to $5$. How many times does it cross the $x$ axis?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+val = 3;
+numericq(val, .2)
+```
+
+###### Question
+
+
+A trash collection plan charges a flat rate of 35 dollars a month for the first 10 bags of trash and is 4 dollars a bag thereafter. Which function will model this:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+"`f(x) = x <= 35.0 ? 10.0 : 10.0 + 35.0 * (x-4)`",
+"`f(x) = x <= 4    ? 35.0 : 35.0 + 10.0 * (x-4)`",
+"`f(x) = x <= 10   ? 35.0 : 35.0 +  4.0 * (x-10)`"
+]
+answ = 3
+radioq(choices, answ)
+```
+
+Make a plot of the model. Graphically estimate how many bags of trash will cost 55 dollars.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+answ = 15
+numericq(answ, .5)
+```
+
+###### Question
+
+
+Plot the functions $f(x) = \cos(x)$ and $g(x) = x$. Estimate the $x$ value of where the two graphs intersect.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+val = find_zero(x -> cos(x) -x, .7)
+numericq(val, .25)
+```
+
+###### Question
+
+
+The fact that only a finite number of points are used in a graph can introduce artifacts. An example can appear when plotting [sinusoidal](http://en.wikipedia.org/wiki/Aliasing#Sampling_sinusoidal_functions) functions. An example is the graph of `f(x) = sin(500*pi*x)` over `[0,1]`.
+
+
+Make its graph using 250 evenly spaced points, as follows:
+
+
+```{julia}
+#| hold: true
+#| eval: false
+#| results: "hidden"
+xs = range(0, 1, length=250)
+f(x) = sin(500*pi*x)
+plot(xs, f.(xs))
+```
+
+What is seen?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [L"It oscillates wildly, as the period is $T=2\pi/(500 \pi)$ so there are 250 oscillations.",
+	"It should oscillate evenly, but instead doesn't oscillate very much near 0 and 1",
+	L"Oddly, it looks exactly like the graph of $f(x) = \sin(2\pi x)$."]
+answ = 3
+radioq(choices, answ)
+```
+
+The algorithm to plot a function works to avoid aliasing issues. Does the graph generated by `plot(f, 0, 1)` look the same, as the one above?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = ["Yes",
+"No, but is still looks pretty bad, as fitting 250 periods into a too small number of pixels is a problem.",
+"No, the graph shows clearly all 250 periods."
+]
+answ = 2
+radioq(choices, answ)
+```
+
+###### Question
+
+
+Make this parametric plot for the specific values of the parameters `k` and `l`. What shape best describes it?
+
+
+```{julia}
+#| hold: true
+#| eval: false
+R, r, rho = 1, 3/4, 1/4
+f(t) = (R-r) * cos(t) + rho * cos((R-r)/r * t)
+g(t) = (R-r) * sin(t) - rho * sin((R-r)/r * t)
+
+plot(f, g, 0, max((R-r)/r, r/(R-r))*2pi, aspect_ratio=:equal)
+```
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+"Four sharp points, like a star",
+"Four petals, like a flower",
+"An ellipse",
+"A straight line"
+]
+answ = 2
+radioq(choices, answ)
+```
+
+###### Question
+
+
+For these next questions, we use this function:
+
+
+```{julia}
+function spirograph(R, r, rho)
+  f(t) = (R-r) * cos(t) + rho * cos((R-r)/r * t)
+  g(t) = (R-r) * sin(t) - rho * sin((R-r)/r * t)
+
+  plot(f, g, 0, max((R-r)/r, r/(R-r))*2pi, aspect_ratio=:equal)
+end
+```
+
+Make this plot for the following specific values of the parameters `R`, `r`, and `rho`. What shape best describes it?
+
+
+```{julia}
+#| hold: true
+#| eval: false
+R, r, rho = 1, 3/4, 1/4
+```
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+"Four sharp points, like a star",
+"Four petals, like a flower",
+"An ellipse",
+"A straight line",
+"None of the above"
+]
+answ = 1
+radioq(choices, answ, keep_order=true)
+```
+
+Make this plot for the following specific values of the parameters `R`, `r`, and `rho`. What shape best describes it?
+
+
+```{julia}
+#| hold: true
+#| eval: false
+R, r, rho = 1, 1/2, 1/4
+```
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+"Four sharp points, like a star",
+"Four petals, like a flower",
+"An ellipse",
+"A straight line",
+"None of the above"
+]
+answ = 3
+radioq(choices, answ,keep_order=true)
+```
+
+Make this plot for the specific values of the parameters `R`, `r`, and `rho`. What shape best describes it?
+
+
+```{julia}
+#| hold: true
+#| eval: false
+R, r, rho = 1, 1/4, 1
+```
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+"Four sharp points, like a star",
+"Four petals, like a flower",
+"A circle",
+"A straight line",
+"None of the above"
+]
+answ = 2
+radioq(choices, answ, keep_order=true)
+```
+
+Make this plot for the specific values of the parameters `R`, `r`, and `rho`. What shape best describes it?
+
+
+```{julia}
+#| hold: true
+#| eval: false
+R, r, rho = 1, 1/8, 1/4
+```
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+"Four sharp points, like a star",
+"Four petals, like a flower",
+"A circle",
+"A straight line",
+"None of the above"
+]
+answ = 5
+radioq(choices, answ, keep_order=true)
+```
+
+---
+
+
+## Technical note
+
+
+The slow "time to first plot" in `Julia` is a well-known hiccup that is related to how `Julia` can be so fast. Loading Plots and the making the first plot are both somewhat time consuming, though the second and subsequent plots are speedy. Why?
+
+
+`Julia` is an interactive language that attains its speed by compiling functions on the fly using the [llvm](llvm.org) compiler. When `Julia` encounters a new combination of a function method and argument types it will compile and cache a function for subsequent speedy execution. The first plot is slow, as there are many internal functions that get compiled. This has sped up of late, as excessive recompilations have been trimmed down, but still has a way to go. This is different from "precompilation" which also helps trim down time for initial executions. There are also some more technically challenging means to create `Julia` images for faster start up that can be pursued if needed.
+
+

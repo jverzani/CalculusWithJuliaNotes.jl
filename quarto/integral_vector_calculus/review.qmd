@@ -1,0 +1,516 @@
+# Quick Review of Vector Calculus
+
+
+```{julia}
+#| echo: false
+
+import Logging
+Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
+Logging.disable_logging(Logging.Warn)
+
+import SymPy
+function Base.show(io::IO, ::MIME"text/html", x::T) where {T <: SymPy.SymbolicObject}
+    println(io, "<span class=\"math-left-align\" style=\"padding-left: 4px; width:0; float:left;\"> ")
+    println(io, "\\[")
+    println(io, sympy.latex(x))
+    println(io, "\\]")
+    println(io, "</span>")
+end
+
+# hack to work around issue
+import Markdown
+import CalculusWithJulia
+function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
+    nm = joinpath("..", string(d), f)
+    u = "![$caption]($nm)"
+    Markdown.parse(u)
+end
+
+nothing
+```
+
+```{julia}
+#| echo: false
+#| results: "hidden"
+using CalculusWithJulia
+using CalculusWithJulia.WeaveSupport
+using Plots
+
+const frontmatter = (
+        title = "Quick Review of Vector Calculus",
+        description = "Calculus with Julia: Quick Review of Vector Calculus",
+        tags = ["CalculusWithJulia", "integral_vector_calculus", "quick review of vector calculus"],
+);
+
+nothing
+```
+
+This section considers functions from $R^n$ into $R^m$ where one or both of $n$ or $m$ is greater than $1$:
+
+
+  * functions $f:R \rightarrow R^m$ are called univariate functions.
+  * functions $f:R^n \rightarrow R$ are called scalar-valued functions.
+  * function $f:R \rightarrow R$ are univariate, scalar-valued functions.
+  * functions $\vec{r}:R\rightarrow R^m$ are parameterized curves. The trace of a parameterized curve is a path.
+  * functions $F:R^n \rightarrow R^m$, may be called vector fields in applications. They are also used to describe transformations.
+
+
+When $m>1$ a function is called *vector valued*.
+
+
+When $n>1$ the argument may be given in terms of components, e.g. $f(x,y,z)$; with a point as an argument, $F(p)$; or with a vector as an argument, $F(\vec{a})$. The identification of a point with a vector is done frequently.
+
+
+## Limits
+
+
+Limits when $m > 1$ depend on the limits of each component existing.
+
+
+Limits when $n > 1$ are more complicated. One characterization is a limit at a point $c$ exists if and only if for *every* continuous path going to $c$ the limit along the path for every component exists in the univariate sense.
+
+
+## Derivatives
+
+
+The derivative of a univariate function, $f$, at a point $c$ is defined by a limit:
+
+
+$$
+f'(c) = \lim_{h\rightarrow 0} \frac{f(c+h)-f(c)}{h},
+$$
+
+and as a function by considering the mapping $c$ into $f'(c)$. A characterization is it is the value for which
+
+
+$$
+|f(c+h) - f(h) - f'(c)h| = \mathcal{o}(|h|),
+$$
+
+That is,  after dividing the left-hand side by $|h|$ the expression goes to $0$ as $|h|\rightarrow 0$. This characterization will generalize with the norm replacing the absolute value, as needed.
+
+
+### Parameterized curves
+
+
+The derivative of a function $\vec{r}: R \rightarrow R^m$, $\vec{r}'(t)$, is found by taking the derivative of each component. (The function consisting of just one component is univariate.)
+
+
+The derivative satisfies
+
+
+$$
+\| \vec{r}(t+h) - \vec{r}(t) - \vec{r}'(t) h \| = \mathcal{o}(|h|).
+$$
+
+The derivative is *tangent* to the curve and indicates the direction of travel.
+
+
+The **tangent** vector is the unit vector in the direction of $\vec{r}'(t)$:
+
+
+$$
+\hat{T} = \frac{\vec{r}'(t)}{\|\vec{r}(t)\|}.
+$$
+
+The path is parameterized by *arc* length if $\|\vec{r}'(t)\| = 1$ for all $t$. In this case an "$s$" is used for the parameter, as a notational hint: $\hat{T} = d\vec{r}/ds$.
+
+
+The **normal** vector is the unit vector in the direction of the derivative of the tangent vector:
+
+
+$$
+\hat{N} = \frac{\hat{T}'(t)}{\|\hat{T}'(t)\|}.
+$$
+
+In dimension $m=2$, if $\hat{T} = \langle a, b\rangle$ then $\hat{N} = \langle -b, a\rangle$ or $\langle b, -a\rangle$ and $\hat{N}'(t)$ is parallel to $\hat{T}$.
+
+
+In dimension $m=3$, the **binormal** vector, $\hat{B}$, is the unit vector $\hat{T}\times\hat{N}$.
+
+
+The [Frenet-Serret]() formulas define the **curvature**, $\kappa$,  and the **torsion**, $\tau$, by
+
+
+$$
+\begin{align}
+\frac{d\hat{T}}{ds} &=  & \kappa \hat{N} &\\
+\frac{d\hat{N}}{ds} &= -\kappa\hat{T} & & + \tau\hat{B}\\
+\frac{d\hat{B}}{ds} &= & -\tau\hat{N}&
+\end{align}
+$$
+
+These formulas apply in dimension $m=2$ with $\hat{B}=\vec{0}$.
+
+
+The curvature, $\kappa$, can be visualized by imagining a circle of radius $r=1/\kappa$ best approximating the path at a point. (A straight line would have a circle of infinite radius and curvature $0$.)
+
+
+The chain rule says $(\vec{r}(g(t))' = \vec{r}'(g(t)) g'(t)$.
+
+
+### Scalar functions
+
+
+A scalar function, $f:R^n\rightarrow R$, $n > 1$ has a **partial derivative** defined. For $n=2$, these are:
+
+
+$$
+\begin{align}
+\frac{\partial{f}}{\partial{x}}(x,y) &=
+\lim_{h\rightarrow 0} \frac{f(x+h,y)-f(x,y)}{h}\\
+\frac{\partial{f}}{\partial{y}}(x,y) &=
+\lim_{h\rightarrow 0} \frac{f(x,y+h)-f(x,y)}{h}.
+\end{align}
+$$
+
+The generalization to $n>2$ is clear - the partial derivative in $x_i$ is the derivative of $f$ when the *other* $x_j$ are held constant.
+
+
+This may be viewed as the derivative of the univariate function $(f\circ\vec{r})(t)$ where $\vec{r}(t) = p + t \hat{e}_i$, $\hat{e}_i$ being the unit vector of all $0$s except a $1$ in the $i$th component.
+
+
+The **gradient** of $f$, when the limits exist, is the vector-valued function for $R^n$ to $R^n$:
+
+
+$$
+\nabla{f} = \langle
+\frac{\partial{f}}{\partial{x_1}},
+\frac{\partial{f}}{\partial{x_2}},
+\dots
+\frac{\partial{f}}{\partial{x_n}}
+\rangle.
+$$
+
+The gradient satisfies:
+
+
+$$
+\|f(\vec{x}+\Delta{\vec{x}}) - f(\vec{x}) - \nabla{f}\cdot\Delta{\vec{x}}\| = \mathcal{o}(\|\Delta{\vec{x}\|}).
+$$
+
+The gradient is viewed as a column vector. If the dot product above is viewed as matrix multiplication, then it would be written $\nabla{f}' \Delta{\vec{x}}$.
+
+
+**Linearization** is the *approximation*
+
+
+$$
+f(\vec{x}+\Delta{\vec{x}}) \approx f(\vec{x}) + \nabla{f}\cdot\Delta{\vec{x}}.
+$$
+
+The **directional derivative** of $f$ in the direction $\vec{v}$ is $\vec{v}\cdot\nabla{f}$, which can be seen as the derivative of the univariate function $(f\circ\vec{r})(t)$ where $\vec{r}(t) = p + t \vec{v}$.
+
+
+For the function $z=f(x,y)$ the gradient points in the direction of steepest ascent. Ascent is seen in the $3$d surface, the gradient is $2$ dimensional.
+
+
+For a function $f(\vec{x})$, a **level curve** is the set of values for which $f(\vec{x})=c$, $c$ being some constant. Plotted, this may give a curve or surface (in $n=2$ or $n=3$). The gradient at a point $\vec{x}$ with $f(\vec{x})=c$ will be *orthogonal* to the level curve $f=c$.
+
+
+Partial derivatives are scalar functions, so will themselves have partial derivatives when the limits are defined. The notation $f_{xy}$ stands for the partial derivative in $y$ of the partial derivative of $f$ in $x$. [Schwarz]()'s theorem says the order of partial derivatives will not matter (e.g., $f_{xy} = f_{yx}$) provided the higher-order derivatives are continuous.
+
+
+The chain rule applied to $(f\circ\vec{r})(t)$ says:
+
+
+$$
+\frac{d(f\circ\vec{r})}{dt} = \nabla{f}(\vec{r}) \cdot \vec{r}'.
+$$
+
+### Vector-valued functions
+
+
+For a function $F:R^n \rightarrow R^m$, the **total derivative** of $F$ is the linear operator $d_F$ satisfying:
+
+
+$$
+\|F(\vec{x} + \vec{h})-F(\vec{x}) - d_F \vec{h}\| = \mathcal{o}(\|\vec{h}\|)
+$$
+
+For $F=\langle f_1, f_2, \dots, f_m\rangle$ the total derivative is the  **Jacobian**, a $m \times n$ matrix of partial derivatives:
+
+
+$$
+J_f = \left[
+\begin{align}{}
+\frac{\partial f_1}{\partial x_1} &\quad \frac{\partial f_1}{\partial x_2} &\dots&\quad\frac{\partial f_1}{\partial x_n}\\
+\frac{\partial f_2}{\partial x_1} &\quad \frac{\partial f_2}{\partial x_2} &\dots&\quad\frac{\partial f_2}{\partial x_n}\\
+&&\vdots&\\
+\frac{\partial f_m}{\partial x_1} &\quad \frac{\partial f_m}{\partial x_2} &\dots&\quad\frac{\partial f_m}{\partial x_n}
+\end{align}
+\right].
+$$
+
+This can be viewed as being comprised of row vectors, each being the individual gradients; or as column vectors each being the vector of partial derivatives for a given variable.
+
+
+The **chain rule** for $F:R^n \rightarrow R^m$ composed with $G:R^k \rightarrow R^n$ is:
+
+
+$$
+d_{F\circ G}(a) = d_F(G(a)) d_G(a),
+$$
+
+That is the total derivative of $F$ at the point $G(a)$ times (matrix multiplication) the total derivative of $G$ at $a$.  The dimensions work out as $d_F$ is $m\times n$ and $d_G$ is $n\times k$, so $d_(F\circ G)$ will be $m\times k$ and $F\circ{G}: R^k\rightarrow R^m$.
+
+
+A scalar function $f:R^n \rightarrow R$ and a parameterized curve $\vec{r}:R\rightarrow R^n$ composes to yield a univariate function. The total derivative of $f\circ\vec{r}$ satisfies:
+
+
+$$
+d_f(\vec{r}) d_\vec{r} = \nabla{f}(\vec{r}(t))' \vec{r}'(t) =
+\nabla{f}(\vec{r}(t)) \cdot \vec{r}'(t),
+$$
+
+as above. (There is an identification of a $1\times 1$ matrix with a scalar in re-expressing as a dot product.)
+
+
+### The divergence, curl, and their vanishing properties
+
+
+Define the **divergence** of a vector-valued function $F:R^n \rightarrow R^n$ by:
+
+
+$$
+\text{divergence}(F) =
+\frac{\partial{F_{x_1}}}{\partial{x_1}} +
+\frac{\partial{F_{x_2}}}{\partial{x_2}} + \cdots
+\frac{\partial{F_{x_n}}}{\partial{x_n}}.
+$$
+
+The divergence is a scalar function. For a vector field $F$, it measures the microscopic flow out of a region.
+
+
+A vector field whose divergence is identically $0$ is called **incompressible**.
+
+
+Define the **curl** of a *two*-dimensional vector field, $F:R^2 \rightarrow R^2$, by:
+
+
+$$
+\text{curl}(F) = \frac{\partial{F_y}}{\partial{x}} -
+\frac{\partial{F_x}}{\partial{y}}.
+$$
+
+The curl for $n=2$ is a scalar function.
+
+
+For $n=3$ define the **curl** of $F:R^3 \rightarrow R^3$ to be the *vector field*:
+
+
+$$
+\text{curl}(F) =
+\langle \
+\frac{\partial{F_z}}{\partial{y}} - \frac{\partial{F_y}}{\partial{z}},
+\frac{\partial{F_x}}{\partial{z}} - \frac{\partial{F_z}}{\partial{x}},
+\frac{\partial{F_y}}{\partial{x}} - \frac{\partial{F_x}}{\partial{y}}
+\rangle.
+$$
+
+The curl measures the circulation in a vector field. In dimension $n=3$ it *points* in the direction of the normal of the plane of maximum circulation with direction given by the right-hand rule.
+
+
+A vector field whose curl is identically of magnitude $0$ is called **irrotational**.
+
+
+The $\nabla$ operator is the *formal* vector
+
+
+$$
+\nabla = \langle
+\frac{\partial}{\partial{x}},
+\frac{\partial}{\partial{y}},
+\frac{\partial}{\partial{z}}
+\rangle.
+$$
+
+The gradient is then scalar "multiplication" on the left: $\nabla{f}$.
+
+
+The divergence is the dot product on the left: $\nabla\cdot{F}$.
+
+
+The curl is the the cross product on the left: $\nabla\times{F}$.
+
+
+These operations satisfy two vanishing properties:
+
+
+  * The curl of a gradient is the zero vector: $\nabla\times\nabla{f}=\vec{0}$
+  * The divergence of a curl is $0$: $\nabla\cdot(\nabla\times F)=0$
+
+
+[Helmholtz]() decomposition theorem says a vector field ($n=3$) which vanishes rapidly enough can be expressed in terms of $F = -\nabla\phi + \nabla\times{A}$. The left term will be irrotational (no curl) and the right term will be incompressible (no divergence).
+
+
+## Integrals
+
+
+The definite integral, $\int_a^b f(x) dx$, for a bounded univariate function is defined in terms Riemann sums, $\lim \sum f(c_i)\Delta{x_i}$ as the maximum *partition* size goes to $0$. Similarly the integral of a bounded scalar function $f:R^n \rightarrow R$ over a box-like region $[a_1,b_1]\times[a_2,b_2]\times\cdots\times[a_n,b_n]$ can be defined in terms of a limit of Riemann sums. A Riemann integrable function is one for which the upper and lower Riemann sums agree in the limit. A characterization of a Riemann integrable function is that the set of discontinuities has measure $0$.
+
+
+If $f$ and the partial functions ($x \rightarrow f(x,y)$ and $y \rightarrow f(x,y)$) are Riemann integrable, then Fubini's theorem allows the definite integral to be performed iteratively:
+
+
+$$
+\iint_{R\times S}fdV = \int_R \left(\int_S f(x,y) dy\right) dx
+= \int_S \left(\int_R f(x,y) dx\right) dy.
+$$
+
+The integral satisfies linearity and monotonicity properties that follow from the definitions:
+
+
+  * For integrable $f$ and $g$ and constants $a$ and $b$:
+
+
+$$
+\iint_R (af(x) + bg(x))dV = a\iint_R f(x)dV + b\iint_R g(x) dV.
+$$
+
+  * If $R$ and $R'$ are *disjoint* rectangular regions (possibly sharing a boundary), then the integral over the union is defined by linearity:
+
+
+$$
+\iint_{R \cup R'} f(x) dV = \iint_R f(x)dV + \iint_{R'} f(x) dV.
+$$
+
+  * As $f$ is bounded, let $m \leq f(x) \leq M$ for all $x$ in $R$. Then
+
+
+$$
+m V(R) \leq \iint_R f(x) dV \leq MV(R).
+$$
+
+  * If $f$ and $g$ are integrable *and* $f(x) \leq g(x)$, then the integrals have the same property, namely $\iint_R f dV \leq \iint_R gdV$.
+  * If $S \subset R$, both closed rectangles, then if $f$ is integrable over $R$ it will be also over $S$ and, when $f\geq 0$, $\iint_S f dV \leq \iint_R fdV$.
+  * If $f$ is bounded and integrable, then $|\iint_R fdV| \leq \iint_R |f| dV$.
+
+
+In two dimensions, we have the following interpretations:
+
+
+$$
+\begin{align}
+\iint_R dA &= \text{area of } R\\
+\iint_R \rho dA &= \text{mass with constant density }\rho\\
+\iint_R \rho(x,y) dA &= \text{mass of region with density }\rho\\
+\frac{1}{\text{area}}\iint_R x \rho(x,y)dA &= \text{centroid of region in } x \text{ direction}\\
+\frac{1}{\text{area}}\iint_R y \rho(x,y)dA &= \text{centroid of region in } y \text{ direction}
+\end{align}
+$$
+
+In three dimensions, we have the following interpretations:
+
+
+$$
+\begin{align}
+\iint_VdV &= \text{volume of } V\\
+\iint_V \rho dV &= \text{mass with constant density }\rho\\
+\iint_V \rho(x,y) dV &= \text{mass of volume with density }\rho\\
+\frac{1}{\text{volume}}\iint_V x \rho(x,y)dV &= \text{centroid of volume in } x \text{ direction}\\
+\frac{1}{\text{volume}}\iint_V y \rho(x,y)dV &= \text{centroid of volume in } y \text{ direction}\\
+\frac{1}{\text{volume}}\iint_V z \rho(x,y)dV &= \text{centroid of volume in } z \text{ direction}
+\end{align}
+$$
+
+To compute integrals over non-box-like regions, Fubini's theorem may be utilized. Alternatively, a **transformation** of variables
+
+
+### Line integrals
+
+
+For a parameterized curve, $\vec{r}(t)$, the **line integral** of a scalar function between $a \leq  t \leq b$ is defined by: $\int_a^b f(\vec{r}(t)) \| \vec{r}'(t)\| dt$. For a path parameterized by arc-length, the integral is expressed by $\int_C f(\vec{r}(s)) ds$ or simply $\int_C f ds$, as the norm is $1$ and $C$ expresses the path.
+
+
+A Jordan curve in two dimensions is a non-intersecting continuous loop in the plane. The Jordan curve theorem states that such a curve divides the plane into a bounded and unbounded region. The curve is *positively* parameterized if the the bounded region is kept on the left. A line integral over a Jordan curve is denoted $\oint_C f ds$.
+
+
+Some interpretations: $\int_a^b \| \vec{r}'(t)\| dt$ computes the *arc-length*. If the path represents a wire with density $\rho(\vec{x})$ then $\int_a^b \rho(\vec{r}(t)) \|\vec{r}'(t)\| dt$ computes the mass of the wire.
+
+
+The line integral is also defined for a vector field $F:R^n \rightarrow R^n$ through $\int_a^b F(\vec{r}(t)) \cdot \vec{r}'(t) dt$. When parameterized by arc length, this becomes $\int_C F(\vec{r}(s)) \cdot \hat{T} ds$ or more simply $\int_C F\cdot\hat{T}ds$. In dimension $n=2$ if $\hat{N}$ is the normal, then this line integral (the flow) is also of interest $\int_a^b F(\vec{r}(t)) \cdot \hat{N} dt$ (this is also expressed by $\int_C F\cdot\hat{N} ds$).
+
+
+When $F$ is a *force field*, then the interpretation of $\int_a^b F(\vec{r}(t)) \cdot \vec{r}'(t) dt$ is the amount of *work* to move an object from $\vec{r}(a)$ to $\vec{r}(b)$. (Work measures force applied times distance moved.)
+
+
+A **conservative force** is a force field within an open region $R$ with the property that the total work done in moving a particle between two points is independent of the path taken. (Similarly, integrals over Jordan curves are zero.)
+
+
+The gradient theorem or **fundamental theorem of line integrals** states if $\phi$ is a scalar function then the vector field $\nabla{\phi}$ (if continuous in $R$) is a conservative field. That is if $q$ and $p$ are points, $C$ any curve in $R$, and $\vec{r}$ a parameterization of $C$ over $[a,b]$ that $\phi(p) - \phi(q) = \int_a^b \nabla{f}(\vec{r}(t)) \cdot \vec{r}'(t) dt$.
+
+
+If $\phi$ is a scalar function producing a field $\nabla{\phi}$ then in dimensions $2$ and $3$ the curl of $\nabla{\phi}$ is zero when the functions involved are continuous. Conversely, if the curl of a force field, $F$, is zero *and* the derivatives are continuous in a *simply connected* domain, then there exists a scalar potential function, $\phi,$ with $F = -\nabla{\phi}$.
+
+
+In dimension $2$, if $F$ describes a flow field, the integral $\int_C F \cdot\hat{N}ds$ is interpreted as the flow across the curve $C$; when $C$ is a closed curve $\oint_C F\cdot\hat{N}ds$ is interpreted as the flow out of the region, when $C$ is positively parameterized.
+
+
+**Green's theorem** states if $C$ is a positively oriented Jordan curve in the plane bounding a region $D$ and $F$ is a vector field $F:R^2 \rightarrow R^2$ then $\oint_C F\cdot\hat{T}ds = \iint_D \text{curl}(F) dA$.
+
+
+Green's theorem can be re-expressed in flow form: $\oint_C F\cdot\hat{N}ds=\iint_D\text{divergence}(F)dA$.
+
+
+For $F=\langle -y,x\rangle$, Green's theorem says the area of $D$ is given by $(1/2)\oint_C F\cdot\vec{r}' dt$. Similarly, if $F=\langle 0,x\rangle$ or $F=\langle -y,0\rangle$ then the area is given by $\oint_C F\cdot\vec{r}'dt$. The above follows as $\text{curl}(F)$ is $2$ or $1$. Similar formulas can be given to compute the centroids, by identifying a vector field with  $\text{curl}(F) = x$ or $y$.
+
+
+### Surface integrals
+
+
+A surface in $3$ dimensions can be described by a scalar function $z=f(x,y)$, a parameterization $F:R^2 \rightarrow R^3$ or as a level curve of a scalar function $f(x,y,z)$. The second case, covers the first through the parameterization $(x,y) \rightarrow (x,y,f(x,y)$. For a parameterization of a surface, $\Phi(u,v) = \langle \Phi_x, \Phi_y, \Phi_z\rangle$, let $\partial{\Phi}/\partial{u}$ be the $3$-d vector $\langle \partial{\Phi_x}/\partial{u}, \partial{\Phi_y}/\partial{u}, \partial{\Phi_z}/\partial{u}\rangle$, similarly define $\partial{\Phi}/\partial{v}$. As vectors, these lie in the tangent plane to the surface and this plane has normal vector $\vec{N}=\partial{\Phi}/\partial{u}\times\partial{\Phi}/\partial{v}$. For a closed surface, the parametrization is positive if $\vec{N}$ is an outward pointing normal. Let the *surface element* be defined by $\|\vec{N}\|$.
+
+
+The surface integral of a scalar function $f:R^3 \rightarrow R$ for a parameterization $\Phi:R \rightarrow S$ is defined by
+
+
+$$
+\iint_R f(\Phi(u,v))
+\|\frac{\partial{\Phi}}{\partial{u}} \times \frac{\partial{\Phi}}{\partial{v}}\|
+du dv
+$$
+
+If $F$ is a vector field, the surface integral may be defined as a flow across the boundary through
+
+
+$$
+\iint_R F(\Phi(u,v)) \cdot \vec{N} du dv =
+\iint_R (F \cdot \hat{N}) \|\frac{\partial{\Phi}}{\partial{u}} \times \frac{\partial{\Phi}}{\partial{v}}\| du dv = \iint_S (F\cdot\hat{N})dS
+$$
+
+### Stokes' theorem, divergence theorem
+
+
+**Stokes' theorem** states that in dimension $3$ if $S$ is a smooth surface with boundary $C$ – *oriented* so the right-hand rule gives the choice of normal for $S$ – and $F$ is a vector field with continuous partial derivatives then:
+
+
+$$
+\iint_S (\nabla\times{F}) \cdot \hat{N} dS = \oint_C F ds.
+$$
+
+Stokes' theorem has the same formulation as Green's theorem in dimension $2$, where the surface integral is just the $2$-dimensional integral.
+
+
+Stokes' theorem is used to show a vector field $F$ with zero curl is conservative if $F$ is continuous in a simply connected region.
+
+
+Stokes' theorem is used in Physics, for example, to relate the differential and integral forms of $2$ of Maxwell's equations.
+
+
+---
+
+
+The **divergence theorem** states if $V$ is a compact volume in $R^3$ with piecewise smooth boundary $S=\partial{V}$ and $F$ is a vector field with continuous partial derivatives then:
+
+
+$$
+\iint_V (\nabla\cdot{F})dV = \oint_S (F\cdot\hat{N})dS.
+$$
+
+The divergence theorem is available for other dimensions. In the $n=2$ case, it is the alternate (flow) form of  Green's theorem.
+
+
+The divergence theorem is used in Physics to express physical laws in either integral or differential form.
+
+

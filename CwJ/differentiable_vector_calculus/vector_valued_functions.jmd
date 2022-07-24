@@ -7,20 +7,26 @@ using CalculusWithJulia
 using Plots
 using SymPy
 using Roots
-using DifferentialEquations
 using LinearAlgebra
 using QuadGK
 ```
 
+and
+
+```julia
+import DifferentialEquations
+import DifferentialEquations: ODEProblem, Tsit5
+```
+
+
 ```julia; echo=false; results="hidden"
 using CalculusWithJulia.WeaveSupport
-const frontmatter = (
-        title = "Vector-valued functions, ``f:R \\rightarrow R^n``",
-        description = "Calculus with Julia: Vector-valued functions, ``f:R \\rightarrow R^n``",
-        tags = ["CalculusWithJulia", "differentiable_vector_calculus", "vector-valued functions, ``f:R \\rightarrow r^n``"],
+frontmatter = (
+    title = "Vector-valued functions, ``f:R \\rightarrow R^n``",
+    description = "Calculus with Julia: Vector-valued functions, ``f:R \\rightarrow R^n``",
+    tags = ["CalculusWithJulia", "differentiable_vector_calculus", "vector-valued functions, ``f:R \\rightarrow r^n``"],
 );
 
-import PlutoUI
 nothing
 ```
 
@@ -150,7 +156,6 @@ ts = range(0, 6pi, length=200)
 plot(unzip(g.(ts))..., camera=(0, 90))
 ```
 
-
 The graph of $h$ shows that this function parameterizes a line in space. The line segment for $-2 \leq t \leq 2$ is shown below:
 
 ```julia; hold=true
@@ -163,18 +168,17 @@ plot(unzip(h.(ts))...)
 While the `unzip` function is easy to understand as a function that reshapes data from one format into one that `plot` can use, it's usage is a bit cumbersome.
 The `CalculusWithJulia` package provides a function `plot_parametric` which hides the use of `unzip` and the splatting within a function definition.
 
-The function borrows a calling style for `Makie`. The interval to plot over is specified first using `a..b` notation (from `IntervalSets`),  then the function is specified. Additional keyword arguments are passed along to `plot`.
+The function borrows a calling style for `Makie`. The interval to plot
+over is specified first using `a..b` notation (which specifies a
+closed interval in the `IntervalSets` package), then the function is
+specified. Additional keyword arguments are passed along to `plot`.
 
 ```julia;
 plot_parametric(-2..2, h)
 ```
 
-
-```julia; echo=false
-note("""
-Defining plotting functions in `Julia` for `Plots` is facilitated by the `RecipesBase` package. There are two common choices: creating a new function for plotting, as is done with `plot_parametric` and `plot_polar`; or creating a new type so that `plot` can dispatch to an appropriate plotting method. The latter would also be a reasonable choice, but wasn't taken here. In any case, each can be avoided by creating the appropriate values for `xs` and `ys` (and possibly `zs`).
-""")
-```
+!!! note
+	Defining plotting functions in `Julia` for `Plots` is facilitated by the `RecipesBase` package. There are two common choices: creating a new function for plotting, as is done with `plot_parametric` and `plot_polar`; or creating a new type so that `plot` can dispatch to an appropriate plotting method. The latter would also be a reasonable choice, but wasn't taken here. In any case, each can be avoided by creating the appropriate values for `xs` and `ys` (and possibly `zs`).
 
 ##### Example
 
@@ -313,76 +317,83 @@ In 1935 [Marcel Duchamp](https://arthur.io/art/marcel-duchamp/rotorelief-no-10-c
 * each nested circle is drawn after its center is rotated by ``\theta`` radian;
 * an animation captures the movement for display.
 
-```julia; hold=true;
+```julia
+let
 # https://exploratorium.tumblr.com/post/33140874462/marcel-duchamp-rotoreliefs-duchamp-recognized
 
 # coordinates and colors selected by gimp from
 # https://arthur.io/art/marcel-duchamp/rotorelief-no-10-cage-modele-depose-verso
-circs = [466 548 513 505 556 554 # x₁,y₁,x₂,y₂,x₂,y₃
-         414 549 511 455 595 549
-         365 545 507 408 635 548
-         319 541 506 361 673 546
-         277 543 509 317 711 546
-         236 539 507 272 747 551
-         201 541 504 230 781 550
-         166 541 503 189 816 544
-         140 542 499 153 848 538
-         116 537 496 119 879 538
-         96 539 501 90 905 534
-         81 530 500 67 930 530
-         72 525 498 51 949 529
-         66 520 500 36 966 527
-         60 515 499 25 982 526
-         35 509 499 11 1004 525 # outer edge, c₀
-]
+    circs = [466 548 513 505 556 554 # x₁,y₁,x₂,y₂,x₂,y₃
+             414 549 511 455 595 549
+             365 545 507 408 635 548
+             319 541 506 361 673 546
+             277 543 509 317 711 546
+             236 539 507 272 747 551
+             201 541 504 230 781 550
+             166 541 503 189 816 544
+             140 542 499 153 848 538
+             116 537 496 119 879 538
+             96 539 501 90 905 534
+             81 530 500 67 930 530
+             72 525 498 51 949 529
+             66 520 500 36 966 527
+             60 515 499 25 982 526
+             35 509 499 11 1004 525 # outer edge, c₀
+             ]
 
-greenblue= RGB(8/100, 58/100, 53/100)
-grey = RGB(76/100, 74/100, 72/100)
-white = RGB(88/100, 85/100, 81/100)
+    greenblue= RGB(8/100, 58/100, 53/100)
+    grey = RGB(76/100, 74/100, 72/100)
+    white = RGB(88/100, 85/100, 81/100)
 
-# solve for center of circle, radius for each
-@syms h::positive k::positive r::positive
-function solve_i(i)
-    eqs = [(p[1] - h)^2 + (p[2]-k)^2 ~ r^2 for
-		p ∈ (circs[i,1:2], circs[i,3:4], circs[i,5:6])]
-    d = solve(eqs)[1]
-    (x=float(d[h]), y=float(d[k]), r=float(d[r]))
-end
-c₀, cs... = solve_i.(16:-1:1) # c₀ is centered
+    # solve for center of circle, radius for each
+    @syms h::positive k::positive r::positive
+    function solve_i(i)
+        eqs = [(p[1] - h)^2 + (p[2]-k)^2 ~ r^2 for
+		       p ∈ (circs[i,1:2], circs[i,3:4], circs[i,5:6])]
+        d = solve(eqs)[1]
+        (x=float(d[h]), y=float(d[k]), r=float(d[r]))
+    end
+    c₀, cs... = solve_i.(16:-1:1) # c₀ is centered
 
-function duchamp_rotorelief_10(θ)
-    p = plot(legend=false,
-		axis=nothing, xaxis=false, yaxis=false,
-		aspect_ratio=:equal)
+    function duchamp_rotorelief_10(θ)
+        p = plot(legend=false,
+		         axis=nothing, xaxis=false, yaxis=false,
+		         aspect_ratio=:equal)
 
-    O = [c₀.x, c₀.y]
-    θ̂ = [cos(θ), sin(θ)]
+        O = [c₀.x, c₀.y]
+        θ̂ = [cos(θ), sin(θ)]
 
-	circle!(O, c₀.r, # outer ring is c₀
-		linewidth=2,
-		color=grey, fill=white,
-		seriestype=:shape)
+	    circle!(O, c₀.r, # outer ring is c₀
+		        linewidth=2,
+		        color=grey, fill=white,
+		        seriestype=:shape)
 
-    for (i,c) ∈ enumerate(cs)   # add nested rings
-	    rᵢ = sqrt((c₀.x - c.x)^2+(c₀.y - c.y)^2)
-		P = O + rᵢ * θ̂  # rotate about origin by θ
-		circle!(P, c.r,
-			linewidth = i == 1 ? 1 : i <= 3 ? 2 : 3,
-			color=greenblue)
+        for (i,c) ∈ enumerate(cs)   # add nested rings
+	        rᵢ = sqrt((c₀.x - c.x)^2+(c₀.y - c.y)^2)
+		    P = O + rᵢ * θ̂  # rotate about origin by θ
+		    circle!(P, c.r,
+			        linewidth = i == 1 ? 1 : i <= 3 ? 2 : 3,
+			        color=greenblue)
+        end
+
+        p
+
     end
 
-    p
+    # animate using Plots.@animate macro
+    anim = @animate for θ ∈ range(0, -2π, length=60)
+	    duchamp_rotorelief_10(θ)
+    end
 
+    fname = tempname() * ".gif"
+    gif(anim, fname, fps = 40)
 end
+```
 
-# animate using Plots.@animate macro
-anim = @animate for θ ∈ range(0, -2π, length=60)
-	duchamp_rotorelief_10(θ)
-end
-
-fname = tempname() * ".gif"
-gif(anim, fname, fps = 40)
-PlutoUI.LocalResource(fname) # to display w/in Pluto
+```julia; echo=false
+#import PlutoUI
+#PlutoUI.LocalResource(fname) # to display w/in Pluto
+nothing
 ```
 
 ##### Example
@@ -1279,6 +1290,7 @@ ts = range(t_span..., length=1001)
 surface(unzip(r_0.(ts, θs'))...)
 ```
 
+
 ## Arc length
 
 In [Arc length](../integrals/arc_length.html) there is a discussion of how to find the arc length of a parameterized curve in ``2`` dimensions. The general case is discussed by [Destafano](https://randomproofs.files.wordpress.com/2010/11/arc_length.pdf) who shows:
@@ -1456,7 +1468,8 @@ Here, when $b$ gets large, the curve looks more and more "straight" and the tors
 
 [Levi and Tabachnikov](https://projecteuclid.org/download/pdf_1/euclid.em/1259158427) consider the trajectories of the front and rear bicycle wheels. Recall the notation previously used: $\vec{F}(t)$ for the front wheel, and $\vec{B}(t)$ for the rear wheel trajectories. Consider now their parameterization by arc length, using $u$ for the arc-length parameter for $\vec{F}$ and $v$ for $\vec{B}$. We define $\alpha(u)$ to be the steering angle of the bicycle. This can be found as the angle between the tangent vector of the path of $\vec{F}$ with the vector $\vec{B} - \vec{F}$. Let $\kappa$ be the curvature of the front wheel and $k$ the curvature of the back wheel.
 
-```julia; hold=true; echo=false
+```julia; echo=false
+let
 a = 1
 F(t) = [cos(pi/2 - t), 2sin(pi/2-t)]
 p = (a, F)
@@ -1486,6 +1499,7 @@ annotate!([(-.5,1.5,L"k"),
 (.85, 1.3, L"\alpha")])
 
 plt
+end
 ```
 
 Levi and Tabachnikov prove in their Proposition 2.4:
@@ -1510,10 +1524,12 @@ when a curve is parameterized by arc length, the curvature is more directly comp
 The tangent vector is of unit length, when parametrized by arc length. This implies its derivative will be orthogonal. If $\vec{r}(t)$ is a parameterization by arc length, then the curvature formula simplifies as:
 
 ```math
-\kappa(s) = \frac{\| \vec{r}'(s) \times \vec{r}''(s) \|}{\|\vec{r}'(s)\|^3} =
-\frac{\| \vec{r}'(s) \times \vec{r}''(s) \|}{1} =
-\| \vec{r}'(s) \| \| \vec{r}''(s) \| \sin(\theta) =
-1 \| \vec{r}''(s) \| 1 = \| \vec{r}''(s) \|.
+\begin{align*}
+\kappa(s) &= \frac{\| \vec{r}'(s) \times \vec{r}''(s) \|}{\|\vec{r}'(s)\|^3} \\
+&= \frac{\| \vec{r}'(s) \times \vec{r}''(s) \|}{1}                           \\
+&= \| \vec{r}'(s) \| \| \vec{r}''(s) \| \sin(\theta)                         \\
+&= 1 \| \vec{r}''(s) \| 1 = \| \vec{r}''(s) \|.
+\end{align*}
 ```
 
 
@@ -1867,24 +1883,27 @@ Let ``r`` be the radius of a circle and for concreteness we position it at ``(-r
 * Between angles ``\pi/2`` and until the horse's ``y`` position is ``0`` when the tether is taut the boundary of what can be eaten is described by the involute.
 * The horse can't eat from withing the circle or radius ``r``.
 
-```julia; hold=true; echo=false
-r,R = 1, 10
-R = max(R, pi*r) # R ≥ 1/2 circumference
+```julia; echo=false
+let
+    r,R = 1, 10
+    R = max(R, pi*r) # R ≥ 1/2 circumference
 
-γ(θ) = -2r*cos(θ) * [cos(θ), sin(θ)] # parameterize the circle of radius r
-involute(t) = γ(t) + γ'(t)/norm(γ'(t))* (R - quadgk(u -> norm(γ'(u)), pi/2, t)[1])
-t₀ = find_zero(t -> round(involute(t)[2], digits=4), (3pi/4, pi))
+    γ(θ) = -2r*cos(θ) * [cos(θ), sin(θ)] # parameterize the circle of radius r
+    involute(t) = γ(t) + γ'(t)/norm(γ'(t))* (R - quadgk(u -> norm(γ'(u)), pi/2, t)[1])
+    t₀ = find_zero(t -> round(involute(t)[2], digits=4), (3pi/4, pi))
 
-p = plot(; legend=false)
-plot_polar!(0..(pi/2), t -> R) # unobstructed -> quarter circle
-plot_parametric!((pi/2)..t₀, involute)
-plot_parametric!((pi/2)..pi, γ)
-plot!([0,R],[0,0])
+    p = plot(; legend=false)
+    plot_polar!(0..(pi/2), t -> R) # unobstructed -> quarter circle
+    plot_parametric!((pi/2)..t₀, involute)
+    plot_parametric!((pi/2)..pi, γ)
+    plot!([0,R],[0,0])
+end
 ```
 
 To solve for the area we parameterize the circle of radius ``r`` between ``\pi/2`` and when the involute would cross the ``x`` axis. We use `find_zero` to identify the value.
 
-```julia; hold=true
+```julia
+let
 r,R = 160/(2π), 160
 R = max(R, pi*r) # R ≥ 1/2 circumference
 γ(θ) = -2r*cos(θ) * [cos(θ), sin(θ)]
@@ -1899,6 +1918,7 @@ x′(t) = (h=1e-4; (involute(t+h)[1]-involute(t-h)[1])/(2h))
 A₂ = quadgk(t -> -y(t)*x′(t), pi/2, t₀)[1]  # A₂ = -∫ y dx, as counterclockwise parameterization
 A₃ = (1/2) * π * r^2
 2 * (A₁ + A₂ - A₃)
+end
 ```
 
 The calculation for ``A_1`` and ``A_3`` are from the familiar formula for the area of a circle. However, ``A_2`` requires the formula for area above the ``x`` axis when the curve is parameterized: ``A = -\int_a^b y(t) x'(t) dt``, given how the curve is parameterized. As written, the automatic derivative of the numeric integral gives an error, so a central-difference approximation is used for ``x'(t)``.
@@ -1920,8 +1940,8 @@ choices = [
 q"[0.0782914, 0.292893 ]",
 q"[0.181172, 0.5]",
 q"[0.570796, 1.0]"]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 And the position at $\pi/2$?
@@ -1932,8 +1952,8 @@ choices = [
 q"[0.0782914, 0.292893 ]",
 q"[0.181172, 0.5]",
 q"[0.570796, 1.0]"]
-ans = 3
-radioq(choices, ans)
+answ = 3
+radioq(choices, answ)
 ```
 
 ###### Question
@@ -1946,8 +1966,8 @@ choices = [
 " ``\\langle Rt - R\\sin(t),~ R - R\\cos(t) \\rangle``",
 " ``\\langle -r\\sin(t),~ -r\\cos(t) \\rangle``"
 ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 ###### Question
@@ -1961,8 +1981,8 @@ choices = [
     " ``1 - \\cos(t)``",
     " ``1 + \\cos(t) + \\cos(2t)``"
 ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 ###### Question
@@ -1995,8 +2015,8 @@ q"[1,1]",
 q"[2,0]",
 q"[0,0]"
 ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 What is the derivative at $t=\pi$?
@@ -2008,8 +2028,8 @@ q"[1,1]",
 q"[2,0]",
 q"[0,0]"
 ]
-ans = 2
-radioq(choices, ans)
+answ = 2
+radioq(choices, answ)
 ```
 
 ###### Question
@@ -2023,8 +2043,8 @@ choices = [
     " ``R``",
     " ``R^2``"
 ]
-ans = 3
-radioq(choices, ans, keep_order=true)
+answ = 3
+radioq(choices, answ, keep_order=true)
 ```
 
 
@@ -2053,8 +2073,8 @@ choices = [
     " ``1``",
     " ``t + t^2``"
 ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 Numerically find the arc length.
@@ -2089,8 +2109,8 @@ choices = [
 "greater than the curvature at ``t=0``",
 "less than the curvature at ``t=0``",
 "the same as the curvature at ``t=0``"]
-ans = 2
-radioq(choices, ans)
+answ = 2
+radioq(choices, answ)
 ```
 
 The curvature as $t\rightarrow \infty$ will be
@@ -2101,8 +2121,8 @@ choices = [
     " ``\\infty``",
     " ``1``"
 ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 ----
@@ -2116,8 +2136,8 @@ choices = [
     " ``2``",
     " ``1``"
 ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 ###### Question
@@ -2132,8 +2152,8 @@ x0 = [0,0,5]
 v0 = [120, -2, 2]
 a = [0, 16, -32]
 r(t) = x0 + v0*t + 1/2*a*t^2
-ans = 60/v0[1]
-numericq(ans)
+answ = 60/v0[1]
+numericq(answ)
 ```
 
 At $t=1/4$ the ball is half-way to home. If the batter reads the ball at this point, where in the $y$ direction is the ball?
@@ -2144,8 +2164,8 @@ v0 = [120, -2, 2]
 a = [0, 16, -32]
 r(t) = x0 + v0*t + 1/2*a*t^2
 t = 1/4
-ans = r(t)[2]
-numericq(ans)
+answ = r(t)[2]
+numericq(answ)
 ```
 
 At $t=1/2$ has the ball moved more than ``1/2`` foot in the $y$ direction?
@@ -2156,8 +2176,8 @@ v0 = [120, -2, 2]
 a = [0, 16, -32]
 r(t) = x0 + v0*t + 1/2*a*t^2
 t = 1/2
-ans = abs(r(t)[2]) > 1/2
-yesnoq(ans)
+answ = abs(r(t)[2]) > 1/2
+yesnoq(answ)
 ```
 
 
@@ -2201,8 +2221,8 @@ choices = [
            " ``2\\tan(\\theta)``",
            " ``\\tan(\\theta)``"
        ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 Using the polar form of a circle, the length between the origin and $B$ is given by $2\cos(\theta-\pi/2) = 2\sin(\theta)$. Using this, what is the $y$ coordinate of $B$?
@@ -2214,8 +2234,8 @@ choices = [
     " ``2``",
     " ``\\sin(\\theta)``"
 ]
-ans=1
-radioq(choices, ans)
+answ=1
+radioq(choices, answ)
 ```
 
 
@@ -2229,8 +2249,8 @@ choices = [
     " ``t^n + t^{n+1}``",
     " ``\\sqrt{n^2 + t^2}``"
 ]
-ans=1
-radioq(choices, ans)
+answ=1
+radioq(choices, answ)
 ```
 
 For $n=2$, the arc length of $\vec{r}$ can be found exactly. What is the arc-length between $0 \leq t \leq a$?
@@ -2241,8 +2261,8 @@ choices = [
     " ``\\frac{2 a^{\\frac{5}{2}}}{5}``",
     " ``\\sqrt{a^2 + 4}``"
 ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 
@@ -2257,30 +2277,32 @@ choices = [
     " ``\\pi/2``",
     " ``2``"
 ]
-ans = 2
-radioq(choices, ans, keep_order=true)
+answ = 2
+radioq(choices, answ, keep_order=true)
 ```
 
 
 ###### Question
 
 
-```julia; hold=true; echo=false
-t0, t1 = pi/12, pi/3
-tspan = (t0, t1)  # time span to consider
+```julia; echo=false
+let
+    t0, t1 = pi/12, pi/3
+    tspan = (t0, t1)  # time span to consider
 
-a = 1
-r(theta) = -cos(theta) + 4*2cos(theta)*sin(theta)^2
-F(t) = r(t) * [cos(t), sin(t)]
-p = (a, F)      # combine parameters
+    a = 1
+    r(theta) = -cos(theta) + 4*2cos(theta)*sin(theta)^2
+    F(t) = r(t) * [cos(t), sin(t)]
+    p = (a, F)      # combine parameters
 
-B0 = F(0) - [0, a]  # some initial position for the back
-prob = ODEProblem(bicycle, B0, tspan, p)
+    B0 = F(0) - [0, a]  # some initial position for the back
+    prob = ODEProblem(bicycle, B0, tspan, p)
 
-out = solve(prob, reltol=1e-6, Tsit5())
+    out = solve(prob, reltol=1e-6, Tsit5())
 
-plt = plot(unzip(F, t0, t1)..., legend=false, color=:red)
-plot!(plt, unzip(t->out(t),  t0, t1)..., color=:blue)
+    plt = plot(unzip(F, t0, t1)..., legend=false, color=:red)
+    plot!(plt, unzip(t->out(t),  t0, t1)..., color=:blue)
+end
 ```
 
 
@@ -2291,8 +2313,8 @@ choices = [
 "The front wheel",
 "The back wheel"
 ]
-ans=1
-radioq(choices, ans)
+answ=1
+radioq(choices, answ)
 ```
 
 
@@ -2300,22 +2322,24 @@ radioq(choices, ans)
 ###### Question
 
 
-```julia; hold=true; echo=false
-t0, t1 = 0.0, pi/3
-tspan = (t0, t1)  # time span to consider
+```julia; echo=false
+let
+    t0, t1 = 0.0, pi/3
+    tspan = (t0, t1)  # time span to consider
 
-a = 1
-r(t) = 3a * cos(2t)cos(t)
-F(t) = r(t) * [cos(t), sin(t)]
-p = (a, F)      # combine parameters
+    a = 1
+    r(t) = 3a * cos(2t)cos(t)
+    F(t) = r(t) * [cos(t), sin(t)]
+    p = (a, F)      # combine parameters
 
-B0 = F(0) - [0, a]  # some initial position for the back
-prob = ODEProblem(bicycle, B0, tspan, p)
+    B0 = F(0) - [0, a]  # some initial position for the back
+    prob = ODEProblem(bicycle, B0, tspan, p)
 
-out = solve(prob, reltol=1e-6, Tsit5())
+    out = solve(prob, reltol=1e-6, Tsit5())
 
-plt = plot(unzip(F, t0, t1)..., legend=false, color=:blue)
-plot!(plt, unzip(t->out(t),  t0, t1)..., color=:red)
+    plt = plot(unzip(F, t0, t1)..., legend=false, color=:blue)
+    plot!(plt, unzip(t->out(t),  t0, t1)..., color=:red)
+end
 ```
 
 
@@ -2326,8 +2350,8 @@ choices = [
 "The front wheel",
 "The back wheel"
 ]
-ans=2
-radioq(choices, ans)
+answ=2
+radioq(choices, answ)
 ```
 
 
@@ -2357,8 +2381,8 @@ If a car is on a straight road, then $\kappa=0$. Is the acceleration along the $
 choices = [
     "The ``\\hat{T}`` direction",
     "The ``\\hat{N}`` direction"]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 Suppose no gas or brake is applied for a duration of time. The tangential acceleration will be $0$. During this time, which of these must  be $0$?
@@ -2369,8 +2393,8 @@ choices = [
     " ``ds/dt``",
     " ``d^2s/dt^2``"
 ]
-ans = 3
-radioq(choices, ans, keep_order=true)
+answ = 3
+radioq(choices, answ, keep_order=true)
 ```
 
 In going around a corner (with non-zero curvature), which is true?
@@ -2381,8 +2405,8 @@ choices = [
 "The acceleration in the normal direction depends only on the curvature and not the speed (``ds/dt``)",
 "The acceleration in the normal direction depends only on the speed (``ds/dt``) and not the curvature"
 ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 ###### Question
@@ -2409,8 +2433,8 @@ choices = [
     " ``1 + 2t``",
     " ``1 - 2t``"
 ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 * Compute $k(t)$
@@ -2422,8 +2446,8 @@ choices = [
     " ``8t``",
     " ``-8t``"
 ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 * Compute $X(t)$
@@ -2435,8 +2459,8 @@ choices = [
     " ``t - 2(8t)/(1-2t)``",
     " ``t - 1(1+4t^2)/2``"
 ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 * Compute $Y(t)$
@@ -2448,8 +2472,8 @@ choices = [
     " ``t^2 - 1(1+4t^2)/2``",
     " ``t^2 - 2t(1+4t^2)/2``"
 ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 ###### Question
@@ -2477,6 +2501,6 @@ choices = [
 "An ellipse of the form ``\\langle a\\cos(t), b\\sin(t)``",
 "A cyloid of the form ``c\\langle t + \\sin(t), 1 - \\cos(t)\\rangle``"
 ]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```

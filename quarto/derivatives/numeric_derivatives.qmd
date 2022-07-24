@@ -1,0 +1,412 @@
+# Numeric derivatives
+
+
+```{julia}
+#| echo: false
+
+import Logging
+Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
+Logging.disable_logging(Logging.Warn)
+
+import SymPy
+function Base.show(io::IO, ::MIME"text/html", x::T) where {T <: SymPy.SymbolicObject}
+    println(io, "<span class=\"math-left-align\" style=\"padding-left: 4px; width:0; float:left;\"> ")
+    println(io, "\\[")
+    println(io, sympy.latex(x))
+    println(io, "\\]")
+    println(io, "</span>")
+end
+
+# hack to work around issue
+import Markdown
+import CalculusWithJulia
+function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
+    nm = joinpath("..", string(d), f)
+    u = "![$caption]($nm)"
+    Markdown.parse(u)
+end
+
+nothing
+```
+
+This section uses these add-on packages:
+
+
+```{julia}
+using CalculusWithJulia
+using Plots
+using ForwardDiff
+using SymPy
+using Roots
+```
+
+```{julia}
+#| echo: false
+#| results: "hidden"
+using CalculusWithJulia.WeaveSupport
+
+const frontmatter = (
+        title = "Numeric derivatives",
+        description = "Calculus with Julia: Numeric derivatives",
+        tags = ["CalculusWithJulia", "derivatives", "numeric derivatives"],
+);
+nothing
+```
+
+---
+
+
+`SymPy` returns symbolic derivatives. Up to choices of simplification, these answers match those that would be derived by hand. This is useful when comparing with known answers and for seeing the structure of the answer. However, there are times we just want to work with the answer numerically. For that we have other options within `Julia`. We discuss approximate derivatives and automatic derivatives. The latter will find wide usage in these notes.
+
+
+### Approximate derivatives
+
+
+By approximating the limit of the secant line with a value for a small, but positive, $h$, we get an approximation to the derivative. That is
+
+
+$$
+f'(x) \approx \frac{f(x+h) - f(x)}{h}.
+$$
+
+This is the forward-difference approximation. The central difference approximation looks both ways:
+
+
+$$
+f'(x) \approx \frac{f(x+h) - f(x-h)}{2h}.
+$$
+
+Though in general they are different, they are both approximations. The central difference is usually more accurate for the same size $h$. However, both are susceptible to round-off errors. The numerator is a subtraction of like-size numbers - a perfect opportunity to lose precision.
+
+
+As such there is a balancing act:
+
+
+  * if $h$ is too small the round-off errors are problematic,
+  * if $h$ is too big, the approximation to the limit is not good.
+
+
+For the forward difference $h$ values around $10^{-8}$ are typically good, for the central difference, values around $10^{-6}$ are typically good.
+
+
+##### Example
+
+
+Let's verify that the forward difference isn't too far off.
+
+
+```{julia}
+f(x) = exp(-x^2/2)
+c = 1
+h = 1e-8
+fapprox = (f(c+h) - f(c)) / h
+```
+
+We can compare to the actual with:
+
+
+```{julia}
+@syms x
+df = diff(f(x), x)
+factual = N(df(c))
+abs(factual - fapprox)
+```
+
+The error is about $1$ part in $100$ million.
+
+
+The central difference is better here:
+
+
+```{julia}
+#| hold: true
+h = 1e-6
+cdapprox = (f(c+h) - f(c-h)) / (2h)
+abs(factual - cdapprox)
+```
+
+---
+
+
+The [FiniteDifferences](https://github.com/JuliaDiff/FiniteDifferences.jl) and [FiniteDiff](https://github.com/JuliaDiff/FiniteDiff.jl) packages provide performant interfaces for differentiation based on finite differences.
+
+
+### Automatic derivatives
+
+
+There are some other ways to compute derivatives numerically that give much more accuracy at the expense of slightly increased computing time. Automatic differentiation is the general name for a few different approaches. These approaches promise less complexity - in some cases - than symbolic derivatives and more accuracy than approximate derivatives; the accuracy is on the order of machine precision.
+
+
+The `ForwardDiff` package provides one of [several](https://juliadiff.org/) ways for `Julia` to compute automatic derivatives. `ForwardDiff` is well suited for functions encountered in these notes, which depend on at most a few variables and output no more than a few values at once.
+
+
+The `ForwardDiff` package was loaded in this section; in general its features are available when the `CalculusWithJulia` package is loaded, as that package provides a more convenient interface. The `derivative` function is not exported  by `FiniteDiff`, so its usage requires qualification. To illustrate, to find the derivative of $f(x)$ at a *point* we have this syntax:
+
+
+```{julia}
+ForwardDiff.derivative(f, c)   # derivative is qualified by a module name
+```
+
+The `CalculusWithJulia` package defines an operator `D` which goes from finding a derivative at a point with `ForwardDiff.derivative` to defining a function which evaluates the derivative at each point. It is defined along the lines of `D(f) = x -> ForwardDiff.derivative(f,x)` in parallel to how the derivative operation for a function is defined mathematically from the definition for its value at a point.
+
+
+Here we see the error in estimating $f'(1)$:
+
+
+```{julia}
+fauto = D(f)(c)         # D(f) is a function, D(f)(c) is the function called on c
+abs(factual - fauto)
+```
+
+In this case, it is exact.
+
+
+The `D` operator is  defined for most all functions in `Julia`, though, like the `diff` operator in `SymPy` there are some for which it won't work.
+
+
+##### Example
+
+
+For $f(x) = \sqrt{1 + \sin(\cos(x))}$ compare the difference between the forward derivative with $h=1e-8$ and that computed by `D` at $x=\pi/4$.
+
+
+The forward derivative is found with:
+
+
+```{julia}
+𝒇(x) = sqrt(1 + sin(cos(x)))
+𝒄, 𝒉 = pi/4, 1e-8
+fwd = (𝒇(𝒄+𝒉) - 𝒇(𝒄))/𝒉
+```
+
+That given by `D` is:
+
+
+```{julia}
+ds_value = D(𝒇)(𝒄)
+ds_value, fwd, ds_value - fwd
+```
+
+Finally, `SymPy` gives an exact value we use to compare:
+
+
+```{julia}
+𝒇𝒑 = diff(𝒇(x), x)
+```
+
+```{julia}
+actual = N(𝒇𝒑(PI/4))
+actual - ds_value, actual - fwd
+```
+
+#### Convenient notation
+
+
+`Julia` allows the possibility of extending functions to different types. Out of the box, the `'` notation is not employed for functions, but is used for matrices. It is used in postfix position, as with `A'`. We can define it to do the same thing as `D` for functions and then, we can evaluate derivatives with the familiar `f'(x)`. This is done in `CalculusWithJulia` along the lines of `Base.adjoint(f::Function) = D(f)`.
+
+
+Then, we have, for example:
+
+
+```{julia}
+#| hold: true
+f(x) = sin(x)
+f'(pi), f''(pi)
+```
+
+##### Example
+
+
+Suppose our task is to find a zero of the second derivative of $k(x) = e^{-x^2/2}$ in $[0, 10]$, a known bracket. The `D` function takes a second argument to indicate the order of the derivative (e.g., `D(f,2)`), but we use the more familiar notation:
+
+
+```{julia}
+#| hold: true
+k(x) = exp(-x^2/2)
+find_zero(k'', 0..10)
+```
+
+We pass in the function object, `k''`, and not the evaluated function.
+
+
+## Recap on derivatives in Julia
+
+
+A quick summary for finding derivatives in `Julia`, as there are $3$ different manners:
+
+
+  * Symbolic derivatives are found using `diff` from `SymPy`
+  * Automatic derivatives are found using the notation `f'` using `ForwardDiff.derivative`
+  * approximate derivatives at a point, `c`, for a given `h` are found with `(f(c+h)-f(c))/h`.
+
+
+For example, here all three are computed and compared:
+
+
+```{julia}
+#| hold: true
+f(x) = exp(-x)*sin(x)
+
+c = pi
+h = 1e-8
+
+fp = diff(f(x),x)
+
+fp, fp(c), f'(c), (f(c+h) - f(c))/h
+```
+
+:::{.callout-note}
+## Note
+The use of `'` to find derivatives provided by `CalculusWithJulia` is convenient, and used extensively in these notes, but it needs to be noted that it does **not conform** with the generic meaning of `'` within `Julia`'s wider package ecosystem and may cause issue with linear algebra operations; the symbol is meant for the adjoint of a matrix.
+
+:::
+
+## Questions
+
+
+##### Question
+
+
+Find the derivative using a forward difference approximation of $f(x) = x^x$ at the point $x=2$ using `h=0.1`:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = x^x
+c, h = 2, 0.1
+val = (f(c+h) - f(c))/h
+numericq(val)
+```
+
+Using `D` or `f'` find the value using automatic differentiation
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = x^x
+c = 2
+val = f'(c)
+numericq(val)
+```
+
+##### Question
+
+
+Mathematically, as the value of `h` in the forward difference gets smaller the forward difference approximation gets better. On the computer, this is thwarted by floating point representation issues (in particular the error in subtracting two like-sized numbers in forming $f(x+h)-f(x)$.)
+
+
+For `1e-16` what is the error (in absolute value) in finding the forward difference approximation for the derivative of $\sin(x)$ at $x=0$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = sin(x)
+h = 1e-16
+c = 0
+approx = (f(c+h)-f(c))/h
+val = abs(cos(0)  - approx)
+numericq(val)
+```
+
+Repeat for $x=\pi/4$:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = sin(x)
+h = 1e-16
+c = pi/4
+approx = (f(c+h)-f(c))/h
+val = abs(cos(0)  - approx)
+numericq(val)
+```
+
+###### Question
+
+
+Let $f(x) = x^x$. Using `D`, find $f'(3)$.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = x^x
+val = D(f)(3)
+numericq(val)
+```
+
+###### Question
+
+
+Let $f(x) = \lvert 1 - \sqrt{1 + x}\rvert$. Using `D`, find $f'(3)$.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = abs(1 - sqrt(1 + x))
+val = D(f)(3)
+numericq(val)
+```
+
+###### Question
+
+
+Let $f(x) = e^{\sin(x)}$. Using `D`, find $f'(3)$.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = exp(sin(x))
+val = D(f)(3)
+numericq(val)
+```
+
+###### Question
+
+
+For `Julia`'s `airyai` function find a numeric derivative using the forward difference. For $c=3$ and $h=10^{-8}$ find the forward difference approximation to $f'(3)$ for the `airyai` function.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+h = 1e-8
+c = 3
+val = (airyai(c+h) - airyai(c))/h
+numericq(val)
+```
+
+###### Question
+
+
+Find the rate of change with respect to time of the function $f(t)= 64 - 16t^2$ at $t=1$.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+fp_(t) = -16*2*t
+c = 1
+numericq(fp_(c))
+```
+
+###### Question
+
+
+Find the rate of change with respect to height, $h$, of $f(h) = 32h^3 - 62 h + 12$ at $h=2$.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+fp_(h) = 3*32h^2 - 62
+c = 2
+numericq(fp_(2))
+```
+

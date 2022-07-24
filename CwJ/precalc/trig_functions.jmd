@@ -1,5 +1,6 @@
 # Trigonometric functions
 
+
 This section uses the following add-on packages:
 
 ```julia
@@ -10,6 +11,8 @@ using SymPy
 
 ```julia; echo=false; results="hidden"
 using CalculusWithJulia.WeaveSupport
+
+fig_size = (800, 600)
 
 const frontmatter = (
         title = "Trigonometric functions",
@@ -66,9 +69,8 @@ trigonometric functions are
 \end{align*}
 ```
 
-```julia; echo=false
-note("""Many students remember these through [SOH-CAH-TOA](http://mathworld.wolfram.com/SOHCAHTOA.html).""")
-```
+!!! note
+	Many students remember these through [SOH-CAH-TOA](http://mathworld.wolfram.com/SOHCAHTOA.html).
 
 Some algebra shows that $\tan(\theta) = \sin(\theta)/\cos(\theta)$. There are also ``3`` reciprocal functions, the cosecant, secant and cotangent.
 
@@ -78,7 +80,6 @@ These definitions in terms of sides only apply for $0 \leq \theta \leq \pi/2$. M
 ```julia; hold=true; echo=false; cache=true
 ## {{{radian_to_trig}}}
 
-fig_size = (400, 300)
 
 function plot_angle(m)
     r = m*pi
@@ -181,15 +182,10 @@ sincos(pi/3)
 ```
 
 
-```julia; echo=false
-note(L"""
+!!! note
+	For really large values, round off error can play a big role. For example, the *exact* value of $\sin(1000000 \pi)$ is $0$, but the returned value is not quite $0$ `sin(1_000_000 * pi) = -2.231912181360871e-10`. For exact multiples of $\pi$ with large multiples the `sinpi` and  `cospi` functions are useful.
 
-For really large values, round off error can play a big role. For example, the *exact* value of $\sin(1000000 \pi)$ is $0$, but the returned value is not quite $0$ `sin(1_000_000 * pi) = -2.231912181360871e-10`. For exact multiples of $\pi$ with large multiples the `sinpi` and  `cospi` functions are useful.
-
-(Both functions are computed by first employing periodicity to reduce the problem to a smaller angle. However, for large multiples the floating-point roundoff becomes a problem with the usual functions.)
-
-""")
-```
+	(Both functions are computed by first employing periodicity to reduce the problem to a smaller angle. However, for large multiples the floating-point roundoff becomes a problem with the usual functions.)
 
 ##### Example
 
@@ -356,7 +352,6 @@ end
 # create animoation
 b₁=1/3; n₁=3; b₂=1/4; n₂=4
 
-fig_size = (400, 300)
 anim = @animate for t ∈ range(0, 2.5, length=50)
     makegraph(t, b₁, n₁, b₂, n₂)
 end
@@ -618,45 +613,47 @@ the unit *hyperbola* ($x^2 - y^2 = 1$). We define the hyperbolic
 sine ($\sinh$) and hyperbolic cosine ($\cosh$) through $(\cosh(\theta),
 \sinh(\theta)) = (x,y)$.
 
-```julia; hold=true; echo=false
-## inspired by https://en.wikipedia.org/wiki/Hyperbolic_function
-# y^2 = x^2 - 1
-top(x) = sqrt(x^2 - 1)
+```julia;  echo=false
+let
+    ## inspired by https://en.wikipedia.org/wiki/Hyperbolic_function
+    # y^2 = x^2 - 1
+    top(x) = sqrt(x^2 - 1)
 
-p = plot(; legend=false, aspect_ratio=:equal)
+    p = plot(; legend=false, aspect_ratio=:equal)
 
-x₀ = 2
-xs = range(1, x₀, length=100)
-ys = top.(xs)
-plot!(p, xs,  ys, color=:red)
-plot!(p, xs, -ys, color=:red)
+    x₀ = 2
+    xs = range(1, x₀, length=100)
+    ys = top.(xs)
+    plot!(p, xs,  ys, color=:red)
+    plot!(p, xs, -ys, color=:red)
 
-xs = -reverse(xs)
-ys = top.(xs)
-plot!(p, xs,  ys, color=:red)
-plot!(p, xs, -ys, color=:red)
+    xs = -reverse(xs)
+    ys = top.(xs)
+    plot!(p, xs,  ys, color=:red)
+    plot!(p, xs, -ys, color=:red)
 
-xs = range(-x₀, x₀, length=3)
-plot!(p, xs, xs, linestyle=:dash, color=:blue)
-plot!(p, xs, -xs, linestyle=:dash, color=:blue)
+    xs = range(-x₀, x₀, length=3)
+    plot!(p, xs, xs, linestyle=:dash, color=:blue)
+    plot!(p, xs, -xs, linestyle=:dash, color=:blue)
 
-a = 1.2
-plot!(p, [0,cosh(a)], [sinh(a), sinh(a)])
-annotate!(p, sinh(a)/2, sinh(a)+0.25,"cosh(a)")
-plot!(p, [cosh(a),cosh(a)], [sinh(a), 0])
-annotate!(p, sinh(a) + 1, cosh(a)/2,"sinh(a)")
-scatter!(p, [cosh(a)], [sinh(a)], markersize=5)
+    a = 1.2
+    plot!(p, [0,cosh(a)], [sinh(a), sinh(a)])
+    annotate!(p, [(sinh(a)/2, sinh(a)+0.25,"cosh(a)")])
+    plot!(p, [cosh(a),cosh(a)], [sinh(a), 0])
+    annotate!(p, [(sinh(a) + 1, cosh(a)/2,"sinh(a)")])
+    scatter!(p, [cosh(a)], [sinh(a)], markersize=5)
 
 
-ts = range(0, a, length=100)
-xs′ = cosh.(ts)
-ys′ = sinh.(ts)
+    ts = range(0, a, length=100)
+    xs′ = cosh.(ts)
+    ys′ = sinh.(ts)
 
-xs = [0, 1, xs′..., 0]
-ys = [0, 0, ys′..., 0]
-plot!(p, xs, ys, fillcolor=:red, fill=true, alpha=.3)
+    xs = [0, 1, xs′..., 0]
+    ys = [0, 0, ys′..., 0]
+    plot!(p, xs, ys, fillcolor=:red, fill=true, alpha=.3)
 
-p
+    p
+end
 ```
 
 These values are more commonly expressed using the exponential function as:
@@ -682,8 +679,8 @@ What is bigger $\sin(1.23456)$ or $\cos(6.54321)$?
 ```julia; hold=true; echo=false
 a = sin(1.23456) > cos(6.54321)
 choices = [raw"``\sin(1.23456)``", raw"``\cos(6.54321)``"]
-ans = a ? 1 : 2
-radioq(choices, ans, keep_order=true)
+answ = a ? 1 : 2
+radioq(choices, answ, keep_order=true)
 ```
 
 ###### Question
@@ -694,8 +691,8 @@ Let $x=\pi/4$. What is bigger $\cos(x)$ or $x$?
 x = pi/4
 a = cos(x) > x
 choices = [raw"``\cos(x)``", "``x``"]
-ans = a ? 1 : 2
-radioq(choices, ans, keep_order=true)
+answ = a ? 1 : 2
+radioq(choices, answ, keep_order=true)
 ```
 
 ###### Question
@@ -707,8 +704,8 @@ choices = [
 raw"``\cos(x) = \sin(x - \pi/2)``",
 raw"``\cos(x) = \sin(x + \pi/2)``",
 raw"``\cos(x) = \pi/2 \cdot \sin(x)``"]
-ans = 2
-radioq(choices, ans)
+answ = 2
+radioq(choices, answ)
 ```
 
 ###### Question
@@ -720,8 +717,8 @@ choices = [
 L"The values $k\pi$ for $k$ in $\dots, -2, -1, 0, 1, 2, \dots$",
 L"The values $\pi/2 + k\pi$ for $k$ in $\dots, -2, -1, 0, 1, 2, \dots$",
 L"The values $2k\pi$ for $k$ in $\dots, -2, -1, 0, 1, 2, \dots$"]
-ans = 2
-radioq(choices, ans, keep_order=true)
+answ = 2
+radioq(choices, answ, keep_order=true)
 ```
 
 ###### Question
@@ -768,24 +765,24 @@ The sine function is an *odd* function.
 
 ```julia; hold=true; echo=false
 choices = ["odd", "even", "neither"]
-ans = 1
-radioq(choices, ans, keep_order=true)
+answ = 1
+radioq(choices, answ, keep_order=true)
 ```
 
 * The hyperbolic cosine is:
 
 ```julia; hold=true; echo=false
 choices = ["odd", "even", "neither"]
-ans = 2
-radioq(choices, ans, keep_order=true)
+answ = 2
+radioq(choices, answ, keep_order=true)
 ```
 
 * The hyperbolic tangent is:
 
 ```julia; hold=true; echo=false
 choices = ["odd", "even", "neither"]
-ans = 1
-radioq(choices, ans, keep_order=true)
+answ = 1
+radioq(choices, answ, keep_order=true)
 ```
 
 ###### Question

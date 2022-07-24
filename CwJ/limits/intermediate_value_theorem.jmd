@@ -7,8 +7,6 @@ using CalculusWithJulia
 using Plots
 using Roots
 using SymPy
-import IntervalArithmetic
-import IntervalRootFinding
 ```
 
 ```julia; echo=false; results="hidden"
@@ -20,7 +18,7 @@ const frontmatter = (
         tags = ["CalculusWithJulia", "limits", "implications of continuity"],
 );
 
-const fig_size=(400, 400)
+fig_size=(800, 600)
 nothing
 ```
 
@@ -237,20 +235,16 @@ sin(c)
 ### The `find_zero` function.
 
 The `Roots` package has a function `find_zero` that implements the
-bisection method when called as `find_zero(f, a..b)` where $[a,b]$
+bisection method when called as `find_zero(f, (a,b))` where $[a,b]$
 is a bracket. Its use is similar to `simple_bisection` above. This package is loaded when `CalculusWithJulia` is. We illlustrate the usage of `find_zero`
 in the following:
 
 ```julia;
-xstar = find_zero(sin, 3..4)
+xstar = find_zero(sin, (3, 4))
 ```
 
-```julia; echo=false
-alert("""
-Notice, the call `find_zero(sin, 3..4)` again fits the template `action(function, args...)` that we see repeatedly. The `find_zero` function can also be called through `fzero`. The use of `3..4` to specify the interval is not necessary. For example `(3,4)` or `[3,4]` would work equally as well. The `..` is an idiom in `Julia` for intervals, so used here, but is not part of the base language. It is imported from `EllipsisNotation` by the `CalculusWithJulia` package.
- """)
-```
-
+!!! warning
+	Notice, the call `find_zero(sin, (3, 4))` again fits the template `action(function, args...)` that we see repeatedly. The `find_zero` function can also be called through `fzero`. The use of `(3, 4)` to specify the interval is not necessary. For example  `[3,4]` would work equally as well. (Anything where `extrema` is defined works.)
 
 This function utilizes some facts about floating point values to
 guarantee that the answer will be an *exact* zero or a value where there is a sign change between the next bigger floating point or the next smaller, which means the sign at the next and previous floating point values is different:
@@ -265,7 +259,7 @@ The polynomial $p(x) = x^5 - x + 1$ has a zero between $-2$ and $-1$. Find it.
 
 ```julia;
 p(x) = x^5 - x + 1
-c₀ = find_zero(p, -2 .. -1)  # avoiding ..-1 which errors
+c₀ = find_zero(p, (-2, -1))
 (c₀, p(c₀))
 ```
 
@@ -289,7 +283,7 @@ plot(q, 5, 10)
 Find the zero numerically. The plot shows $q(5) < 0 < q(10)$, so $[5,10]$ is a bracket. We thus have:
 
 ```julia;
-find_zero(q, 5..10)
+find_zero(q, (5, 10))
 ```
 
 
@@ -310,7 +304,7 @@ plot(x^3 - x + 1, -3, 3)
 It appears (and a plot over $[0,1]$ verifies) that there is one zero between $-2$ and $-1$. It is found with:
 
 ```julia;
-find_zero(x^3 - x + 1, -2 .. -1)
+find_zero(x^3 - x + 1, (-2,  -1))
 ```
 
 
@@ -333,7 +327,7 @@ We see from the graph that it is clearly between $0$ and $2$, so all we need is 
 
 ```julia;
 𝒉(x) = 𝒇(x) - 𝒈(x)
-find_zero(𝒉, 0..2)
+find_zero(𝒉, (0, 2))
 ```
 
 #### Using parameterized functions (`f(x,p)`) with `find_zero`
@@ -342,7 +336,7 @@ Geometry will tell us that ``\cos(x) = x/p`` for *one* ``x`` in ``[0, \pi/2]`` w
 
 ```julia; hold=true;
 f(x, p=1) = cos(x) - x/p
-I = 0..pi/2
+I = (0, pi/2)
 find_zero(f, I), find_zero(f, I, p=2)
 ```
 
@@ -385,7 +379,7 @@ cheaper.
 Let's get a numeric value, using a simple bracket and an anonymous function:
 
 ```julia;
-find_zero(x -> plan1(x) - plan2(x), 10..20)
+find_zero(x -> plan1(x) - plan2(x), (10, 20))
 ```
 
 ##### Example, the flight of an arrow
@@ -480,7 +474,7 @@ d(b)
 From the graph,  we can see the zero is around `b`. As `y(b)` is `-Inf` we can use the bracket `(b/2,b)`
 
 ```julia;
-x1 = find_zero(d, (b/2)..b)
+x1 = find_zero(d, (b/2, b))
 ```
 
 The answer is approximately $140.7$
@@ -527,7 +521,7 @@ does the algorithm yield:
 
 ```julia;
 fᵢ(x) = 1/x
-x0 = find_zero(fᵢ, -1..1)
+x0 = find_zero(fᵢ, (-1, 1))
 ```
 
 
@@ -559,30 +553,24 @@ interval.
 
 Still, with some engineering, this can be a useful approach, save the
 caveats. This idea is implemented in the `find_zeros` function of the `Roots` package. The function is
-called via `find_zeros(f, a..b)` but here the interval
+called via `find_zeros(f, (a, b))` but here the interval
 $[a,b]$ is not necessarily a bracketing interval.
 
 To see, we have:
 
 ```julia; hold=true;
 f(x) = cos(10*pi*x)
-find_zeros(f, 0..1)
+find_zeros(f, (0, 1))
 ```
 
 Or for a polynomial:
 
 ```julia; hold=true;
 f(x) = x^5 - x^4 + x^3 - x^2 + 1
-find_zeros(f, -10..10)
+find_zeros(f, (-10, 10))
 ```
 
 (Here $-10$ and $10$ were arbitrarily chosen. Cauchy's method could be used to be more systematic.)
-
-```julia; echo=false
-note("""
-At the end of this section are details on how to use the `IntervalRootFinding` package to identify all zeros in a specified interval. This package offers a more robust algorithm for this task.
-""")
-```
 
 ##### Example: Solving f(x) = g(x)
 
@@ -593,7 +581,7 @@ The zeros are then found with:
 
 ```julia;
 f₁(x) = exp(x) - x^5
-zs = find_zeros(f₁, -20..20)
+zs = find_zeros(f₁, (-20,20))
 ```
 
 
@@ -760,7 +748,7 @@ $f(x) = e^x - x^4$. Find its value numerically:
 
 ```julia; hold=true;  echo=false
 f(x) = exp(x) - x^4
-val = find_zero(f, -10..0);
+val = find_zero(f, (-10, 0));
 numericq(val, 1e-3)
 ```
 
@@ -772,7 +760,7 @@ $f(x) = e^x - x^4$. Find its value numerically:
 
 ```julia; hold=true;  echo=false
 f(x) = exp(x) - x^4
-val = find_zero(f, 0..5);
+val = find_zero(f, (0, 5));
 numericq(val, 1e-3)
 ```
 
@@ -786,7 +774,7 @@ zeros on the positive $x$ axis. You are asked to find the largest
 ```julia; hold=true;  echo=false
 b = 10
 f(x) =  x^2 - b * x * log(x)
-val = find_zero(f, 10..500)
+val = find_zero(f, (10, 500))
 numericq(val, 1e-3)
 ```
 
@@ -805,7 +793,7 @@ plot(airyai, -10, 10)   # `airyai` loaded in `SpecialFunctions` by `CalculusWith
 The second largest root is:
 
 ```julia; hold=true;  echo=false
-val = find_zero(airyai, -5 .. -4);
+val = find_zero(airyai, (-5,  -4));
 numericq(val, 1e-8)
 ```
 
@@ -816,7 +804,7 @@ numericq(val, 1e-8)
 Certainly $x^3$ equals $3^x$ at $x=3$. Find the largest value for which $x^3 = 3x$.
 
 ```julia; hold=true;  echo=false
-val = maximum(find_zeros(x -> x^3 - 3^x, 0..20))
+val = maximum(find_zeros(x -> x^3 - 3^x, (0, 20)))
 numericq(val)
 ```
 
@@ -824,8 +812,8 @@ Compare $x^2$ and $2^x$. They meet at $2$, where do the meet again?
 
 ```julia; hold=true;  echo=false
 choices = ["Only before 2", "Only after 2", "Before and after 2"]
-ans = 3
-radioq(choices, ans)
+answ = 3
+radioq(choices, answ)
 ```
 
 Just by graphing, find a number in $b$ with $2 < b < 3$ where for
@@ -837,8 +825,8 @@ choices=[
 "``b \\approx 2.5``",
 "``b \\approx 2.7``",
 "``b \\approx 2.9``"]
-ans = 3
-radioq(choices, ans)
+answ = 3
+radioq(choices, answ)
 ```
 
 
@@ -882,8 +870,8 @@ Let $v_0= 390$. The three times in question can be found from the zeros of `f` a
 choices = ["``(0.0, 12.1875, 24.375)``",
 	"``(-4.9731, 0.0, 4.9731)``",
 	"``(0.0, 625.0, 1250.0)``"]
-ans = 1
-radioq(choices, ans)
+answ = 1
+radioq(choices, answ)
 ```
 
 
@@ -915,13 +903,13 @@ ground.
 
 ```julia; hold=true;  echo=false
 t0 = 0.0
-tf = find_zero(h, 10..20)
-ta = find_zero(D(h), t0..tf)
+tf = find_zero(h, (10, 20))
+ta = find_zero(D(h), (t0, tf))
 choices = ["``(0, 13.187, 30.0)``",
 	"``(0, 32.0, 390.0)``",
 	"``(0, 2.579, 13.187)``"]
-ans = 3
-radioq(choices, ans)
+answ = 3
+radioq(choices, answ)
 ```
 
 ###### Question
@@ -932,7 +920,7 @@ Part of the proof of the intermediate value theorem rests on knowing what the li
 choices = [L"It must be that $L > y$ as each $f(x)$ is.",
 L"It must be that $L \geq y$",
 L"It can happen that $L < y$, $L=y$, or $L>y$"]
-ans = 2
+answ = 2
 radioq(choices, 2, keep_order=true)
 ```
 
@@ -949,8 +937,8 @@ choices = [
 "``f(x) = \\sin(x),~ I=(-\\pi, \\pi)``",
 "``f(x) = \\sin(x),~ I=(-\\pi/2, \\pi/2)``",
 "None of the above"]
-ans = 3
-radioq(choices, ans, keep_order=true)
+answ = 3
+radioq(choices, answ, keep_order=true)
 ```
 
 
@@ -966,8 +954,8 @@ choices = [
 "``f(x) = 1/x,~ I=[-2, -1]``",
 "``f(x) = 1/x,~ I=[-1, 1]``",
 "none of the above"]
-ans = 3
-radioq(choices, ans, keep_order=true)
+answ = 3
+radioq(choices, answ, keep_order=true)
 ```
 
 
@@ -984,8 +972,8 @@ choices = [
 "``f(x) = 1/x,~      I=[-4, -1]``",
 "``f(x) = \\text{floor}(x),~ I=[-1/2, 1/2]``",
 "none of the above"]
-ans = 4
-radioq(choices, ans, keep_order=true)
+answ = 4
+radioq(choices, answ, keep_order=true)
 ```
 
 
@@ -1024,8 +1012,8 @@ L"There is no value $c$ for which $f(c)$ is an absolute maximum over $I$.",
 L"There is just one value of $c$ for which $f(c)$ is an absolute maximum over $I$.",
 L"There are many values of $c$ for which $f(c)$ is an absolute maximum over $I$."
 ]
-ans = 3
-radioq(choices, ans, keep_order=true)
+answ = 3
+radioq(choices, answ, keep_order=true)
 ```
 
 
@@ -1039,8 +1027,8 @@ L"There is no value $M$ for which $M=f(c)$, $c$ in $I$ for which $M$ is an absol
 L"There is just one value $M$ for which $M=f(c)$, $c$ in $I$ for which $M$ is an absolute maximum over $I$.",
 L"There are many values $M$ for which $M=f(c)$, $c$ in $I$ for which $M$ is an absolute maximum over $I$."
 ]
-ans = 2
-radioq(choices, ans, keep_order=true)
+answ = 2
+radioq(choices, answ, keep_order=true)
 ```
 
 
@@ -1056,8 +1044,8 @@ choices = [
 "``f(x) = \\sin(x),\\quad I=[-\\pi/2, \\pi/2]``",
 "``f(x) = \\sin(x),\\quad I=[0, 2\\pi]``",
 "``f(x) = \\sin(x),\\quad I=[-2\\pi, 2\\pi]``"]
-ans = 3
-radioq(choices, ans)
+answ = 3
+radioq(choices, answ)
 ```
 
 ##### Question
@@ -1065,7 +1053,7 @@ radioq(choices, ans)
 The zeros of the equation $\cos(x) \cdot \cosh(x) = 1$ are related to vibrations of rods. Using `find_zeros`, what is the largest zero in the interval $[0, 6\pi]$?
 
 ```julia; hold=true;  echo=false
-val = maximum(find_zeros(x -> cos(x) * cosh(x) - 1, 0..6pi))
+val = maximum(find_zeros(x -> cos(x) * cosh(x) - 1, (0, 6pi)))
 numericq(val)
 ```
 
@@ -1086,98 +1074,3 @@ a,b = 1, 2
 k_x, k_y = 3, 4
 plot(t -> a * cos(k_x *t), t-> b * sin(k_y * t), 0, 4pi)
 ```
-
-----
-
-## Using `IntervalRootFinding` to identify zeros
-
-The `IntervalRootFinding` package provides a more *rigorous* alternative to `find_zeros`. This packages leverages the interval arithmetic features of `IntervalArithmetic`.
-The `IntervalRootFinding` package provides a function `roots`, with usage similar to `find_zeros`. Intervals are specified with the notation `a..b`. In the following, we *qualify* `roots` to not conflict with the `roots` function from `SymPy`, which has already been loaded:
-
-```julia
-u(x) = sin(x) - 0.1*x^2 + 1
-𝑱 = IntervalArithmetic.Interval(-10, 10) # cumbersome -10..10; needed here: .. means something in CalculusWithJulia
-rts = IntervalRootFinding.roots(u, 𝑱)
-```
-
-The "zeros" are returned with an enclosing interval and a flag, which for the above indicates a unique zero in the interval.
-
-The intervals with a unique answer can be filtered and refined with a construct like the following:
-
-```julia
-[find_zero(u, (IntervalArithmetic.interval(I).lo, IntervalArithmetic.interval(I).hi)) for I in rts if I.status == :unique]
-```
-
-The midpoint of the returned interval can be found by composing the `mid` function with the `interval` function of the package:
-
-```julia
-[(IntervalArithmetic.mid ∘ IntervalArithmetic.interval)(I) for I in rts if I.status == :unique]
-```
-
-
-
-For some problems, `find_zeros` is more direct, as with this one:
-
-
-```julia
-find_zeros(u, -10..10)
-```
-
-Which can be useful if there is some prior understanding of the zeros expected to be found.
-However, `IntervalRootFinding` is more efficient computationally and *offers a guarantee* on the values found.
-
-
-
-For functions where roots are not "unique" a different output may appear:
-
-```julia; hold=true;
-f(x) = x*(x-1)^2
-rts = IntervalRootFinding.roots(f, 𝑱)
-```
-
-The interval labeled `:unknown` contains a `0`, but it can't be proved by `roots`.
-
-
-Interval arithmetic finds **rigorous** **bounds** on the range of `f` values over a closed interval `a..b` (the range is `f(a..b)`).  "Rigorous" means the bounds are truthful and account for possible floating point issues. "Bounds" means the answer lies within, but the bound need not be the answer.
-
-This allows one -- for some functions -- to answer affirmatively questions like:
-
-* Is the function *always* positive on `a..b`? Negative? This can be done by checking if `0` is in the bound given by `f(a..b)`. If it isn't then one of the two characterizations is true.
-
-* Is the function *strictly increasing* on `a..b`? Strictly decreasing? These questions can be answered using the (upcoming) [derivative](../derivatives/derivatives.html). If the derivative is positive on `a..b` then `f` is strictly increasing, if negative on `a..b` then `f` is strictly decreasing. Finding the derivative can be done within the `IntervalArithmetic` framework using [automatic differentiation](../derivatives/numeric_derivatives.html), a blackbox operation  denoted `f'` below.
-
-Combined, for some functions and some intervals these two questions can be answered affirmatively:
-
-* the interval does not contain a zero (`0 !in f(a..b)`)
-* over the interval, the function crosses the `x` axis *once* (`f(a..a)` and `f(b..b)` are one positive and one negative *and* `f` is strictly monotone, or `0 !in f'(a..b)`)
-
-This allows the following (simplified) bisection-like algorithm to be used:
-
-* consider an interval `a..b`
-* if the function is *always* positive or negative, it can be discarded as no zero can be in the interval
-* if the function crosses the `x` axis *once* over this interval **then** there is a "unique" zero in the interval and the interval can be marked so and set aside
-* if neither of the above  *and* `a..b` is not too small already, then *sub-divide* the interval and repeat the above with *both* smaller intervals
-* if `a..b` is too small, stop and mark it as "unknown"
-
-When terminated there will be intervals with unique zeros flagged and smaller intervals with an unknown status.
-
-Compared to the *bisection* algorithm -- which only knows for some intervals if that interval has one or more crossings -- this algorithm gives a more rigorous means to get all the zeros in `a..b`.
-
-
-
-
-
-
-For a last example of the value of this package, this function, which appeared in our discussion on limits, is *positive* for **every** floating point number, but has two zeros snuck in at values within the floating point neighbors of $15/11$
-
-```julia
-t(x) = x^2 + 1 +log(abs( 11*x-15 ))/99
-```
-
-The `find_zeros` function will fail on identifying any potential zeros of this function. Even the basic call of `roots` will fail, due to it relying on some smoothness of `f`. However, explicitly asking for `Bisection` shows the *potential* for one or more zeros near $15/11$:
-
-```julia
-IntervalRootFinding.roots(t, 𝑱, IntervalRootFinding.Bisection)
-```
-
-(The basic algorithm above can be sped up using a variant of [Newton's](../derivatives/newton_method.html) method, this variant assumes some "smoothness" in the function `f`, whereas this `f` is not continuous at the point ``x=15/11``.)
