@@ -9,36 +9,40 @@ Base.show(io::IO, ::MIME"text/qmd", content) = Markdown.plain(io, content)
 ## Expects title to be very first thing in a jmd file
 ## Proper way would be to use https://quarto.org/docs/extensions/nbfilter.html
 function inject_code(io::IO)
-    println(io, """
-```{julia}
-#| echo: false
-
-import Logging
-Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
-Logging.disable_logging(Logging.Warn)
-
-import SymPy
-function Base.show(io::IO, ::MIME"text/html", x::T) where {T <: SymPy.SymbolicObject}
-    println(io, "<span class=\\"math-left-align\\" style=\\"padding-left: 4px; width:0; float:left;\\"> ")
-    println(io, "\\\\[")
-    println(io, sympy.latex(x))
-    println(io, "\\\\]")
-    println(io, "</span>")
-end
-
-# hack to work around issue
-import Markdown
-import CalculusWithJulia
-function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
-    nm = joinpath("..", string(d), f)
-    u = "![\$caption](\$nm)"
-    Markdown.parse(u)
-end
-
-nothing
-```
+println(io, """
+{{< include ../_common_code.qmd >}}
 """)
 end
+#     println(io, """
+# ```{julia}
+# #| echo: false
+
+# import Logging
+# Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
+# Logging.disable_logging(Logging.Warn)
+
+# import SymPy
+# function Base.show(io::IO, ::MIME"text/html", x::T) where {T <: SymPy.SymbolicObject}
+#     println(io, "<span class=\\"math-left-align\\" style=\\"padding-left: 4px; width:0; float:left;\\"> ")
+#     println(io, "\\\\[")
+#     println(io, sympy.latex(x))
+#     println(io, "\\\\]")
+#     println(io, "</span>")
+# end
+
+# # hack to work around issue
+# import Markdown
+# import CalculusWithJulia
+# function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
+#     nm = joinpath("..", string(d), f)
+#     u = "![\$caption](\$nm)"
+#     Markdown.parse(u)
+# end
+
+# nothing
+# ```
+# """)
+# end
 
 ## Main function to take a jmd file and turn into an HTML
 function markdownToHTML(fname::AbstractString; TITLE="", kwargs...)

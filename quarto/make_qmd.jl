@@ -37,7 +37,7 @@ for DIR ∈ DIRS
             if ext == ".jmd"
                 qmd_file = joinpath(DIR, fnm * ".qmd")
                 jmd_file = joinpath(dir, f)
-                if mtime(jmd_file) > mtime(qmd_file)
+                if true || mtime(jmd_file) > mtime(qmd_file)
                     open(qmd_file, "w") do io
                         jmd2qmd(io, jmd_file)
                     end

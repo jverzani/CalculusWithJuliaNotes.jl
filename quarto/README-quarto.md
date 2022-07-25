@@ -1,3 +1,12 @@
+## TODO
+
+* download .jl file (if we have .jmd)
+DONE * clean up edit link
+DONE * remove pinned header
+DONE * clean up directory
+* JSXGraph files
+* mermaid, ojs?
+
 # CalculusWithJulia via quarto
 
 To compile the pages through quarto
