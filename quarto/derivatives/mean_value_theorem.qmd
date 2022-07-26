@@ -1,33 +1,7 @@
 # The mean value theorem for differentiable functions.
 
 
-```{julia}
-#| echo: false
-
-import Logging
-Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
-Logging.disable_logging(Logging.Warn)
-
-import SymPy
-function Base.show(io::IO, ::MIME"text/html", x::T) where {T <: SymPy.SymbolicObject}
-    println(io, "<span class=\"math-left-align\" style=\"padding-left: 4px; width:0; float:left;\"> ")
-    println(io, "\\[")
-    println(io, sympy.latex(x))
-    println(io, "\\]")
-    println(io, "</span>")
-end
-
-# hack to work around issue
-import Markdown
-import CalculusWithJulia
-function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
-    nm = joinpath("..", string(d), f)
-    u = "![$caption]($nm)"
-    Markdown.parse(u)
-end
-
-nothing
-```
+{{< include ../_common_code.qmd >}}
 
 This section uses these add-on packages:
 
@@ -390,7 +364,39 @@ That is the function $f(x)$, minus the secant line between $(a,f(a))$ and $(b, f
 nothing
 ```
 
-An interactive example can be found at [jsxgraph](http://jsxgraph.uni-bayreuth.de/wiki/index.php?title=Mean_Value_Theorem).
+```{=html}
+<div id="jsxgraph" style="width: 500px; height: 500px;"></div>
+```
+
+```{ojs}
+//| echo: false
+//| output: false
+
+JXG = require("jsxgraph");
+
+board = JXG.JSXGraph.initBoard('jsxgraph', {boundingbox: [-5, 10, 7, -6], axis:true});
+p = [
+  board.create('point', [-1,-2], {size:2}),
+  board.create('point', [6,5], {size:2}),
+  board.create('point', [-0.5,1], {size:2}),
+  board.create('point', [3,3], {size:2})
+];
+f = JXG.Math.Numerics.lagrangePolynomial(p);
+graph = board.create('functiongraph', [f,-10, 10]);
+
+g = function(x) {
+     return JXG.Math.Numerics.D(f)(x)-(p[1].Y()-p[0].Y())/(p[1].X()-p[0].X());
+};
+
+r = board.create('glider', [
+                    function() { return JXG.Math.Numerics.root(g,(p[0].X()+p[1].X())*0.5); },
+                    function() { return f(JXG.Math.Numerics.root(g,(p[0].X()+p[1].X())*0.5)); },
+                    graph], {name:' ',size:4,fixed:true});
+board.create('tangent', [r], {strokeColor:'#ff0000'});
+line = board.create('line',[p[0],p[1]],{strokeColor:'#ff0000',dash:1});
+```
+
+This interactive example can also be found at [jsxgraph](http://jsxgraph.uni-bayreuth.de/wiki/index.php?title=Mean_Value_Theorem). It shows a cubic polynomial fit to the $4$ adjustable points labeled A through D. The secant line is drawn between points A and B with a dashed line. A tangent line – with the same slope as the secant line – is identified at a point $(\alpha, f(\alpha))$ where $\alpha$ is between the points A and B. That this can always be done is a conseuqence of the mean value theorem.
 
 
 ##### Example

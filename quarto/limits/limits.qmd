@@ -1,33 +1,7 @@
 # Limits
 
 
-```{julia}
-#| echo: false
-
-import Logging
-Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
-Logging.disable_logging(Logging.Warn)
-
-import SymPy
-function Base.show(io::IO, ::MIME"text/html", x::T) where {T <: SymPy.SymbolicObject}
-    println(io, "<span class=\"math-left-align\" style=\"padding-left: 4px; width:0; float:left;\"> ")
-    println(io, "\\[")
-    println(io, sympy.latex(x))
-    println(io, "\\]")
-    println(io, "</span>")
-end
-
-# hack to work around issue
-import Markdown
-import CalculusWithJulia
-function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
-    nm = joinpath("..", string(d), f)
-    u = "![$caption]($nm)"
-    Markdown.parse(u)
-end
-
-nothing
-```
+{{< include ../_common_code.qmd >}}
 
 This section uses the following add-on packages:
 
@@ -403,6 +377,43 @@ plot(sin, identity, -pi/2, pi/2)  # parametric plot
 
 The graphical approach to limits - plotting $f(x)$ around $c$ and observing if the $y$ values seem to converge to an $L$ value when $x$ get close to $c$ - allows us to gather quickly if a function seems to have a limit at $c$, though the precise value of $L$ may be hard to identify.
 
+
+##### Example
+
+
+This example illustrates the same limit a different way. Sliding the $x$ value towards $0$ shows $f(x) = \sin(x)/x$ approaches a value of $1$.
+
+
+```{=html}
+<div id="jsxgraph" style="width: 500px; height: 500px;"></div>
+```
+
+```{ojs}
+//| echo: false
+//| output: false
+
+JXG = require("jsxgraph")
+
+b = JXG.JSXGraph.initBoard('jsxgraph', {
+    boundingbox: [-6, 1.2, 6,-1.2], axis:true
+});
+
+f = function(x) {return Math.sin(x) / x;};
+graph = b.create("functiongraph", [f, -6, 6])
+seg = b.create("line", [[-6,0], [6,0]], {fixed:true});
+
+X = b.create("glider", [2, 0, seg], {name:"x", size:4});
+P = b.create("point", [function() {return X.X()}, function() {return f(X.X())}], {name:""});
+Q = b.create("point", [0, function() {return P.Y();}], {name:"f(x)"});
+
+segup = b.create("segment", [P,X], {dash:2});
+segover = b.create("segment", [P, [0, function() {return P.Y()}]], {dash:2});
+
+
+txt = b.create('text', [2, 1, function() {
+    return "x = " + X.X().toFixed(4) + ", f(x) = " + P.Y().toFixed(4);
+}]);
+```
 
 ##### Example
 

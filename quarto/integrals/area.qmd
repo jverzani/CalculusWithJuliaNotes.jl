@@ -1,33 +1,7 @@
 # Area under a curve
 
 
-```{julia}
-#| echo: false
-
-import Logging
-Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
-Logging.disable_logging(Logging.Warn)
-
-import SymPy
-function Base.show(io::IO, ::MIME"text/html", x::T) where {T <: SymPy.SymbolicObject}
-    println(io, "<span class=\"math-left-align\" style=\"padding-left: 4px; width:0; float:left;\"> ")
-    println(io, "\\[")
-    println(io, sympy.latex(x))
-    println(io, "\\]")
-    println(io, "</span>")
-end
-
-# hack to work around issue
-import Markdown
-import CalculusWithJulia
-function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
-    nm = joinpath("..", string(d), f)
-    u = "![$caption]($nm)"
-    Markdown.parse(u)
-end
-
-nothing
-```
+{{< include ../_common_code.qmd >}}
 
 This section uses these add-on packages:
 
@@ -1442,9 +1416,45 @@ The area under a curve approximated by a Riemann sum.
 # url = "riemann.js"
 #CalculusWithJulia.WeaveSupport.JSXGraph(:integrals, url, caption)
 # This is just wrong...
-url = "https://raw.githubusercontent.com/jverzani/CalculusWithJulia.jl/master/CwJ/integrals/riemann.js"
-url = "./riemann.js"
-CalculusWithJulia.WeaveSupport.JSXGraph(url, caption)
+#CalculusWithJulia.WeaveSupport.JSXGraph(url, caption)
+nothing
+```
+
+```{=html}
+<div id="jsxgraph" style="width: 500px; height: 500px;"></div>
+```
+
+```{ojs}
+//| echo: false
+//| output: false
+JXG = require("jsxgraph");
+
+b = JXG.JSXGraph.initBoard('jsxgraph', {
+    boundingbox: [-0.5,0.3,1.5,-1/4], axis:true
+});
+
+g = function(x) { return x*x*x*x +  10*x*x - 60* x + 100}
+f = function(x) {return 1/Math.sqrt(g(x))};
+
+type = "right";
+l = 0;
+r = 1;
+rsum = function() {
+    return JXG.Math.Numerics.riemannsum(f,n.Value(), type, l, r);
+};
+n =   b.create('slider', [[0.1, -0.05],[0.75,-0.05], [2,1,50]],{name:'n',snapWidth:1});
+
+graph = b.create('functiongraph', [f, l, r]);
+os = b.create('riemannsum',
+                  [f,
+                   function(){ return n.Value();},
+                   type, l, r
+                  ],
+                  {fillColor:'#ffff00', fillOpacity:0.3});
+
+b.create('text', [0.1,0.25, function(){
+    return 'Riemann sum='+(rsum().toFixed(4));
+}]);
 ```
 
 The interactive graphic shows the area of a right-Riemann sum for different partitions. The function is
@@ -1469,7 +1479,7 @@ When $n=50$ what is the area of the Riemann sum?
 ```{julia}
 #| hold: true
 #| echo: false
-numericq(0.1887)
+numericq(0.1187)
 ```
 
 Using `quadgk` what is the area under the curve?
