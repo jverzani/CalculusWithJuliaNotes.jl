@@ -45,6 +45,7 @@ for DIR ∈ DIRS
             else
                 _, ext = splitext(f)
                 ext == ".toml" && continue
+                f == "process.jl" && continueg
                 @show :cp, f
                 try
                     force = isfile(joinpath(DIR, f))

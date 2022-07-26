@@ -1,11 +1,13 @@
 ## TODO
 
-* download .jl file (if we have .jmd)
+* download links to Pluto .jl files (if we have .jmd, but we might deprecate...)
+* PlotlyLight
+* mermaid, ojs?
+
 DONE * clean up edit link
 DONE * remove pinned header
 DONE * clean up directory
-* JSXGraph files
-* mermaid, ojs?
+DONE (?) * JSXGraph files
 
 # CalculusWithJulia via quarto
 
@@ -24,6 +26,7 @@ To compile the pages through quarto
 
 * bump the version number in `_quarto.yml`, `Project.toml`
 * run `quarto publish gh-pages` to publish
+* or `quarto publish gh-pages --no-render` to avoid re-rendering, when just done
 * should also push project to github
 * no need to push `_freeze` the repo, as files are locally rendered for now.
 
