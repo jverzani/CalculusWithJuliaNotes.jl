@@ -37,7 +37,8 @@ for DIR ∈ DIRS
             if ext == ".jmd"
                 qmd_file = joinpath(DIR, fnm * ".qmd")
                 jmd_file = joinpath(dir, f)
-                if true || mtime(jmd_file) > mtime(qmd_file)
+                if mtime(jmd_file) > mtime(qmd_file)
+                    @show :new, qmd_file
                     open(qmd_file, "w") do io
                         jmd2qmd(io, jmd_file)
                     end
@@ -45,8 +46,7 @@ for DIR ∈ DIRS
             else
                 _, ext = splitext(f)
                 ext == ".toml" && continue
-                f == "process.jl" && continueg
-                @show :cp, f
+                f == "process.jl" && continue
                 try
                     force = isfile(joinpath(DIR, f))
                     cp(joinpath(dir,f), joinpath(DIR,f), force=force)
