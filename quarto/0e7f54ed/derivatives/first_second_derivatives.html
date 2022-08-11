@@ -1,0 +1,2642 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.0.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Calculus with Julia - 27&nbsp; The first and second derivatives</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../derivatives/curve_sketching.html" rel="next">
+<link href="../derivatives/optimization.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+<script async="" src="https://hypothes.is/embed.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body class="nav-sidebar floating nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <a class="navbar-brand" href="../index.html">
+    <img src="../logo.png" alt="">
+    <span class="navbar-title">Calculus with Julia</span>
+  </a>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+    <div class="container-fluid d-flex justify-content-between">
+      <h1 class="quarto-secondary-nav-title"><span class="chapter-number">27</span>&nbsp; <span class="chapter-title">The first and second derivatives</span></h1>
+      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation floating overflow-auto">
+      <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+      </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">Preface</a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="false">Precalculus Concepts</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/calculator.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">From calculator to computer</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/variables.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Variables</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/numbers_types.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Number systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/logical_expressions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Inequalities, Logical expressions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/vectors.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Vectors</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/ranges.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Ranges and Sets</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/plotting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">The Graph of a Function</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/transformations.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Function manipulations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/inversefunctions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">The Inverse of a Function</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/polynomial.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Polynomials</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/polynomial_roots.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Roots of a polynomial</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/polynomials_package.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">The Polynomials package</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/rational_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Rational functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/exp_log_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Exponential and logarithmic functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/trig_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Trigonometric functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/julia_overview.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Overview of Julia commands</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false">Limits</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/limits.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Limits</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/limits_extensions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Limits, issues, extensions of the concept</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/continuity.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Continuity</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/intermediate_value_theorem.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Implications of continuity</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">Derivatives</a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/derivatives.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Derivatives</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/numeric_derivatives.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Numeric derivatives</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/symbolic_derivatives.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Symbolic derivatives</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/mean_value_theorem.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">The mean value theorem for differentiable functions.</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/optimization.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">26</span>&nbsp; <span class="chapter-title">Optimization</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/first_second_derivatives.html" class="sidebar-item-text sidebar-link active"><span class="chapter-number">27</span>&nbsp; <span class="chapter-title">The first and second derivatives</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/curve_sketching.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">28</span>&nbsp; <span class="chapter-title">Curve Sketching</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/linearization.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">29</span>&nbsp; <span class="chapter-title">Linearization</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/newtons_method.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">30</span>&nbsp; <span class="chapter-title">Newton’s method</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/more_zeros.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">31</span>&nbsp; <span class="chapter-title">Derivative-free alternatives to Newton’s method</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/lhospitals_rule.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">32</span>&nbsp; <span class="chapter-title">L’Hospital’s Rule</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/implicit_differentiation.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">33</span>&nbsp; <span class="chapter-title">Implicit Differentiation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/related_rates.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">34</span>&nbsp; <span class="chapter-title">Related rates</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/taylor_series_polynomials.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">35</span>&nbsp; <span class="chapter-title">Taylor Polynomials and other Approximating Polynomials</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="false">Integrals</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/area.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">36</span>&nbsp; <span class="chapter-title">Area under a curve</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/ftc.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">37</span>&nbsp; <span class="chapter-title">Fundamental Theorem or Calculus</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/substitution.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">38</span>&nbsp; <span class="chapter-title">Substitution</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/integration_by_parts.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">39</span>&nbsp; <span class="chapter-title">Integration By Parts</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/partial_fractions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">40</span>&nbsp; <span class="chapter-title">Partial Fractions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/improper_integrals.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">41</span>&nbsp; <span class="chapter-title">Improper Integrals</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/mean_value_theorem.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">42</span>&nbsp; <span class="chapter-title">Mean value theorem for integrals</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/area_between_curves.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">43</span>&nbsp; <span class="chapter-title">Area between two curves</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/center_of_mass.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">44</span>&nbsp; <span class="chapter-title">Center of Mass</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/volumes_slice.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">45</span>&nbsp; <span class="chapter-title">Volumes by slicing</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/arc_length.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">46</span>&nbsp; <span class="chapter-title">Arc length</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/surface_area.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">47</span>&nbsp; <span class="chapter-title">Surface Area</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="false">ODEs</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/odes.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">48</span>&nbsp; <span class="chapter-title">ODEs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/euler.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">49</span>&nbsp; <span class="chapter-title">Euler’s method</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/solve.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">50</span>&nbsp; <span class="chapter-title">The problem-algorithm-solve interface</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/differential_equations.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">51</span>&nbsp; <span class="chapter-title">The <code>DifferentialEquations</code> suite</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="false">Differential vector calculus</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/polar_coordinates.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">52</span>&nbsp; <span class="chapter-title">Polar Coordinates and Curves</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/vectors.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">53</span>&nbsp; <span class="chapter-title">Vectors and matrices</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/vector_valued_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">54</span>&nbsp; <span class="chapter-title">Vector-valued functions, <span class="math inline">\(f:R \rightarrow R^n\)</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/scalar_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">55</span>&nbsp; <span class="chapter-title">Scalar functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/scalar_functions_applications.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">56</span>&nbsp; <span class="chapter-title">Applications with scalar functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/vector_fields.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">57</span>&nbsp; <span class="chapter-title">Functions <span class="math inline">\(R^n \rightarrow R^m\)</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/plots_plotting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">58</span>&nbsp; <span class="chapter-title">2D and 3D plots in Julia with Plots</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="false">Integral vector calculus</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/double_triple_integrals.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">59</span>&nbsp; <span class="chapter-title">Multi-dimensional integrals</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/line_integrals.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">60</span>&nbsp; <span class="chapter-title">Line and Surface Integrals</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/div_grad_curl.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">61</span>&nbsp; <span class="chapter-title">The Gradient, Divergence, and Curl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/stokes_theorem.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">62</span>&nbsp; <span class="chapter-title">Green’s Theorem, Stokes’ Theorem, and the Divergence Theorem</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/review.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">63</span>&nbsp; <span class="chapter-title">Quick Review of Vector Calculus</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="false">Alternatives</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../alternatives/plotly_plotting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">64</span>&nbsp; <span class="chapter-title">JavaScript based plotting libraries</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../alternatives/makie_plotting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">65</span>&nbsp; <span class="chapter-title">Calculus plots with Makie</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="false">Appendices</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/getting_started_with_julia.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">66</span>&nbsp; <span class="chapter-title">Getting started with Julia</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/julia_interfaces.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">67</span>&nbsp; <span class="chapter-title">Julia interfaces</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/calculus_with_julia.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">68</span>&nbsp; <span class="chapter-title">The <code>CalculusWithJulia</code> package</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/unicode.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">69</span>&nbsp; <span class="chapter-title">Usages of Unicode symbols</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/quick_notes.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">70</span>&nbsp; <span class="chapter-title">Quick introduction to Calculus with Julia</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../references.html" class="sidebar-item-text sidebar-link">References</a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#positive-or-increasing-on-an-interval" id="toc-positive-or-increasing-on-an-interval" class="nav-link active" data-scroll-target="#positive-or-increasing-on-an-interval"> <span class="header-section-number">27.1</span> Positive or increasing on an interval</a></li>
+  <li><a href="#the-relationship-of-the-derivative-and-increasing" id="toc-the-relationship-of-the-derivative-and-increasing" class="nav-link" data-scroll-target="#the-relationship-of-the-derivative-and-increasing"> <span class="header-section-number">27.2</span> The relationship of the derivative and increasing</a>
+  <ul class="collapse">
+  <li><a href="#first-derivative-test" id="toc-first-derivative-test" class="nav-link" data-scroll-target="#first-derivative-test"> <span class="header-section-number">27.2.1</span> First derivative test</a></li>
+  </ul></li>
+  <li><a href="#concavity" id="toc-concavity" class="nav-link" data-scroll-target="#concavity"> <span class="header-section-number">27.3</span> Concavity</a>
+  <ul class="collapse">
+  <li><a href="#second-derivative-test" id="toc-second-derivative-test" class="nav-link" data-scroll-target="#second-derivative-test"> <span class="header-section-number">27.3.1</span> Second derivative test</a></li>
+  <li><a href="#inflection-points" id="toc-inflection-points" class="nav-link" data-scroll-target="#inflection-points"> <span class="header-section-number">27.3.2</span> Inflection points</a></li>
+  </ul></li>
+  <li><a href="#questions" id="toc-questions" class="nav-link" data-scroll-target="#questions"> <span class="header-section-number">27.4</span> Questions</a></li>
+  </ul>
+<div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/jverzani/CalculusWithJuliaNotes.jl/edit/main/quarto/derivatives/first_second_derivatives.qmd" class="toc-action">Edit this page</a></p><p><a href="https://github.com/jverzani/CalculusWithJuliaNotes.jl/issues/new" class="toc-action">Report an issue</a></p></div></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title d-none d-lg-block"><span class="chapter-number">27</span>&nbsp; <span class="chapter-title">The first and second derivatives</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    
+  </div>
+  
+
+</header>
+
+<p>This section uses these add-on packages:</p>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">CalculusWithJulia</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Plots</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">SymPy</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Roots</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<hr>
+<p>This section explores properties of a function, <span class="math inline">\(f(x)\)</span>, that are described by properties of its first and second derivatives, <span class="math inline">\(f'(x)\)</span> and <span class="math inline">\(f''(x)\)</span>. As part of the conversation two tests are discussed that characterize when a critical point is a relative maximum or minimum. (We know that any relative maximum or minimum occurs at a critical point, but it is not true that <em>any</em> critical point will be a relative maximum or minimum.)</p>
+<section id="positive-or-increasing-on-an-interval" class="level2" data-number="27.1">
+<h2 data-number="27.1" class="anchored" data-anchor-id="positive-or-increasing-on-an-interval"><span class="header-section-number">27.1</span> Positive or increasing on an interval</h2>
+<p>We start with some vocabulary:</p>
+<blockquote class="blockquote">
+<p>A function <span class="math inline">\(f\)</span> is <strong>positive</strong> on an interval <span class="math inline">\(I\)</span> if for any <span class="math inline">\(a\)</span> in <span class="math inline">\(I\)</span> it must be that <span class="math inline">\(f(a) &gt; 0\)</span>.</p>
+</blockquote>
+<p>Of course, we define <em>negative</em> in a parallel manner. The intermediate value theorem says a continuous function can not change from positive to negative without crossing <span class="math inline">\(0\)</span>. This is not the case for functions with jumps, of course.</p>
+<p>Next,</p>
+<blockquote class="blockquote">
+<p>A function, <span class="math inline">\(f\)</span>, is (strictly) <strong>increasing</strong> on an interval <span class="math inline">\(I\)</span> if for any <span class="math inline">\(a &lt; b\)</span> it must be that <span class="math inline">\(f(a) &lt; f(b)\)</span>.</p>
+</blockquote>
+<p>The word strictly is related to the inclusion of the <span class="math inline">\(&lt;\)</span> precluding the possibility of a function being flat over an interval that the <span class="math inline">\(\leq\)</span> inequality would allow.</p>
+<p>A parallel definition with <span class="math inline">\(a &lt; b\)</span> implying <span class="math inline">\(f(a) &gt; f(b)\)</span> would be used for a <em>strictly decreasing</em> function.</p>
+<p>We can try and prove these properties for a function algebraically – we’ll see both are related to the zeros of some function. However, before proceeding to that it is usually helpful to get an idea of where the answer is using exploratory graphs.</p>
+<p>We will use a helper function, <code>plotif(f, g, a, b)</code> that plots the function <code>f</code> over <code>[a,b]</code> coloring it red when <code>g</code> is positive (and blue otherwise). Such a function is defined for us in the accompanying <code>CalculusWithJulia</code> package, which has been previously been loaded.</p>
+<p>To see where a function is positive, we simply pass the function object in for <em>both</em> <code>f</code> and <code>g</code> above. For example, let’s look at where <span class="math inline">\(f(x) = \sin(x)\)</span> is positive:</p>
+<div class="cell" data-hold="true" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> <span class="fu">sin</span>(x)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plotif</span>(f, f, <span class="op">-</span><span class="fl">2</span>pi, <span class="fl">2</span>pi)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<p><img src="first_second_derivatives_files/figure-html/cell-5-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>Let’s graph with <code>cos</code> in the masking spot and see what happens:</p>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plotif</span>(sin, cos, <span class="op">-</span><span class="fl">2</span>pi, <span class="fl">2</span>pi)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<p><img src="first_second_derivatives_files/figure-html/cell-6-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>Maybe surprisingly, we see that the increasing parts of the sine curve are now highlighted. Of course, the cosine is the derivative of the sine function, now we discuss that this is no coincidence.</p>
+<p>For the sequel, we will use <code>f'</code> notation to find numeric derivatives, with the notation being defined in the <code>CalculusWithJulia</code> package using the <code>ForwardDiff</code> package.</p>
+</section>
+<section id="the-relationship-of-the-derivative-and-increasing" class="level2" data-number="27.2">
+<h2 data-number="27.2" class="anchored" data-anchor-id="the-relationship-of-the-derivative-and-increasing"><span class="header-section-number">27.2</span> The relationship of the derivative and increasing</h2>
+<p>The derivative, <span class="math inline">\(f'(x)\)</span>, computes the slope of the tangent line to the graph of <span class="math inline">\(f(x)\)</span> at the point <span class="math inline">\((x,f(x))\)</span>. If the derivative is positive, the tangent line will have an increasing slope. Clearly if we see an increasing function and mentally layer on a tangent line, it will have a positive slope. Intuitively then, increasing functions and positive derivatives are related concepts. But there are some technicalities.</p>
+<p>Suppose <span class="math inline">\(f(x)\)</span> has a derivative on <span class="math inline">\(I\)</span> . Then</p>
+<blockquote class="blockquote">
+<p>If <span class="math inline">\(f'(x)\)</span> is positive on an interval <span class="math inline">\(I=(a,b)\)</span>, then <span class="math inline">\(f(x)\)</span> is strictly increasing on <span class="math inline">\(I\)</span>.</p>
+</blockquote>
+<p>Meanwhile,</p>
+<blockquote class="blockquote">
+<p>If a function <span class="math inline">\(f(x)\)</span> is increasing on <span class="math inline">\(I\)</span>, then <span class="math inline">\(f'(x) \geq 0\)</span>.</p>
+</blockquote>
+<p>The technicality being the equality parts. In the second statement, we have the derivative is non-negative, as we can’t guarantee it is positive, even if we considered just strictly increasing functions.</p>
+<p>We can see by the example of <span class="math inline">\(f(x) = x^3\)</span> that strictly increasing functions can have a zero derivative, at a point.</p>
+<p>The mean value theorem provides the reasoning behind the first statement: on <span class="math inline">\(I\)</span>, the slope of any secant line between <span class="math inline">\(d &lt; e\)</span> (both in <span class="math inline">\(I\)</span>) is matched by the slope of some tangent line, which by assumption will always be positive. If the secant line slope is written as <span class="math inline">\((f(e) - f(d))/(e - d)\)</span> with <span class="math inline">\(d &lt; e\)</span>, then it is clear then that <span class="math inline">\(f(e) - f(d) &gt; 0\)</span>, or <span class="math inline">\(d &lt; e\)</span> implies <span class="math inline">\(f(d) &lt; f(e)\)</span>.</p>
+<p>The second part, follows from the secant line equation. The derivative can be written as a limit of secant-line slopes, each of which is positive. The limit of positive things can only be non-negative, though there is no guarantee the limit will be positive.</p>
+<p>So, to visualize where a function is increasing, we can just pass in the derivative as the masking function in our <code>plotif</code> function, as long as we are wary about places with <span class="math inline">\(0\)</span> derivative (flat spots).</p>
+<p>For example, here, with a more complicated function, the intervals where the function is increasing are highlighted by passing in the functions derivative to <code>plotif</code>:</p>
+<div class="cell" data-hold="true" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> <span class="fu">sin</span>(<span class="cn">pi</span><span class="op">*</span>x) <span class="op">*</span> (x<span class="op">^</span><span class="fl">3</span> <span class="op">-</span> <span class="fl">4</span>x<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> <span class="fl">2</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plotif</span>(f, f<span class="op">'</span>, <span class="op">-</span><span class="fl">2</span>, <span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<p><img src="first_second_derivatives_files/figure-html/cell-7-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<section id="first-derivative-test" class="level3" data-number="27.2.1">
+<h3 data-number="27.2.1" class="anchored" data-anchor-id="first-derivative-test"><span class="header-section-number">27.2.1</span> First derivative test</h3>
+<p>When a function changes from increasing to decreasing, or decreasing to increasing, it will have a peak or a valley. More formally, such points are relative extrema.</p>
+<p>When discussing the mean value thereom, we defined <em>relative extrema</em> :</p>
+<blockquote class="blockquote">
+<ul>
+<li>The function <span class="math inline">\(f(x)\)</span> has a <em>relative maximum</em> at <span class="math inline">\(c\)</span> if the value <span class="math inline">\(f(c)\)</span> is an <em>absolute maximum</em> for some <em>open</em> interval containing <span class="math inline">\(c\)</span>.</li>
+<li>Similarly, <span class="math inline">\(f(x)\)</span> has a <em>relative minimum</em> at <span class="math inline">\(c\)</span> if the value <span class="math inline">\(f(c)\)</span> is an absolute minimum for <em>some</em> open interval about <span class="math inline">\(c\)</span>.</li>
+</ul>
+</blockquote>
+<p>We know since <a href="http://tinyurl.com/nfgz8fz">Fermat</a> that:</p>
+<blockquote class="blockquote">
+<p>Relative maxima and minima <em>must</em> occur at <em>critical</em> points.</p>
+</blockquote>
+<p>Fermat says that <em>critical points</em> – where the function is defined, but its derivative is either <span class="math inline">\(0\)</span> or undefined – are <em>interesting</em> points, however:</p>
+<blockquote class="blockquote">
+<p>A critical point need not indicate a relative maxima or minima.</p>
+</blockquote>
+<p>Again, <span class="math inline">\(f(x)=x^3\)</span> provides the example at <span class="math inline">\(x=0\)</span>. This is a critical point, but clearly not a relative maximum or minimum - it is just a slight pause for a strictly increasing function.</p>
+<p>This leaves the question:</p>
+<blockquote class="blockquote">
+<p>When will a critical point correspond to a relative maximum or minimum?</p>
+</blockquote>
+<p>This question can be answered by considering the first derivative.</p>
+<blockquote class="blockquote">
+<p><em>The first derivative test</em>: If <span class="math inline">\(c\)</span> is a critical point for <span class="math inline">\(f(x)\)</span> and <em>if</em> <span class="math inline">\(f'(x)\)</span> changes sign at <span class="math inline">\(x=c\)</span>, then <span class="math inline">\(f(c)\)</span> will be either a relative maximum or a relative minimum.</p>
+<ul>
+<li>It will be a relative maximum if the derivative changes sign from <span class="math inline">\(+\)</span> to <span class="math inline">\(-\)</span>.</li>
+<li>It will be a relative minimum if the derivative changes sign from <span class="math inline">\(-\)</span> to <span class="math inline">\(+\)</span>.</li>
+<li>If <span class="math inline">\(f'(x)\)</span> does not change sign at <span class="math inline">\(c\)</span>, then <span class="math inline">\(f(c)\)</span> is <em>not</em> a relative maximum or minimum.</li>
+</ul>
+</blockquote>
+<p>The classification part, should be clear: e.g., if the derivative is positive then negative, the function <span class="math inline">\(f\)</span> will increase to <span class="math inline">\((c,f(c))\)</span> then decrease from <span class="math inline">\((c,f(c))\)</span> – so <span class="math inline">\(f\)</span> will have a local maximum at <span class="math inline">\(c\)</span>.</p>
+<p>Our definition of critical point <em>assumes</em> <span class="math inline">\(f(c)\)</span> exists, as <span class="math inline">\(c\)</span> is in the domain of <span class="math inline">\(f\)</span>. With this assumption, vertical asymptotes are avoided. However, it need not be that <span class="math inline">\(f'(c)\)</span> exists. The absolute value function at <span class="math inline">\(x=0\)</span> provides an example: this point is a critical point where the derivative changes sign, but <span class="math inline">\(f'(x)\)</span> is not defined at exactly <span class="math inline">\(x=0\)</span>. Regardless, it is guaranteed that <span class="math inline">\(f(c)\)</span> will be a relative minimum by the first derivative test.</p>
+<section id="example" class="level5">
+<h5 class="anchored" data-anchor-id="example">Example</h5>
+<p>Consider the function <span class="math inline">\(f(x) = e^{-\lvert x\rvert} \cos(\pi x)\)</span> over <span class="math inline">\([-3,3]\)</span>:</p>
+<div class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">𝐟</span>(x) <span class="op">=</span> <span class="fu">exp</span>(<span class="fu">-abs</span>(x)) <span class="op">*</span> <span class="fu">cos</span>(<span class="cn">pi</span> <span class="op">*</span> x)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plotif</span>(𝐟, 𝐟<span class="ch">', -3, 3)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<p><img src="first_second_derivatives_files/figure-html/cell-8-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>We can see the first derivative test in action: at the peaks and valleys – the relative extrema – the color changes. This is because <span class="math inline">\(f'\)</span> is changing sign as as the function changes from increasing to decreasing or vice versa.</p>
+<p>This function has a critical point at <span class="math inline">\(0\)</span>, as can be seen. It corresponds to a point where the derivative does not exist. It is still identified through <code>find_zeros</code>, which picks up zeros and in case of discontinuous functions, like <code>f'</code>, zero crossings:</p>
+<div class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">find_zeros</span>(𝐟<span class="ch">', -3, 3)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<pre><code>7-element Vector{Float64}:
+ -2.9019067380477064
+ -1.9019067380477062
+ -0.9019067380477064
+ -0.0
+  0.9019067380477064
+  1.9019067380477062
+  2.9019067380477064</code></pre>
+</div>
+</div>
+</section>
+<section id="example-1" class="level5">
+<h5 class="anchored" data-anchor-id="example-1">Example</h5>
+<p>Find all the relative maxima and minima of the function <span class="math inline">\(f(x) = \sin(\pi \cdot x) \cdot (x^3 - 4x^2 + 2)\)</span> over the interval <span class="math inline">\([-2, 2]\)</span>.</p>
+<p>We will do so numerically. For this task we first need to gather the critical points. As each of the pieces of <span class="math inline">\(f\)</span> are everywhere differentiable and no quotients are involved, the function <span class="math inline">\(f\)</span> will be everywhere differentiable. As such, only zeros of <span class="math inline">\(f'(x)\)</span> can be critical points. We find these with</p>
+<div class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">𝒇</span>(x) <span class="op">=</span> <span class="fu">sin</span>(<span class="cn">pi</span><span class="op">*</span>x) <span class="op">*</span> (x<span class="op">^</span><span class="fl">3</span> <span class="op">-</span> <span class="fl">4</span>x<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> <span class="fl">2</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>𝒇cps <span class="op">=</span> <span class="fu">find_zeros</span>(𝒇<span class="ch">', -2, 2)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<pre><code>6-element Vector{Float64}:
+ -1.6497065688663188
+ -0.8472574303034358
+ -0.3264827018362353
+  0.35183579595045034
+  0.8981933926622453
+  1.6165308438251855</code></pre>
+</div>
+</div>
+<p>We should be careful though, as <code>find_zeros</code> may miss zeros that are not simple or too close together. A critical point will correspond to a relative maximum if the function crosses the axis, so these can not be “pauses.” As this is exactly the case we are screening for, we double check that all the critical points are accounted for by graphing the derivative:</p>
+<div class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(𝒇<span class="ch">', -2, 2, legend=false)</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(zero)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(𝒇cps, <span class="fl">0</span><span class="op">*</span>𝒇cps)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="11">
+<p><img src="first_second_derivatives_files/figure-html/cell-11-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>We see the six zeros as stored in <code>cps</code> and note that at each the function clearly crosses the <span class="math inline">\(x\)</span> axis.</p>
+<p>From this last graph of the derivative we can also characterize the graph of <span class="math inline">\(f\)</span>: The left-most critical point coincides with a relative minimum of <span class="math inline">\(f\)</span>, as the derivative changes sign from negative to positive. The critical points then alternate relative maximum, relative minimum, relative maximum, relative, minimum, and finally relative maximum.</p>
+</section>
+<section id="example-2" class="level5">
+<h5 class="anchored" data-anchor-id="example-2">Example</h5>
+<p>Consider the function <span class="math inline">\(g(x) = \sqrt{\lvert x^2 - 1\rvert}\)</span>. Find the critical points and characterize them as relative extrema or not.</p>
+<p>We will apply the same approach, but need to get a handle on how large the values can be. The function is a composition of three functions. We should expect that the only critical points will occur when the interior polynomial, <span class="math inline">\(x^2-1\)</span> has values of interest, which is around the interval <span class="math inline">\((-1, 1)\)</span>. So we look to the slightly wider interval <span class="math inline">\([-2, 2]\)</span>:</p>
+<div class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">g</span>(x) <span class="op">=</span> <span class="fu">sqrt</span>(<span class="fu">abs</span>(x<span class="op">^</span><span class="fl">2</span> <span class="op">-</span> <span class="fl">1</span>))</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>gcps <span class="op">=</span> <span class="fu">find_zeros</span>(g<span class="op">'</span>, <span class="op">-</span><span class="fl">2</span>, <span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="12">
+<pre><code>3-element Vector{Float64}:
+ -0.9999999999999999
+  0.0
+  0.9999999999999999</code></pre>
+</div>
+</div>
+<p>We see the three values <span class="math inline">\(-1\)</span>, <span class="math inline">\(0\)</span>, <span class="math inline">\(1\)</span> that correspond to the two zeros and the relative minimum of <span class="math inline">\(x^2 - 1\)</span>. We could graph things, but instead we characterize these values using a sign chart. A piecewise continuous function can only change sign when it crosses <span class="math inline">\(0\)</span> or jumps over <span class="math inline">\(0\)</span>. The derivative will be continuous, except possibly at the three values above, so is piecewise continuous.</p>
+<p>A sign chart picks convenient values between crossing points to test if the function is positive or negative over those intervals. When computing by hand, these would ideally be values for which the function is easily computed. On the computer, this isn’t a concern; below the midpoint is chosen:</p>
+<div class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>pts <span class="op">=</span> <span class="fu">sort</span>(<span class="fu">union</span>(<span class="op">-</span><span class="fl">2</span>, gcps, <span class="fl">2</span>))  <span class="co"># this includes the endpoints (a, b) and the critical points</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>test_pts <span class="op">=</span> pts[<span class="fl">1</span><span class="op">:</span><span class="kw">end</span><span class="op">-</span><span class="fl">1</span>] <span class="op">+</span> <span class="fu">diff</span>(pts)<span class="op">/</span><span class="fl">2</span> <span class="co"># midpoints of intervals between pts</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>[test_pts <span class="fu">sign</span>.(g<span class="op">'</span>.(test_pts))]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="13">
+<pre><code>4×2 Matrix{Float64}:
+ -1.5  -1.0
+ -0.5   1.0
+  0.5  -1.0
+  1.5   1.0</code></pre>
+</div>
+</div>
+<p>Such values are often summarized graphically on a number line using a <em>sign chart</em>:</p>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>   <span class="op">-</span>   ∞   <span class="op">+</span>   <span class="fl">0</span>   <span class="op">-</span>   ∞  <span class="op">+</span>   g<span class="op">'</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;----</span> <span class="op">-</span><span class="fl">1</span> <span class="op">-----</span> <span class="fl">0</span> <span class="op">-----</span> <span class="fl">1</span> <span class="op">----&gt;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>(The values where the function is <span class="math inline">\(0\)</span> or could jump over <span class="math inline">\(0\)</span> are shown on the number line, and the sign between these points is indicated. So the first minus sign shows <span class="math inline">\(g'(x)\)</span> is <em>negative</em> on <span class="math inline">\((-\infty, -1)\)</span>, the second minus sign shows <span class="math inline">\(g'(x)\)</span> is negative on <span class="math inline">\((0,1)\)</span>.)</p>
+<p>Reading this we have:</p>
+<ul>
+<li>the derivative changes sign from negative to postive at <span class="math inline">\(x=-1\)</span>, so <span class="math inline">\(g(x)\)</span> will have a relative minimum.</li>
+<li>the derivative changes sign from positive to negative at <span class="math inline">\(x=0\)</span>, so <span class="math inline">\(g(x)\)</span> will have a relative maximum.</li>
+<li>the derivative changes sign from negative to postive at <span class="math inline">\(x=1\)</span>, so <span class="math inline">\(g(x)\)</span> will have a relative minimum.</li>
+</ul>
+<p>In the <code>CalculusWithJulia</code> package there is <code>sign_chart</code> function that will do such work for us, though with a different display:</p>
+<div class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sign_chart</span>(g<span class="op">'</span>, <span class="op">-</span><span class="fl">2</span>, <span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="14">
+<pre><code>3-element Vector{NamedTuple{(:DNE_0_∞, :sign_change), Tuple{Float64, String}}}:
+ (DNE_0_∞ = -0.9999999999999999, sign_change = "- → +")
+ (DNE_0_∞ = 0.0, sign_change = "+ → -")
+ (DNE_0_∞ = 0.9999999999999999, sign_change = "- → +")</code></pre>
+</div>
+</div>
+<p>(This function numerically identifies <span class="math inline">\(x\)</span>-values for the specified function which are zeros, infinities, or points where the function jumps <span class="math inline">\(0\)</span>. It then shows the resulting sign pattern of the function from left to right.)</p>
+<p>We did this all without graphs. But, let’s look at the graph of the derivative:</p>
+<div class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(g<span class="op">'</span>, <span class="op">-</span><span class="fl">2</span>, <span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="15">
+<p><img src="first_second_derivatives_files/figure-html/cell-16-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>We see asymptotes at <span class="math inline">\(x=-1\)</span> and <span class="math inline">\(x=1\)</span>! These aren’t zeroes of <span class="math inline">\(f'(x)\)</span>, but rather where <span class="math inline">\(f'(x)\)</span> does not exist. The conclusion is correct - each of <span class="math inline">\(-1\)</span>, <span class="math inline">\(0\)</span> and <span class="math inline">\(1\)</span> are critical points with the identified characterization - but not for the reason that they are all zeros.</p>
+<div class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(g, <span class="op">-</span><span class="fl">2</span>, <span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="16">
+<p><img src="first_second_derivatives_files/figure-html/cell-17-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>Finally, why does <code>find_zeros</code> find these values that are not zeros of <span class="math inline">\(g'(x)\)</span>? As discussed briefly above, it uses the bisection algorithm on bracketing intervals to find zeros which are guaranteed by the intermediate value theorem, but when applied to discontinuous functions, as <code>f'</code> is, will also identify values where the function jumps over <span class="math inline">\(0\)</span>.</p>
+</section>
+<section id="example-3" class="level5">
+<h5 class="anchored" data-anchor-id="example-3">Example</h5>
+<p>Consider the function <span class="math inline">\(f(x) = \sin(x) - x\)</span>. Characterize the critical points.</p>
+<p>We will work symbolically for this example.</p>
+<div class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> x</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>fx <span class="op">=</span> <span class="fu">sin</span>(x) <span class="op">-</span> x</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>fp <span class="op">=</span> <span class="fu">diff</span>(fx, x)</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="fu">solve</span>(fp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="17">
+<pre><code>2-element Vector{Sym}:
+    0
+ 2⋅π</code></pre>
+</div>
+</div>
+<p>We get values of <span class="math inline">\(0\)</span> and <span class="math inline">\(2\pi\)</span>. Let’s look at the derivative at these points:</p>
+<p>At <span class="math inline">\(x=0\)</span> we have to the left and right signs found by</p>
+<div class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fp</span>(<span class="op">-</span><span class="cn">pi</span><span class="op">/</span><span class="fl">2</span>), <span class="fu">fp</span>(<span class="cn">pi</span><span class="op">/</span><span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="18">
+<pre><code>(-1.00000000000000, -1.00000000000000)</code></pre>
+</div>
+</div>
+<p>Both are negative. The derivative does not change sign at <span class="math inline">\(0\)</span>, so the critical point is neither a relative minimum or maximum.</p>
+<p>What about at <span class="math inline">\(2\pi\)</span>? We do something similar:</p>
+<div class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fp</span>(<span class="fl">2</span>pi <span class="op">-</span> <span class="cn">pi</span><span class="op">/</span><span class="fl">2</span>), <span class="fu">fp</span>(<span class="fl">2</span>pi <span class="op">+</span> <span class="cn">pi</span><span class="op">/</span><span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="19">
+<pre><code>(-1.00000000000000, -1.00000000000000)</code></pre>
+</div>
+</div>
+<p>Again, both negative. The function <span class="math inline">\(f(x)\)</span> is just decreasing near <span class="math inline">\(2\pi\)</span>, so again the critical point is neither a relative minimum or maximum.</p>
+<p>A graph verifies this:</p>
+<div class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fx, <span class="op">-</span><span class="fl">3</span>pi, <span class="fl">3</span>pi)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="20">
+<p><img src="first_second_derivatives_files/figure-html/cell-21-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>We see that at <span class="math inline">\(0\)</span> and <span class="math inline">\(2\pi\)</span> there are “pauses” as the function decreases. We should also see that this pattern repeats. The critical points found by <code>solve</code> are only those within a certain domain. Any value that satisfies <span class="math inline">\(\cos(x) - 1 = 0\)</span> will be a critical point, and there are infinitely many of these of the form <span class="math inline">\(n \cdot 2\pi\)</span> for <span class="math inline">\(n\)</span> an integer.</p>
+<p>As a comment, the <code>solveset</code> function, which is replacing <code>solve</code>, returns the entire collection of zeros:</p>
+<div class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">solveset</span>(fp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="21">
+<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
+\[
+\left\{2 n \pi\; \middle|\; n \in \mathbb{Z}\right\}
+\]
+</span>
+</div>
+</div>
+<hr>
+<p>Of course, <code>sign_chart</code> also does this, only numerically. We just need to pick an interval wide enough to contains <span class="math inline">\([0,2\pi]\)</span></p>
+<div class="cell" data-execution_count="22">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sign_chart</span>((x <span class="op">-&gt;</span> <span class="fu">sin</span>(x)<span class="op">-</span>x)<span class="ch">', -3pi, 3pi)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="22">
+<pre><code>3-element Vector{NamedTuple{(:DNE_0_∞, :sign_change), Tuple{Float64, String}}}:
+ (DNE_0_∞ = -6.283185297666141, sign_change = "- → -")
+ (DNE_0_∞ = 0.0, sign_change = "- → -")
+ (DNE_0_∞ = 6.283185307351308, sign_change = "- → -")</code></pre>
+</div>
+</div>
+</section>
+<section id="example-4" class="level5">
+<h5 class="anchored" data-anchor-id="example-4">Example</h5>
+<p>Suppose you know <span class="math inline">\(f'(x) = (x-1)\cdot(x-2)\cdot (x-3) = x^3 - 6x^2 + 11x - 6\)</span> and <span class="math inline">\(g'(x) = (x-1)\cdot(x-2)^2\cdot(x-3)^3 = x^6 -14x^5 +80x^4-238x^3+387x^2-324x+108\)</span>.</p>
+<p>How would the graphs of <span class="math inline">\(f(x)\)</span> and <span class="math inline">\(g(x)\)</span> differ, as they share identical critical points?</p>
+<p>The graph of <span class="math inline">\(f(x)\)</span> - a function we do not have a formula for - can have its critical points characterized by the first derivative test. As the derivative changes sign at each, all critical points correspond to relative maxima. The sign pattern is negative/positive/negative/positive so we have from left to right a relative minimum, a relative maximum, and then a relative minimum. This is consistent with a <span class="math inline">\(4\)</span>th degree polynomial with <span class="math inline">\(3\)</span> relative extrema.</p>
+<p>For the graph of <span class="math inline">\(g(x)\)</span> we can apply the same analysis. Thinking for a moment, we see as the factor <span class="math inline">\((x-2)^2\)</span> comes as a power of <span class="math inline">\(2\)</span>, the derivative of <span class="math inline">\(g(x)\)</span> will not change sign at <span class="math inline">\(x=2\)</span>, so there is no relative extreme value there. However, at <span class="math inline">\(x=3\)</span> the factor has an odd power, so the derivative will change sign at <span class="math inline">\(x=3\)</span>. So, as <span class="math inline">\(g'(x)\)</span> is positive for large <em>negative</em> values, there will be a relative maximum at <span class="math inline">\(x=1\)</span> and, as <span class="math inline">\(g'(x)\)</span> is positive for large <em>positive</em> values, a relative minimum at <span class="math inline">\(x=3\)</span>.</p>
+<p>The latter is consistent with a <span class="math inline">\(7\)</span>th degree polynomial with positive leading coefficient. It is intuitive that since <span class="math inline">\(g'(x)\)</span> is a <span class="math inline">\(6\)</span>th degree polynomial, <span class="math inline">\(g(x)\)</span> will be a <span class="math inline">\(7\)</span>th degree one, as the power rule applied to a polynomial results in a polynomial of lesser degree by one.</p>
+<p>Here is a simple schematic that illustrates the above considerations.</p>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>f<span class="op">'</span>  <span class="op">-</span>   <span class="fl">0</span>   <span class="op">+</span>   <span class="fl">0</span>   <span class="op">-</span>   <span class="fl">0</span>   <span class="op">+</span>     f<span class="op">'-</span>sign</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>    ↘       ↗       ↘       ↗     f<span class="op">-</span>direction</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>        <span class="op">∪</span>       <span class="op">∩</span>       <span class="op">∪</span>         f<span class="op">-</span>shape</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>g<span class="op">'</span>  <span class="op">+</span>   <span class="fl">0</span>   <span class="op">-</span>   <span class="fl">0</span>   <span class="op">-</span>   <span class="fl">0</span>   <span class="op">+</span>     g<span class="op">'-</span>sign</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>    ↗       ↘       ↘       ↗     g<span class="op">-</span>direction</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>        <span class="op">∩</span>       <span class="op">~</span>       <span class="op">∪</span>         g<span class="op">-</span>shape</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;------</span> <span class="fl">1</span> <span class="op">-----</span> <span class="fl">2</span> <span class="op">-----</span> <span class="fl">3</span> <span class="op">------&gt;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+</section>
+</section>
+<section id="concavity" class="level2" data-number="27.3">
+<h2 data-number="27.3" class="anchored" data-anchor-id="concavity"><span class="header-section-number">27.3</span> Concavity</h2>
+<p>Consider the function <span class="math inline">\(f(x) = x^2\)</span>. Over this function we draw some secant lines for a few pairs of <span class="math inline">\(x\)</span> values:</p>
+<div class="cell" data-execution_count="24">
+<div class="cell-output cell-output-display" data-execution_count="23">
+<p><img src="first_second_derivatives_files/figure-html/cell-25-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>The graph attempts to illustrate that for this function the secant line between any two points <span class="math inline">\(a &lt; b\)</span> will lie above the graph over <span class="math inline">\([a,b]\)</span>.</p>
+<p>This is a special property not shared by all functions. Let <span class="math inline">\(I\)</span> be an open interval.</p>
+<blockquote class="blockquote">
+<p><strong>Concave up</strong>: A function <span class="math inline">\(f(x)\)</span> is concave up on <span class="math inline">\(I\)</span> if for any <span class="math inline">\(a &lt; b\)</span> in <span class="math inline">\(I\)</span>, the secant line between <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> lies above the graph of <span class="math inline">\(f(x)\)</span> over <span class="math inline">\([a,b]\)</span>.</p>
+</blockquote>
+<p>A similar definition exists for <em>concave down</em> where the secant lines lie below the graph. Notationally, concave up says for any <span class="math inline">\(x\)</span> in <span class="math inline">\([a,b]\)</span>:</p>
+<p><span class="math display">\[
+f(a) + \frac{f(b) - f(a)}{b-a} \cdot (x-a) \geq f(x) \quad\text{ (concave up) }
+\]</span></p>
+<p>Replacing <span class="math inline">\(\geq\)</span> with <span class="math inline">\(\leq\)</span> defines <em>concave down</em>, and with either <span class="math inline">\(&gt;\)</span> or <span class="math inline">\(&lt;\)</span> will add the prefix “strictly.” These definitions are useful for a general definition of <a href="https://en.wikipedia.org/wiki/Convex_function">convex functions</a>.</p>
+<p>We won’t work with these definitions in this section, rather we will characterize concavity for functions which have either a first or second derivative:</p>
+<blockquote class="blockquote">
+<ul>
+<li>If <span class="math inline">\(f'(x)\)</span> exists and is <em>increasing</em> on <span class="math inline">\((a,b)\)</span>, then <span class="math inline">\(f(x)\)</span> is concave up on <span class="math inline">\((a,b)\)</span>.</li>
+<li>If <span class="math inline">\(f'(x)\)</span> is <em>decreasing</em> on <span class="math inline">\((a,b)\)</span>, then <span class="math inline">\(f(x)\)</span> is concave <em>down</em>.</li>
+</ul>
+</blockquote>
+<p>A proof of this makes use of the same trick used to establish the mean value theorem from Rolle’s theorem. Assume <span class="math inline">\(f'\)</span> is increasing and let <span class="math inline">\(g(x) = f(x) - (f(a) + M \cdot (x-a))\)</span>, where <span class="math inline">\(M\)</span> is the slope of the secant line between <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>. By construction <span class="math inline">\(g(a) = g(b) = 0\)</span>. If <span class="math inline">\(f'(x)\)</span> is increasing, then so is <span class="math inline">\(g'(x) = f'(x) + M\)</span>. By its definition above, showing <span class="math inline">\(f\)</span> is concave up is the same as showing <span class="math inline">\(g(x) \leq 0\)</span>. Suppose to the contrary that there is a value where <span class="math inline">\(g(x) &gt; 0\)</span> in <span class="math inline">\([a,b]\)</span>. We show this can’t be. Assuming <span class="math inline">\(g'(x)\)</span> always exists, after some work, Rolle’s theorem will ensure there is a value where <span class="math inline">\(g'(c) = 0\)</span> and <span class="math inline">\((c,g(c))\)</span> is a relative maximum, and as we know there is at least one positive value, it must be <span class="math inline">\(g(c) &gt; 0\)</span>. The first derivative test then ensures that <span class="math inline">\(g'(x)\)</span> will increase to the left of <span class="math inline">\(c\)</span> and decrease to the right of <span class="math inline">\(c\)</span>, since <span class="math inline">\(c\)</span> is at a critical point and not an endpoint. But this can’t happen as <span class="math inline">\(g'(x)\)</span> is assumed to be increasing on the interval.</p>
+<p>The relationship between increasing functions and their derivatives – if $f’(x) &gt; 0 $ on <span class="math inline">\(I\)</span>, then <span class="math inline">\(f\)</span> is increasing on <span class="math inline">\(I\)</span> – gives this second characterization of concavity when the second derivative exists:</p>
+<blockquote class="blockquote">
+<ul>
+<li>If <span class="math inline">\(f''(x)\)</span> exists and is positive on <span class="math inline">\(I\)</span>, then <span class="math inline">\(f(x)\)</span> is concave up on <span class="math inline">\(I\)</span>.</li>
+<li>If <span class="math inline">\(f''(x)\)</span> exists and is negative on <span class="math inline">\(I\)</span>, then <span class="math inline">\(f(x)\)</span> is concave down on <span class="math inline">\(I\)</span>.</li>
+</ul>
+</blockquote>
+<p>This follows, as we can think of <span class="math inline">\(f''(x)\)</span> as just the first derivative of the function <span class="math inline">\(f'(x)\)</span>, so the assumption will force <span class="math inline">\(f'(x)\)</span> to exist and be increasing, and hence <span class="math inline">\(f(x)\)</span> to be concave up.</p>
+<section id="example-5" class="level5">
+<h5 class="anchored" data-anchor-id="example-5">Example</h5>
+<p>Let’s look at the function <span class="math inline">\(x^2 \cdot e^{-x}\)</span> for positive <span class="math inline">\(x\)</span>. A quick graph shows the function is concave up, then down, then up in the region plotted:</p>
+<div class="cell" data-execution_count="25">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">h</span>(x) <span class="op">=</span> x<span class="op">^</span><span class="fl">2</span> <span class="op">*</span> <span class="fu">exp</span>(<span class="op">-</span>x)</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plotif</span>(h, h<span class="op">''</span>, <span class="fl">0</span>, <span class="fl">8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="24">
+<p><img src="first_second_derivatives_files/figure-html/cell-26-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>From the graph, we would expect that the second derivative - which is continuous - would have two zeros on <span class="math inline">\([0,8]\)</span>:</p>
+<div class="cell" data-execution_count="26">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>ips <span class="op">=</span> <span class="fu">find_zeros</span>(h<span class="op">''</span>, <span class="fl">0</span>, <span class="fl">8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="25">
+<pre><code>2-element Vector{Float64}:
+ 0.5857864376269049
+ 3.414213562373095</code></pre>
+</div>
+</div>
+<p>As well, between the zeros we should have the sign pattern <code>+</code>, <code>-</code>, and <code>+</code>, as we verify:</p>
+<div class="cell" data-execution_count="27">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sign_chart</span>(h<span class="op">''</span>, <span class="fl">0</span>, <span class="fl">8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="26">
+<pre><code>2-element Vector{NamedTuple{(:DNE_0_∞, :sign_change), Tuple{Float64, String}}}:
+ (DNE_0_∞ = 0.5857864376269049, sign_change = "+ → -")
+ (DNE_0_∞ = 3.414213562373095, sign_change = "- → +")</code></pre>
+</div>
+</div>
+</section>
+<section id="second-derivative-test" class="level3" data-number="27.3.1">
+<h3 data-number="27.3.1" class="anchored" data-anchor-id="second-derivative-test"><span class="header-section-number">27.3.1</span> Second derivative test</h3>
+<p>Concave up functions are “opening” up, and often clearly <span class="math inline">\(U\)</span>-shaped, though that is not necessary. At a relative minimum, where there is a <span class="math inline">\(U\)</span>-shape, the graph will be concave up; conversely at a relative maximum, where the graph has a downward <span class="math inline">\(\cap\)</span>-shape, the function will be concave down. This observation becomes:</p>
+<blockquote class="blockquote">
+<p>The <strong>second derivative test</strong>: If <span class="math inline">\(c\)</span> is a critical point of <span class="math inline">\(f(x)\)</span> with <span class="math inline">\(f''(c)\)</span> existing in a neighborhood of <span class="math inline">\(c\)</span>, then</p>
+<ul>
+<li>The value <span class="math inline">\(f(c)\)</span> will be a relative maximum if <span class="math inline">\(f''(c) &gt; 0\)</span>,</li>
+<li>The value <span class="math inline">\(f(c)\)</span> will be a relative minimum if <span class="math inline">\(f''(c) &lt; 0\)</span>, and</li>
+<li><em>if</em> <span class="math inline">\(f''(c) = 0\)</span> the test is <em>inconclusive</em>.</li>
+</ul>
+</blockquote>
+<p>If <span class="math inline">\(f''(c)\)</span> is positive in an interval about <span class="math inline">\(c\)</span>, then <span class="math inline">\(f''(c) &gt; 0\)</span> implies the function is concave up at <span class="math inline">\(x=c\)</span>. In turn, concave up implies the derivative is increasing so must go from negative to positive at the critical point.</p>
+<p>The second derivative test is <strong>inconclusive</strong> when <span class="math inline">\(f''(c)=0\)</span>. No such general statement exists, as there isn’t enough information. For example, the function <span class="math inline">\(f(x) = x^3\)</span> has <span class="math inline">\(0\)</span> as a critical point, <span class="math inline">\(f''(0)=0\)</span> and the value does not correspond to a relative maximum or minimum. On the other hand <span class="math inline">\(f(x)=x^4\)</span> has <span class="math inline">\(0\)</span> as a critical point, <span class="math inline">\(f''(0)=0\)</span> is a relative minimum.</p>
+<section id="example-6" class="level5">
+<h5 class="anchored" data-anchor-id="example-6">Example</h5>
+<p>Use the second derivative test to characterize the critical points of <span class="math inline">\(j(x) = x^5 - x^4 + x^3\)</span>.</p>
+<div class="cell" data-execution_count="28">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">j</span>(x) <span class="op">=</span> x<span class="op">^</span><span class="fl">5</span> <span class="op">-</span> <span class="fl">2</span>x<span class="op">^</span><span class="fl">4</span> <span class="op">+</span> x<span class="op">^</span><span class="fl">3</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>jcps <span class="op">=</span> <span class="fu">find_zeros</span>(j<span class="op">'</span>, <span class="op">-</span><span class="fl">3</span>, <span class="fl">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="27">
+<pre><code>3-element Vector{Float64}:
+ 0.0
+ 0.6000000000000001
+ 1.0</code></pre>
+</div>
+</div>
+<p>We can check the sign of the second derivative for each critical point:</p>
+<div class="cell" data-execution_count="29">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>[jcps j<span class="op">''</span>.(jcps)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="28">
+<pre><code>3×2 Matrix{Float64}:
+ 0.0   0.0
+ 0.6  -0.72
+ 1.0   2.0</code></pre>
+</div>
+</div>
+<p>That <span class="math inline">\(j''(0.6) &lt; 0\)</span> implies that at <span class="math inline">\(0.6\)</span>, <span class="math inline">\(j(x)\)</span> will have a relative maximum. As <span class="math inline">\(''(1) &gt; 0\)</span>, the second derivative test says at <span class="math inline">\(x=1\)</span> there will be a relative minimum. That <span class="math inline">\(j''(0) = 0\)</span> says that only that there <strong>may</strong> be a relative maximum or minimum at <span class="math inline">\(x=0\)</span>, as the second derivative test does not speak to this situation. (This last check, requiring a function evaluation to be <code>0</code>, is susceptible to floating point errors, so isn’t very robust as a general tool.)</p>
+<p>This should be consistent with this graph, where <span class="math inline">\(-0.25\)</span>, and <span class="math inline">\(1.25\)</span> are chosen to capture the zero at <span class="math inline">\(0\)</span> and the two relative extrema:</p>
+<div class="cell" data-execution_count="30">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plotif</span>(j, j<span class="op">''</span>, <span class="op">-</span><span class="fl">0.25</span>, <span class="fl">1.25</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="29">
+<p><img src="first_second_derivatives_files/figure-html/cell-31-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>For the graph we see that <span class="math inline">\(0\)</span> <strong>is not</strong> a relative maximum or minimum. We could have seen this numerically by checking the first derivative test, and noting there is no sign change:</p>
+<div class="cell" data-execution_count="31">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sign_chart</span>(j<span class="op">'</span>, <span class="op">-</span><span class="fl">3</span>, <span class="fl">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="30">
+<pre><code>3-element Vector{NamedTuple{(:DNE_0_∞, :sign_change), Tuple{Float64, String}}}:
+ (DNE_0_∞ = 0.0, sign_change = "+ → +")
+ (DNE_0_∞ = 0.6000000000000001, sign_change = "+ → -")
+ (DNE_0_∞ = 1.0, sign_change = "- → +")</code></pre>
+</div>
+</div>
+</section>
+<section id="example-7" class="level5">
+<h5 class="anchored" data-anchor-id="example-7">Example</h5>
+<p>One way to visualize the second derivative test is to <em>locally</em> overlay on a critical point a parabola. For example, consider <span class="math inline">\(f(x) = \sin(x) + \sin(2x) + \sin(3x)\)</span> over <span class="math inline">\([0,2\pi]\)</span>. It has <span class="math inline">\(6\)</span> critical points over <span class="math inline">\([0,2\pi]\)</span>. In this graphic, we <em>locally</em> layer on <span class="math inline">\(6\)</span> parabolas:</p>
+<div class="cell" data-hold="true" data-execution_count="32">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> <span class="fu">sin</span>(x) <span class="op">+</span> <span class="fu">sin</span>(<span class="fl">2</span>x) <span class="op">+</span> <span class="fu">sin</span>(<span class="fl">3</span>x)</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="fu">plot</span>(f, <span class="fl">0</span>, <span class="fl">2</span>pi, legend<span class="op">=</span><span class="cn">false</span>, color<span class="op">=:</span>blue, linewidth<span class="op">=</span><span class="fl">3</span>)</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>cps <span class="op">=</span> <span class="fu">find_zeros</span>(f<span class="op">'</span>, (<span class="fl">0</span>, <span class="fl">2</span>pi))</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>Δ <span class="op">=</span> <span class="fl">0.5</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> c <span class="kw">in</span> cps</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">parabola</span>(x) <span class="op">=</span> <span class="fu">f</span>(c) <span class="op">+</span> (f<span class="op">''</span>(c)<span class="op">/</span><span class="fl">2</span>) <span class="op">*</span> (x<span class="op">-</span>c)<span class="op">^</span><span class="fl">2</span></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot!</span>(parabola, c <span class="op">-</span> Δ, c <span class="op">+</span> Δ, color<span class="op">=:</span>red, linewidth<span class="op">=</span><span class="fl">5</span>, alpha<span class="op">=</span><span class="fl">0.6</span>)</span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>p</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="31">
+<p><img src="first_second_derivatives_files/figure-html/cell-33-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>The graphic shows that for this function near the relative extrema the parabolas <em>approximate</em> the function well, so that the relative extrema are characterized by the relative extrema of the parabolas.</p>
+<p>At each critical point <span class="math inline">\(c\)</span>, the parabolas have the form</p>
+<p><span class="math display">\[
+f(c) + \frac{f''(c)}{2}(x-c)^2.
+\]</span></p>
+<p>The <span class="math inline">\(2\)</span> is a mystery to be answered in the section on <a href="../taylor_series_polynomials.html">Taylor series</a>, the focus here is on the <em>sign</em> of <span class="math inline">\(f''(c)\)</span>:</p>
+<ul>
+<li>if <span class="math inline">\(f''(c) &gt; 0\)</span> then the approximating parabola opens upward and the critical point is a point of relative minimum for <span class="math inline">\(f\)</span>,</li>
+<li>if <span class="math inline">\(f''(c) &lt; 0\)</span> then the approximating parabola opens downward and the critical point is a point of relative maximum for <span class="math inline">\(f\)</span>, and</li>
+<li>were <span class="math inline">\(f''(c) = 0\)</span> then the approximating parabola is just a line – the tangent line at a critical point – and is non-informative about extrema.</li>
+</ul>
+<p>That is, the parabola picture is just the second derivative test in this light.</p>
+</section>
+</section>
+<section id="inflection-points" class="level3" data-number="27.3.2">
+<h3 data-number="27.3.2" class="anchored" data-anchor-id="inflection-points"><span class="header-section-number">27.3.2</span> Inflection points</h3>
+<p>An inflection point is a value where the <em>second</em> derivative of <span class="math inline">\(f\)</span> changes sign. At an inflection point the derivative will change from increasing to decreasing (or vice versa) and the function will change from concave up to down (or vice versa).</p>
+<p>We can use the <code>find_zeros</code> function to identify potential inflection points by passing in the second derivative function. For example, consider the bell-shaped function</p>
+<p><span class="math display">\[
+k(x) = e^{-x^2/2}.
+\]</span></p>
+<p>A graph suggests relative a maximum at <span class="math inline">\(x=0\)</span>, a horizontal asymptote of <span class="math inline">\(y=0\)</span>, and two inflection points:</p>
+<div class="cell" data-execution_count="33">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">k</span>(x) <span class="op">=</span> <span class="fu">exp</span>(<span class="op">-</span>x<span class="op">^</span><span class="fl">2</span><span class="op">/</span><span class="fl">2</span>)</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plotif</span>(k, k<span class="op">''</span>, <span class="op">-</span><span class="fl">3</span>, <span class="fl">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="32">
+<p><img src="first_second_derivatives_files/figure-html/cell-34-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>The inflection points can be found directly, if desired, or numerically with:</p>
+<div class="cell" data-execution_count="34">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">find_zeros</span>(k<span class="op">''</span>, <span class="op">-</span><span class="fl">3</span>, <span class="fl">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="33">
+<pre><code>2-element Vector{Float64}:
+ -1.0
+  1.0</code></pre>
+</div>
+</div>
+<p>(The <code>find_zeros</code> function may return points which are not inflection points. It primarily returns points where <span class="math inline">\(k''(x)\)</span> changes sign, but <em>may</em> also find points where <span class="math inline">\(k''(x)\)</span> is <span class="math inline">\(0\)</span> yet does not change sign at <span class="math inline">\(x\)</span>.)</p>
+<section id="example-8" class="level5">
+<h5 class="anchored" data-anchor-id="example-8">Example</h5>
+<p>A car travels from a stop for 1 mile in 2 minutes. A graph of its position as a function of time might look like any of these graphs:</p>
+<div class="cell" data-execution_count="35">
+<div class="cell-output cell-output-display" data-execution_count="34">
+<p><img src="first_second_derivatives_files/figure-html/cell-36-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>All three graphs have the same <em>average</em> velocity which is just the <span class="math inline">\(1/2\)</span> miles per minute (<span class="math inline">\(30\)</span> miles an hour). But the instantaneous velocity - which is given by the derivative of the position function) varies.</p>
+<p>The graph <code>f1</code> has constant velocity, so the position is a straight line with slope <span class="math inline">\(v_0\)</span>. The graph <code>f2</code> is similar, though for first and last 30 seconds, the car does not move, so must move faster during the time it moves. A more realistic graph would be <code>f3</code>. The position increases continuously, as do the others, but the velocity changes more gradually. The initial velocity is less than <span class="math inline">\(v_0\)</span>, but eventually gets to be more than <span class="math inline">\(v_0\)</span>, then velocity starts to increase less. At no point is the velocity not increasing, for <code>f3</code>, the way it is for <code>f2</code> after a minute and a half.</p>
+<p>The rate of change of the velocity is the acceleration. For <code>f1</code> this is zero, for <code>f2</code> it is zero as well - when it is defined. However, for <code>f3</code> we see the increase in velocity is positive in the first minute, but negative in the second minute. This fact relates to the concavity of the graph. As acceleration is the derivative of velocity, it is the second derivative of position - the graph we see. Where the acceleration is <em>positive</em>, the position graph will be concave <em>up</em>, where the acceleration is <em>negative</em> the graph will be concave <em>down</em>. The point <span class="math inline">\(t=1\)</span> is an inflection point, and would be felt by most riders.</p>
+</section>
+</section>
+</section>
+<section id="questions" class="level2" data-number="27.4">
+<h2 data-number="27.4" class="anchored" data-anchor-id="questions"><span class="header-section-number">27.4</span> Questions</h2>
+<section id="question" class="level6">
+<h6 class="anchored" data-anchor-id="question">Question</h6>
+<p>Consider this graph:</p>
+<div class="cell" data-execution_count="36">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(airyai, <span class="op">-</span><span class="fl">5</span>, <span class="fl">0</span>)  <span class="co"># airyai in `SpecialFunctions` loaded with `CalculusWithJulia`</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="35">
+<p><img src="first_second_derivatives_files/figure-html/cell-37-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>On what intervals (roughly) is the function positive?</p>
+<div class="cell" data-hold="true" data-execution_count="37">
+<div class="cell-output cell-output-display" data-execution_count="36">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="11861454695876820854" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_11861454695876820854">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_11861454695876820854_1">
+      <input class="form-check-input" type="radio" name="radio_11861454695876820854" id="radio_11861454695876820854_1" value="1">
+      
+      <span class="label-body px-1">
+        \((-3.2,-1)\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_11861454695876820854_2">
+      <input class="form-check-input" type="radio" name="radio_11861454695876820854" id="radio_11861454695876820854_2" value="2">
+      
+      <span class="label-body px-1">
+        \((-5, -4.2)\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_11861454695876820854_3">
+      <input class="form-check-input" type="radio" name="radio_11861454695876820854" id="radio_11861454695876820854_3" value="3">
+      
+      <span class="label-body px-1">
+        \((-5, -4.2)\) and \((-2.5, 0)\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_11861454695876820854_4">
+      <input class="form-check-input" type="radio" name="radio_11861454695876820854" id="radio_11861454695876820854_4" value="4">
+      
+      <span class="label-body px-1">
+        \((-4.2, -2.5)\)
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="11861454695876820854_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_11861454695876820854"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 3;
+    var msgBox = document.getElementById('11861454695876820854_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_11861454695876820854")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_11861454695876820854")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-1" class="level6">
+<h6 class="anchored" data-anchor-id="question-1">Question</h6>
+<p>Consider this graph:</p>
+<div class="cell" data-hold="true" data-execution_count="38">
+<div class="cell-output cell-output-display" data-execution_count="37">
+<p><img src="first_second_derivatives_files/figure-html/cell-39-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>On what intervals (roughly) is the function negative?</p>
+<div class="cell" data-hold="true" data-execution_count="39">
+<div class="cell-output cell-output-display" data-execution_count="38">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="1940717584308247609" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_1940717584308247609">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_1940717584308247609_1">
+      <input class="form-check-input" type="radio" name="radio_1940717584308247609" id="radio_1940717584308247609_1" value="1">
+      
+      <span class="label-body px-1">
+        \((-25.0, 0.0)\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_1940717584308247609_2">
+      <input class="form-check-input" type="radio" name="radio_1940717584308247609" id="radio_1940717584308247609_2" value="2">
+      
+      <span class="label-body px-1">
+        \((-4.0, -3.0)\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_1940717584308247609_3">
+      <input class="form-check-input" type="radio" name="radio_1940717584308247609" id="radio_1940717584308247609_3" value="3">
+      
+      <span class="label-body px-1">
+        \((-5.0, -4.0)\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_1940717584308247609_4">
+      <input class="form-check-input" type="radio" name="radio_1940717584308247609" id="radio_1940717584308247609_4" value="4">
+      
+      <span class="label-body px-1">
+        \((-5.0, -4.0)\) and \((-4, -3)\)
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="1940717584308247609_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_1940717584308247609"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('1940717584308247609_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_1940717584308247609")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_1940717584308247609")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-2" class="level6">
+<h6 class="anchored" data-anchor-id="question-2">Question</h6>
+<p>Consider this graph</p>
+<div class="cell" data-hold="true" data-execution_count="40">
+<div class="cell-output cell-output-display" data-execution_count="39">
+<p><img src="first_second_derivatives_files/figure-html/cell-41-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>On what interval(s) is this function increasing?</p>
+<div class="cell" data-hold="true" data-execution_count="41">
+<div class="cell-output cell-output-display" data-execution_count="40">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="1357348874548823184" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_1357348874548823184">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_1357348874548823184_1">
+      <input class="form-check-input" type="radio" name="radio_1357348874548823184" id="radio_1357348874548823184_1" value="1">
+      
+      <span class="label-body px-1">
+        \((-3.8, -3.0)\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_1357348874548823184_2">
+      <input class="form-check-input" type="radio" name="radio_1357348874548823184" id="radio_1357348874548823184_2" value="2">
+      
+      <span class="label-body px-1">
+        \((-4.7, -3.0)\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_1357348874548823184_3">
+      <input class="form-check-input" type="radio" name="radio_1357348874548823184" id="radio_1357348874548823184_3" value="3">
+      
+      <span class="label-body px-1">
+        \((-0.17, 0.17)\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_1357348874548823184_4">
+      <input class="form-check-input" type="radio" name="radio_1357348874548823184" id="radio_1357348874548823184_4" value="4">
+      
+      <span class="label-body px-1">
+        \((-5.0, -3.8)\)
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="1357348874548823184_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_1357348874548823184"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('1357348874548823184_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_1357348874548823184")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_1357348874548823184")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-3" class="level6">
+<h6 class="anchored" data-anchor-id="question-3">Question</h6>
+<p>Consider this graph</p>
+<div class="cell" data-hold="true" data-execution_count="42">
+<div class="cell-output cell-output-display" data-execution_count="41">
+<p><img src="first_second_derivatives_files/figure-html/cell-43-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>On what interval(s) is this function concave up?</p>
+<div class="cell" data-hold="true" data-execution_count="43">
+<div class="cell-output cell-output-display" data-execution_count="42">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="13949835895127967641" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_13949835895127967641">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_13949835895127967641_1">
+      <input class="form-check-input" type="radio" name="radio_13949835895127967641" id="radio_13949835895127967641_1" value="1">
+      
+      <span class="label-body px-1">
+        \((-3.0, 3.0)\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_13949835895127967641_2">
+      <input class="form-check-input" type="radio" name="radio_13949835895127967641" id="radio_13949835895127967641_2" value="2">
+      
+      <span class="label-body px-1">
+        \((-0.6, 0.6)\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_13949835895127967641_3">
+      <input class="form-check-input" type="radio" name="radio_13949835895127967641" id="radio_13949835895127967641_3" value="3">
+      
+      <span class="label-body px-1">
+        \((-3.0, -0.6)\) and \((0.6, 3.0)\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_13949835895127967641_4">
+      <input class="form-check-input" type="radio" name="radio_13949835895127967641" id="radio_13949835895127967641_4" value="4">
+      
+      <span class="label-body px-1">
+        \((0.1, 1.0)\)
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="13949835895127967641_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_13949835895127967641"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 3;
+    var msgBox = document.getElementById('13949835895127967641_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_13949835895127967641")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_13949835895127967641")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-4" class="level6">
+<h6 class="anchored" data-anchor-id="question-4">Question</h6>
+<p>If it is known that:</p>
+<ul>
+<li>A function <span class="math inline">\(f(x)\)</span> has critical points at <span class="math inline">\(x=-1, 0, 1\)</span></li>
+<li>at <span class="math inline">\(-2\)</span> an <span class="math inline">\(-1/2\)</span> the values are: <span class="math inline">\(f'(-2) = 1\)</span> and <span class="math inline">\(f'(-1/2) = -1\)</span>.</li>
+</ul>
+<p>What can be concluded?</p>
+<div class="cell" data-hold="true" data-execution_count="44">
+<div class="cell-output cell-output-display" data-execution_count="43">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="10276847934091697220" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_10276847934091697220">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_10276847934091697220_1">
+      <input class="form-check-input" type="radio" name="radio_10276847934091697220" id="radio_10276847934091697220_1" value="1">
+      
+      <span class="label-body px-1">
+        Nothing
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_10276847934091697220_2">
+      <input class="form-check-input" type="radio" name="radio_10276847934091697220" id="radio_10276847934091697220_2" value="2">
+      
+      <span class="label-body px-1">
+        That the critical point at \(-1\) is a relative maximum
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_10276847934091697220_3">
+      <input class="form-check-input" type="radio" name="radio_10276847934091697220" id="radio_10276847934091697220_3" value="3">
+      
+      <span class="label-body px-1">
+        That the critical point at \(-1\) is a relative minimum
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_10276847934091697220_4">
+      <input class="form-check-input" type="radio" name="radio_10276847934091697220" id="radio_10276847934091697220_4" value="4">
+      
+      <span class="label-body px-1">
+        That the critical point at \(0\) is a relative maximum
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_10276847934091697220_5">
+      <input class="form-check-input" type="radio" name="radio_10276847934091697220" id="radio_10276847934091697220_5" value="5">
+      
+      <span class="label-body px-1">
+        That the critical point at \(0\) is a relative minimum
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="10276847934091697220_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_10276847934091697220"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('10276847934091697220_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_10276847934091697220")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_10276847934091697220")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-5" class="level6">
+<h6 class="anchored" data-anchor-id="question-5">Question</h6>
+<p>Mystery function <span class="math inline">\(f(x)\)</span> has <span class="math inline">\(f'(2) = 0\)</span> and <span class="math inline">\(f''(0) = 2\)</span>. What is the <em>most</em> you can say about <span class="math inline">\(x=2\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="45">
+<div class="cell-output cell-output-display" data-execution_count="44">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="1743684582933259833" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_1743684582933259833">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_1743684582933259833_1">
+      <input class="form-check-input" type="radio" name="radio_1743684582933259833" id="radio_1743684582933259833_1" value="1">
+      
+      <span class="label-body px-1">
+        \(f(x)\) is continuous at \(2\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_1743684582933259833_2">
+      <input class="form-check-input" type="radio" name="radio_1743684582933259833" id="radio_1743684582933259833_2" value="2">
+      
+      <span class="label-body px-1">
+        \(f(x)\) is continuous and differentiable at \(2\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_1743684582933259833_3">
+      <input class="form-check-input" type="radio" name="radio_1743684582933259833" id="radio_1743684582933259833_3" value="3">
+      
+      <span class="label-body px-1">
+        \(f(x)\) is continuous and differentiable at \(2\) and has a critical point
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_1743684582933259833_4">
+      <input class="form-check-input" type="radio" name="radio_1743684582933259833" id="radio_1743684582933259833_4" value="4">
+      
+      <span class="label-body px-1">
+        \(f(x)\) is continuous and differentiable at \(2\) and has a critical point that is a relative minimum by the second derivative test
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="1743684582933259833_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_1743684582933259833"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 3;
+    var msgBox = document.getElementById('1743684582933259833_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_1743684582933259833")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_1743684582933259833")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-6" class="level6">
+<h6 class="anchored" data-anchor-id="question-6">Question</h6>
+<p>Find the smallest critical point of <span class="math inline">\(f(x) = x^3 e^{-x}\)</span>.</p>
+<div class="cell" data-execution_count="46">
+<div class="cell-output cell-output-display" data-execution_count="45">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="3251972325680522078" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_3251972325680522078">
+        <div style="padding-top: 5px">
+    <br>
+<div class="input-group">
+    <input id="3251972325680522078" type="number" class="form-control" placeholder="Numeric answer">
+</div>
+
+    
+        </div>
+      </div>
+      <div id="3251972325680522078_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.getElementById("3251972325680522078").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 9.669542095558374e-40) <= 0.001);
+  var msgBox = document.getElementById('3251972325680522078_message');
+    if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_3251972325680522078")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_3251972325680522078")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-7" class="level6">
+<h6 class="anchored" data-anchor-id="question-7">Question</h6>
+<p>How many critical points does <span class="math inline">\(f(x) = x^5 - x + 1\)</span> have?</p>
+<div class="cell" data-execution_count="47">
+<div class="cell-output cell-output-display" data-execution_count="46">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="6154402601507122873" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_6154402601507122873">
+        <div style="padding-top: 5px">
+    <br>
+<div class="input-group">
+    <input id="6154402601507122873" type="number" class="form-control" placeholder="Numeric answer">
+</div>
+
+    
+        </div>
+      </div>
+      <div id="6154402601507122873_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.getElementById("6154402601507122873").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 2) <= 0);
+  var msgBox = document.getElementById('6154402601507122873_message');
+    if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_6154402601507122873")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_6154402601507122873")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-8" class="level6">
+<h6 class="anchored" data-anchor-id="question-8">Question</h6>
+<p>How many inflection points does <span class="math inline">\(f(x) = x^5 - x + 1\)</span> have?</p>
+<div class="cell" data-execution_count="48">
+<div class="cell-output cell-output-display" data-execution_count="47">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="2554707315728341584" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_2554707315728341584">
+        <div style="padding-top: 5px">
+    <br>
+<div class="input-group">
+    <input id="2554707315728341584" type="number" class="form-control" placeholder="Numeric answer">
+</div>
+
+    
+        </div>
+      </div>
+      <div id="2554707315728341584_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.getElementById("2554707315728341584").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 1) <= 0);
+  var msgBox = document.getElementById('2554707315728341584_message');
+    if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_2554707315728341584")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_2554707315728341584")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-9" class="level6">
+<h6 class="anchored" data-anchor-id="question-9">Question</h6>
+<p>At <span class="math inline">\(c\)</span>, <span class="math inline">\(f'(c) = 0\)</span> and <span class="math inline">\(f''(c) = 1 + c^2\)</span>. Is <span class="math inline">\((c,f(c))\)</span> a relative maximum? (<span class="math inline">\(f\)</span> is a “nice” function.)</p>
+<div class="cell" data-hold="true" data-execution_count="49">
+<div class="cell-output cell-output-display" data-execution_count="48">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="8074639092647113015" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_8074639092647113015">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_8074639092647113015_1">
+      <input class="form-check-input" type="radio" name="radio_8074639092647113015" id="radio_8074639092647113015_1" value="1">
+      
+      <span class="label-body px-1">
+        No, it is a relative minimum
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_8074639092647113015_2">
+      <input class="form-check-input" type="radio" name="radio_8074639092647113015" id="radio_8074639092647113015_2" value="2">
+      
+      <span class="label-body px-1">
+        No, the second derivative test is possibly inconclusive
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_8074639092647113015_3">
+      <input class="form-check-input" type="radio" name="radio_8074639092647113015" id="radio_8074639092647113015_3" value="3">
+      
+      <span class="label-body px-1">
+        Yes
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="8074639092647113015_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_8074639092647113015"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('8074639092647113015_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_8074639092647113015")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_8074639092647113015")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-10" class="level6">
+<h6 class="anchored" data-anchor-id="question-10">Question</h6>
+<p>At <span class="math inline">\(c\)</span>, <span class="math inline">\(f'(c) = 0\)</span> and <span class="math inline">\(f''(c) = c^2\)</span>. Is <span class="math inline">\((c,f(c))\)</span> a relative minimum? (<span class="math inline">\(f\)</span> is a “nice” function.)</p>
+<div class="cell" data-hold="true" data-execution_count="50">
+<div class="cell-output cell-output-display" data-execution_count="49">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="17929196486443936631" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_17929196486443936631">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_17929196486443936631_1">
+      <input class="form-check-input" type="radio" name="radio_17929196486443936631" id="radio_17929196486443936631_1" value="1">
+      
+      <span class="label-body px-1">
+        No, it is a relative maximum
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_17929196486443936631_2">
+      <input class="form-check-input" type="radio" name="radio_17929196486443936631" id="radio_17929196486443936631_2" value="2">
+      
+      <span class="label-body px-1">
+        No, the second derivative test is possibly inconclusive if \(c=0\), but otherwise yes
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_17929196486443936631_3">
+      <input class="form-check-input" type="radio" name="radio_17929196486443936631" id="radio_17929196486443936631_3" value="3">
+      
+      <span class="label-body px-1">
+        Yes
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="17929196486443936631_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_17929196486443936631"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('17929196486443936631_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_17929196486443936631")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_17929196486443936631")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-11" class="level6">
+<h6 class="anchored" data-anchor-id="question-11">Question</h6>
+<div class="cell" data-execution_count="51">
+<div class="cell-output cell-output-display" data-execution_count="50">
+<p><img src="first_second_derivatives_files/figure-html/cell-52-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>The graph shows <span class="math inline">\(f'(x)\)</span>. Is it possible that <span class="math inline">\(f(x) = e^{-x} \sin(\pi x)\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="52">
+<div class="cell-output cell-output-display" data-execution_count="51">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="573233714752683921" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_573233714752683921">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_573233714752683921_1">
+      <input class="form-check-input" type="radio" name="radio_573233714752683921" id="radio_573233714752683921_1" value="1">
+      
+      <span class="label-body px-1">
+        Yes
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_573233714752683921_2">
+      <input class="form-check-input" type="radio" name="radio_573233714752683921" id="radio_573233714752683921_2" value="2">
+      
+      <span class="label-body px-1">
+        No
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="573233714752683921_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_573233714752683921"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('573233714752683921_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_573233714752683921")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_573233714752683921")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+<p>(Plot <span class="math inline">\(f(x)\)</span> and compare features like critical points, increasing decreasing to that indicated by <span class="math inline">\(f'\)</span> through the graph.)</p>
+</section>
+<section id="question-12" class="level6">
+<h6 class="anchored" data-anchor-id="question-12">Question</h6>
+<div class="cell" data-hold="true" data-execution_count="53">
+<div class="cell-output cell-output-display" data-execution_count="52">
+<p><img src="first_second_derivatives_files/figure-html/cell-54-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>The graph shows <span class="math inline">\(f'(x)\)</span>. Is it possible that <span class="math inline">\(f(x) = x^4 - 3x^3 - 2x + 4\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="54">
+<div class="cell-output cell-output-display" data-execution_count="53">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="2723666391088867265" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_2723666391088867265">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_2723666391088867265_1">
+      <input class="form-check-input" type="radio" name="radio_2723666391088867265" id="radio_2723666391088867265_1" value="1">
+      
+      <span class="label-body px-1">
+        Yes
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_2723666391088867265_2">
+      <input class="form-check-input" type="radio" name="radio_2723666391088867265" id="radio_2723666391088867265_2" value="2">
+      
+      <span class="label-body px-1">
+        No
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="2723666391088867265_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_2723666391088867265"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('2723666391088867265_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_2723666391088867265")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_2723666391088867265")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-13" class="level6">
+<h6 class="anchored" data-anchor-id="question-13">Question</h6>
+<div class="cell" data-hold="true" data-execution_count="55">
+<div class="cell-output cell-output-display" data-execution_count="54">
+<p><img src="first_second_derivatives_files/figure-html/cell-56-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>The graph shows <span class="math inline">\(f''(x)\)</span>. Is it possible that <span class="math inline">\(f(x) = (1+x)^{-2}\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="56">
+<div class="cell-output cell-output-display" data-execution_count="55">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="6001284504731296259" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_6001284504731296259">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_6001284504731296259_1">
+      <input class="form-check-input" type="radio" name="radio_6001284504731296259" id="radio_6001284504731296259_1" value="1">
+      
+      <span class="label-body px-1">
+        Yes
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_6001284504731296259_2">
+      <input class="form-check-input" type="radio" name="radio_6001284504731296259" id="radio_6001284504731296259_2" value="2">
+      
+      <span class="label-body px-1">
+        No
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="6001284504731296259_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_6001284504731296259"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('6001284504731296259_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_6001284504731296259")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_6001284504731296259")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-14" class="level6">
+<h6 class="anchored" data-anchor-id="question-14">Question</h6>
+<div class="cell" data-hold="true" data-execution_count="57">
+<div class="cell-output cell-output-display" data-execution_count="56">
+<p><img src="first_second_derivatives_files/figure-html/cell-58-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>This plot shows the graph of <span class="math inline">\(f'(x)\)</span>. What is true about the critical points and their characterization?</p>
+<div class="cell" data-hold="true" data-execution_count="58">
+<div class="cell-output cell-output-display" data-execution_count="57">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="7633899272761542387" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_7633899272761542387">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_7633899272761542387_1">
+      <input class="form-check-input" type="radio" name="radio_7633899272761542387" id="radio_7633899272761542387_1" value="1">
+      
+      <span class="label-body px-1">
+        The critical points are at \(x=1\) (a relative minimum), \(x=2\) (not a relative extrema), and \(x=3\) (a relative minimum).
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_7633899272761542387_2">
+      <input class="form-check-input" type="radio" name="radio_7633899272761542387" id="radio_7633899272761542387_2" value="2">
+      
+      <span class="label-body px-1">
+        The critical points are at \(x=1\) (a relative minimum), \(x=2\) (a relative minimum), and \(x=3\) (a relative minimum).
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_7633899272761542387_3">
+      <input class="form-check-input" type="radio" name="radio_7633899272761542387" id="radio_7633899272761542387_3" value="3">
+      
+      <span class="label-body px-1">
+        The critical points are at \(x=1\) (a relative maximum), \(x=2\) (not a relative extrema), and \(x=3\) (not a relative extrema).
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_7633899272761542387_4">
+      <input class="form-check-input" type="radio" name="radio_7633899272761542387" id="radio_7633899272761542387_4" value="4">
+      
+      <span class="label-body px-1">
+        The critical points are at \(x=1\) (a relative minimum), \(x=2\) (not a relative extrema), and \(x=3\) (not a relative extrema).
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="7633899272761542387_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_7633899272761542387"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 4;
+    var msgBox = document.getElementById('7633899272761542387_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_7633899272761542387")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_7633899272761542387")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-15" class="level5">
+<h5 class="anchored" data-anchor-id="question-15">Question</h5>
+<p>You know <span class="math inline">\(f''(x) = (x-1)^3\)</span>. What do you know about <span class="math inline">\(f(x)\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="59">
+<div class="cell-output cell-output-display" data-execution_count="58">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="7611777108837559178" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_7611777108837559178">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_7611777108837559178_1">
+      <input class="form-check-input" type="radio" name="radio_7611777108837559178" id="radio_7611777108837559178_1" value="1">
+      
+      <span class="label-body px-1">
+        The function is decreasing over \((-\infty, 1)\) and increasing over \((1, \infty)\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_7611777108837559178_2">
+      <input class="form-check-input" type="radio" name="radio_7611777108837559178" id="radio_7611777108837559178_2" value="2">
+      
+      <span class="label-body px-1">
+        The function is negative over \((-\infty, 1)\) and positive over \((1, \infty)\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_7611777108837559178_3">
+      <input class="form-check-input" type="radio" name="radio_7611777108837559178" id="radio_7611777108837559178_3" value="3">
+      
+      <span class="label-body px-1">
+        The function is concave down over \((-\infty, 1)\) and concave up over \((1, \infty)\)
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="7611777108837559178_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_7611777108837559178"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 3;
+    var msgBox = document.getElementById('7611777108837559178_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_7611777108837559178")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_7611777108837559178")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-16" class="level5">
+<h5 class="anchored" data-anchor-id="question-16">Question</h5>
+<p>While driving we accelerate to get through a light before it turns red. However, at time <span class="math inline">\(t_0\)</span> a car cuts in front of us and we are forced to break. If <span class="math inline">\(s(t)\)</span> represents position, what is <span class="math inline">\(t_0\)</span>:</p>
+<div class="cell" data-hold="true" data-execution_count="60">
+<div class="cell-output cell-output-display" data-execution_count="59">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="16127681606511611324" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_16127681606511611324">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_16127681606511611324_1">
+      <input class="form-check-input" type="radio" name="radio_16127681606511611324" id="radio_16127681606511611324_1" value="1">
+      
+      <span class="label-body px-1">
+        A zero of the function
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_16127681606511611324_2">
+      <input class="form-check-input" type="radio" name="radio_16127681606511611324" id="radio_16127681606511611324_2" value="2">
+      
+      <span class="label-body px-1">
+        A critical point for the function
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_16127681606511611324_3">
+      <input class="form-check-input" type="radio" name="radio_16127681606511611324" id="radio_16127681606511611324_3" value="3">
+      
+      <span class="label-body px-1">
+        An inflection point for the function
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="16127681606511611324_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_16127681606511611324"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 3;
+    var msgBox = document.getElementById('16127681606511611324_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_16127681606511611324")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_16127681606511611324")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+<section id="question-17" class="level6">
+<h6 class="anchored" data-anchor-id="question-17">Question</h6>
+<p>The <a href="https://www.investopedia.com/terms/i/inflectionpoint.asp">investopedia</a> website describes:</p>
+<p>“An <strong>inflection point</strong> is an event that results in a significant change in the progress of a company, industry, sector, economy, or geopolitical situation and can be considered a turning point after which a dramatic change, with either positive or negative results, is expected to result.”</p>
+<p>This accurately summarizes how the term is used outside of math books. Does it also describe how the term is used <em>inside</em> math books?</p>
+<div class="cell" data-hold="true, echo" data-execution_count="61">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>choices <span class="op">=</span> [<span class="st">"Yes. Same words, same meaning"</span>,</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>           <span class="st">"""No, but it is close. An inflection point is when the *acceleration* changes from positive to negative, so if "results" are about how a company's rate of change is changing, then it is in the ballpark."""</span>]</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a><span class="fu">radioq</span>(choices, <span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="60">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="13911359758391194946" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_13911359758391194946">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_13911359758391194946_1">
+      <input class="form-check-input" type="radio" name="radio_13911359758391194946" id="radio_13911359758391194946_1" value="1">
+      
+      <span class="label-body px-1">
+        No, but it is close. An inflection point is when the <em>acceleration</em> changes from positive to negative, so if "results" are about how a company's rate of change is changing, then it is in the ballpark.
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_13911359758391194946_2">
+      <input class="form-check-input" type="radio" name="radio_13911359758391194946" id="radio_13911359758391194946_2" value="2">
+      
+      <span class="label-body px-1">
+        Yes. Same words, same meaning
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="13911359758391194946_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_13911359758391194946"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('13911359758391194946_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_13911359758391194946")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_13911359758391194946")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-18" class="level6">
+<h6 class="anchored" data-anchor-id="question-18">Question</h6>
+<p>The function <span class="math inline">\(f(x) = x^3 + x^4\)</span> has a critical point at <span class="math inline">\(0\)</span> and a second derivative of <span class="math inline">\(0\)</span> at <span class="math inline">\(x=0\)</span>. Without resorting to the first derivative test, and only considering that <em>near</em> <span class="math inline">\(x=0\)</span> the function <span class="math inline">\(f(x)\)</span> is essentially <span class="math inline">\(x^3\)</span>, as <span class="math inline">\(f(x) = x^3(1+x)\)</span>, what can you say about whether the critical point is a relative extrema?</p>
+<div class="cell" data-hold="true" data-execution_count="62">
+<div class="cell-output cell-output-display" data-execution_count="61">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="14731221169667566567" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_14731221169667566567">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_14731221169667566567_1">
+      <input class="form-check-input" type="radio" name="radio_14731221169667566567" id="radio_14731221169667566567_1" value="1">
+      
+      <span class="label-body px-1">
+        As \(x^3\) has no extrema at \(x=0\), neither will \(f\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_14731221169667566567_2">
+      <input class="form-check-input" type="radio" name="radio_14731221169667566567" id="radio_14731221169667566567_2" value="2">
+      
+      <span class="label-body px-1">
+        As \(x^4\) is of higher degree than \(x^3\), \(f\) will be \(U\)-shaped, as \(x^4\) is.
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="14731221169667566567_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_14731221169667566567"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('14731221169667566567_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_14731221169667566567")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_14731221169667566567")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+
+
+</section>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+    var links = window.document.querySelectorAll('a:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+          // target, if specified
+          link.setAttribute("target", "_blank");
+      }
+    }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../derivatives/optimization.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">26</span>&nbsp; <span class="chapter-title">Optimization</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../derivatives/curve_sketching.html" class="pagination-link">
+        <span class="nav-page-text"><span class="chapter-number">28</span>&nbsp; <span class="chapter-title">Curve Sketching</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+      <div class="nav-footer-center">Copyright 2022, John Verzani</div>
+  </div>
+</footer>
+
+
+
+</body></html>

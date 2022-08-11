@@ -30,6 +30,13 @@ To compile the pages through quarto
 * should also push project to github
 * no need to push `_freeze` the repo, as files are locally rendered for now.
 
+* This error
+> fatal: 'gh-pages' is already checked out at '/Users/verzani/julia/CalculusWithJuliaNotes/quarto/f5611730'
+
+was solved with
+
+> git worktree remove f5611730
+
 
 
 
