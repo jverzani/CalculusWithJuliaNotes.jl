@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.0.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Calculus with Julia - 41&nbsp; Improper Integrals</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../integrals/mean_value_theorem.html" rel="next">
+<link href="../integrals/partial_fractions.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+<script async="" src="https://hypothes.is/embed.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body class="nav-sidebar floating nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <a class="navbar-brand" href="../index.html">
+    <img src="../logo.png" alt="">
+    <span class="navbar-title">Calculus with Julia</span>
+  </a>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+    <div class="container-fluid d-flex justify-content-between">
+      <h1 class="quarto-secondary-nav-title"><span class="chapter-number">41</span>&nbsp; <span class="chapter-title">Improper Integrals</span></h1>
+      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation floating overflow-auto">
+      <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+      </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">Preface</a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="false">Precalculus Concepts</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/calculator.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">From calculator to computer</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/variables.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Variables</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/numbers_types.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Number systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/logical_expressions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Inequalities, Logical expressions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/vectors.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Vectors</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/ranges.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Ranges and Sets</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/plotting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">The Graph of a Function</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/transformations.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Function manipulations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/inversefunctions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">The Inverse of a Function</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/polynomial.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Polynomials</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/polynomial_roots.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Roots of a polynomial</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/polynomials_package.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">The Polynomials package</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/rational_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Rational functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/exp_log_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Exponential and logarithmic functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/trig_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Trigonometric functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/julia_overview.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Overview of Julia commands</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false">Limits</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/limits.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Limits</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/limits_extensions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Limits, issues, extensions of the concept</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/continuity.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Continuity</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/intermediate_value_theorem.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Implications of continuity</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="false">Derivatives</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/derivatives.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Derivatives</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/numeric_derivatives.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Numeric derivatives</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/symbolic_derivatives.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Symbolic derivatives</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/mean_value_theorem.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">The mean value theorem for differentiable functions.</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/optimization.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">26</span>&nbsp; <span class="chapter-title">Optimization</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/first_second_derivatives.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">27</span>&nbsp; <span class="chapter-title">The first and second derivatives</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/curve_sketching.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">28</span>&nbsp; <span class="chapter-title">Curve Sketching</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/linearization.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">29</span>&nbsp; <span class="chapter-title">Linearization</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/newtons_method.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">30</span>&nbsp; <span class="chapter-title">Newton’s method</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/more_zeros.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">31</span>&nbsp; <span class="chapter-title">Derivative-free alternatives to Newton’s method</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/lhospitals_rule.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">32</span>&nbsp; <span class="chapter-title">L’Hospital’s Rule</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/implicit_differentiation.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">33</span>&nbsp; <span class="chapter-title">Implicit Differentiation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/related_rates.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">34</span>&nbsp; <span class="chapter-title">Related rates</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/taylor_series_polynomials.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">35</span>&nbsp; <span class="chapter-title">Taylor Polynomials and other Approximating Polynomials</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">Integrals</a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/area.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">36</span>&nbsp; <span class="chapter-title">Area under a curve</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/ftc.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">37</span>&nbsp; <span class="chapter-title">Fundamental Theorem or Calculus</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/substitution.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">38</span>&nbsp; <span class="chapter-title">Substitution</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/integration_by_parts.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">39</span>&nbsp; <span class="chapter-title">Integration By Parts</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/partial_fractions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">40</span>&nbsp; <span class="chapter-title">Partial Fractions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/improper_integrals.html" class="sidebar-item-text sidebar-link active"><span class="chapter-number">41</span>&nbsp; <span class="chapter-title">Improper Integrals</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/mean_value_theorem.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">42</span>&nbsp; <span class="chapter-title">Mean value theorem for integrals</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/area_between_curves.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">43</span>&nbsp; <span class="chapter-title">Area between two curves</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/center_of_mass.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">44</span>&nbsp; <span class="chapter-title">Center of Mass</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/volumes_slice.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">45</span>&nbsp; <span class="chapter-title">Volumes by slicing</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/arc_length.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">46</span>&nbsp; <span class="chapter-title">Arc length</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/surface_area.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">47</span>&nbsp; <span class="chapter-title">Surface Area</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="false">ODEs</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/odes.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">48</span>&nbsp; <span class="chapter-title">ODEs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/euler.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">49</span>&nbsp; <span class="chapter-title">Euler’s method</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/solve.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">50</span>&nbsp; <span class="chapter-title">The problem-algorithm-solve interface</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/differential_equations.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">51</span>&nbsp; <span class="chapter-title">The <code>DifferentialEquations</code> suite</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="false">Differential vector calculus</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/polar_coordinates.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">52</span>&nbsp; <span class="chapter-title">Polar Coordinates and Curves</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/vectors.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">53</span>&nbsp; <span class="chapter-title">Vectors and matrices</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/vector_valued_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">54</span>&nbsp; <span class="chapter-title">Vector-valued functions, <span class="math inline">\(f:R \rightarrow R^n\)</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/scalar_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">55</span>&nbsp; <span class="chapter-title">Scalar functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/scalar_functions_applications.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">56</span>&nbsp; <span class="chapter-title">Applications with scalar functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/vector_fields.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">57</span>&nbsp; <span class="chapter-title">Functions <span class="math inline">\(R^n \rightarrow R^m\)</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/plots_plotting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">58</span>&nbsp; <span class="chapter-title">2D and 3D plots in Julia with Plots</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="false">Integral vector calculus</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/double_triple_integrals.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">59</span>&nbsp; <span class="chapter-title">Multi-dimensional integrals</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/line_integrals.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">60</span>&nbsp; <span class="chapter-title">Line and Surface Integrals</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/div_grad_curl.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">61</span>&nbsp; <span class="chapter-title">The Gradient, Divergence, and Curl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/stokes_theorem.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">62</span>&nbsp; <span class="chapter-title">Green’s Theorem, Stokes’ Theorem, and the Divergence Theorem</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/review.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">63</span>&nbsp; <span class="chapter-title">Quick Review of Vector Calculus</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="false">Alternatives</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../alternatives/plotly_plotting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">64</span>&nbsp; <span class="chapter-title">JavaScript based plotting libraries</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../alternatives/makie_plotting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">65</span>&nbsp; <span class="chapter-title">Calculus plots with Makie</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="false">Appendices</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/getting_started_with_julia.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">66</span>&nbsp; <span class="chapter-title">Getting started with Julia</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/julia_interfaces.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">67</span>&nbsp; <span class="chapter-title">Julia interfaces</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/calculus_with_julia.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">68</span>&nbsp; <span class="chapter-title">The <code>CalculusWithJulia</code> package</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/unicode.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">69</span>&nbsp; <span class="chapter-title">Usages of Unicode symbols</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/quick_notes.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">70</span>&nbsp; <span class="chapter-title">Quick introduction to Calculus with Julia</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../references.html" class="sidebar-item-text sidebar-link">References</a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#infinite-domains" id="toc-infinite-domains" class="nav-link active" data-scroll-target="#infinite-domains"> <span class="header-section-number">41.1</span> Infinite domains</a>
+  <ul class="collapse">
+  <li><a href="#numeric-integration" id="toc-numeric-integration" class="nav-link" data-scroll-target="#numeric-integration"> <span class="header-section-number">41.1.1</span> Numeric integration</a></li>
+  </ul></li>
+  <li><a href="#singularities" id="toc-singularities" class="nav-link" data-scroll-target="#singularities"> <span class="header-section-number">41.2</span> Singularities</a>
+  <ul class="collapse">
+  <li><a href="#numeric-integration-1" id="toc-numeric-integration-1" class="nav-link" data-scroll-target="#numeric-integration-1"> <span class="header-section-number">41.2.1</span> Numeric integration</a></li>
+  </ul></li>
+  <li><a href="#probability-applications" id="toc-probability-applications" class="nav-link" data-scroll-target="#probability-applications"> <span class="header-section-number">41.3</span> Probability applications</a></li>
+  <li><a href="#questions" id="toc-questions" class="nav-link" data-scroll-target="#questions"> <span class="header-section-number">41.4</span> Questions</a></li>
+  </ul>
+<div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/jverzani/CalculusWithJuliaNotes.jl/edit/main/quarto/integrals/improper_integrals.qmd" class="toc-action">Edit this page</a></p><p><a href="https://github.com/jverzani/CalculusWithJuliaNotes.jl/issues/new" class="toc-action">Report an issue</a></p></div></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title d-none d-lg-block"><span class="chapter-number">41</span>&nbsp; <span class="chapter-title">Improper Integrals</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    
+  </div>
+  
+
+</header>
+
+<p>This section uses these add-on packages:</p>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">CalculusWithJulia</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Plots</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">SymPy</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">QuadGK</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<hr>
+<p>A function <span class="math inline">\(f(x)\)</span> is Riemann integrable over an interval <span class="math inline">\([a,b]\)</span> if some limit involving Riemann sums exists. This limit will fail to exist if <span class="math inline">\(f(x) = \infty\)</span> in <span class="math inline">\([a,b]\)</span>. As well, the Riemann sum idea is undefined if either <span class="math inline">\(a\)</span> or <span class="math inline">\(b\)</span> (or both) are infinite, so the limit won’t exist in this case.</p>
+<p>To define integrals with either functions having singularities or infinite domains, the idea of an improper integral is introduced with definitions to handle the two cases above.</p>
+<div class="cell" data-cache="true" data-hold="true" data-execution_count="4">
+<div class="cell-output cell-output-display" data-execution_count="5">
+<div class="d-flex justify-content-center">  <figure class="figure">  <img src="data:image/gif;base64,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" class="card-img-top figure-img" alt="A Figure">
+    <figcaption class="figure-caption"><div class="markdown"><p>Area under \(1/\sqrt{x}\) over \([a,b]\) increases as \(a\) gets closer to \(0\). Will it grow unbounded or have a limit?</p>
+</div>    </figcaption>
+  </figure>
+</div>
+</div>
+</div>
+<section id="infinite-domains" class="level2" data-number="41.1">
+<h2 data-number="41.1" class="anchored" data-anchor-id="infinite-domains"><span class="header-section-number">41.1</span> Infinite domains</h2>
+<p>Let <span class="math inline">\(f(x)\)</span> be a reasonable function, so reasonable that for any <span class="math inline">\(a &lt; b\)</span> the function is Riemann integrable, meaning <span class="math inline">\(\int_a^b f(x)dx\)</span> exists.</p>
+<p>What needs to be the case so that we can discuss the integral over the entire real number line?</p>
+<p>Clearly something. The function <span class="math inline">\(f(x) = 1\)</span> is reasonable by the idea above. Clearly the integral over and <span class="math inline">\([a,b]\)</span> is just <span class="math inline">\(b-a\)</span>, but the limit over an unbounded domain would be <span class="math inline">\(\infty\)</span>. Even though limits of infinity can be of interest in some cases, not so here. What will ensure that the area is finite over an infinite region?</p>
+<p>Or is that even the right question. Now consider <span class="math inline">\(f(x) = \sin(\pi x)\)</span>. Over every interval of the type <span class="math inline">\([-2n, 2n]\)</span> the area is <span class="math inline">\(0\)</span>, and over any interval, <span class="math inline">\([a,b]\)</span> the area never gets bigger than <span class="math inline">\(2\)</span>. But still this function does not have a well defined area on an infinite domain.</p>
+<p>The right question involves a limit. Fix a finite <span class="math inline">\(a\)</span>. We define the definite integral over <span class="math inline">\([a,\infty)\)</span> to be</p>
+<p><span class="math display">\[
+\int_a^\infty f(x) dx = \lim_{M \rightarrow \infty} \int_a^M f(x) dx,
+\]</span></p>
+<p>when the limit exists. Similarly, we define the definite integral over <span class="math inline">\((-\infty, a]\)</span> through</p>
+<p><span class="math display">\[
+\int_{-\infty}^a f(x) dx  = \lim_{M \rightarrow -\infty} \int_M^a f(x) dx.
+\]</span></p>
+<p>For the interval <span class="math inline">\((-\infty, \infty)\)</span> we have need <em>both</em> these limits to exist, and then:</p>
+<p><span class="math display">\[
+\int_{-\infty}^\infty f(x) dx  = \lim_{M \rightarrow -\infty} \int_M^a f(x) dx + \lim_{M \rightarrow \infty} \int_a^M f(x) dx.
+\]</span></p>
+<div class="callout-note callout callout-style-default callout-captioned">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-caption-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>When the integral exists, it is said to <em>converge</em>. If it doesn’t exist, it is said to <em>diverge</em>.</p>
+</div>
+</div>
+<section id="examples" class="level5">
+<h5 class="anchored" data-anchor-id="examples">Examples</h5>
+<ul>
+<li>The function <span class="math inline">\(f(x) = 1/x^2\)</span> is integrable over <span class="math inline">\([1, \infty)\)</span>, as this limit exists:</li>
+</ul>
+<p><span class="math display">\[
+\lim_{M \rightarrow \infty} \int_1^M \frac{1}{x^2}dx = \lim_{M \rightarrow \infty} -\frac{1}{x}\big|_1^M
+= \lim_{M \rightarrow \infty} 1 - \frac{1}{M} = 1.
+\]</span></p>
+<ul>
+<li>The function <span class="math inline">\(f(x) = 1/x^{1/2}\)</span> is not integrable over <span class="math inline">\([1, \infty)\)</span>, as this limit fails to exist:</li>
+</ul>
+<p><span class="math display">\[
+\lim_{M \rightarrow \infty} \int_1^M \frac{1}{x^{1/2}}dx = \lim_{M \rightarrow \infty} \frac{x^{1/2}}{1/2}\big|_1^M
+= \lim_{M \rightarrow \infty} 2\sqrt{M} - 2 = \infty.
+\]</span></p>
+<p>The limit is infinite, so does not exist except in an extended sense.</p>
+<ul>
+<li>The function <span class="math inline">\(x^n e^{-x}\)</span> for <span class="math inline">\(n = 1, 2, \dots\)</span> is integrable over <span class="math inline">\([0,\infty)\)</span>.</li>
+</ul>
+<p>Before showing this, we recall the fundamental theorem of calculus. The limit existing is the same as saying the limit of <span class="math inline">\(F(M) - F(a)\)</span> exists for an antiderivative of <span class="math inline">\(f(x)\)</span>.</p>
+<p>For this particular problem, it can be shown by integration by parts that for positive, integer values of <span class="math inline">\(n\)</span> that an antiderivative exists of the form <span class="math inline">\(F(x) = p(x)e^{-x}\)</span>, where <span class="math inline">\(p(x)\)</span> is a polynomial of degree <span class="math inline">\(n\)</span>. But we’ve seen that for any <span class="math inline">\(n&gt;0\)</span>, <span class="math inline">\(\lim_{x \rightarrow \infty} x^n e^{-x} = 0\)</span>, so the same is true for any polynomial. So, <span class="math inline">\(\lim_{M \rightarrow \infty} F(M) - F(1) = -F(1)\)</span>.</p>
+<ul>
+<li>The function <span class="math inline">\(e^x\)</span> is integrable over <span class="math inline">\((-\infty, a]\)</span> but not</li>
+</ul>
+<p><span class="math display">\[
+[a, \infty)
+\]</span></p>
+<p>for any finite <span class="math inline">\(a\)</span>. This is because, <span class="math inline">\(F(M) = e^x\)</span> and this has a limit as <span class="math inline">\(x\)</span> goes to <span class="math inline">\(-\infty\)</span>, but not <span class="math inline">\(\infty\)</span>.</p>
+<ul>
+<li><p>Let <span class="math inline">\(f(x) = x e^{-x^2}\)</span>. This function has an integral over <span class="math inline">\([0, \infty)\)</span> and more generally <span class="math inline">\((-\infty, \infty)\)</span>. To see, we note that as it is an odd function, the area from <span class="math inline">\(0\)</span> to <span class="math inline">\(M\)</span> is the opposite sign of that from <span class="math inline">\(-M\)</span> to <span class="math inline">\(0\)</span>. So <span class="math inline">\(\lim_{M \rightarrow \infty} (F(M) - F(0)) = \lim_{M \rightarrow -\infty} (F(0) - (-F(\lvert M\lvert)))\)</span>. We only then need to investigate the one limit. But we can see by substitution with <span class="math inline">\(u=x^2\)</span>, that an antiderivative is <span class="math inline">\(F(x) = (-1/2) \cdot e^{-x^2}\)</span>. Clearly, <span class="math inline">\(\lim_{M \rightarrow \infty}F(M) = 0\)</span>, so the answer is well defined, and the area from <span class="math inline">\(0\)</span> to <span class="math inline">\(\infty\)</span> is just <span class="math inline">\(e/2\)</span>. From <span class="math inline">\(-\infty\)</span> to <span class="math inline">\(0\)</span> it is <span class="math inline">\(-e/2\)</span> and the total area is <span class="math inline">\(0\)</span>, as the two sides “cancel” out.</p></li>
+<li><p>Let <span class="math inline">\(f(x) = \sin(x)\)</span>. Even though <span class="math inline">\(\lim_{M \rightarrow \infty} (F(M) - F(-M) ) = 0\)</span>, this function is not integrable. The fact is we need <em>both</em> the limit <span class="math inline">\(F(M)\)</span> and <span class="math inline">\(F(-M)\)</span> to exist as <span class="math inline">\(M\)</span> goes to <span class="math inline">\(\infty\)</span>. In this case, even though the area cancels if <span class="math inline">\(\infty\)</span> is approached at the same rate, this isn’t sufficient to guarantee the two limits exists independently.</p></li>
+<li><p>Will the function <span class="math inline">\(f(x) = 1/(x\cdot(\log(x))^2)\)</span> have an integral over <span class="math inline">\([e, \infty)\)</span>?</p></li>
+</ul>
+<p>We first find an antiderivative using the <span class="math inline">\(u\)</span>-substitution <span class="math inline">\(u(x) = \log(x)\)</span>:</p>
+<p><span class="math display">\[
+\int_e^M \frac{e}{x \log(x)^{2}} dx
+= \int_{\log(e)}^{\log(M)} \frac{1}{u^{2}} du
+= \frac{-1}{u} \big|_{1}^{\log(M)}
+= \frac{-1}{\log(M)} - \frac{-1}{1}
+= 1 - \frac{1}{M}.
+\]</span></p>
+<p>As <span class="math inline">\(M\)</span> goes to <span class="math inline">\(\infty\)</span>, this will converge to <span class="math inline">\(1\)</span>.</p>
+<ul>
+<li>The sinc function <span class="math inline">\(f(x) = \sin(\pi x)/(\pi x)\)</span> does not have a nice antiderivative. Seeing if the limit exists is a bit of a problem. However, this function is important enough that there is a built-in function, <code>Si</code>, that computes <span class="math inline">\(\int_0^x \sin(u)/u\cdot du\)</span>. This function can be used through <code>sympy.Si(...)</code>:</li>
+</ul>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> M</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">limit</span>(sympy.<span class="fu">Si</span>(M), M <span class="op">=&gt;</span> oo)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
+\[
+\frac{\pi}{2}
+\]
+</span>
+</div>
+</div>
+</section>
+<section id="numeric-integration" class="level3" data-number="41.1.1">
+<h3 data-number="41.1.1" class="anchored" data-anchor-id="numeric-integration"><span class="header-section-number">41.1.1</span> Numeric integration</h3>
+<p>The <code>quadgk</code> function (available through <code>QuadGK</code>) is able to accept <code>Inf</code> and <code>-Inf</code> as endpoints of the interval. For example, this will integrate <span class="math inline">\(e^{-x^2/2}\)</span> over the real line:</p>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> <span class="fu">exp</span>(<span class="op">-</span>x<span class="op">^</span><span class="fl">2</span><span class="op">/</span><span class="fl">2</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">quadgk</span>(f, <span class="op">-</span><span class="cn">Inf</span>, <span class="cn">Inf</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<pre><code>(2.506628274639168, 3.608438072243189e-8)</code></pre>
+</div>
+</div>
+<p>(If may not be obvious, but this is <span class="math inline">\(\sqrt{2\pi}\)</span>.)</p>
+</section>
+</section>
+<section id="singularities" class="level2" data-number="41.2">
+<h2 data-number="41.2" class="anchored" data-anchor-id="singularities"><span class="header-section-number">41.2</span> Singularities</h2>
+<p>Suppose <span class="math inline">\(\lim_{x \rightarrow c}f(x) = \infty\)</span> or <span class="math inline">\(-\infty\)</span>. Then a Riemann sum that contains an interval including <span class="math inline">\(c\)</span> will not be finite if the point chosen in the interval is <span class="math inline">\(c\)</span>. Though we could choose another point, this is not enough as the definition must hold for any choice of the <span class="math inline">\(c_i\)</span>.</p>
+<p>However, if <span class="math inline">\(c\)</span> is isolated, we can get close to <span class="math inline">\(c\)</span> and see how the area changes.</p>
+<p>Suppose <span class="math inline">\(a &lt; c\)</span>, we define <span class="math inline">\(\int_a^c f(x) dx = \lim_{M \rightarrow c-} \int_a^c f(x) dx\)</span>. If this limit exists, the definite integral with <span class="math inline">\(c\)</span> is well defined. Similarly, the integral from <span class="math inline">\(c\)</span> to <span class="math inline">\(b\)</span>, where <span class="math inline">\(b &gt; c\)</span>, can be defined by a right limit going to <span class="math inline">\(c\)</span>. The integral from <span class="math inline">\(a\)</span> to <span class="math inline">\(b\)</span> will exist if both the limits are finite.</p>
+<section id="examples-1" class="level5">
+<h5 class="anchored" data-anchor-id="examples-1">Examples</h5>
+<ul>
+<li>Consider the example of the initial illustration, <span class="math inline">\(f(x) = 1/\sqrt{x}\)</span> at <span class="math inline">\(0\)</span>. Here <span class="math inline">\(f(0)= \infty\)</span>, so the usual notion of a limit won’t apply to <span class="math inline">\(\int_0^1 f(x) dx\)</span>. However,</li>
+</ul>
+<p><span class="math display">\[
+\lim_{M \rightarrow 0+} \int_M^1 \frac{1}{\sqrt{x}} dx
+= \lim_{M \rightarrow 0+} \frac{\sqrt{x}}{1/2} \big|_M^1
+= \lim_{M \rightarrow 0+} 2(1) - 2\sqrt{M} = 2.
+\]</span></p>
+<div class="callout-note callout callout-style-default callout-captioned">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-caption-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The cases <span class="math inline">\(f(x) = x^{-n}\)</span> for <span class="math inline">\(n &gt; 0\)</span> are tricky to keep straight. For <span class="math inline">\(n &gt; 1\)</span>, the functions can be integrated over <span class="math inline">\([1,\infty)\)</span>, but not <span class="math inline">\((0,1]\)</span>. For <span class="math inline">\(0 &lt; n &lt; 1\)</span>, the functions can be integrated over <span class="math inline">\((0,1]\)</span> but not <span class="math inline">\([1, \infty)\)</span>.</p>
+</div>
+</div>
+<ul>
+<li>Now consider <span class="math inline">\(f(x) = 1/x\)</span>. Is this integral <span class="math inline">\(\int_0^1 1/x \cdot dx\)</span> defined? It will be <em>if</em> this limit exists:</li>
+</ul>
+<p><span class="math display">\[
+\lim_{M \rightarrow 0+} \int_M^1 \frac{1}{x} dx
+= \lim_{M \rightarrow 0+} \log(x) \big|_M^1
+= \lim_{M \rightarrow 0+} \log(1) - \log(M) = \infty.
+\]</span></p>
+<p>As the limit does not exist, the function is not integrable around <span class="math inline">\(0\)</span>.</p>
+<ul>
+<li><code>SymPy</code> may give answers which do not coincide with our definitions, as it uses complex numbers as a default assumption. In this case it returns the proper answer when integrated from <span class="math inline">\(0\)</span> to <span class="math inline">\(1\)</span> and <code>NaN</code> for an integral over <span class="math inline">\((-1,1)\)</span>:</li>
+</ul>
+<div class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> x</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate</span>(<span class="fl">1</span><span class="op">/</span>x, (x, <span class="fl">0</span>, <span class="fl">1</span>)), <span class="fu">integrate</span>(<span class="fl">1</span><span class="op">/</span>x, (x, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<pre><code>(oo, nan)</code></pre>
+</div>
+</div>
+<ul>
+<li>Suppose you know <span class="math inline">\(\int_1^\infty x^2 f(x) dx\)</span> exists. Does this imply <span class="math inline">\(\int_0^1 f(1/x) dx\)</span> exists?</li>
+</ul>
+<p>We need to consider the limit of <span class="math inline">\(\int_M^1 f(1/x) dx\)</span>. We try the <span class="math inline">\(u\)</span>-substitution <span class="math inline">\(u(x) = 1/x\)</span>. This gives <span class="math inline">\(du = -(1/x^2)dx = -u^2 dx\)</span>. So, the substitution becomes:</p>
+<p><span class="math display">\[
+\int_M^1 f(1/x) dx = \int_{1/M}^{1/1} f(u) (-u^2) du = \int_1^{1/M} u^2 f(u) du.
+\]</span></p>
+<p>But the limit as <span class="math inline">\(M \rightarrow 0\)</span> of <span class="math inline">\(1/M\)</span> is the same going to <span class="math inline">\(\infty\)</span>, so the right side will converge by the assumption. Thus we get <span class="math inline">\(f(1/x)\)</span> is integrable over <span class="math inline">\((0,1]\)</span>.</p>
+</section>
+<section id="numeric-integration-1" class="level3" data-number="41.2.1">
+<h3 data-number="41.2.1" class="anchored" data-anchor-id="numeric-integration-1"><span class="header-section-number">41.2.1</span> Numeric integration</h3>
+<p>So far our use of the <code>quadgk</code> function specified the region to integrate via <code>a</code>, <code>b</code>, as in <code>quadgk(f, a, b)</code>. In fact, it can specify values in between for which the function should not be sampled. For example, were we to integrate <span class="math inline">\(1/\sqrt{\lvert x\rvert}\)</span> over <span class="math inline">\([-1,1]\)</span>, we would want to avoid <span class="math inline">\(0\)</span> as a point to sample. Here is how:</p>
+<div class="cell" data-hold="true" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> <span class="fl">1</span> <span class="op">/</span> <span class="fu">sqrt</span>(<span class="fu">abs</span>(x))</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">quadgk</span>(f, <span class="op">-</span><span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<pre><code>(3.999999962817228, 5.736423067171012e-8)</code></pre>
+</div>
+</div>
+<p>Just trying <code>quadgk(f, -1, 1)</code> leads to a <code>DomainError</code>, as <code>0</code> will be one of the points sampled. The general call is like <code>quadgk(f, a, b, c, d,...)</code> which integrates over <span class="math inline">\((a,b)\)</span> and <span class="math inline">\((b,c)\)</span> and <span class="math inline">\((c,d)\)</span>, <span class="math inline">\(\dots\)</span>. The algorithm is not supposed to evaluate the function at the endpoints of the intervals.</p>
+</section>
+</section>
+<section id="probability-applications" class="level2" data-number="41.3">
+<h2 data-number="41.3" class="anchored" data-anchor-id="probability-applications"><span class="header-section-number">41.3</span> Probability applications</h2>
+<p>A probability density is a function <span class="math inline">\(f(x) \geq 0\)</span> which is integrable on <span class="math inline">\((-\infty, \infty)\)</span> and for which <span class="math inline">\(\int_{-\infty}^\infty f(x) dx =1\)</span>. The cumulative distribution function is defined by <span class="math inline">\(F(x)=\int_{-\infty}^x f(u) du\)</span>.</p>
+<p>Probability densities are good example of using improper integrals.</p>
+<ul>
+<li>Show that <span class="math inline">\(f(x) = (1/\pi) (1/(1 + x^2))\)</span> is a probability density function.</li>
+</ul>
+<p>We need to show that the integral exists and is <span class="math inline">\(1\)</span>. For this, we use the fact that <span class="math inline">\((1/\pi) \cdot \tan^{-1}(x)\)</span> is an antiderivative. Then we have:</p>
+<p><span class="math display">\[
+\lim_{M \rightarrow \infty} F(M) = (1/\pi) \cdot \pi/2
+\]</span></p>
+<p>and as <span class="math inline">\(\tan^{-1}(x)\)</span> is odd, we must have <span class="math inline">\(F(-\infty) = \lim_{M \rightarrow -\infty} f(M) = -(1/\pi) \cdot \pi/2\)</span>. All told, <span class="math inline">\(F(\infty) - F(-\infty) = 1/2 - (-1/2) = 1\)</span>.</p>
+<ul>
+<li>Show that <span class="math inline">\(f(x) = 1/(b-a)\)</span> for <span class="math inline">\(a \leq x \leq b\)</span> and <span class="math inline">\(0\)</span> otherwise is a probability density.</li>
+</ul>
+<p>The integral for <span class="math inline">\(-\infty\)</span> to <span class="math inline">\(a\)</span> of <span class="math inline">\(f(x)\)</span> is just an integral of the constant <span class="math inline">\(0\)</span>, so will be <span class="math inline">\(0\)</span>. (This is the only constant with finite area over an infinite domain.) Similarly, the integral from <span class="math inline">\(b\)</span> to <span class="math inline">\(\infty\)</span> will be <span class="math inline">\(0\)</span>. This means:</p>
+<p><span class="math display">\[
+\int_{-\infty}^\infty f(x) dx = \int_a^b \frac{1}{b-a} dx = 1.
+\]</span></p>
+<p>(One might also comment that <span class="math inline">\(f\)</span> is Riemann integrable on any <span class="math inline">\([0,M]\)</span> despite being discontinuous at <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>.)</p>
+<ul>
+<li>Show that if <span class="math inline">\(f(x)\)</span> is a probability density then so is <span class="math inline">\(f(x-c)\)</span> for any <span class="math inline">\(c\)</span>.</li>
+</ul>
+<p>We have by the <span class="math inline">\(u\)</span>-substitution</p>
+<p><span class="math display">\[
+\int_{-\infty}^\infty f(x-c)dx = \int_{u(-\infty)}^{u(\infty)} f(u) du = \int_{-\infty}^\infty f(u) du = 1.
+\]</span></p>
+<p>The key is that we can use the regular <span class="math inline">\(u\)</span>-substitution formula provided <span class="math inline">\(\lim_{M \rightarrow \infty} u(M) = u(\infty)\)</span> is defined. (The <em>informal</em> notation <span class="math inline">\(u(\infty)\)</span> is defined by that limit.)</p>
+<ul>
+<li>If <span class="math inline">\(f(x)\)</span> is a probability density, then so is <span class="math inline">\((1/h) f((x-c)/h)\)</span> for any <span class="math inline">\(c, h &gt; 0\)</span>.</li>
+</ul>
+<p>Again, by a <span class="math inline">\(u\)</span> substitution with, now, <span class="math inline">\(u(x) = (x-c)/h\)</span>, we have <span class="math inline">\(du = (1/h) \cdot dx\)</span> and the result follows just as before:</p>
+<p><span class="math display">\[
+\int_{-\infty}^\infty \frac{1}{h}f(\frac{x-c}{h})dx = \int_{u(-\infty)}^{u(\infty)} f(u) du = \int_{-\infty}^\infty f(u) du = 1.
+\]</span></p>
+<ul>
+<li>If <span class="math inline">\(F(x) = 1 - e^{-x}\)</span>, for <span class="math inline">\(x \geq 0\)</span>, and <span class="math inline">\(0\)</span> otherwise, find <span class="math inline">\(f(x)\)</span>.</li>
+</ul>
+<p>We want to just say <span class="math inline">\(F'(x)= e^{-x}\)</span> so <span class="math inline">\(f(x) = e^{-x}\)</span>. But some care is needed. First, that isn’t right. The derivative for <span class="math inline">\(x&lt;0\)</span> of <span class="math inline">\(F(x)\)</span> is <span class="math inline">\(0\)</span>, so <span class="math inline">\(f(x) = 0\)</span> if <span class="math inline">\(x &lt; 0\)</span>. What about for <span class="math inline">\(x&gt;0\)</span>? The derivative is <span class="math inline">\(e^{-x}\)</span>, but is that the right answer? <span class="math inline">\(F(x) = \int_{-\infty}^x f(u) du\)</span>, so we have to at least discuss if the <span class="math inline">\(-\infty\)</span> affects things. In this case, and in general the answer is <em>no</em>. For any <span class="math inline">\(x\)</span> we can find <span class="math inline">\(M &lt; x\)</span> so that we have <span class="math inline">\(F(x) = \int_{-\infty}^M f(u) du + \int_M^x f(u) du\)</span>. The first part is a constant, so will have derivative <span class="math inline">\(0\)</span>, the second will have derivative <span class="math inline">\(f(x)\)</span>, if the derivative exists (and it will exist at <span class="math inline">\(x\)</span> if the derivative is continuous in a neighborhood of <span class="math inline">\(x\)</span>).</p>
+<p>Finally, at <span class="math inline">\(x=0\)</span> we have an issue, as <span class="math inline">\(F'(0)\)</span> does not exist. The left limit of the secant line approximation is <span class="math inline">\(0\)</span>, the right limit of the secant line approximation is <span class="math inline">\(1\)</span>. So, we can take <span class="math inline">\(f(x) = e^{-x}\)</span> for <span class="math inline">\(x &gt; 0\)</span> and <span class="math inline">\(0\)</span> otherwise, noting that redefining <span class="math inline">\(f(x)\)</span> at a point will not effect the integral as long as the point is finite.</p>
+</section>
+<section id="questions" class="level2" data-number="41.4">
+<h2 data-number="41.4" class="anchored" data-anchor-id="questions"><span class="header-section-number">41.4</span> Questions</h2>
+<section id="question" class="level6">
+<h6 class="anchored" data-anchor-id="question">Question</h6>
+<p>Is <span class="math inline">\(f(x) = 1/x^{100}\)</span> integrable around <span class="math inline">\(0\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="9">
+<div class="cell-output cell-output-display" data-execution_count="10">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="13835909680318883433" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_13835909680318883433">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_13835909680318883433_1">
+      <input class="form-check-input" type="radio" name="radio_13835909680318883433" id="radio_13835909680318883433_1" value="1">
+      
+      <span class="label-body px-1">
+        Yes
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_13835909680318883433_2">
+      <input class="form-check-input" type="radio" name="radio_13835909680318883433" id="radio_13835909680318883433_2" value="2">
+      
+      <span class="label-body px-1">
+        No
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="13835909680318883433_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_13835909680318883433"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('13835909680318883433_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_13835909680318883433")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_13835909680318883433")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-1" class="level6">
+<h6 class="anchored" data-anchor-id="question-1">Question</h6>
+<p>Is <span class="math inline">\(f(x) = 1/x^{1/3}\)</span> integrable around <span class="math inline">\(0\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="10">
+<div class="cell-output cell-output-display" data-execution_count="11">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="6099729258384583292" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_6099729258384583292">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_6099729258384583292_1">
+      <input class="form-check-input" type="radio" name="radio_6099729258384583292" id="radio_6099729258384583292_1" value="1">
+      
+      <span class="label-body px-1">
+        Yes
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_6099729258384583292_2">
+      <input class="form-check-input" type="radio" name="radio_6099729258384583292" id="radio_6099729258384583292_2" value="2">
+      
+      <span class="label-body px-1">
+        No
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="6099729258384583292_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_6099729258384583292"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('6099729258384583292_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_6099729258384583292")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_6099729258384583292")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-2" class="level6">
+<h6 class="anchored" data-anchor-id="question-2">Question</h6>
+<p>Is <span class="math inline">\(f(x) = x\cdot\log(x)\)</span> integrable on <span class="math inline">\([1,\infty)\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="11">
+<div class="cell-output cell-output-display" data-execution_count="12">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="9048565589177736885" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_9048565589177736885">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_9048565589177736885_1">
+      <input class="form-check-input" type="radio" name="radio_9048565589177736885" id="radio_9048565589177736885_1" value="1">
+      
+      <span class="label-body px-1">
+        Yes
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_9048565589177736885_2">
+      <input class="form-check-input" type="radio" name="radio_9048565589177736885" id="radio_9048565589177736885_2" value="2">
+      
+      <span class="label-body px-1">
+        No
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="9048565589177736885_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_9048565589177736885"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('9048565589177736885_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_9048565589177736885")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_9048565589177736885")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-3" class="level6">
+<h6 class="anchored" data-anchor-id="question-3">Question</h6>
+<p>Is <span class="math inline">\(f(x) = \log(x)/ x\)</span> integrable on <span class="math inline">\([1,\infty)\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="12">
+<div class="cell-output cell-output-display" data-execution_count="13">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="10259051259194643533" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_10259051259194643533">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_10259051259194643533_1">
+      <input class="form-check-input" type="radio" name="radio_10259051259194643533" id="radio_10259051259194643533_1" value="1">
+      
+      <span class="label-body px-1">
+        Yes
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_10259051259194643533_2">
+      <input class="form-check-input" type="radio" name="radio_10259051259194643533" id="radio_10259051259194643533_2" value="2">
+      
+      <span class="label-body px-1">
+        No
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="10259051259194643533_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_10259051259194643533"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('10259051259194643533_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_10259051259194643533")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_10259051259194643533")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-4" class="level6">
+<h6 class="anchored" data-anchor-id="question-4">Question</h6>
+<p>Is <span class="math inline">\(f(x) = \log(x)\)</span> integrable on <span class="math inline">\([1,\infty)\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="13">
+<div class="cell-output cell-output-display" data-execution_count="14">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="10140134411173477490" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_10140134411173477490">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_10140134411173477490_1">
+      <input class="form-check-input" type="radio" name="radio_10140134411173477490" id="radio_10140134411173477490_1" value="1">
+      
+      <span class="label-body px-1">
+        Yes
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_10140134411173477490_2">
+      <input class="form-check-input" type="radio" name="radio_10140134411173477490" id="radio_10140134411173477490_2" value="2">
+      
+      <span class="label-body px-1">
+        No
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="10140134411173477490_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_10140134411173477490"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('10140134411173477490_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_10140134411173477490")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_10140134411173477490")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-5" class="level6">
+<h6 class="anchored" data-anchor-id="question-5">Question</h6>
+<p>Compute the integral <span class="math inline">\(\int_0^\infty 1/(1+x^2) dx\)</span>.</p>
+<div class="cell" data-hold="true" data-execution_count="14">
+<div class="cell-output cell-output-display" data-execution_count="15">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="3794332535085400925" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_3794332535085400925">
+        <div style="padding-top: 5px">
+    <br>
+<div class="input-group">
+    <input id="3794332535085400925" type="number" class="form-control" placeholder="Numeric answer">
+</div>
+
+    
+        </div>
+      </div>
+      <div id="3794332535085400925_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.getElementById("3794332535085400925").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 1.5707963267948966) <= 0.001);
+  var msgBox = document.getElementById('3794332535085400925_message');
+    if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_3794332535085400925")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_3794332535085400925")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-6" class="level6">
+<h6 class="anchored" data-anchor-id="question-6">Question</h6>
+<p>Compute the the integral <span class="math inline">\(\int_1^\infty \log(x)/x^2 dx\)</span>.</p>
+<div class="cell" data-hold="true" data-execution_count="15">
+<div class="cell-output cell-output-display" data-execution_count="16">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="8631769312420384190" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_8631769312420384190">
+        <div style="padding-top: 5px">
+    <br>
+<div class="input-group">
+    <input id="8631769312420384190" type="number" class="form-control" placeholder="Numeric answer">
+</div>
+
+    
+        </div>
+      </div>
+      <div id="8631769312420384190_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.getElementById("8631769312420384190").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 0.999999998385741) <= 0.001);
+  var msgBox = document.getElementById('8631769312420384190_message');
+    if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_8631769312420384190")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_8631769312420384190")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-7" class="level6">
+<h6 class="anchored" data-anchor-id="question-7">Question</h6>
+<p>Compute the integral <span class="math inline">\(\int_0^2 (x-1)^{2/3} dx\)</span>.</p>
+<div class="cell" data-hold="true" data-execution_count="16">
+<div class="cell-output cell-output-display" data-execution_count="17">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="14099481710229385942" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_14099481710229385942">
+        <div style="padding-top: 5px">
+    <br>
+<div class="input-group">
+    <input id="14099481710229385942" type="number" class="form-control" placeholder="Numeric answer">
+</div>
+
+    
+        </div>
+      </div>
+      <div id="14099481710229385942_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.getElementById("14099481710229385942").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 1.2000000004723115) <= 0.001);
+  var msgBox = document.getElementById('14099481710229385942_message');
+    if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_14099481710229385942")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_14099481710229385942")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-8" class="level6">
+<h6 class="anchored" data-anchor-id="question-8">Question</h6>
+<p>From the relationship that if <span class="math inline">\(0 \leq f(x) \leq g(x)\)</span> then <span class="math inline">\(\int_a^b f(x) dx \leq \int_a^b g(x) dx\)</span> it can be deduced that</p>
+<ul>
+<li>if <span class="math inline">\(\int_a^\infty f(x) dx\)</span> diverges, then so does <span class="math inline">\(\int_a^\infty g(x) dx\)</span>.</li>
+<li>if <span class="math inline">\(\int_a^\infty g(x) dx\)</span> converges, then so does <span class="math inline">\(\int_a^\infty f(x) dx\)</span>.</li>
+</ul>
+<p>Let <span class="math inline">\(f(x) = \lvert \sin(x)/x^2 \rvert\)</span>.</p>
+<p>What can you say about <span class="math inline">\(\int_1^\infty f(x) dx\)</span>, as <span class="math inline">\(f(x) \leq 1/x^2\)</span> on <span class="math inline">\([1, \infty)\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="17">
+<div class="cell-output cell-output-display" data-execution_count="18">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="2748116686296337231" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_2748116686296337231">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_2748116686296337231_1">
+      <input class="form-check-input" type="radio" name="radio_2748116686296337231" id="radio_2748116686296337231_1" value="1">
+      
+      <span class="label-body px-1">
+        It is convergent
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_2748116686296337231_2">
+      <input class="form-check-input" type="radio" name="radio_2748116686296337231" id="radio_2748116686296337231_2" value="2">
+      
+      <span class="label-body px-1">
+        It is divergent
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_2748116686296337231_3">
+      <input class="form-check-input" type="radio" name="radio_2748116686296337231" id="radio_2748116686296337231_3" value="3">
+      
+      <span class="label-body px-1">
+        Can't say
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="2748116686296337231_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_2748116686296337231"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('2748116686296337231_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_2748116686296337231")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_2748116686296337231")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+<hr>
+<p>Let <span class="math inline">\(f(x) = \lvert \sin(x) \rvert / x\)</span>.</p>
+<p>What can you say about <span class="math inline">\(\int_1^\infty f(x) dx\)</span>, as <span class="math inline">\(f(x) \leq 1/x\)</span> on <span class="math inline">\([1, \infty)\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="18">
+<div class="cell-output cell-output-display" data-execution_count="19">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="10586838793303528513" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_10586838793303528513">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_10586838793303528513_1">
+      <input class="form-check-input" type="radio" name="radio_10586838793303528513" id="radio_10586838793303528513_1" value="1">
+      
+      <span class="label-body px-1">
+        It is convergent
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_10586838793303528513_2">
+      <input class="form-check-input" type="radio" name="radio_10586838793303528513" id="radio_10586838793303528513_2" value="2">
+      
+      <span class="label-body px-1">
+        It is divergent
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_10586838793303528513_3">
+      <input class="form-check-input" type="radio" name="radio_10586838793303528513" id="radio_10586838793303528513_3" value="3">
+      
+      <span class="label-body px-1">
+        Can't say
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="10586838793303528513_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_10586838793303528513"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 3;
+    var msgBox = document.getElementById('10586838793303528513_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_10586838793303528513")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_10586838793303528513")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+<hr>
+<p>Let <span class="math inline">\(f(x) = 1/\sqrt{x^2 - 1}\)</span>. What can you say about <span class="math inline">\(\int_1^\infty f(x) dx\)</span>, as <span class="math inline">\(f(x) \geq 1/x\)</span> on <span class="math inline">\([1, \infty)\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="19">
+<div class="cell-output cell-output-display" data-execution_count="20">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="17874397323483167649" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_17874397323483167649">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_17874397323483167649_1">
+      <input class="form-check-input" type="radio" name="radio_17874397323483167649" id="radio_17874397323483167649_1" value="1">
+      
+      <span class="label-body px-1">
+        It is convergent
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_17874397323483167649_2">
+      <input class="form-check-input" type="radio" name="radio_17874397323483167649" id="radio_17874397323483167649_2" value="2">
+      
+      <span class="label-body px-1">
+        It is divergent
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_17874397323483167649_3">
+      <input class="form-check-input" type="radio" name="radio_17874397323483167649" id="radio_17874397323483167649_3" value="3">
+      
+      <span class="label-body px-1">
+        Can't say
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="17874397323483167649_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_17874397323483167649"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('17874397323483167649_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_17874397323483167649")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_17874397323483167649")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+<hr>
+<p>Let <span class="math inline">\(f(x) = 1 + 4x^2\)</span>. What can you say about <span class="math inline">\(\int_1^\infty f(x) dx\)</span>, as <span class="math inline">\(f(x) \leq 1/x^2\)</span> on <span class="math inline">\([1, \infty)\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="20">
+<div class="cell-output cell-output-display" data-execution_count="21">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="11890380834893891107" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_11890380834893891107">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_11890380834893891107_1">
+      <input class="form-check-input" type="radio" name="radio_11890380834893891107" id="radio_11890380834893891107_1" value="1">
+      
+      <span class="label-body px-1">
+        It is convergent
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_11890380834893891107_2">
+      <input class="form-check-input" type="radio" name="radio_11890380834893891107" id="radio_11890380834893891107_2" value="2">
+      
+      <span class="label-body px-1">
+        It is divergent
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_11890380834893891107_3">
+      <input class="form-check-input" type="radio" name="radio_11890380834893891107" id="radio_11890380834893891107_3" value="3">
+      
+      <span class="label-body px-1">
+        Can't say
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="11890380834893891107_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_11890380834893891107"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('11890380834893891107_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_11890380834893891107")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_11890380834893891107")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+<hr>
+<p>Let <span class="math inline">\(f(x) = \lvert \sin(x)^{10}\rvert/e^x\)</span>. What can you say about <span class="math inline">\(\int_1^\infty f(x) dx\)</span>, as <span class="math inline">\(f(x) \leq e^{-x}\)</span> on <span class="math inline">\([1, \infty)\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="21">
+<div class="cell-output cell-output-display" data-execution_count="22">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="15544107282915800719" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_15544107282915800719">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_15544107282915800719_1">
+      <input class="form-check-input" type="radio" name="radio_15544107282915800719" id="radio_15544107282915800719_1" value="1">
+      
+      <span class="label-body px-1">
+        It is convergent
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_15544107282915800719_2">
+      <input class="form-check-input" type="radio" name="radio_15544107282915800719" id="radio_15544107282915800719_2" value="2">
+      
+      <span class="label-body px-1">
+        It is divergent
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_15544107282915800719_3">
+      <input class="form-check-input" type="radio" name="radio_15544107282915800719" id="radio_15544107282915800719_3" value="3">
+      
+      <span class="label-body px-1">
+        Can't say
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="15544107282915800719_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_15544107282915800719"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('15544107282915800719_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_15544107282915800719")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_15544107282915800719")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-9" class="level6">
+<h6 class="anchored" data-anchor-id="question-9">Question</h6>
+<p>The difference between “blowing up” at <span class="math inline">\(0\)</span> versus being integrable at <span class="math inline">\(\infty\)</span> can be seen to be related through the <span class="math inline">\(u\)</span>-substitution <span class="math inline">\(u=1/x\)</span>. With this <span class="math inline">\(u\)</span>-substitution, what becomes of <span class="math inline">\(\int_0^1 x^{-2/3} dx\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="22">
+<div class="cell-output cell-output-display" data-execution_count="23">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="14639808955046759817" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_14639808955046759817">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_14639808955046759817_1">
+      <input class="form-check-input" type="radio" name="radio_14639808955046759817" id="radio_14639808955046759817_1" value="1">
+      
+      <span class="label-body px-1">
+        \(\int_1^\infty u^{2/3}/u^2 \cdot du\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_14639808955046759817_2">
+      <input class="form-check-input" type="radio" name="radio_14639808955046759817" id="radio_14639808955046759817_2" value="2">
+      
+      <span class="label-body px-1">
+        \(\int_0^\infty 1/u \cdot du\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_14639808955046759817_3">
+      <input class="form-check-input" type="radio" name="radio_14639808955046759817" id="radio_14639808955046759817_3" value="3">
+      
+      <span class="label-body px-1">
+        \(\int_0^1 u^{2/3} \cdot du\)
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="14639808955046759817_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_14639808955046759817"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('14639808955046759817_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_14639808955046759817")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_14639808955046759817")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-10" class="level6">
+<h6 class="anchored" data-anchor-id="question-10">Question</h6>
+<p>The antiderivative of <span class="math inline">\(f(x) = 1/\pi \cdot 1/\sqrt{x(1-x)}\)</span> is <span class="math inline">\(F(x)=(2/\pi)\cdot \sin^{-1}(\sqrt{x})\)</span>.</p>
+<p>Find <span class="math inline">\(\int_0^1 f(x) dx\)</span>.</p>
+<div class="cell" data-hold="true" data-execution_count="23">
+<div class="cell-output cell-output-display" data-execution_count="24">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="12865991861837681546" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_12865991861837681546">
+        <div style="padding-top: 5px">
+    <br>
+<div class="input-group">
+    <input id="12865991861837681546" type="number" class="form-control" placeholder="Numeric answer">
+</div>
+
+    
+        </div>
+      </div>
+      <div id="12865991861837681546_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.getElementById("12865991861837681546").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 0.9999999921866226) <= 0.001);
+  var msgBox = document.getElementById('12865991861837681546_message');
+    if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_12865991861837681546")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_12865991861837681546")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+});
+
+</script>
+</div>
+</div>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+    var links = window.document.querySelectorAll('a:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+          // target, if specified
+          link.setAttribute("target", "_blank");
+      }
+    }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../integrals/partial_fractions.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">40</span>&nbsp; <span class="chapter-title">Partial Fractions</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../integrals/mean_value_theorem.html" class="pagination-link">
+        <span class="nav-page-text"><span class="chapter-number">42</span>&nbsp; <span class="chapter-title">Mean value theorem for integrals</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+      <div class="nav-footer-center">Copyright 2022, John Verzani</div>
+  </div>
+</footer>
+
+
+
+</body></html>
