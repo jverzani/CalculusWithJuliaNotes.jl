@@ -1,0 +1,1874 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.0.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Calculus with Julia - 48&nbsp; ODEs</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../ODEs/euler.html" rel="next">
+<link href="../integrals/surface_area.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+<script async="" src="https://hypothes.is/embed.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body class="nav-sidebar floating nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <a class="navbar-brand" href="../index.html">
+    <img src="../logo.png" alt="">
+    <span class="navbar-title">Calculus with Julia</span>
+  </a>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+    <div class="container-fluid d-flex justify-content-between">
+      <h1 class="quarto-secondary-nav-title"><span class="chapter-number">48</span>&nbsp; <span class="chapter-title">ODEs</span></h1>
+      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation floating overflow-auto">
+      <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+      </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">Preface</a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="false">Precalculus Concepts</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/calculator.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">From calculator to computer</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/variables.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Variables</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/numbers_types.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Number systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/logical_expressions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Inequalities, Logical expressions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/vectors.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Vectors</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/ranges.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Ranges and Sets</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/plotting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">The Graph of a Function</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/transformations.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Function manipulations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/inversefunctions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">The Inverse of a Function</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/polynomial.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Polynomials</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/polynomial_roots.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Roots of a polynomial</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/polynomials_package.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">The Polynomials package</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/rational_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Rational functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/exp_log_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Exponential and logarithmic functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/trig_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Trigonometric functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/julia_overview.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Overview of Julia commands</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false">Limits</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/limits.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Limits</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/limits_extensions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Limits, issues, extensions of the concept</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/continuity.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Continuity</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/intermediate_value_theorem.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Implications of continuity</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="false">Derivatives</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/derivatives.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Derivatives</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/numeric_derivatives.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Numeric derivatives</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/symbolic_derivatives.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Symbolic derivatives</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/mean_value_theorem.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">The mean value theorem for differentiable functions.</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/optimization.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">26</span>&nbsp; <span class="chapter-title">Optimization</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/first_second_derivatives.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">27</span>&nbsp; <span class="chapter-title">The first and second derivatives</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/curve_sketching.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">28</span>&nbsp; <span class="chapter-title">Curve Sketching</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/linearization.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">29</span>&nbsp; <span class="chapter-title">Linearization</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/newtons_method.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">30</span>&nbsp; <span class="chapter-title">Newton’s method</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/more_zeros.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">31</span>&nbsp; <span class="chapter-title">Derivative-free alternatives to Newton’s method</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/lhospitals_rule.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">32</span>&nbsp; <span class="chapter-title">L’Hospital’s Rule</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/implicit_differentiation.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">33</span>&nbsp; <span class="chapter-title">Implicit Differentiation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/related_rates.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">34</span>&nbsp; <span class="chapter-title">Related rates</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/taylor_series_polynomials.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">35</span>&nbsp; <span class="chapter-title">Taylor Polynomials and other Approximating Polynomials</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="false">Integrals</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/area.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">36</span>&nbsp; <span class="chapter-title">Area under a curve</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/ftc.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">37</span>&nbsp; <span class="chapter-title">Fundamental Theorem or Calculus</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/substitution.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">38</span>&nbsp; <span class="chapter-title">Substitution</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/integration_by_parts.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">39</span>&nbsp; <span class="chapter-title">Integration By Parts</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/partial_fractions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">40</span>&nbsp; <span class="chapter-title">Partial Fractions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/improper_integrals.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">41</span>&nbsp; <span class="chapter-title">Improper Integrals</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/mean_value_theorem.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">42</span>&nbsp; <span class="chapter-title">Mean value theorem for integrals</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/area_between_curves.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">43</span>&nbsp; <span class="chapter-title">Area between two curves</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/center_of_mass.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">44</span>&nbsp; <span class="chapter-title">Center of Mass</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/volumes_slice.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">45</span>&nbsp; <span class="chapter-title">Volumes by slicing</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/arc_length.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">46</span>&nbsp; <span class="chapter-title">Arc length</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/surface_area.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">47</span>&nbsp; <span class="chapter-title">Surface Area</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">ODEs</a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/odes.html" class="sidebar-item-text sidebar-link active"><span class="chapter-number">48</span>&nbsp; <span class="chapter-title">ODEs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/euler.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">49</span>&nbsp; <span class="chapter-title">Euler’s method</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/solve.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">50</span>&nbsp; <span class="chapter-title">The problem-algorithm-solve interface</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/differential_equations.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">51</span>&nbsp; <span class="chapter-title">The <code>DifferentialEquations</code> suite</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="false">Differential vector calculus</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/polar_coordinates.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">52</span>&nbsp; <span class="chapter-title">Polar Coordinates and Curves</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/vectors.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">53</span>&nbsp; <span class="chapter-title">Vectors and matrices</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/vector_valued_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">54</span>&nbsp; <span class="chapter-title">Vector-valued functions, <span class="math inline">\(f:R \rightarrow R^n\)</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/scalar_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">55</span>&nbsp; <span class="chapter-title">Scalar functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/scalar_functions_applications.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">56</span>&nbsp; <span class="chapter-title">Applications with scalar functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/vector_fields.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">57</span>&nbsp; <span class="chapter-title">Functions <span class="math inline">\(R^n \rightarrow R^m\)</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/plots_plotting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">58</span>&nbsp; <span class="chapter-title">2D and 3D plots in Julia with Plots</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="false">Integral vector calculus</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/double_triple_integrals.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">59</span>&nbsp; <span class="chapter-title">Multi-dimensional integrals</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/line_integrals.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">60</span>&nbsp; <span class="chapter-title">Line and Surface Integrals</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/div_grad_curl.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">61</span>&nbsp; <span class="chapter-title">The Gradient, Divergence, and Curl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/stokes_theorem.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">62</span>&nbsp; <span class="chapter-title">Green’s Theorem, Stokes’ Theorem, and the Divergence Theorem</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/review.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">63</span>&nbsp; <span class="chapter-title">Quick Review of Vector Calculus</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="false">Alternatives</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../alternatives/plotly_plotting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">64</span>&nbsp; <span class="chapter-title">JavaScript based plotting libraries</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../alternatives/makie_plotting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">65</span>&nbsp; <span class="chapter-title">Calculus plots with Makie</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="false">Appendices</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/getting_started_with_julia.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">66</span>&nbsp; <span class="chapter-title">Getting started with Julia</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/julia_interfaces.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">67</span>&nbsp; <span class="chapter-title">Julia interfaces</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/calculus_with_julia.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">68</span>&nbsp; <span class="chapter-title">The <code>CalculusWithJulia</code> package</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/unicode.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">69</span>&nbsp; <span class="chapter-title">Usages of Unicode symbols</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/quick_notes.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">70</span>&nbsp; <span class="chapter-title">Quick introduction to Calculus with Julia</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../references.html" class="sidebar-item-text sidebar-link">References</a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#motion-with-constant-acceleration" id="toc-motion-with-constant-acceleration" class="nav-link active" data-scroll-target="#motion-with-constant-acceleration"> <span class="header-section-number">48.1</span> Motion with constant acceleration</a></li>
+  <li><a href="#first-order-initial-value-problems" id="toc-first-order-initial-value-problems" class="nav-link" data-scroll-target="#first-order-initial-value-problems"> <span class="header-section-number">48.2</span> First-order initial-value problems</a></li>
+  <li><a href="#separable-equations" id="toc-separable-equations" class="nav-link" data-scroll-target="#separable-equations"> <span class="header-section-number">48.3</span> Separable equations</a></li>
+  <li><a href="#symbolic-solutions" id="toc-symbolic-solutions" class="nav-link" data-scroll-target="#symbolic-solutions"> <span class="header-section-number">48.4</span> Symbolic solutions</a></li>
+  <li><a href="#visualizing-a-first-order-initial-value-problem" id="toc-visualizing-a-first-order-initial-value-problem" class="nav-link" data-scroll-target="#visualizing-a-first-order-initial-value-problem"> <span class="header-section-number">48.5</span> Visualizing a first-order initial value problem</a></li>
+  <li><a href="#questions" id="toc-questions" class="nav-link" data-scroll-target="#questions"> <span class="header-section-number">48.6</span> Questions</a></li>
+  </ul>
+<div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/jverzani/CalculusWithJuliaNotes.jl/edit/main/quarto/ODEs/odes.qmd" class="toc-action">Edit this page</a></p><p><a href="https://github.com/jverzani/CalculusWithJuliaNotes.jl/issues/new" class="toc-action">Report an issue</a></p></div></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title d-none d-lg-block"><span class="chapter-number">48</span>&nbsp; <span class="chapter-title">ODEs</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    
+  </div>
+  
+
+</header>
+
+<p>This section uses these add-on packages:</p>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">CalculusWithJulia</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Plots</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">SymPy</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<hr>
+<p>Some relationships are easiest to describe in terms of rates or derivatives. For example:</p>
+<ul>
+<li>Knowing the speed of a car and how long it has been driving can summarize the car’s location.</li>
+<li>One of Newton’s famous laws, <span class="math inline">\(F=ma\)</span>, describes the force on an object of mass <span class="math inline">\(m\)</span> in terms of the acceleration. The acceleration is the derivative of velocity, which in turn is the derivative of position. So if we know the rates of change of <span class="math inline">\(v(t)\)</span> or <span class="math inline">\(x(t)\)</span>, we can differentiate to find <span class="math inline">\(F\)</span>.</li>
+<li>Newton’s law of <a href="http://tinyurl.com/z4lmetp">cooling</a>. This describes the temperature change in an object due to a difference in temperature with the object’s surroundings. The formula being, <span class="math inline">\(T'(t) = -r \left(T(t) - T_a \right)\)</span>, where <span class="math inline">\(T(t)\)</span> is temperature at time <span class="math inline">\(t\)</span> and <span class="math inline">\(T_a\)</span> the ambient temperature.</li>
+<li><a href="http://tinyurl.com/kbz7r8l">Hooke’s law</a> relates force on an object to the position on the object, through <span class="math inline">\(F = k x\)</span>. This is appropriate for many systems involving springs. Combined with Newton’s law <span class="math inline">\(F=ma\)</span>, this leads to an equation that <span class="math inline">\(x\)</span> must satisfy: <span class="math inline">\(m x''(t) = k x(t)\)</span>.</li>
+</ul>
+<section id="motion-with-constant-acceleration" class="level2" data-number="48.1">
+<h2 data-number="48.1" class="anchored" data-anchor-id="motion-with-constant-acceleration"><span class="header-section-number">48.1</span> Motion with constant acceleration</h2>
+<p>Let’s consider the case of constant acceleration. This describes how nearby objects fall to earth, as the force due to gravity is assumed to be a constant, so the acceleration is the constant force divided by the constant mass.</p>
+<p>With constant acceleration, what is the velocity?</p>
+<p>As mentioned, we have <span class="math inline">\(dv/dt = a\)</span> for any velocity function <span class="math inline">\(v(t)\)</span>, but in this case, the right hand side is assumed to be constant. How does this restrict the possible functions, <span class="math inline">\(v(t)\)</span>, that the velocity can be?</p>
+<p>Here we can integrate to find that any answer must look like the following for some constant of integration:</p>
+<p><span class="math display">\[
+v(t) = \int \frac{dv}{dt} dt = \int a dt = at + C.
+\]</span></p>
+<p>If we are given the velocity at a fixed time, say <span class="math inline">\(v(t_0) = v_0\)</span>, then we can use the definite integral to get:</p>
+<p><span class="math display">\[
+v(t) - v(t_0) = \int_{t_0}^t a dt = at - a t_0.
+\]</span></p>
+<p>Solving, gives:</p>
+<p><span class="math display">\[
+v(t) = v_0 + a (t - t_0).
+\]</span></p>
+<p>This expresses the velocity at time <span class="math inline">\(t\)</span> in terms of the initial velocity, the constant acceleration and the time duration.</p>
+<p>A natural question might be, is this the <em>only</em> possible answer? There are a few useful ways to think about this.</p>
+<p>First, suppose there were another, say <span class="math inline">\(u(t)\)</span>. Then define <span class="math inline">\(w(t)\)</span> to be the difference: <span class="math inline">\(w(t) = v(t) - u(t)\)</span>. We would have that <span class="math inline">\(w'(t) = v'(t) - u'(t) = a - a = 0\)</span>. But from the mean value theorem, a function whose derivative is <em>continuously</em> <span class="math inline">\(0\)</span>, will necessarily be a constant. So at most, <span class="math inline">\(v\)</span> and <span class="math inline">\(u\)</span> will differ by a constant, but if both are equal at <span class="math inline">\(t_0\)</span>, they will be equal for all <span class="math inline">\(t\)</span>.</p>
+<p>Second, since the derivative of any solution is a continuous function, it is true by the fundamental theorem of calculus that it <em>must</em> satisfy the form for the antiderivative. The initial condition makes the answer unique, as the indeterminate <span class="math inline">\(C\)</span> can take only one value.</p>
+<p>Summarizing, we have</p>
+<blockquote class="blockquote">
+<p>If <span class="math inline">\(v(t)\)</span> satisfies the equation: <span class="math inline">\(v'(t) = a\)</span>, <span class="math inline">\(v(t_0) = v_0,\)</span> then the unique solution will be <span class="math inline">\(v(t) = v_0 + a (t - t_0)\)</span>.</p>
+</blockquote>
+<p>Next, what about position? Here we know that the time derivative of position yields the velocity, so we should have that the unknown position function satisfies this equation and initial condition:</p>
+<p><span class="math display">\[
+x'(t) = v(t) = v_0 + a (t - t_0), \quad x(t_0) = x_0.
+\]</span></p>
+<p>Again, we can integrate to get an answer for any value <span class="math inline">\(t\)</span>:</p>
+<p><span class="math display">\[
+\begin{align*}
+x(t) - x(t_0) &amp;= \int_{t_0}^t \frac{dv}{dt} dt     \\
+&amp;= (v_0t + \frac{1}{2}a t^2 - at_0 t) |_{t_0}^t    \\
+&amp;= (v_0 - at_0)(t - t_0) + \frac{1}{2} a (t^2 - t_0^2).
+\end{align*}
+\]</span></p>
+<p>There are three constants: the initial value for the independent variable, <span class="math inline">\(t_0\)</span>, and the two initial values for the velocity and position, <span class="math inline">\(v_0, x_0\)</span>. Assuming <span class="math inline">\(t_0 = 0\)</span>, we can simplify the above to get a formula familiar from introductory physics:</p>
+<p><span class="math display">\[
+x(t) = x_0 + v_0 t + \frac{1}{2} at^2.
+\]</span></p>
+<p>Again, the mean value theorem can show that with the initial value specified this is the only possible solution.</p>
+</section>
+<section id="first-order-initial-value-problems" class="level2" data-number="48.2">
+<h2 data-number="48.2" class="anchored" data-anchor-id="first-order-initial-value-problems"><span class="header-section-number">48.2</span> First-order initial-value problems</h2>
+<p>The two problems just looked at can be summarized by the following. We are looking for solutions to an equation of the form (taking <span class="math inline">\(y\)</span> and <span class="math inline">\(x\)</span> as the variables, in place of <span class="math inline">\(x\)</span> and <span class="math inline">\(t\)</span>):</p>
+<p><span class="math display">\[
+y'(x) = f(x), \quad y(x_0) = y_0.
+\]</span></p>
+<p>This is called an <em>ordinary differential equation</em> (ODE), as it is an equation involving the ordinary derivative of an unknown function, <span class="math inline">\(y\)</span>.</p>
+<p>This is called a first-order, ordinary differential equation, as there is only the first derivative involved.</p>
+<p>This is called an initial-value problem, as the value at the initial point <span class="math inline">\(x_0\)</span> is specified as part of the problem.</p>
+<section id="examples" class="level4">
+<h4 class="anchored" data-anchor-id="examples">Examples</h4>
+<p>Let’s look at a few more examples, and then generalize.</p>
+<section id="example-newtons-law-of-cooling" class="level5">
+<h5 class="anchored" data-anchor-id="example-newtons-law-of-cooling">Example: Newton’s law of cooling</h5>
+<p>Consider the ordinary differential equation given by Newton’s law of cooling:</p>
+<p><span class="math display">\[
+T'(t) = -r (T(t) - T_a), \quad T(0) = T_0
+\]</span></p>
+<p>This equation is also first order, as it involves just the first derivative, but notice that on the right hand side is the function <span class="math inline">\(T\)</span>, not the variable being differentiated against, <span class="math inline">\(t\)</span>.</p>
+<p>As we have a difference on the right hand side, we rename the variable through <span class="math inline">\(U(t) = T(t) - T_a\)</span>. Then, as <span class="math inline">\(U'(t) = T'(t)\)</span>, we have the equation:</p>
+<p><span class="math display">\[
+U'(t) = -r U(t), \quad U(0) = U_0.
+\]</span></p>
+<p>This shows that the rate of change of <span class="math inline">\(U\)</span> depends on <span class="math inline">\(U\)</span>. Large postive values indicate a negative rate of change - a push back towards the origin, and large negative values of <span class="math inline">\(U\)</span> indicate a positive rate of change - again, a push back towards the origin. We shouldn’t be surprised to either see a steady decay towards the origin, or oscillations about the origin.</p>
+<p>What will we find? This equation is different from the previous two equations, as the function <span class="math inline">\(U\)</span> appears on both sides. However, we can rearrange to get:</p>
+<p><span class="math display">\[
+\frac{dU}{dt}\frac{1}{U(t)} = -r.
+\]</span></p>
+<p>This suggests integrating both sides, as before. Here we do the “<span class="math inline">\(u\)</span>”-substitution <span class="math inline">\(u = U(t)\)</span>, so <span class="math inline">\(du = U'(t) dt\)</span>:</p>
+<p><span class="math display">\[
+-rt + C = \int \frac{dU}{dt}\frac{1}{U(t)} dt =
+\int \frac{1}{u}du = \log(u).
+\]</span></p>
+<p>Solving gives: <span class="math inline">\(u = U(t) = e^C e^{-rt}\)</span>. Using the initial condition forces <span class="math inline">\(e^C = U(t_0) = T(0) - T_a\)</span> and so our solution in terms of <span class="math inline">\(T(t)\)</span> is:</p>
+<p><span class="math display">\[
+T(t) - T_a = (T_0 - T_a) e^{-rt}.
+\]</span></p>
+<p>In words, the initial difference in temperature of the object and the environment exponentially decays to <span class="math inline">\(0\)</span>.</p>
+<p>That is, as <span class="math inline">\(t &gt; 0\)</span> goes to <span class="math inline">\(\infty\)</span>, the right hand will go to <span class="math inline">\(0\)</span> for <span class="math inline">\(r &gt; 0\)</span>, so <span class="math inline">\(T(t) \rightarrow T_a\)</span> - the temperature of the object will reach the ambient temperature. The rate of this is largest when the difference between <span class="math inline">\(T(t)\)</span> and <span class="math inline">\(T_a\)</span> is largest, so when objects are cooling the statement “hotter things cool faster” is appropriate.</p>
+<p>A graph of the solution for <span class="math inline">\(T_0=200\)</span> and <span class="math inline">\(T_a=72\)</span> and <span class="math inline">\(r=1/2\)</span> is made as follows. We’ve added a few line segments from the defining formula, and see that they are indeed tangent to the solution found for the differential equation.</p>
+<div class="cell" data-execution_count="4">
+<div class="cell-output cell-output-display" data-execution_count="5">
+<p><img src="odes_files/figure-html/cell-5-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>The above is implicitly assuming that there could be no other solution, than the one we found. Is that really the case? We will see that there is a theorem that can answer this, but in this case, the trick of taking the difference of two equations satisfying the equation leads to the equation <span class="math inline">\(W'(t) = r W(t), \text{ and } W(0) = 0\)</span>. This equation has a general solution of <span class="math inline">\(W(t) = Ce^{rt}\)</span> and the initial condition forces <span class="math inline">\(C=0\)</span>, so <span class="math inline">\(W(t) = 0\)</span>, as before. Hence, the initial-value problem for Newton’s law of cooling has a unique solution.</p>
+<p>In general, the equation could be written as (again using <span class="math inline">\(y\)</span> and <span class="math inline">\(x\)</span> as the variables):</p>
+<p><span class="math display">\[
+y'(x) = g(y), \quad y(x_0) = y_0
+\]</span></p>
+<p>This is called an <em>autonomous</em>, first-order ODE, as the right-hand side does not depend on <span class="math inline">\(x\)</span> (except through <span class="math inline">\(y(x)\)</span>).</p>
+<p>Let <span class="math inline">\(F(y) = \int_{y_0}^y du/g(u)\)</span>, then a solution to the above is <span class="math inline">\(F(y) = x - x_0\)</span>, assuming <span class="math inline">\(1/g(u)\)</span> is integrable.</p>
+</section>
+<section id="example-toricellis-law" class="level5">
+<h5 class="anchored" data-anchor-id="example-toricellis-law">Example: Toricelli’s law</h5>
+<p><a href="http://tinyurl.com/hxvf3qp">Toricelli’s Law</a> describes the speed a jet of water will leave a vessel through an opening below the surface of the water. The formula is <span class="math inline">\(v=\sqrt{2gh}\)</span>, where <span class="math inline">\(h\)</span> is the height of the water above the hole and <span class="math inline">\(g\)</span> the gravitational constant. This arises from equating the kinetic energy gained, <span class="math inline">\(1/2 mv^2\)</span> and potential energy lost, <span class="math inline">\(mgh\)</span>, for the exiting water.</p>
+<p>An application of Torricelli’s law is to describe the volume of water in a tank over time, <span class="math inline">\(V(t)\)</span>. Imagine a cylinder of cross sectional area <span class="math inline">\(A\)</span> with a hole of cross sectional diameter <span class="math inline">\(a\)</span> at the bottom, Then <span class="math inline">\(V(t) = A h(t)\)</span>, with <span class="math inline">\(h\)</span> giving the height. The change in volume over <span class="math inline">\(\Delta t\)</span> units of time must be given by the value <span class="math inline">\(a v(t) \Delta t\)</span>, or</p>
+<p><span class="math display">\[
+V(t+\Delta t) - V(t) = -a v(t) \Delta t = -a\sqrt{2gh(t)}\Delta t
+\]</span></p>
+<p>This suggests the following formula, written in terms of <span class="math inline">\(h(t)\)</span> should apply:</p>
+<p><span class="math display">\[
+A\frac{dh}{dt} = -a \sqrt{2gh(t)}.
+\]</span></p>
+<p>Rearranging, this gives an equation</p>
+<p><span class="math display">\[
+\frac{dh}{dt} \frac{1}{\sqrt{h(t)}} = -\frac{a}{A}\sqrt{2g}.
+\]</span></p>
+<p>Integrating both sides yields:</p>
+<p><span class="math display">\[
+2\sqrt{h(t)} = -\frac{a}{A}\sqrt{2g} t + C.
+\]</span></p>
+<p>If <span class="math inline">\(h(0) = h_0 = V(0)/A\)</span>, we can solve for <span class="math inline">\(C = 2\sqrt{h_0}\)</span>, or</p>
+<p><span class="math display">\[
+\sqrt{h(t)} = \sqrt{h_0} -\frac{1}{2}\frac{a}{A}\sqrt{2g} t.
+\]</span></p>
+<p>Setting <span class="math inline">\(h(t)=0\)</span> and solving for <span class="math inline">\(t\)</span> shows that the time to drain the tank would be <span class="math inline">\((2A)/(a\sqrt{2g})\sqrt{h_0}\)</span>.</p>
+</section>
+<section id="example" class="level5">
+<h5 class="anchored" data-anchor-id="example">Example</h5>
+<p>Consider now the equation</p>
+<p><span class="math display">\[
+y'(x) = y(x)^2, \quad y(x_0) = y_0.
+\]</span></p>
+<p>This is called a <em>non-linear</em> ordinary differential equation, as the <span class="math inline">\(y\)</span> variable on the right hand side presents itself in a non-linear form (it is squared). These equations may have solutions that are not defined for all times.</p>
+<p>This particular problem can be solved as before by moving the <span class="math inline">\(y^2\)</span> to the left hand side and integrating to yield:</p>
+<p><span class="math display">\[
+y(x) = - \frac{1}{C + x},
+\]</span></p>
+<p>and with the initial condition:</p>
+<p><span class="math display">\[
+y(x) = \frac{y_0}{1 - y_0(x - x_0)}.
+\]</span></p>
+<p>This answer can demonstrate <em>blow-up</em>. That is, in a finite range for <span class="math inline">\(x\)</span> values, the <span class="math inline">\(y\)</span> value can go to infinity. For example, if the initial conditions are <span class="math inline">\(x_0=0\)</span> and <span class="math inline">\(y_0 = 1\)</span>, then <span class="math inline">\(y(x) = 1/(1-x)\)</span> is only defined for <span class="math inline">\(x \geq x_0\)</span> on <span class="math inline">\([0,1)\)</span>, as at <span class="math inline">\(x=1\)</span> there is a vertical asymptote.</p>
+</section>
+</section>
+</section>
+<section id="separable-equations" class="level2" data-number="48.3">
+<h2 data-number="48.3" class="anchored" data-anchor-id="separable-equations"><span class="header-section-number">48.3</span> Separable equations</h2>
+<p>We’ve seen equations of the form <span class="math inline">\(y'(x) = f(x)\)</span> and <span class="math inline">\(y'(x) = g(y)\)</span> both solved by integrating. The same tricks will work for equations of the form <span class="math inline">\(y'(x) = f(x) \cdot g(y)\)</span>. Such equations are called <em>separable</em>.</p>
+<p>Basically, we equate up to constants</p>
+<p><span class="math display">\[
+\int \frac{dy}{g(y)} = \int f(x) dx.
+\]</span></p>
+<p>For example, suppose we have the equation</p>
+<p><span class="math display">\[
+\frac{dy}{dx} = x \cdot y(x), \quad y(x_0) = y_0.
+\]</span></p>
+<p>Then we can find a solution, <span class="math inline">\(y(x)\)</span> through:</p>
+<p><span class="math display">\[
+\int \frac{dy}{y} = \int x dx,
+\]</span></p>
+<p>or</p>
+<p><span class="math display">\[
+\log(y) = \frac{x^2}{2} + C
+\]</span></p>
+<p>Which yields:</p>
+<p><span class="math display">\[
+y(x) = e^C e^{\frac{1}{2}x^2}.
+\]</span></p>
+<p>Substituting in <span class="math inline">\(x_0\)</span> yields a value for <span class="math inline">\(C\)</span> in terms of the initial information <span class="math inline">\(y_0\)</span> and <span class="math inline">\(x_0\)</span>.</p>
+</section>
+<section id="symbolic-solutions" class="level2" data-number="48.4">
+<h2 data-number="48.4" class="anchored" data-anchor-id="symbolic-solutions"><span class="header-section-number">48.4</span> Symbolic solutions</h2>
+<p>Differential equations are classified according to their type. Different types have different methods for solution, when a solution exists.</p>
+<p>The first-order initial value equations we have seen can be described generally by</p>
+<p><span class="math display">\[
+\begin{align*}
+y'(x) &amp;= F(y,x),\\
+y(x_0) &amp;= x_0.
+\end{align*}
+\]</span></p>
+<p>Special cases include:</p>
+<ul>
+<li><em>linear</em> if the function <span class="math inline">\(F\)</span> is linear in <span class="math inline">\(y\)</span>;</li>
+<li><em>autonomous</em> if <span class="math inline">\(F(y,x) = G(y)\)</span> (a function of <span class="math inline">\(y\)</span> alone);</li>
+<li><em>separable</em> if <span class="math inline">\(F(y,x) = G(y)H(x)\)</span>.</li>
+</ul>
+<p>As seen, separable equations are approached by moving the “<span class="math inline">\(y\)</span>” terms to one side, the “<span class="math inline">\(x\)</span>” terms to the other and integrating. This also applies to autonomous equations then. There are other families of equation types that have exact solutions, and techniques for solution, summarized at this <a href="http://tinyurl.com/zywzz4q">Wikipedia page</a>.</p>
+<p>Rather than go over these various families, we demonstrate that <code>SymPy</code> can solve many of these equations symbolically.</p>
+<p>The <code>solve</code> function in <code>SymPy</code> solves equations for unknown <em>variables</em>. As a differential equation involves an unknown <em>function</em> there is a different function, <code>dsolve</code>. The basic idea is to describe the differential equation using a symbolic function and then call <code>dsolve</code> to solve the expression.</p>
+<p>Symbolic functions are defined by the <code>@syms</code> macro (also see <code>?symbols</code>) using parentheses to distinguish a function from a variable:</p>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> x <span class="fu">u</span>() <span class="co"># a symbolic variable and a symbolic function</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<pre><code>(x, u)</code></pre>
+</div>
+</div>
+<p>We will solve the following, known as the <em>logistic equation</em>:</p>
+<p><span class="math display">\[
+u'(x) = a u(1-u), \quad a &gt; 0
+\]</span></p>
+<p>Before beginning, we look at the form of the equation. When <span class="math inline">\(u=0\)</span> or <span class="math inline">\(u=1\)</span> the rate of change is <span class="math inline">\(0\)</span>, so we expect the function might be bounded within that range. If not, when <span class="math inline">\(u\)</span> gets bigger than <span class="math inline">\(1\)</span>, then the slope is negative and when <span class="math inline">\(u\)</span> gets less than <span class="math inline">\(0\)</span>, the slope is positive, so there will at least be a drift back to the range <span class="math inline">\([0,1]\)</span>. Let’s see exactly what happens. We define a parameter, restricting <code>a</code> to be positive:</p>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> a<span class="op">::</span><span class="dt">positive</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<pre><code>(a,)</code></pre>
+</div>
+</div>
+<p>To specify a derivative of <code>u</code> in our equation we can use <code>diff(u(x),x)</code> but here, for visual simplicity, use the <code>Differential</code> operator, as follows:</p>
+<div class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>D <span class="op">=</span> <span class="fu">Differential</span>(x)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>eqn <span class="op">=</span> <span class="fu">D</span>(u)(x) <span class="op">~</span> a <span class="op">*</span> <span class="fu">u</span>(x) <span class="op">*</span> (<span class="fl">1</span> <span class="op">-</span> <span class="fu">u</span>(x)) <span class="co"># use l \Equal[tab] r, Eq(l,r), or just l - r</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
+\[
+\frac{d}{d x} u{\left(x \right)} = a \left(1 - u{\left(x \right)}\right) u{\left(x \right)}
+\]
+</span>
+</div>
+</div>
+<p>In the above, we evaluate the symbolic function at the variable <code>x</code> through the use of <code>u(x)</code> in the expression. The equation above uses <code>~</code> to combine the left- and right-hand sides as an equation in <code>SymPy</code>. (A unicode equals is also available for this task). This is a shortcut for <code>Eq(l,r)</code>, but even just using <code>l - r</code> would suffice, as the default assumption for an equation is that it is set to <code>0</code>.</p>
+<p>The <code>Differential</code> operation is borrowed from the <code>ModelingToolkit</code> package, which will be introduced later.</p>
+<p>To finish, we call <code>dsolve</code> to find a solution (if possible):</p>
+<div class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>out <span class="op">=</span> <span class="fu">dsolve</span>(eqn)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
+\[
+u{\left(x \right)} = \frac{1}{C_{1} e^{- a x} + 1}
+\]
+</span>
+</div>
+</div>
+<p>This answer - to a first-order equation - has one free constant, <code>C_1</code>, which can be solved for from an initial condition. We can see that when <span class="math inline">\(a &gt; 0\)</span>, as <span class="math inline">\(x\)</span> goes to positive infinity the solution goes to <span class="math inline">\(1\)</span>, and when <span class="math inline">\(x\)</span> goes to negative infinity, the solution goes to <span class="math inline">\(0\)</span> and otherwise is trapped in between, as expected.</p>
+<p>The limits are confirmed by investigating the limits of the right-hand:</p>
+<div class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">limit</span>(<span class="fu">rhs</span>(out), x <span class="op">=&gt;</span> oo), <span class="fu">limit</span>(<span class="fu">rhs</span>(out), x <span class="op">=&gt;</span> <span class="op">-</span>oo)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<pre><code>(1, 0)</code></pre>
+</div>
+</div>
+<p>We can confirm that the solution is always increasing, hence trapped within <span class="math inline">\([0,1]\)</span> by observing that the derivative is positive when <code>C₁</code> is positive:</p>
+<pre class="{juila}"><code>diff(rhs(out),x)</code></pre>
+<p>Suppose that <span class="math inline">\(u(0) = 1/2\)</span>. Can we solve for <span class="math inline">\(C_1\)</span> symbolically? We can use <code>solve</code>, but first we will need to get the symbol for <code>C_1</code>:</p>
+<div class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>eq <span class="op">=</span> <span class="fu">rhs</span>(out)    <span class="co"># just the right hand side</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>C1 <span class="op">=</span> <span class="fu">first</span>(<span class="fu">setdiff</span>(<span class="fu">free_symbols</span>(eq), (x,a))) <span class="co"># fish out constant, it is not x or a</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>c1 <span class="op">=</span> <span class="fu">solve</span>(<span class="fu">eq</span>(x<span class="op">=&gt;</span><span class="fl">0</span>) <span class="op">-</span> <span class="fl">1</span><span class="op">//</span><span class="fl">2</span>, C1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="11">
+<pre><code>1-element Vector{Sym}:
+ 1</code></pre>
+</div>
+</div>
+<p>And we plug in with:</p>
+<div class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">eq</span>(C1 <span class="op">=&gt;</span> c1[<span class="fl">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="12">
+<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
+\[
+\frac{1}{1 + e^{- a x}}
+\]
+</span>
+</div>
+</div>
+<p>That’s a lot of work. The <code>dsolve</code> function in <code>SymPy</code> allows initial conditions to be specified for some equations. In this case, ours is <span class="math inline">\(x_0=0\)</span> and <span class="math inline">\(y_0=1/2\)</span>. The extra arguments passed in through a dictionary to the <code>ics</code> argument:</p>
+<div class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>x0, y0 <span class="op">=</span> <span class="fl">0</span>, <span class="fu">Sym</span>(<span class="fl">1</span><span class="op">//</span><span class="fl">2</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dsolve</span>(eqn, <span class="fu">u</span>(x), ics<span class="op">=</span><span class="fu">Dict</span>(<span class="fu">u</span>(x0) <span class="op">=&gt;</span> y0))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="13">
+<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
+\[
+u{\left(x \right)} = \frac{1}{1 + e^{- a x}}
+\]
+</span>
+</div>
+</div>
+<p>(The one subtlety is the need to write the rational value as a symbolic expression, as otherwise it will get converted to a floating point value prior to being passed along.)</p>
+<section id="example-hookes-law" class="level5">
+<h5 class="anchored" data-anchor-id="example-hookes-law">Example: Hooke’s law</h5>
+<p>In the first example, we solved for position, <span class="math inline">\(x(t)\)</span>, from an assumption of constant acceleration in two steps. The equation relating the two is a second-order equation: <span class="math inline">\(x''(t) = a\)</span>, so two constants are generated. That a second-order equation could be reduced to two first-order equations is not happy circumstance, as it can always be done. Rather than show the technique though, we demonstrate that <code>SymPy</code> can also handle some second-order ODEs.</p>
+<p>Hooke’s law relates the force on an object to its position via <span class="math inline">\(F=ma = -kx\)</span>, or <span class="math inline">\(x''(t) = -(k/m)x(t)\)</span>.</p>
+<p>Suppose <span class="math inline">\(k &gt; 0\)</span>. Then we can solve, similar to the above, with:</p>
+<div class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> k<span class="op">::</span><span class="dt">positive </span>m<span class="op">::</span><span class="dt">positive</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>D2 <span class="op">=</span> D <span class="op">∘</span> D  <span class="co"># takes second derivative through composition</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>eqnh <span class="op">=</span> <span class="fu">D2</span>(u)(x) <span class="op">~</span> <span class="fu">-</span>(k<span class="op">/</span>m)<span class="fu">*u</span>(x)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="fu">dsolve</span>(eqnh)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="14">
+<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
+\[
+u{\left(x \right)} = C_{1} \sin{\left(\frac{\sqrt{k} x}{\sqrt{m}} \right)} + C_{2} \cos{\left(\frac{\sqrt{k} x}{\sqrt{m}} \right)}
+\]
+</span>
+</div>
+</div>
+<p>Here we find two constants, as anticipated, for we would guess that two integrations are needed in the solution.</p>
+<p>Suppose the spring were started by pulling it down to a bottom and releasing. The initial position at time <span class="math inline">\(0\)</span> would be <span class="math inline">\(a\)</span>, say, and initial velocity <span class="math inline">\(0\)</span>. Here we get the solution specifying initial conditions on the function and its derivative (expressed through <code>u'</code>):</p>
+<div class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dsolve</span>(eqnh, <span class="fu">u</span>(x), ics <span class="op">=</span> <span class="fu">Dict</span>(<span class="fu">u</span>(<span class="fl">0</span>) <span class="op">=&gt;</span> <span class="op">-</span>a, <span class="fu">D</span>(u)(<span class="fl">0</span>) <span class="op">=&gt;</span>  <span class="fl">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="15">
+<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
+\[
+u{\left(x \right)} = - a \cos{\left(\frac{\sqrt{k} x}{\sqrt{m}} \right)}
+\]
+</span>
+</div>
+</div>
+<p>We get that the motion will follow <span class="math inline">\(u(x) = -a \cos(\sqrt{k/m}x)\)</span>. This is simple oscillatory behavior. As the spring stretches, the force gets large enough to pull it back, and as it compresses the force gets large enough to push it back. The amplitude of this oscillation is <span class="math inline">\(a\)</span> and the period <span class="math inline">\(2\pi/\sqrt{k/m}\)</span>. Larger <span class="math inline">\(k\)</span> values mean shorter periods; larger <span class="math inline">\(m\)</span> values mean longer periods.</p>
+</section>
+<section id="example-the-pendulum" class="level5">
+<h5 class="anchored" data-anchor-id="example-the-pendulum">Example: the pendulum</h5>
+<p>The simple gravity <a href="http://tinyurl.com/h8ys6ts">pendulum</a> is an idealization of a physical pendulum that models a “bob” with mass <span class="math inline">\(m\)</span> swinging on a massless rod of length <span class="math inline">\(l\)</span> in a frictionless world governed only by the gravitational constant <span class="math inline">\(g\)</span>. The motion can be described by this differential equation for the angle, <span class="math inline">\(\theta\)</span>, made from the vertical:</p>
+<p><span class="math display">\[
+\theta''(t) + \frac{g}{l}\sin(\theta(t)) = 0
+\]</span></p>
+<p>Can this second-order equation be solved by <code>SymPy</code>?</p>
+<div class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> g<span class="op">::</span><span class="dt">positive </span>l<span class="op">::</span><span class="dt">positive </span><span class="fu">theta</span>()<span class="op">=&gt;</span><span class="st">"θ"</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>eqnp <span class="op">=</span> <span class="fu">D2</span>(theta)(x) <span class="op">+</span> g<span class="op">/</span><span class="fu">l*sin</span>(<span class="fu">theta</span>(x))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="16">
+<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
+\[
+\frac{g \sin{\left(θ{\left(x \right)} \right)}}{l} + \frac{d^{2}}{d x^{2}} θ{\left(x \right)}
+\]
+</span>
+</div>
+</div>
+<p>Trying to do so, can cause <code>SymPy</code> to hang or simply give up and repeat its input; no easy answer is forthcoming for this equation.</p>
+<p>In general, for the first-order initial value problem characterized by <span class="math inline">\(y'(x) = F(y,x)\)</span>, there are conditions (<a href="http://tinyurl.com/h663wba">Peano</a> and <a href="http://tinyurl.com/3rbde5e">Picard-Lindelof</a>) that can guarantee the existence (and uniqueness) of equation locally, but there may not be an accompanying method to actually find it. This particular problem has a solution, but it can not be written in terms of elementary functions.</p>
+<p>However, as <a href="https://en.wikipedia.org/wiki/Christiaan_Huygens">Huygens</a> first noted, if the angles involved are small, then we approximate the solution through the linearization <span class="math inline">\(\sin(\theta(t)) \approx \theta(t)\)</span>. The resulting equation for an approximate answer is just that of Hooke:</p>
+<p><span class="math display">\[
+\theta''(t) + \frac{g}{l}\theta(t) = 0
+\]</span></p>
+<p>Here, the solution is in terms of sines and cosines, with period given by <span class="math inline">\(T = 2\pi/\sqrt{k} = 2\pi\cdot\sqrt{l/g}\)</span>. The answer does not depend on the mass, <span class="math inline">\(m\)</span>, of the bob nor the amplitude of the motion, provided the small-angle approximation is valid.</p>
+<p>If we pull the bob back an angle <span class="math inline">\(a\)</span> and release it then the initial conditions are <span class="math inline">\(\theta(0) = a\)</span> and <span class="math inline">\(\theta'(a) = 0\)</span>. This gives the solution:</p>
+<div class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>eqnp₁ <span class="op">=</span> <span class="fu">D2</span>(u)(x) <span class="op">+</span> g<span class="op">/</span>l <span class="op">*</span> <span class="fu">u</span>(x)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dsolve</span>(eqnp₁, <span class="fu">u</span>(x), ics<span class="op">=</span><span class="fu">Dict</span>(<span class="fu">u</span>(<span class="fl">0</span>) <span class="op">=&gt;</span> a, <span class="fu">D</span>(u)(<span class="fl">0</span>) <span class="op">=&gt;</span> <span class="fl">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="17">
+<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
+\[
+u{\left(x \right)} = a \cos{\left(\frac{\sqrt{g} x}{\sqrt{l}} \right)}
+\]
+</span>
+</div>
+</div>
+</section>
+<section id="example-hanging-cables" class="level5">
+<h5 class="anchored" data-anchor-id="example-hanging-cables">Example: hanging cables</h5>
+<p>A chain hangs between two supports a distance <span class="math inline">\(L\)</span> apart. What shape will it take if there are no forces outside of gravity acting on it? What about if the force is uniform along length of the chain, like a suspension bridge? How will the shape differ then?</p>
+<p>Let <span class="math inline">\(y(x)\)</span> describe the chain at position <span class="math inline">\(x\)</span>, with <span class="math inline">\(0 \leq x \leq L\)</span>, say. We consider first the case of the chain with no force save gravity. Let <span class="math inline">\(w(x)\)</span> be the density of the chain at <span class="math inline">\(x\)</span>, taken below to be a constant.</p>
+<p>The chain is in equilibrium, so tension, <span class="math inline">\(T(x)\)</span>, in the chain will be in the direction of the derivative. Let <span class="math inline">\(V\)</span> be the vertical component and <span class="math inline">\(H\)</span> the horizontal component. With only gravity acting on the chain, the value of <span class="math inline">\(H\)</span> will be a constant. The value of <span class="math inline">\(V\)</span> will vary with position.</p>
+<p>At a point <span class="math inline">\(x\)</span>, there is <span class="math inline">\(s(x)\)</span> amount of chain with weight <span class="math inline">\(w \cdot s(x)\)</span>. The tension is in the direction of the tangent line, so:</p>
+<p><span class="math display">\[
+\tan(\theta) = y'(x) = \frac{w s(x)}{H}.
+\]</span></p>
+<p>In terms of an increment of chain, we have:</p>
+<p><span class="math display">\[
+\frac{w ds}{H} = d(y'(x)).
+\]</span></p>
+<p>That is, the ratio of the vertical and horizontal tensions in the increment are in balance with the differential of the derivative.</p>
+<p>But <span class="math inline">\(ds = \sqrt{dx^2 + dy^2} = \sqrt{dx^2 + y'(x)^2 dx^2} = \sqrt{1 + y'(x)^2}dx\)</span>, so we can simplify to:</p>
+<p><span class="math display">\[
+\frac{w}{H}\sqrt{1 + y'(x)^2}dx =y''(x)dx.
+\]</span></p>
+<p>This yields the second-order equation:</p>
+<p><span class="math display">\[
+y''(x) = \frac{w}{H} \sqrt{1 + y'(x)^2}.
+\]</span></p>
+<p>We enter this into <code>Julia</code>:</p>
+<div class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> w<span class="op">::</span><span class="dt">positive </span>H<span class="op">::</span><span class="dt">positive </span><span class="fu">y</span>()</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>eqnc <span class="op">=</span> <span class="fu">D2</span>(y)(x) <span class="op">~</span> (w<span class="op">/</span>H) <span class="op">*</span> <span class="fu">sqrt</span>(<span class="fl">1</span> <span class="op">+</span> y<span class="op">'</span>(x)<span class="op">^</span><span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="18">
+<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
+\[
+\frac{d^{2}}{d x^{2}} y{\left(x \right)} = \frac{w \sqrt{\left(\frac{d}{d x} y{\left(x \right)}\right)^{2} + 1}}{H}
+\]
+</span>
+</div>
+</div>
+<p>Unfortunately, <code>SymPy</code> needs a bit of help with this problem, by breaking the problem into steps.</p>
+<p>For the first step we solve for the derivative. Let <span class="math inline">\(u = y'\)</span>, then we have <span class="math inline">\(u'(x) = (w/H)\sqrt{1 + u(x)^2}\)</span>:</p>
+<div class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>eqnc₁ <span class="op">=</span> <span class="fu">subs</span>(eqnc, <span class="fu">D</span>(y)(x) <span class="op">=&gt;</span> <span class="fu">u</span>(x))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="19">
+<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
+\[
+\frac{d}{d x} u{\left(x \right)} = \frac{w \sqrt{u^{2}{\left(x \right)} + 1}}{H}
+\]
+</span>
+</div>
+</div>
+<p>and can solve via:</p>
+<div class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>outc <span class="op">=</span> <span class="fu">dsolve</span>(eqnc₁)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="20">
+<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
+\[
+u{\left(x \right)} = \sinh{\left(C_{1} + \frac{w x}{H} \right)}
+\]
+</span>
+</div>
+</div>
+<p>So <span class="math inline">\(y'(x) = u(x) = \sinh(C_1 + w \cdot x/H)\)</span>. This can be solved by direct integration as there is no <span class="math inline">\(y(x)\)</span> term on the right hand side.</p>
+<div class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">D</span>(y)(x) <span class="op">~</span> <span class="fu">rhs</span>(outc)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="21">
+<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
+\[
+\frac{d}{d x} y{\left(x \right)} = \sinh{\left(C_{1} + \frac{w x}{H} \right)}
+\]
+</span>
+</div>
+</div>
+<p>We see a simple linear transformation involving the hyperbolic sine. To avoid, <code>SymPy</code> struggling with the above equation, and knowing the hyperbolic sine is the derivative of the hyperbolic cosine, we anticipate an answer and verify it:</p>
+<div class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>yc <span class="op">=</span> (H<span class="op">/</span>w)<span class="fu">*cosh</span>(C1 <span class="op">+</span> w<span class="op">*</span>x<span class="op">/</span>H)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">diff</span>(yc, x) <span class="op">==</span> <span class="fu">rhs</span>(outc) <span class="co"># == not \Equal[tab]</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="22">
+<pre><code>true</code></pre>
+</div>
+</div>
+<p>The shape is a hyperbolic cosine, known as the catenary.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../ODEs/figures/verrazano-narrows-bridge-anniversary-historic-photos-2.jpeg" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">The cables of an unloaded suspension bridge have a different shape than a loaded suspension bridge. As seen, the cables in this <a href="https://www.brownstoner.com/brooklyn-life/verrazano-narrows-bridge-anniversary-historic-photos/">figure</a> would be modeled by a catenary.</figcaption><p></p>
+</figure>
+</div>
+<hr>
+<p>If the chain has a uniform load – like a suspension bridge with a deck – sufficient to make the weight of the chain negligible, then how does the above change? Then the vertical tension comes from <span class="math inline">\(Udx\)</span> and not <span class="math inline">\(w ds\)</span>, so the equation becomes instead:</p>
+<p><span class="math display">\[
+\frac{Udx}{H} = d(y'(x)).
+\]</span></p>
+<p>This <span class="math inline">\(y''(x) = U/H\)</span>, a constant. So it’s answer will be a parabola.</p>
+</section>
+<section id="example-projectile-motion-in-a-medium" class="level5">
+<h5 class="anchored" data-anchor-id="example-projectile-motion-in-a-medium">Example: projectile motion in a medium</h5>
+<p>The first example describes projectile motion without air resistance. If we use <span class="math inline">\((x(t), y(t))\)</span> to describe position at time <span class="math inline">\(t\)</span>, the functions satisfy:</p>
+<p><span class="math display">\[
+x''(t) = 0, \quad y''(t) = -g.
+\]</span></p>
+<p>That is, the <span class="math inline">\(x\)</span> position - where no forces act - has <span class="math inline">\(0\)</span> acceleration, and the <span class="math inline">\(y\)</span> position - where the force of gravity acts - has constant acceleration, <span class="math inline">\(-g\)</span>, where <span class="math inline">\(g=9.8m/s^2\)</span> is the gravitational constant. These equations can be solved to give:</p>
+<p><span class="math display">\[
+x(t) = x_0 + v_0 \cos(\alpha) t, \quad y(t) = y_0 + v_0\sin(\alpha)t - \frac{1}{2}g \cdot t^2.
+\]</span></p>
+<p>Furthermore, we can solve for <span class="math inline">\(t\)</span> from <span class="math inline">\(x(t)\)</span>, to get an equation describing <span class="math inline">\(y(x)\)</span>. Here are all the steps:</p>
+<div class="cell" data-hold="true" data-execution_count="23">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> x0<span class="op">::</span><span class="dt">real </span>y0<span class="op">::</span><span class="dt">real </span>v0<span class="op">::</span><span class="dt">real </span>alpha<span class="op">::</span><span class="dt">real </span>g<span class="op">::</span><span class="dt">real</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> t x <span class="fu">u</span>()</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>a1 <span class="op">=</span> <span class="fu">dsolve</span>(<span class="fu">D2</span>(u)(x) <span class="op">~</span> <span class="fl">0</span>, <span class="fu">u</span>(x), ics<span class="op">=</span><span class="fu">Dict</span>(<span class="fu">u</span>(<span class="fl">0</span>) <span class="op">=&gt;</span> x0, <span class="fu">D</span>(u)(<span class="fl">0</span>) <span class="op">=&gt;</span> v0 <span class="op">*</span> <span class="fu">cos</span>(alpha)))</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>a2 <span class="op">=</span> <span class="fu">dsolve</span>(<span class="fu">D2</span>(u)(x) <span class="op">~</span> <span class="op">-</span>g, <span class="fu">u</span>(x), ics<span class="op">=</span><span class="fu">Dict</span>(<span class="fu">u</span>(<span class="fl">0</span>) <span class="op">=&gt;</span> y0, <span class="fu">D</span>(u)(<span class="fl">0</span>) <span class="op">=&gt;</span> v0 <span class="op">*</span> <span class="fu">sin</span>(alpha)))</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>ts <span class="op">=</span> <span class="fu">solve</span>(t <span class="op">-</span> <span class="fu">rhs</span>(a1), x)[<span class="fl">1</span>]</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> <span class="fu">simplify</span>(<span class="fu">rhs</span>(a2)(t <span class="op">=&gt;</span> ts))</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>sympy.<span class="fu">Poly</span>(y, x).<span class="fu">coeffs</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="24">
+<pre><code>3-element Vector{Sym}:
+          -g/2
+ v₀⋅sin(α)
+            y₀</code></pre>
+</div>
+</div>
+<p>Though <code>y</code> is messy, it can be seen that the answer is a quadratic polynomial in <span class="math inline">\(x\)</span> yielding the familiar parabolic motion for a trajectory. The output shows the coefficients.</p>
+<p>In a resistive medium, there are drag forces at play. If this force is proportional to the velocity, say, with proportion <span class="math inline">\(\gamma\)</span>, then the equations become:</p>
+<p><span class="math display">\[
+\begin{align*}
+x''(t) &amp;= -\gamma x'(t), &amp; \quad y''(t) &amp;= -\gamma y'(t) -g, \\
+x(0) &amp;= x_0, &amp;\quad y(0) &amp;= y_0,\\
+x'(0) &amp;= v_0\cos(\alpha),&amp;\quad y'(0) &amp;= v_0 \sin(\alpha).
+\end{align*}
+\]</span></p>
+<p>We now attempt to solve these.</p>
+<div class="cell" data-execution_count="24">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> alpha<span class="op">::</span><span class="dt">real</span>, γ<span class="op">::</span><span class="dt">postive</span>, t<span class="op">::</span><span class="dt">positive</span>, <span class="fu">v</span>()</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> x_0<span class="op">::</span><span class="dt">real </span>y_0<span class="op">::</span><span class="dt">real </span>v_0<span class="op">::</span><span class="dt">real</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>Dₜ <span class="op">=</span> <span class="fu">Differential</span>(t)</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>eq₁ <span class="op">=</span> <span class="fu">Dₜ</span>(<span class="fu">Dₜ</span>(u))(t) <span class="op">~</span>    <span class="op">-</span> γ <span class="op">*</span> <span class="fu">Dₜ</span>(u)(t)</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>eq₂ <span class="op">=</span> <span class="fu">Dₜ</span>(<span class="fu">Dₜ</span>(v))(t) <span class="op">~</span> <span class="op">-</span>g <span class="op">-</span> γ <span class="op">*</span> <span class="fu">Dₜ</span>(v)(t)</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>a₁ <span class="op">=</span> <span class="fu">dsolve</span>(eq₁, ics<span class="op">=</span><span class="fu">Dict</span>(<span class="fu">u</span>(<span class="fl">0</span>) <span class="op">=&gt;</span> x_0, <span class="fu">Dₜ</span>(u)(<span class="fl">0</span>) <span class="op">=&gt;</span> v_0 <span class="op">*</span> <span class="fu">cos</span>(alpha)))</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>a₂ <span class="op">=</span> <span class="fu">dsolve</span>(eq₂, ics<span class="op">=</span><span class="fu">Dict</span>(<span class="fu">v</span>(<span class="fl">0</span>) <span class="op">=&gt;</span> y_0, <span class="fu">Dₜ</span>(v)(<span class="fl">0</span>) <span class="op">=&gt;</span> v_0 <span class="op">*</span> <span class="fu">sin</span>(alpha)))</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>ts <span class="op">=</span> <span class="fu">solve</span>(x <span class="op">-</span> <span class="fu">rhs</span>(a₁), t)[<span class="fl">1</span>]</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>yᵣ <span class="op">=</span> <span class="fu">rhs</span>(a₂)(t <span class="op">=&gt;</span> ts)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="25">
+<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
+\[
+- \frac{g \log{\left(\frac{v_{0} \cos{\left(\alpha \right)}}{v_{0} \cos{\left(\alpha \right)} - x γ + x_{0} γ} \right)}}{γ^{2}} + \frac{g + v_{0} γ \sin{\left(\alpha \right)} + y_{0} γ^{2}}{γ^{2}} + \frac{\left(- g - v_{0} γ \sin{\left(\alpha \right)}\right) \left(v_{0} \cos{\left(\alpha \right)} - x γ + x_{0} γ\right)}{v_{0} γ^{2} \cos{\left(\alpha \right)}}
+\]
+</span>
+</div>
+</div>
+<p>This gives <span class="math inline">\(y\)</span> as a function of <span class="math inline">\(x\)</span>.</p>
+<p>There are a lot of symbols. Lets simplify by using constants <span class="math inline">\(x_0=y_0=0\)</span>:</p>
+<div class="cell" data-execution_count="25">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>yᵣ₁ <span class="op">=</span> <span class="fu">yᵣ</span>(x_0 <span class="op">=&gt;</span> <span class="fl">0</span>, y_0 <span class="op">=&gt;</span> <span class="fl">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="26">
+<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
+\[
+- \frac{g \log{\left(\frac{v_{0} \cos{\left(\alpha \right)}}{v_{0} \cos{\left(\alpha \right)} - x γ} \right)}}{γ^{2}} + \frac{g + v_{0} γ \sin{\left(\alpha \right)}}{γ^{2}} + \frac{\left(- g - v_{0} γ \sin{\left(\alpha \right)}\right) \left(v_{0} \cos{\left(\alpha \right)} - x γ\right)}{v_{0} γ^{2} \cos{\left(\alpha \right)}}
+\]
+</span>
+</div>
+</div>
+<p>What is the trajectory? We see that the <code>log</code> function part will have issues when <span class="math inline">\(-\gamma x + v_0 \cos(\alpha) = 0\)</span>.</p>
+<p>If we fix some parameters, we can plot.</p>
+<div class="cell" data-execution_count="26">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>v₀, γ₀, α <span class="op">=</span> <span class="fl">200</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">2</span>, <span class="cn">pi</span><span class="op">/</span><span class="fl">4</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>soln <span class="op">=</span> <span class="fu">yᵣ₁</span>(v_0<span class="op">=&gt;</span>v₀, γ<span class="op">=&gt;</span>γ₀, alpha<span class="op">=&gt;</span>α, g<span class="op">=&gt;</span><span class="fl">9.8</span>)</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(soln, <span class="fl">0</span>, v₀ <span class="op">*</span> <span class="fu">cos</span>(α) <span class="op">/</span> γ₀ <span class="op">-</span> <span class="fl">1</span><span class="op">/</span><span class="fl">10</span>, legend<span class="op">=</span><span class="cn">false</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="27">
+<p><img src="odes_files/figure-html/cell-27-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>We can see that the resistance makes the path quite non-symmetric.</p>
+</section>
+</section>
+<section id="visualizing-a-first-order-initial-value-problem" class="level2" data-number="48.5">
+<h2 data-number="48.5" class="anchored" data-anchor-id="visualizing-a-first-order-initial-value-problem"><span class="header-section-number">48.5</span> Visualizing a first-order initial value problem</h2>
+<p>The solution, <span class="math inline">\(y(x)\)</span>, is known through its derivative. A useful tool to visualize the solution to a first-order differential equation is the <a href="http://tinyurl.com/jspzfok">slope field</a> (or direction field) plot, which at different values of <span class="math inline">\((x,y)\)</span>, plots a vector with slope given through <span class="math inline">\(y'(x)\)</span>.The <code>vectorfieldplot</code> of the <code>CalculusWithJulia</code> package can be used to produce these.</p>
+<p>For example, in a previous example we found a solution to <span class="math inline">\(y'(x) = x\cdot y(x)\)</span>, coded as</p>
+<div class="cell" data-execution_count="27">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">F</span>(y, x) <span class="op">=</span> y<span class="op">*</span>x</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="28">
+<pre><code>F (generic function with 1 method)</code></pre>
+</div>
+</div>
+<p>Suppose <span class="math inline">\(x_0=1\)</span> and <span class="math inline">\(y_0=1\)</span>. Then a direction field plot is drawn through:</p>
+<div class="cell" data-hold="true" data-execution_count="28">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> x y</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>x0, y0 <span class="op">=</span> <span class="fl">1</span>, <span class="fl">1</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(legend<span class="op">=</span><span class="cn">false</span>)</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="fu">vectorfieldplot!</span>((x,y) <span class="op">-&gt;</span> [<span class="fl">1</span>, <span class="fu">F</span>(y,x)], xlims<span class="op">=</span>(x0, <span class="fl">2</span>), ylims<span class="op">=</span>(y0<span class="op">-</span><span class="fl">5</span>, y0<span class="op">+</span><span class="fl">5</span>))</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span>  <span class="fu">y0*exp</span>(<span class="op">-</span>x0<span class="op">^</span><span class="fl">2</span><span class="op">/</span><span class="fl">2</span>) <span class="op">*</span> <span class="fu">exp</span>(x<span class="op">^</span><span class="fl">2</span><span class="op">/</span><span class="fl">2</span>)</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(f,  linewidth<span class="op">=</span><span class="fl">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="29">
+<p><img src="odes_files/figure-html/cell-29-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>In general, if the first-order equation is written as <span class="math inline">\(y'(x) = F(y,x)\)</span>, then we plot a “function” that takes <span class="math inline">\((x,y)\)</span> and returns an <span class="math inline">\(x\)</span> value of <span class="math inline">\(1\)</span> and a <span class="math inline">\(y\)</span> value of <span class="math inline">\(F(y,x)\)</span>, so the slope is <span class="math inline">\(F(y,x)\)</span>.</p>
+<div class="callout-note callout callout-style-default callout-captioned">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-caption-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The order of variables in <span class="math inline">\(F(y,x)\)</span> is conventional with the equation <span class="math inline">\(y'(x) = F(y(x),x)\)</span>.</p>
+</div>
+</div>
+<p>The plots are also useful for illustrating solutions for different initial conditions:</p>
+<div class="cell" data-hold="true" data-execution_count="29">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="fu">plot</span>(legend<span class="op">=</span><span class="cn">false</span>)</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>x0, y0 <span class="op">=</span> <span class="fl">1</span>, <span class="fl">1</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="fu">vectorfieldplot!</span>((x,y) <span class="op">-&gt;</span> [<span class="fl">1</span>,<span class="fu">F</span>(y,x)], xlims<span class="op">=</span>(x0, <span class="fl">2</span>), ylims<span class="op">=</span>(y0<span class="op">-</span><span class="fl">5</span>, y0<span class="op">+</span><span class="fl">5</span>))</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> y0 <span class="kw">in</span> <span class="op">-</span><span class="fl">4</span><span class="op">:</span><span class="fl">4</span></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">f</span>(x) <span class="op">=</span>  <span class="fu">y0*exp</span>(<span class="op">-</span>x0<span class="op">^</span><span class="fl">2</span><span class="op">/</span><span class="fl">2</span>) <span class="op">*</span> <span class="fu">exp</span>(x<span class="op">^</span><span class="fl">2</span><span class="op">/</span><span class="fl">2</span>)</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot!</span>(f, x0, <span class="fl">2</span>, linewidth<span class="op">=</span><span class="fl">5</span>)</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>p</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="30">
+<p><img src="odes_files/figure-html/cell-30-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>Such solutions are called <a href="https://en.wikipedia.org/wiki/Integral_curve">integral curves</a>. These graphs illustrate the fact that the slope field is tangent to the graph of any integral curve.</p>
+</section>
+<section id="questions" class="level2" data-number="48.6">
+<h2 data-number="48.6" class="anchored" data-anchor-id="questions"><span class="header-section-number">48.6</span> Questions</h2>
+<section id="question" class="level5">
+<h5 class="anchored" data-anchor-id="question">Question</h5>
+<p>Using <code>SymPy</code> to solve the differential equation</p>
+<p><span class="math display">\[
+u' = \frac{1-x}{u}
+\]</span></p>
+<p>gives</p>
+<div class="cell" data-hold="true" data-execution_count="30">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> x <span class="fu">u</span>()</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dsolve</span>(<span class="fu">D</span>(u)(x) <span class="op">-</span> (<span class="fl">1</span><span class="op">-</span>x)<span class="op">/</span><span class="fu">u</span>(x))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="31">
+<pre><code>2-element Vector{Sym}:
+ Eq(u(x), -sqrt(C1 - x^2 + 2*x))
+  Eq(u(x), sqrt(C1 - x^2 + 2*x))</code></pre>
+</div>
+</div>
+<p>The two answers track positive and negative solutions. For the initial condition, <span class="math inline">\(u(-1)=1\)</span>, we have the second one is appropriate: <span class="math inline">\(u(x) = \sqrt{C_1 - x^2 + 2x}\)</span>. At <span class="math inline">\(-1\)</span> this gives: <span class="math inline">\(1 = \sqrt{C_1-3}\)</span>, so <span class="math inline">\(C_1 = 4\)</span>.</p>
+<p>This value is good for what values of <span class="math inline">\(x\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="31">
+<div class="cell-output cell-output-display" data-execution_count="32">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="5v8qmM0r" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_5v8qmM0r">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_5v8qmM0r_1">
+      <input class="form-check-input" type="radio" name="radio_5v8qmM0r" id="radio_5v8qmM0r_1" value="1">
+      
+      <span class="label-body px-1">
+        \([-1, 4]\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_5v8qmM0r_2">
+      <input class="form-check-input" type="radio" name="radio_5v8qmM0r" id="radio_5v8qmM0r_2" value="2">
+      
+      <span class="label-body px-1">
+        \([1-\sqrt{5}, 1 + \sqrt{5}]\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_5v8qmM0r_3">
+      <input class="form-check-input" type="radio" name="radio_5v8qmM0r" id="radio_5v8qmM0r_3" value="3">
+      
+      <span class="label-body px-1">
+        \([-1, 0]\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_5v8qmM0r_4">
+      <input class="form-check-input" type="radio" name="radio_5v8qmM0r" id="radio_5v8qmM0r_4" value="4">
+      
+      <span class="label-body px-1">
+        \([-1, \infty)\)
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="5v8qmM0r_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_5v8qmM0r"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('5v8qmM0r_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_5v8qmM0r")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_5v8qmM0r")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-1" class="level5">
+<h5 class="anchored" data-anchor-id="question-1">Question</h5>
+<p>Suppose <span class="math inline">\(y(x)\)</span> satisfies</p>
+<p><span class="math display">\[
+y'(x) = y(x)^2, \quad y(1) = 1.
+\]</span></p>
+<p>What is <span class="math inline">\(y(3/2)\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="32">
+<div class="cell-output cell-output-display" data-execution_count="33">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="K3CKKh27" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_K3CKKh27">
+        <div style="padding-top: 5px">
+    <br>
+<div class="input-group">
+    <input id="K3CKKh27" type="number" class="form-control" placeholder="Numeric answer">
+</div>
+
+    
+        </div>
+      </div>
+      <div id="K3CKKh27_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.getElementById("K3CKKh27").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 2.0) <= 0.001);
+  var msgBox = document.getElementById('K3CKKh27_message');
+    if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_K3CKKh27")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_K3CKKh27")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-2" class="level5">
+<h5 class="anchored" data-anchor-id="question-2">Question</h5>
+<p>Solve the initial value problem</p>
+<p><span class="math display">\[
+y' = 1 + x^2 + y(x)^2 + x^2 y(x)^2, \quad y(0) = 1.
+\]</span></p>
+<p>Use your answer to find <span class="math inline">\(y(1)\)</span>.</p>
+<div class="cell" data-hold="true" data-execution_count="33">
+<div class="cell-output cell-output-display" data-execution_count="34">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="pqFGsYfm" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_pqFGsYfm">
+        <div style="padding-top: 5px">
+    <br>
+<div class="input-group">
+    <input id="pqFGsYfm" type="number" class="form-control" placeholder="Numeric answer">
+</div>
+
+    
+        </div>
+      </div>
+      <div id="pqFGsYfm_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.getElementById("pqFGsYfm").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - -1.6386248637145369) <= 0.001);
+  var msgBox = document.getElementById('pqFGsYfm_message');
+    if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_pqFGsYfm")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_pqFGsYfm")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-3" class="level5">
+<h5 class="anchored" data-anchor-id="question-3">Question</h5>
+<p>A population is modeled by <span class="math inline">\(y(x)\)</span>. The rate of population growth is generally proportional to the population (<span class="math inline">\(k y(x)\)</span>), but as the population gets large, the rate is curtailed <span class="math inline">\((1 - y(x)/M)\)</span>.</p>
+<p>Solve the initial value problem</p>
+<p><span class="math display">\[
+y'(x) = k\cdot y(x) \cdot (1 - \frac{y(x)}{M}),
+\]</span></p>
+<p>when <span class="math inline">\(k=1\)</span>, <span class="math inline">\(M=100\)</span>, and <span class="math inline">\(y(0) = 20\)</span>. Find the value of <span class="math inline">\(y(5)\)</span>.</p>
+<div class="cell" data-hold="true" data-execution_count="34">
+<div class="cell-output cell-output-display" data-execution_count="35">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="uV9F0n13" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_uV9F0n13">
+        <div style="padding-top: 5px">
+    <br>
+<div class="input-group">
+    <input id="uV9F0n13" type="number" class="form-control" placeholder="Numeric answer">
+</div>
+
+    
+        </div>
+      </div>
+      <div id="uV9F0n13_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.getElementById("uV9F0n13").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 97.37555469386476455991468766438340038789284601247847344470307065781047878026761) <= 0.001);
+  var msgBox = document.getElementById('uV9F0n13_message');
+    if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_uV9F0n13")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_uV9F0n13")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-4" class="level5">
+<h5 class="anchored" data-anchor-id="question-4">Question</h5>
+<p>Solve the initial value problem</p>
+<p><span class="math display">\[
+y'(t) = \sin(t) - \frac{y(t)}{t}, \quad y(\pi) = 1
+\]</span></p>
+<p>Find the value of the solution at <span class="math inline">\(t=2\pi\)</span>.</p>
+<div class="cell" data-hold="true" data-execution_count="35">
+<div class="cell-output cell-output-display" data-execution_count="36">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="jNWId0DT" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_jNWId0DT">
+        <div style="padding-top: 5px">
+    <br>
+<div class="input-group">
+    <input id="jNWId0DT" type="number" class="form-control" placeholder="Numeric answer">
+</div>
+
+    
+        </div>
+      </div>
+      <div id="jNWId0DT_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.getElementById("jNWId0DT").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - -1) <= 0);
+  var msgBox = document.getElementById('jNWId0DT_message');
+    if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_jNWId0DT")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_jNWId0DT")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-5" class="level5">
+<h5 class="anchored" data-anchor-id="question-5">Question</h5>
+<p>Suppose <span class="math inline">\(u(x)\)</span> satisfies:</p>
+<p><span class="math display">\[
+\frac{du}{dx} = e^{-x} \cdot u(x), \quad u(0) = 1.
+\]</span></p>
+<p>Find <span class="math inline">\(u(5)\)</span> using <code>SymPy</code>.</p>
+<div class="cell" data-hold="true" data-execution_count="36">
+<div class="cell-output cell-output-display" data-execution_count="37">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="fOoiIf8I" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_fOoiIf8I">
+        <div style="padding-top: 5px">
+    <br>
+<div class="input-group">
+    <input id="fOoiIf8I" type="number" class="form-control" placeholder="Numeric answer">
+</div>
+
+    
+        </div>
+      </div>
+      <div id="fOoiIf8I_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.getElementById("fOoiIf8I").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 2.700027756117370154212487619404962557343246917590398528605527399056158996408393) <= 0.001);
+  var msgBox = document.getElementById('fOoiIf8I_message');
+    if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_fOoiIf8I")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_fOoiIf8I")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-6" class="level5">
+<h5 class="anchored" data-anchor-id="question-6">Question</h5>
+<p>The differential equation with boundary values</p>
+<p><span class="math display">\[
+\frac{r^2 \frac{dc}{dr}}{dr} = 0, \quad c(1)=2, c(10)=1,
+\]</span></p>
+<p>can be solved with <code>SymPy</code>. What is the value of <span class="math inline">\(c(5)\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="37">
+<div class="cell-output cell-output-display" data-execution_count="38">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="Y6KLlg9K" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_Y6KLlg9K">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_Y6KLlg9K_1">
+      <input class="form-check-input" type="radio" name="radio_Y6KLlg9K" id="radio_Y6KLlg9K_1" value="1">
+      
+      <span class="label-body px-1">
+        \(8/9\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_Y6KLlg9K_2">
+      <input class="form-check-input" type="radio" name="radio_Y6KLlg9K" id="radio_Y6KLlg9K_2" value="2">
+      
+      <span class="label-body px-1">
+        \(9/10\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_Y6KLlg9K_3">
+      <input class="form-check-input" type="radio" name="radio_Y6KLlg9K" id="radio_Y6KLlg9K_3" value="3">
+      
+      <span class="label-body px-1">
+        \(3/2\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_Y6KLlg9K_4">
+      <input class="form-check-input" type="radio" name="radio_Y6KLlg9K" id="radio_Y6KLlg9K_4" value="4">
+      
+      <span class="label-body px-1">
+        \(10/9\)
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="Y6KLlg9K_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_Y6KLlg9K"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 4;
+    var msgBox = document.getElementById('Y6KLlg9K_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_Y6KLlg9K")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_Y6KLlg9K")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-7" class="level5">
+<h5 class="anchored" data-anchor-id="question-7">Question</h5>
+<p>The example with projectile motion in a medium has a parameter <span class="math inline">\(\gamma\)</span> modeling the effect of air resistance. If <code>y</code> is the answer - as would be the case if the example were copy-and-pasted in - what can be said about <code>limit(y, gamma=&gt;0)</code>?</p>
+<div class="cell" data-hold="true" data-execution_count="38">
+<div class="cell-output cell-output-display" data-execution_count="39">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="IxU7JdSd" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_IxU7JdSd">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_IxU7JdSd_1">
+      <input class="form-check-input" type="radio" name="radio_IxU7JdSd" id="radio_IxU7JdSd_1" value="1">
+      
+      <span class="label-body px-1">
+        The limit does not exist – there is a singularity – as seen by setting <code>gamma=0</code>.
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_IxU7JdSd_2">
+      <input class="form-check-input" type="radio" name="radio_IxU7JdSd" id="radio_IxU7JdSd_2" value="2">
+      
+      <span class="label-body px-1">
+        The limit is a quadratic polynomial in <code>x</code>, mirroring the first part of that example.
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_IxU7JdSd_3">
+      <input class="form-check-input" type="radio" name="radio_IxU7JdSd" id="radio_IxU7JdSd_3" value="3">
+      
+      <span class="label-body px-1">
+        The limit does not exist, but the limit to <code>oo</code> gives a quadratic polynomial in <code>x</code>, mirroring the first part of that example.
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="IxU7JdSd_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_IxU7JdSd"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('IxU7JdSd_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_IxU7JdSd")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_IxU7JdSd")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+    var links = window.document.querySelectorAll('a:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+          // target, if specified
+          link.setAttribute("target", "_blank");
+      }
+    }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../integrals/surface_area.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">47</span>&nbsp; <span class="chapter-title">Surface Area</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../ODEs/euler.html" class="pagination-link">
+        <span class="nav-page-text"><span class="chapter-number">49</span>&nbsp; <span class="chapter-title">Euler’s method</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+      <div class="nav-footer-center">Copyright 2022, John Verzani</div>
+  </div>
+</footer>
+
+
+
+</body></html>

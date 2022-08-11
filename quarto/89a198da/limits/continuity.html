@@ -1,0 +1,1974 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.0.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Calculus with Julia - 20&nbsp; Continuity</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../limits/intermediate_value_theorem.html" rel="next">
+<link href="../limits/limits_extensions.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+<script async="" src="https://hypothes.is/embed.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body class="nav-sidebar floating nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <a class="navbar-brand" href="../index.html">
+    <img src="../logo.png" alt="">
+    <span class="navbar-title">Calculus with Julia</span>
+  </a>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+    <div class="container-fluid d-flex justify-content-between">
+      <h1 class="quarto-secondary-nav-title"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Continuity</span></h1>
+      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation floating overflow-auto">
+      <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+      </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">Preface</a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="false">Precalculus Concepts</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/calculator.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">From calculator to computer</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/variables.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Variables</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/numbers_types.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Number systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/logical_expressions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Inequalities, Logical expressions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/vectors.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Vectors</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/ranges.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Ranges and Sets</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/plotting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">The Graph of a Function</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/transformations.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Function manipulations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/inversefunctions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">The Inverse of a Function</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/polynomial.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Polynomials</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/polynomial_roots.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Roots of a polynomial</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/polynomials_package.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">The Polynomials package</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/rational_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Rational functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/exp_log_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Exponential and logarithmic functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/trig_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Trigonometric functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/julia_overview.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Overview of Julia commands</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">Limits</a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/limits.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Limits</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/limits_extensions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Limits, issues, extensions of the concept</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/continuity.html" class="sidebar-item-text sidebar-link active"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Continuity</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/intermediate_value_theorem.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Implications of continuity</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="false">Derivatives</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/derivatives.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Derivatives</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/numeric_derivatives.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Numeric derivatives</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/symbolic_derivatives.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Symbolic derivatives</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/mean_value_theorem.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">The mean value theorem for differentiable functions.</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/optimization.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">26</span>&nbsp; <span class="chapter-title">Optimization</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/first_second_derivatives.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">27</span>&nbsp; <span class="chapter-title">The first and second derivatives</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/curve_sketching.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">28</span>&nbsp; <span class="chapter-title">Curve Sketching</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/linearization.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">29</span>&nbsp; <span class="chapter-title">Linearization</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/newtons_method.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">30</span>&nbsp; <span class="chapter-title">Newton’s method</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/more_zeros.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">31</span>&nbsp; <span class="chapter-title">Derivative-free alternatives to Newton’s method</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/lhospitals_rule.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">32</span>&nbsp; <span class="chapter-title">L’Hospital’s Rule</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/implicit_differentiation.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">33</span>&nbsp; <span class="chapter-title">Implicit Differentiation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/related_rates.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">34</span>&nbsp; <span class="chapter-title">Related rates</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/taylor_series_polynomials.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">35</span>&nbsp; <span class="chapter-title">Taylor Polynomials and other Approximating Polynomials</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="false">Integrals</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/area.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">36</span>&nbsp; <span class="chapter-title">Area under a curve</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/ftc.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">37</span>&nbsp; <span class="chapter-title">Fundamental Theorem or Calculus</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/substitution.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">38</span>&nbsp; <span class="chapter-title">Substitution</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/integration_by_parts.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">39</span>&nbsp; <span class="chapter-title">Integration By Parts</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/partial_fractions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">40</span>&nbsp; <span class="chapter-title">Partial Fractions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/improper_integrals.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">41</span>&nbsp; <span class="chapter-title">Improper Integrals</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/mean_value_theorem.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">42</span>&nbsp; <span class="chapter-title">Mean value theorem for integrals</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/area_between_curves.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">43</span>&nbsp; <span class="chapter-title">Area between two curves</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/center_of_mass.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">44</span>&nbsp; <span class="chapter-title">Center of Mass</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/volumes_slice.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">45</span>&nbsp; <span class="chapter-title">Volumes by slicing</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/arc_length.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">46</span>&nbsp; <span class="chapter-title">Arc length</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/surface_area.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">47</span>&nbsp; <span class="chapter-title">Surface Area</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="false">ODEs</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/odes.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">48</span>&nbsp; <span class="chapter-title">ODEs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/euler.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">49</span>&nbsp; <span class="chapter-title">Euler’s method</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/solve.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">50</span>&nbsp; <span class="chapter-title">The problem-algorithm-solve interface</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/differential_equations.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">51</span>&nbsp; <span class="chapter-title">The <code>DifferentialEquations</code> suite</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="false">Differential vector calculus</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/polar_coordinates.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">52</span>&nbsp; <span class="chapter-title">Polar Coordinates and Curves</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/vectors.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">53</span>&nbsp; <span class="chapter-title">Vectors and matrices</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/vector_valued_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">54</span>&nbsp; <span class="chapter-title">Vector-valued functions, <span class="math inline">\(f:R \rightarrow R^n\)</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/scalar_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">55</span>&nbsp; <span class="chapter-title">Scalar functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/scalar_functions_applications.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">56</span>&nbsp; <span class="chapter-title">Applications with scalar functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/vector_fields.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">57</span>&nbsp; <span class="chapter-title">Functions <span class="math inline">\(R^n \rightarrow R^m\)</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/plots_plotting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">58</span>&nbsp; <span class="chapter-title">2D and 3D plots in Julia with Plots</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="false">Integral vector calculus</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/double_triple_integrals.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">59</span>&nbsp; <span class="chapter-title">Multi-dimensional integrals</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/line_integrals.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">60</span>&nbsp; <span class="chapter-title">Line and Surface Integrals</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/div_grad_curl.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">61</span>&nbsp; <span class="chapter-title">The Gradient, Divergence, and Curl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/stokes_theorem.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">62</span>&nbsp; <span class="chapter-title">Green’s Theorem, Stokes’ Theorem, and the Divergence Theorem</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/review.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">63</span>&nbsp; <span class="chapter-title">Quick Review of Vector Calculus</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="false">Alternatives</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../alternatives/plotly_plotting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">64</span>&nbsp; <span class="chapter-title">JavaScript based plotting libraries</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../alternatives/makie_plotting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">65</span>&nbsp; <span class="chapter-title">Calculus plots with Makie</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="false">Appendices</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/getting_started_with_julia.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">66</span>&nbsp; <span class="chapter-title">Getting started with Julia</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/julia_interfaces.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">67</span>&nbsp; <span class="chapter-title">Julia interfaces</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/calculus_with_julia.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">68</span>&nbsp; <span class="chapter-title">The <code>CalculusWithJulia</code> package</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/unicode.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">69</span>&nbsp; <span class="chapter-title">Usages of Unicode symbols</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/quick_notes.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">70</span>&nbsp; <span class="chapter-title">Quick introduction to Calculus with Julia</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../references.html" class="sidebar-item-text sidebar-link">References</a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#rules-for-continuity" id="toc-rules-for-continuity" class="nav-link active" data-scroll-target="#rules-for-continuity"> <span class="header-section-number">20.1</span> Rules for continuity</a></li>
+  <li><a href="#questions" id="toc-questions" class="nav-link" data-scroll-target="#questions"> <span class="header-section-number">20.2</span> Questions</a></li>
+  </ul>
+<div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/jverzani/CalculusWithJuliaNotes.jl/edit/main/quarto/limits/continuity.qmd" class="toc-action">Edit this page</a></p><p><a href="https://github.com/jverzani/CalculusWithJuliaNotes.jl/issues/new" class="toc-action">Report an issue</a></p></div></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title d-none d-lg-block"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Continuity</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    
+  </div>
+  
+
+</header>
+
+<p>This section uses these add-on packages:</p>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">CalculusWithJulia</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Plots</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">SymPy</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<hr>
+<p>The definition Google finds for <em>continuous</em> is <em>forming an unbroken whole; without interruption</em>.</p>
+<p>The concept in calculus, as transferred to functions, is similar. Roughly speaking, a continuous function is one whose graph could be drawn without having to lift (or interrupt) the pencil drawing it.</p>
+<p>Consider these two graphs:</p>
+<div class="cell" data-hold="true" data-execution_count="4">
+<div class="cell-output cell-output-display" data-execution_count="5">
+<p><img src="continuity_files/figure-html/cell-5-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>and</p>
+<div class="cell" data-hold="true" data-execution_count="5">
+<div class="cell-output cell-output-display" data-execution_count="6">
+<p><img src="continuity_files/figure-html/cell-6-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>Though similar at some level - they agree at nearly every value of <span class="math inline">\(x\)</span> - the first has a “jump” from <span class="math inline">\(-1\)</span> to <span class="math inline">\(1\)</span> instead of the transition in the second one. The first is not continuous at <span class="math inline">\(0\)</span> - a break is needed to draw it - where as the second is continuous.</p>
+<p>A formal definition of continuity was a bit harder to come about. At <a href="http://en.wikipedia.org/wiki/Intermediate_value_theorem">first</a> the concept was that for any <span class="math inline">\(y\)</span> between any two values in the range for <span class="math inline">\(f(x)\)</span>, the function should take on the value <span class="math inline">\(y\)</span> for some <span class="math inline">\(x\)</span>. Clearly this could distinguish the two graphs above, as one takes no values in <span class="math inline">\((-1,1)\)</span>, whereas the other - the continuous one - takes on all values in that range.</p>
+<p>However, <a href="http://en.wikipedia.org/wiki/Cours_d%27Analyse">Cauchy</a> defined continuity by <span class="math inline">\(f(x + \alpha) - f(x)\)</span> being small whenever <span class="math inline">\(\alpha\)</span> was small. This basically rules out “jumps” and proves more useful as a tool to describe continuity.</p>
+<p>The <a href="http://en.wikipedia.org/wiki/Continuous_function#History">modern</a> definition simply pushes the details to the definition of the limit:</p>
+<blockquote class="blockquote">
+<p>A function <span class="math inline">\(f(x)\)</span> is continuous at <span class="math inline">\(x=c\)</span> if <span class="math inline">\(\lim_{x \rightarrow c}f(x) = f(c)\)</span>.</p>
+</blockquote>
+<p>This says three things</p>
+<ul>
+<li>The limit exists at <span class="math inline">\(c\)</span>.</li>
+<li>The function is defined at <span class="math inline">\(c\)</span> (<span class="math inline">\(c\)</span> is in the domain).</li>
+<li>The value of the limit is the same as <span class="math inline">\(f(c)\)</span>.</li>
+</ul>
+<p>This speaks to continuity at a point, we can extend this to continuity over an interval <span class="math inline">\((a,b)\)</span> by saying:</p>
+<blockquote class="blockquote">
+<p>A function <span class="math inline">\(f(x)\)</span> is continuous over <span class="math inline">\((a,b)\)</span> if at each point <span class="math inline">\(c\)</span> with <span class="math inline">\(a &lt; c &lt; b\)</span>, <span class="math inline">\(f(x)\)</span> is continuous at <span class="math inline">\(c\)</span>.</p>
+</blockquote>
+<p>Finally, as with limits, it can be convenient to speak of <em>right</em> continuity and <em>left</em> continuity at a point, where the limit in the defintion is replaced by a right or left limit, as appropriate.</p>
+<div class="callout-warning callout callout-style-default callout-captioned">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-caption-container flex-fill">
+Warning
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The limit in the definition of continuity is the basic limit and not an extended sense where infinities are accounted for.</p>
+</div>
+</div>
+<section id="examples-of-continuity" class="level5">
+<h5 class="anchored" data-anchor-id="examples-of-continuity">Examples of continuity</h5>
+<p>Most familiar functions are continuous everywhere.</p>
+<ul>
+<li>For example, a monomial function <span class="math inline">\(f(x) = ax^n\)</span> for non-negative, integer <span class="math inline">\(n\)</span> will be continuous. This is because the limit exists everywhere, the domain of <span class="math inline">\(f\)</span> is all <span class="math inline">\(x\)</span> and there are no jumps.</li>
+<li>Similarly, the basic trigonometric functions <span class="math inline">\(\sin(x)\)</span>, <span class="math inline">\(\cos(x)\)</span> are continuous everywhere.</li>
+<li>So are the exponential functions <span class="math inline">\(f(x) = a^x, a &gt; 0\)</span>.</li>
+<li>The hyperbolic sine (<span class="math inline">\((e^x - e^{-x})/2\)</span>) and cosine (<span class="math inline">\((e^x + e^{-x})/2\)</span>) are, as <span class="math inline">\(e^x\)</span> is.</li>
+<li>The hyperbolic tangent is, as <span class="math inline">\(\cosh(x) &gt; 0\)</span> for all <span class="math inline">\(x\)</span>.</li>
+</ul>
+<p>Some familiar functions are <em>mostly</em> continuous but not everywhere.</p>
+<ul>
+<li>For example, <span class="math inline">\(f(x) = \sqrt{x}\)</span> is continuous on <span class="math inline">\((0,\infty)\)</span> and right continuous at <span class="math inline">\(0\)</span>, but it is not defined for negative <span class="math inline">\(x\)</span>, so can’t possibly be continuous there.</li>
+<li>Similarly, <span class="math inline">\(f(x) = \log(x)\)</span> is continuous on <span class="math inline">\((0,\infty)\)</span>, but it is not defined at <span class="math inline">\(x=0\)</span>, so is not right continuous at <span class="math inline">\(0\)</span>.</li>
+<li>The tangent function <span class="math inline">\(\tan(x) = \sin(x)/\cos(x)\)</span> is continuous everywhere <em>except</em> the points <span class="math inline">\(x\)</span> with <span class="math inline">\(\cos(x) = 0\)</span> (<span class="math inline">\(\pi/2 + k\pi, k\)</span> an integer).</li>
+<li>The hyperbolic co-tangent is not continuous at <span class="math inline">\(x=0\)</span> – when <span class="math inline">\(\sinh\)</span> is <span class="math inline">\(0\)</span>,</li>
+<li>The semicircle <span class="math inline">\(f(x) = \sqrt{1 - x^2}\)</span> is <em>continuous</em> on <span class="math inline">\((-1, 1)\)</span>. It is not continuous at <span class="math inline">\(-1\)</span> and <span class="math inline">\(1\)</span>, though it is right continuous at <span class="math inline">\(-1\)</span> and left continuous at <span class="math inline">\(1\)</span>.</li>
+</ul>
+</section>
+<section id="examples-of-discontinuity" class="level5">
+<h5 class="anchored" data-anchor-id="examples-of-discontinuity">Examples of discontinuity</h5>
+<p>There are various reasons why a function may not be continuous.</p>
+<ul>
+<li>The function <span class="math inline">\(f(x) = \sin(x)/x\)</span> has a limit at <span class="math inline">\(0\)</span> but is not defined at <span class="math inline">\(0\)</span>, so is not continuous at <span class="math inline">\(0\)</span>. The function can be redefined to make it continuous.</li>
+<li>The function <span class="math inline">\(f(x) = 1/x\)</span> is continuous everywhere <em>except</em> <span class="math inline">\(x=0\)</span> where <em>no</em> limit exists.</li>
+<li>A rational function <span class="math inline">\(f(x) = p(x)/q(x)\)</span> will be continuous everywhere except where <span class="math inline">\(q(x)=0\)</span>. (The function <span class="math inline">\(f\)</span> may still have a limit where <span class="math inline">\(q\)</span> is <span class="math inline">\(0\)</span>, should factors cancel, but <span class="math inline">\(f\)</span> won’t be defined at such values.)</li>
+<li>The function</li>
+</ul>
+<p><span class="math display">\[
+f(x) = \begin{cases}
+         -1 &amp; x &lt; 0 \\
+          0 &amp; x = 0 \\
+          1 &amp; x &gt; 0
+\end{cases}
+\]</span></p>
+<p>is implemented by <code>Julia</code>’s <code>sign</code> function. It has a value at <span class="math inline">\(0\)</span>, but no limit at <span class="math inline">\(0\)</span>, so is not continuous at <span class="math inline">\(0\)</span>. Furthermore, the left and right limits exist at <span class="math inline">\(0\)</span> but are not equal to <span class="math inline">\(f(0)\)</span> so the function is not left or right continuous at <span class="math inline">\(0\)</span>. It is continuous everywhere except at <span class="math inline">\(x=0\)</span>.</p>
+<ul>
+<li>Similarly, the function defined by this graph</li>
+</ul>
+<div class="cell" data-hold="true" data-execution_count="6">
+<div class="cell-output cell-output-display" data-execution_count="7">
+<p><img src="continuity_files/figure-html/cell-7-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>is not continuous at <span class="math inline">\(x=0\)</span>. It has a limit of <span class="math inline">\(0\)</span> at <span class="math inline">\(0\)</span>, a function value <span class="math inline">\(f(0) =1/2\)</span>, but the limit and the function value are not equal.</p>
+<ul>
+<li>The <code>floor</code> function, which rounds down to the nearest integer, is also not continuous at the integers, but is right continuous at the integers, as, for example, <span class="math inline">\(\lim_{x \rightarrow 0+} f(x) = f(0)\)</span>. This graph emphasizes the right continuity by placing a point for the value of the function when there is a jump:</li>
+</ul>
+<div class="cell" data-hold="true" data-execution_count="7">
+<div class="cell-output cell-output-display" data-execution_count="8">
+<p><img src="continuity_files/figure-html/cell-8-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<ul>
+<li>The function <span class="math inline">\(f(x) = 1/x^2\)</span> is not continuous at <span class="math inline">\(x=0\)</span>: <span class="math inline">\(f(x)\)</span> is not defined at <span class="math inline">\(x=0\)</span> and <span class="math inline">\(f(x)\)</span> has no limit at <span class="math inline">\(x=0\)</span> (in the usual sense).</li>
+<li>On the Wikipedia page for <a href="https://en.wikipedia.org/wiki/Continuous_function">continuity</a> the example of Dirichlet’s function is given:</li>
+</ul>
+<p><span class="math display">\[
+f(x) =
+\begin{cases}
+0 &amp; \text{if } x \text{ is irrational,}\\
+1 &amp; \text{if } x \text{ is rational.}
+\end{cases}
+\]</span></p>
+<p>The limit for any <span class="math inline">\(c\)</span> is discontinuous, as any interval about <span class="math inline">\(c\)</span> will contain <em>both</em> rational and irrational numbers so the function will not take values in a small neighborhood around any potential <span class="math inline">\(L\)</span>.</p>
+</section>
+<section id="example" class="level5">
+<h5 class="anchored" data-anchor-id="example">Example</h5>
+<p>Let a function be defined by cases:</p>
+<p><span class="math display">\[
+f(x) = \begin{cases}
+3x^2 + c &amp; x \geq 0,\\
+2x-3 &amp; x &lt; 0.
+\end{cases}
+\]</span></p>
+<p>What value of <span class="math inline">\(c\)</span> will make <span class="math inline">\(f(x)\)</span> a continuous function?</p>
+<p>We note that for <span class="math inline">\(x &lt; 0\)</span> and for <span class="math inline">\(x &gt; 0\)</span> the function is a simple polynomial, so is continuous. At <span class="math inline">\(x=0\)</span> to be continuous we need a limit to exists and be equal to <span class="math inline">\(f(0)\)</span>, which is <span class="math inline">\(c\)</span>. A limit exists if the left and right limits are equal. This means we need to solve for <span class="math inline">\(c\)</span> to make the left and right limits equal. We do this next with a bit of overkill in this case:</p>
+<div class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> x c</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>ex1 <span class="op">=</span> <span class="fl">3</span>x<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> c</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>ex2 <span class="op">=</span> <span class="fl">2</span>x<span class="op">-</span><span class="fl">3</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>del <span class="op">=</span> <span class="fu">limit</span>(ex1, x<span class="op">=&gt;</span><span class="fl">0</span>, dir<span class="op">=</span><span class="st">"+"</span>) <span class="op">-</span> <span class="fu">limit</span>(ex2, x<span class="op">=&gt;</span><span class="fl">0</span>, dir<span class="op">=</span><span class="st">"-"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
+\[
+c + 3
+\]
+</span>
+</div>
+</div>
+<p>We need to solve for <span class="math inline">\(c\)</span> to make <code>del</code> zero:</p>
+<div class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">solve</span>(del, c)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<pre><code>1-element Vector{Sym}:
+ -3</code></pre>
+</div>
+</div>
+<p>This gives the value of <span class="math inline">\(c\)</span>.</p>
+</section>
+<section id="rules-for-continuity" class="level2" data-number="20.1">
+<h2 data-number="20.1" class="anchored" data-anchor-id="rules-for-continuity"><span class="header-section-number">20.1</span> Rules for continuity</h2>
+<p>As we’ve seen, functions can be combined in several ways. How do these relate with continuity?</p>
+<p>Suppose <span class="math inline">\(f(x)\)</span> and <span class="math inline">\(g(x)\)</span> are both continuous on <span class="math inline">\(I\)</span>. Then</p>
+<ul>
+<li>The function <span class="math inline">\(h(x) = a f(x) + b g(x)\)</span> is continuous on <span class="math inline">\(I\)</span> for any real numbers <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>;</li>
+<li>The function <span class="math inline">\(h(x) = f(x) \cdot g(x)\)</span> is continuous on <span class="math inline">\(I\)</span>; and</li>
+<li>The function <span class="math inline">\(h(x) = f(x) / g(x)\)</span> is continuous at all points <span class="math inline">\(c\)</span> in <span class="math inline">\(I\)</span> <strong>where</strong> <span class="math inline">\(g(c) \neq 0\)</span>.</li>
+<li>The function <span class="math inline">\(h(x) = f(g(x))\)</span> is continuous at <span class="math inline">\(x=c\)</span> <em>if</em> <span class="math inline">\(g(x)\)</span> is continuous at <span class="math inline">\(c\)</span> <em>and</em> <span class="math inline">\(f(x)\)</span> is continuous at <span class="math inline">\(g(c)\)</span>.</li>
+</ul>
+<p>So, continuity is preserved for all of the basic operations except when dividing by <span class="math inline">\(0\)</span>.</p>
+<section id="examples" class="level5">
+<h5 class="anchored" data-anchor-id="examples">Examples</h5>
+<ul>
+<li>Since a monomial <span class="math inline">\(f(x) = ax^n\)</span> (<span class="math inline">\(n\)</span> a non-negative integer) is continuous, by the first rule, any polynomial will be continuous.</li>
+<li>Since both <span class="math inline">\(f(x) = e^x\)</span> and <span class="math inline">\(g(x)=\sin(x)\)</span> are continuous everywhere, so will be <span class="math inline">\(h(x) = e^x \cdot \sin(x)\)</span>.</li>
+<li>Since <span class="math inline">\(f(x) = e^x\)</span> is continuous everywhere and <span class="math inline">\(g(x) = -x\)</span> is continuous everywhere, the composition <span class="math inline">\(h(x) = e^{-x}\)</span> will be continuous everywhere.</li>
+<li>Since <span class="math inline">\(f(x) = x\)</span> is continuous everywhere, the function <span class="math inline">\(h(x) = 1/x\)</span> - a ratio of continuous functions - will be continuous everywhere <em>except</em> possibly at <span class="math inline">\(x=0\)</span> (where it is not continuous).</li>
+<li>The function <span class="math inline">\(h(x) = e^{x\log(x)}\)</span> will be continuous on <span class="math inline">\((0,\infty)\)</span>, the same domain that <span class="math inline">\(g(x) = x\log(x)\)</span> is continuous. This function (also written as <span class="math inline">\(x^x\)</span>) has a right limit at <span class="math inline">\(0\)</span> (of <span class="math inline">\(1\)</span>), but is not right continuous, as <span class="math inline">\(h(0)\)</span> is not defined.</li>
+</ul>
+</section>
+</section>
+<section id="questions" class="level2" data-number="20.2">
+<h2 data-number="20.2" class="anchored" data-anchor-id="questions"><span class="header-section-number">20.2</span> Questions</h2>
+<section id="question" class="level6">
+<h6 class="anchored" data-anchor-id="question">Question</h6>
+<p>Let <span class="math inline">\(f(x) = \sin(x)\)</span> and <span class="math inline">\(g(x) = \cos(x)\)</span>. Which of these is not continuous everywhere?</p>
+<p><span class="math display">\[
+f+g,~ f-g,~ f\cdot g,~ f\circ g,~ f/g
+\]</span></p>
+<div class="cell" data-hold="true" data-execution_count="10">
+<div class="cell-output cell-output-display" data-execution_count="11">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="cOBVwUu5" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_cOBVwUu5">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_cOBVwUu5_1">
+      <input class="form-check-input" type="radio" name="radio_cOBVwUu5" id="radio_cOBVwUu5_1" value="1">
+      
+      <span class="label-body px-1">
+        \(f\cdot g\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_cOBVwUu5_2">
+      <input class="form-check-input" type="radio" name="radio_cOBVwUu5" id="radio_cOBVwUu5_2" value="2">
+      
+      <span class="label-body px-1">
+        \(f/g\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_cOBVwUu5_3">
+      <input class="form-check-input" type="radio" name="radio_cOBVwUu5" id="radio_cOBVwUu5_3" value="3">
+      
+      <span class="label-body px-1">
+        \(f+g\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_cOBVwUu5_4">
+      <input class="form-check-input" type="radio" name="radio_cOBVwUu5" id="radio_cOBVwUu5_4" value="4">
+      
+      <span class="label-body px-1">
+        \(f-g\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_cOBVwUu5_5">
+      <input class="form-check-input" type="radio" name="radio_cOBVwUu5" id="radio_cOBVwUu5_5" value="5">
+      
+      <span class="label-body px-1">
+        \(f\circ g\)
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="cOBVwUu5_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_cOBVwUu5"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('cOBVwUu5_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_cOBVwUu5")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_cOBVwUu5")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-1" class="level6">
+<h6 class="anchored" data-anchor-id="question-1">Question</h6>
+<p>Let <span class="math inline">\(f(x) = \sin(x)\)</span>, <span class="math inline">\(g(x) = \sqrt{x}\)</span>.</p>
+<p>When will <span class="math inline">\(f\circ g\)</span> be continuous?</p>
+<div class="cell" data-hold="true" data-execution_count="11">
+<div class="cell-output cell-output-display" data-execution_count="12">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="Qd5jCWdr" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_Qd5jCWdr">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_Qd5jCWdr_1">
+      <input class="form-check-input" type="radio" name="radio_Qd5jCWdr" id="radio_Qd5jCWdr_1" value="1">
+      
+      <span class="label-body px-1">
+        For all \(x\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_Qd5jCWdr_2">
+      <input class="form-check-input" type="radio" name="radio_Qd5jCWdr" id="radio_Qd5jCWdr_2" value="2">
+      
+      <span class="label-body px-1">
+        For all \(x &gt; 0\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_Qd5jCWdr_3">
+      <input class="form-check-input" type="radio" name="radio_Qd5jCWdr" id="radio_Qd5jCWdr_3" value="3">
+      
+      <span class="label-body px-1">
+        For all \(x\) where \(\sin(x) &gt; 0\)
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="Qd5jCWdr_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_Qd5jCWdr"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('Qd5jCWdr_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_Qd5jCWdr")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_Qd5jCWdr")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+<p>When will <span class="math inline">\(g \circ f\)</span> be continuous?</p>
+<div class="cell" data-hold="true" data-execution_count="12">
+<div class="cell-output cell-output-display" data-execution_count="13">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="99XAXips" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_99XAXips">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_99XAXips_1">
+      <input class="form-check-input" type="radio" name="radio_99XAXips" id="radio_99XAXips_1" value="1">
+      
+      <span class="label-body px-1">
+        For all \(x\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_99XAXips_2">
+      <input class="form-check-input" type="radio" name="radio_99XAXips" id="radio_99XAXips_2" value="2">
+      
+      <span class="label-body px-1">
+        For all \(x &gt; 0\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_99XAXips_3">
+      <input class="form-check-input" type="radio" name="radio_99XAXips" id="radio_99XAXips_3" value="3">
+      
+      <span class="label-body px-1">
+        For all \(x\) where \(\sin(x) &gt; 0\)
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="99XAXips_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_99XAXips"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 3;
+    var msgBox = document.getElementById('99XAXips_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_99XAXips")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_99XAXips")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-2" class="level6">
+<h6 class="anchored" data-anchor-id="question-2">Question</h6>
+<p>The composition <span class="math inline">\(f\circ g\)</span> will be continuous everywhere provided:</p>
+<div class="cell" data-hold="true" data-execution_count="13">
+<div class="cell-output cell-output-display" data-execution_count="14">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="plFUovcR" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_plFUovcR">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_plFUovcR_1">
+      <input class="form-check-input" type="radio" name="radio_plFUovcR" id="radio_plFUovcR_1" value="1">
+      
+      <span class="label-body px-1">
+        The function \(g\) is continuous everywhere
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_plFUovcR_2">
+      <input class="form-check-input" type="radio" name="radio_plFUovcR" id="radio_plFUovcR_2" value="2">
+      
+      <span class="label-body px-1">
+        The function \(f\) is continuous everywhere
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_plFUovcR_3">
+      <input class="form-check-input" type="radio" name="radio_plFUovcR" id="radio_plFUovcR_3" value="3">
+      
+      <span class="label-body px-1">
+        The function \(g\) is continuous everywhere and \(f\) is continuous on the range of \(g\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_plFUovcR_4">
+      <input class="form-check-input" type="radio" name="radio_plFUovcR" id="radio_plFUovcR_4" value="4">
+      
+      <span class="label-body px-1">
+        The function \(f\) is continuous everywhere and \(g\) is continuous on the range of \(f\)
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="plFUovcR_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_plFUovcR"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 3;
+    var msgBox = document.getElementById('plFUovcR_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_plFUovcR")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_plFUovcR")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-3" class="level6">
+<h6 class="anchored" data-anchor-id="question-3">Question</h6>
+<p>At which values is <span class="math inline">\(f(x) = 1/\sqrt{x-2}\)</span> not continuous?</p>
+<div class="cell" data-hold="true" data-execution_count="14">
+<div class="cell-output cell-output-display" data-execution_count="15">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="TReYdMYC" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_TReYdMYC">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_TReYdMYC_1">
+      <input class="form-check-input" type="radio" name="radio_TReYdMYC" id="radio_TReYdMYC_1" value="1">
+      
+      <span class="label-body px-1">
+        When \(x \geq 2\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_TReYdMYC_2">
+      <input class="form-check-input" type="radio" name="radio_TReYdMYC" id="radio_TReYdMYC_2" value="2">
+      
+      <span class="label-body px-1">
+        For \(x \geq 0\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_TReYdMYC_3">
+      <input class="form-check-input" type="radio" name="radio_TReYdMYC" id="radio_TReYdMYC_3" value="3">
+      
+      <span class="label-body px-1">
+        When \(x \leq 2\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_TReYdMYC_4">
+      <input class="form-check-input" type="radio" name="radio_TReYdMYC" id="radio_TReYdMYC_4" value="4">
+      
+      <span class="label-body px-1">
+        When \(x &gt; 2\)
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="TReYdMYC_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_TReYdMYC"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 3;
+    var msgBox = document.getElementById('TReYdMYC_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_TReYdMYC")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_TReYdMYC")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-4" class="level6">
+<h6 class="anchored" data-anchor-id="question-4">Question</h6>
+<p>A value <span class="math inline">\(x=c\)</span> is a <em>removable singularity</em> for <span class="math inline">\(f(x)\)</span> if <span class="math inline">\(f(x)\)</span> is not continuous at <span class="math inline">\(c\)</span> but will be if <span class="math inline">\(f(c)\)</span> is redefined to be <span class="math inline">\(\lim_{x \rightarrow c} f(x)\)</span>.</p>
+<p>The function <span class="math inline">\(f(x) = (x^2 - 4)/(x-2)\)</span> has a removable singularity at <span class="math inline">\(x=2\)</span>. What value would we redefine <span class="math inline">\(f(2)\)</span> to be, to make <span class="math inline">\(f\)</span> a continuous function?</p>
+<div class="cell" data-hold="true" data-execution_count="15">
+<div class="cell-output cell-output-display" data-execution_count="16">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="hWmJ12fo" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_hWmJ12fo">
+        <div style="padding-top: 5px">
+    <br>
+<div class="input-group">
+    <input id="hWmJ12fo" type="number" class="form-control" placeholder="Numeric answer">
+</div>
+
+    
+        </div>
+      </div>
+      <div id="hWmJ12fo_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.getElementById("hWmJ12fo").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 4.000010000000827) <= 0.001);
+  var msgBox = document.getElementById('hWmJ12fo_message');
+    if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_hWmJ12fo")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_hWmJ12fo")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-5" class="level6">
+<h6 class="anchored" data-anchor-id="question-5">Question</h6>
+<p>The highly oscillatory function</p>
+<p><span class="math display">\[
+f(x) = x^2 (\cos(1/x) - 1)
+\]</span></p>
+<p>has a removable singularity at <span class="math inline">\(x=0\)</span>. What value would we redefine <span class="math inline">\(f(0)\)</span> to be, to make <span class="math inline">\(f\)</span> a continuous function?</p>
+<div class="cell" data-hold="true" data-execution_count="16">
+<div class="cell-output cell-output-display" data-execution_count="17">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="P4WhZLJw" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_P4WhZLJw">
+        <div style="padding-top: 5px">
+    <br>
+<div class="input-group">
+    <input id="P4WhZLJw" type="number" class="form-control" placeholder="Numeric answer">
+</div>
+
+    
+        </div>
+      </div>
+      <div id="P4WhZLJw_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.getElementById("P4WhZLJw").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 0) <= 0.001);
+  var msgBox = document.getElementById('P4WhZLJw_message');
+    if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_P4WhZLJw")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_P4WhZLJw")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-6" class="level6">
+<h6 class="anchored" data-anchor-id="question-6">Question</h6>
+<p>Let <span class="math inline">\(f(x)\)</span> be defined by</p>
+<p><span class="math display">\[
+f(x) = \begin{cases}
+c + \sin(2x - \pi/2) &amp; x &gt; 0\\
+3x - 4 &amp; x \leq 0.
+\end{cases}
+\]</span></p>
+<p>What value of <span class="math inline">\(c\)</span> will make <span class="math inline">\(f(x)\)</span> continuous?</p>
+<div class="cell" data-hold="true" data-execution_count="17">
+<div class="cell-output cell-output-display" data-execution_count="18">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="MoxrdMgc" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_MoxrdMgc">
+        <div style="padding-top: 5px">
+    <br>
+<div class="input-group">
+    <input id="MoxrdMgc" type="number" class="form-control" placeholder="Numeric answer">
+</div>
+
+    
+        </div>
+      </div>
+      <div id="MoxrdMgc_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.getElementById("MoxrdMgc").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - -3.0) <= 0.001);
+  var msgBox = document.getElementById('MoxrdMgc_message');
+    if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_MoxrdMgc")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_MoxrdMgc")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-7" class="level6">
+<h6 class="anchored" data-anchor-id="question-7">Question</h6>
+<p>Suppose <span class="math inline">\(f(x)\)</span>, <span class="math inline">\(g(x)\)</span>, and <span class="math inline">\(h(x)\)</span> are continuous functions on <span class="math inline">\((a,b)\)</span>. If <span class="math inline">\(a &lt; c &lt; b\)</span>, are you sure that <span class="math inline">\(lim_{x \rightarrow c} f(g(x))\)</span> is <span class="math inline">\(f(g(c))\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="18">
+<div class="cell-output cell-output-display" data-execution_count="19">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="CHNDIc0e" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_CHNDIc0e">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_CHNDIc0e_1">
+      <input class="form-check-input" type="radio" name="radio_CHNDIc0e" id="radio_CHNDIc0e_1" value="1">
+      
+      <span class="label-body px-1">
+        Yes, composition of continuous functions results in a continuous function, so the limit is just the function value.
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_CHNDIc0e_2">
+      <input class="form-check-input" type="radio" name="radio_CHNDIc0e" id="radio_CHNDIc0e_2" value="2">
+      
+      <span class="label-body px-1">
+        No, as \(g(c)\) may not be in the interval \((a,b)\)
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="CHNDIc0e_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_CHNDIc0e"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('CHNDIc0e_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_CHNDIc0e")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_CHNDIc0e")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-8" class="level6">
+<h6 class="anchored" data-anchor-id="question-8">Question</h6>
+<p>Consider the function <span class="math inline">\(f(x)\)</span> given by the following graph</p>
+<div class="cell" data-hold="true" data-execution_count="19">
+<div class="cell-output cell-output-display" data-execution_count="20">
+<p><img src="continuity_files/figure-html/cell-20-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>The function <span class="math inline">\(f(x)\)</span> is continuous at <span class="math inline">\(x=1\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="20">
+<div class="cell-output cell-output-display" data-execution_count="21">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="gpUF7sPe" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_gpUF7sPe">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_gpUF7sPe_1">
+      <input class="form-check-input" type="radio" name="radio_gpUF7sPe" id="radio_gpUF7sPe_1" value="1">
+      
+      <span class="label-body px-1">
+        Yes
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_gpUF7sPe_2">
+      <input class="form-check-input" type="radio" name="radio_gpUF7sPe" id="radio_gpUF7sPe_2" value="2">
+      
+      <span class="label-body px-1">
+        No
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="gpUF7sPe_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_gpUF7sPe"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('gpUF7sPe_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_gpUF7sPe")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_gpUF7sPe")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+<p>The function <span class="math inline">\(f(x)\)</span> is continuous at <span class="math inline">\(x=2\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="21">
+<div class="cell-output cell-output-display" data-execution_count="22">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="sbgzAj5O" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_sbgzAj5O">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_sbgzAj5O_1">
+      <input class="form-check-input" type="radio" name="radio_sbgzAj5O" id="radio_sbgzAj5O_1" value="1">
+      
+      <span class="label-body px-1">
+        Yes
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_sbgzAj5O_2">
+      <input class="form-check-input" type="radio" name="radio_sbgzAj5O" id="radio_sbgzAj5O_2" value="2">
+      
+      <span class="label-body px-1">
+        No
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="sbgzAj5O_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_sbgzAj5O"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('sbgzAj5O_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_sbgzAj5O")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_sbgzAj5O")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+<p>The function <span class="math inline">\(f(x)\)</span> is right continuous at <span class="math inline">\(x=3\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="22">
+<div class="cell-output cell-output-display" data-execution_count="23">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="APZ9zBqI" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_APZ9zBqI">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_APZ9zBqI_1">
+      <input class="form-check-input" type="radio" name="radio_APZ9zBqI" id="radio_APZ9zBqI_1" value="1">
+      
+      <span class="label-body px-1">
+        Yes
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_APZ9zBqI_2">
+      <input class="form-check-input" type="radio" name="radio_APZ9zBqI" id="radio_APZ9zBqI_2" value="2">
+      
+      <span class="label-body px-1">
+        No
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="APZ9zBqI_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_APZ9zBqI"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('APZ9zBqI_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_APZ9zBqI")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_APZ9zBqI")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+<p>The function <span class="math inline">\(f(x)\)</span> is left continuous at <span class="math inline">\(x=4\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="23">
+<div class="cell-output cell-output-display" data-execution_count="24">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="bNgT03HA" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_bNgT03HA">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_bNgT03HA_1">
+      <input class="form-check-input" type="radio" name="radio_bNgT03HA" id="radio_bNgT03HA_1" value="1">
+      
+      <span class="label-body px-1">
+        Yes
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_bNgT03HA_2">
+      <input class="form-check-input" type="radio" name="radio_bNgT03HA" id="radio_bNgT03HA_2" value="2">
+      
+      <span class="label-body px-1">
+        No
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="bNgT03HA_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_bNgT03HA"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('bNgT03HA_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_bNgT03HA")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_bNgT03HA")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+</section>
+<section id="question-9" class="level6">
+<h6 class="anchored" data-anchor-id="question-9">Question</h6>
+<p>Let <span class="math inline">\(f(x)\)</span> and <span class="math inline">\(g(x)\)</span> be continuous functions whose graph of <span class="math inline">\([0,1]\)</span> is given by:</p>
+<div class="cell" data-hold="true" data-execution_count="24">
+<div class="cell-output cell-output-display" data-execution_count="25">
+<p><img src="continuity_files/figure-html/cell-25-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>What is <span class="math inline">\(\lim_{x \rightarrow 0.25} f(g(x))\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="25">
+<div class="cell-output cell-output-display" data-execution_count="26">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="XQNUQCe9" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_XQNUQCe9">
+        <div style="padding-top: 5px">
+    <br>
+<div class="input-group">
+    <input id="XQNUQCe9" type="number" class="form-control" placeholder="Numeric answer">
+</div>
+
+    
+        </div>
+      </div>
+      <div id="XQNUQCe9_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.getElementById("XQNUQCe9").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 3.8473413874435795e-16) <= 0.001);
+  var msgBox = document.getElementById('XQNUQCe9_message');
+    if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_XQNUQCe9")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_XQNUQCe9")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+});
+
+</script>
+</div>
+</div>
+<p>What is <span class="math inline">\(\lim{x \rightarrow 0.25} g(f(x))\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="26">
+<div class="cell-output cell-output-display" data-execution_count="27">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="QAgf1afd" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_QAgf1afd">
+        <div style="padding-top: 5px">
+    <br>
+<div class="input-group">
+    <input id="QAgf1afd" type="number" class="form-control" placeholder="Numeric answer">
+</div>
+
+    
+        </div>
+      </div>
+      <div id="QAgf1afd_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.getElementById("QAgf1afd").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 1.0) <= 0.001);
+  var msgBox = document.getElementById('QAgf1afd_message');
+    if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_QAgf1afd")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_QAgf1afd")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+});
+
+</script>
+</div>
+</div>
+<p>What is <span class="math inline">\(\lim_{x \rightarrow 0.5} f(g(x))\)</span>?</p>
+<div class="cell" data-hold="true" data-execution_count="27">
+<div class="cell-output cell-output-display" data-execution_count="28">
+<form class="mx-2 my-3" name="WeaveQuestion" data-id="NPtpHylB" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_NPtpHylB">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_NPtpHylB_1">
+      <input class="form-check-input" type="radio" name="radio_NPtpHylB" id="radio_NPtpHylB_1" value="1">
+      
+      <span class="label-body px-1">
+        Can't tell
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_NPtpHylB_2">
+      <input class="form-check-input" type="radio" name="radio_NPtpHylB" id="radio_NPtpHylB_2" value="2">
+      
+      <span class="label-body px-1">
+        \(-1.0\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_NPtpHylB_3">
+      <input class="form-check-input" type="radio" name="radio_NPtpHylB" id="radio_NPtpHylB_3" value="3">
+      
+      <span class="label-body px-1">
+        \(0.0\)
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="NPtpHylB_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_NPtpHylB"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('NPtpHylB_message');
+      if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_NPtpHylB")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_NPtpHylB")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+  }
+
+})});
+
+</script>
+</div>
+</div>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+    var links = window.document.querySelectorAll('a:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+          // target, if specified
+          link.setAttribute("target", "_blank");
+      }
+    }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../limits/limits_extensions.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Limits, issues, extensions of the concept</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../limits/intermediate_value_theorem.html" class="pagination-link">
+        <span class="nav-page-text"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Implications of continuity</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+      <div class="nav-footer-center">Copyright 2022, John Verzani</div>
+  </div>
+</footer>
+
+
+
+</body></html>

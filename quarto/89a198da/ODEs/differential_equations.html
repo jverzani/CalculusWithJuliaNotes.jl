@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.0.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Calculus with Julia - 51&nbsp; The DifferentialEquations suite</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../differentiable_vector_calculus/polar_coordinates.html" rel="next">
+<link href="../ODEs/solve.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+<script async="" src="https://hypothes.is/embed.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body class="nav-sidebar floating nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <a class="navbar-brand" href="../index.html">
+    <img src="../logo.png" alt="">
+    <span class="navbar-title">Calculus with Julia</span>
+  </a>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+    <div class="container-fluid d-flex justify-content-between">
+      <h1 class="quarto-secondary-nav-title"><span class="chapter-number">51</span>&nbsp; <span class="chapter-title">The <code>DifferentialEquations</code> suite</span></h1>
+      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation floating overflow-auto">
+      <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+      </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">Preface</a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="false">Precalculus Concepts</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/calculator.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">From calculator to computer</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/variables.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Variables</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/numbers_types.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Number systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/logical_expressions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Inequalities, Logical expressions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/vectors.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Vectors</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/ranges.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Ranges and Sets</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/plotting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">The Graph of a Function</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/transformations.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Function manipulations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/inversefunctions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">The Inverse of a Function</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/polynomial.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Polynomials</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/polynomial_roots.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Roots of a polynomial</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/polynomials_package.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">The Polynomials package</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/rational_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Rational functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/exp_log_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Exponential and logarithmic functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/trig_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Trigonometric functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/julia_overview.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Overview of Julia commands</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false">Limits</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/limits.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Limits</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/limits_extensions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Limits, issues, extensions of the concept</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/continuity.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Continuity</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/intermediate_value_theorem.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Implications of continuity</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="false">Derivatives</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/derivatives.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Derivatives</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/numeric_derivatives.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Numeric derivatives</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/symbolic_derivatives.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Symbolic derivatives</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/mean_value_theorem.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">The mean value theorem for differentiable functions.</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/optimization.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">26</span>&nbsp; <span class="chapter-title">Optimization</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/first_second_derivatives.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">27</span>&nbsp; <span class="chapter-title">The first and second derivatives</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/curve_sketching.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">28</span>&nbsp; <span class="chapter-title">Curve Sketching</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/linearization.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">29</span>&nbsp; <span class="chapter-title">Linearization</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/newtons_method.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">30</span>&nbsp; <span class="chapter-title">Newton’s method</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/more_zeros.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">31</span>&nbsp; <span class="chapter-title">Derivative-free alternatives to Newton’s method</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/lhospitals_rule.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">32</span>&nbsp; <span class="chapter-title">L’Hospital’s Rule</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/implicit_differentiation.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">33</span>&nbsp; <span class="chapter-title">Implicit Differentiation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/related_rates.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">34</span>&nbsp; <span class="chapter-title">Related rates</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/taylor_series_polynomials.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">35</span>&nbsp; <span class="chapter-title">Taylor Polynomials and other Approximating Polynomials</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="false">Integrals</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/area.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">36</span>&nbsp; <span class="chapter-title">Area under a curve</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/ftc.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">37</span>&nbsp; <span class="chapter-title">Fundamental Theorem or Calculus</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/substitution.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">38</span>&nbsp; <span class="chapter-title">Substitution</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/integration_by_parts.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">39</span>&nbsp; <span class="chapter-title">Integration By Parts</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/partial_fractions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">40</span>&nbsp; <span class="chapter-title">Partial Fractions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/improper_integrals.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">41</span>&nbsp; <span class="chapter-title">Improper Integrals</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/mean_value_theorem.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">42</span>&nbsp; <span class="chapter-title">Mean value theorem for integrals</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/area_between_curves.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">43</span>&nbsp; <span class="chapter-title">Area between two curves</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/center_of_mass.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">44</span>&nbsp; <span class="chapter-title">Center of Mass</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/volumes_slice.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">45</span>&nbsp; <span class="chapter-title">Volumes by slicing</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/arc_length.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">46</span>&nbsp; <span class="chapter-title">Arc length</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/surface_area.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">47</span>&nbsp; <span class="chapter-title">Surface Area</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">ODEs</a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/odes.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">48</span>&nbsp; <span class="chapter-title">ODEs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/euler.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">49</span>&nbsp; <span class="chapter-title">Euler’s method</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/solve.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">50</span>&nbsp; <span class="chapter-title">The problem-algorithm-solve interface</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/differential_equations.html" class="sidebar-item-text sidebar-link active"><span class="chapter-number">51</span>&nbsp; <span class="chapter-title">The <code>DifferentialEquations</code> suite</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="false">Differential vector calculus</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/polar_coordinates.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">52</span>&nbsp; <span class="chapter-title">Polar Coordinates and Curves</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/vectors.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">53</span>&nbsp; <span class="chapter-title">Vectors and matrices</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/vector_valued_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">54</span>&nbsp; <span class="chapter-title">Vector-valued functions, <span class="math inline">\(f:R \rightarrow R^n\)</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/scalar_functions.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">55</span>&nbsp; <span class="chapter-title">Scalar functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/scalar_functions_applications.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">56</span>&nbsp; <span class="chapter-title">Applications with scalar functions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/vector_fields.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">57</span>&nbsp; <span class="chapter-title">Functions <span class="math inline">\(R^n \rightarrow R^m\)</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/plots_plotting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">58</span>&nbsp; <span class="chapter-title">2D and 3D plots in Julia with Plots</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="false">Integral vector calculus</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/double_triple_integrals.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">59</span>&nbsp; <span class="chapter-title">Multi-dimensional integrals</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/line_integrals.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">60</span>&nbsp; <span class="chapter-title">Line and Surface Integrals</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/div_grad_curl.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">61</span>&nbsp; <span class="chapter-title">The Gradient, Divergence, and Curl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/stokes_theorem.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">62</span>&nbsp; <span class="chapter-title">Green’s Theorem, Stokes’ Theorem, and the Divergence Theorem</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/review.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">63</span>&nbsp; <span class="chapter-title">Quick Review of Vector Calculus</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="false">Alternatives</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../alternatives/plotly_plotting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">64</span>&nbsp; <span class="chapter-title">JavaScript based plotting libraries</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../alternatives/makie_plotting.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">65</span>&nbsp; <span class="chapter-title">Calculus plots with Makie</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="false">Appendices</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/getting_started_with_julia.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">66</span>&nbsp; <span class="chapter-title">Getting started with Julia</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/julia_interfaces.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">67</span>&nbsp; <span class="chapter-title">Julia interfaces</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/calculus_with_julia.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">68</span>&nbsp; <span class="chapter-title">The <code>CalculusWithJulia</code> package</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/unicode.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">69</span>&nbsp; <span class="chapter-title">Usages of Unicode symbols</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/quick_notes.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">70</span>&nbsp; <span class="chapter-title">Quick introduction to Calculus with Julia</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../references.html" class="sidebar-item-text sidebar-link">References</a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#sir-model" id="toc-sir-model" class="nav-link active" data-scroll-target="#sir-model"> <span class="header-section-number">51.1</span> SIR Model</a></li>
+  <li><a href="#trajectory-with-drag" id="toc-trajectory-with-drag" class="nav-link" data-scroll-target="#trajectory-with-drag"> <span class="header-section-number">51.2</span> Trajectory with drag</a></li>
+  </ul>
+<div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/jverzani/CalculusWithJuliaNotes.jl/edit/main/quarto/ODEs/differential_equations.qmd" class="toc-action">Edit this page</a></p><p><a href="https://github.com/jverzani/CalculusWithJuliaNotes.jl/issues/new" class="toc-action">Report an issue</a></p></div></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title d-none d-lg-block"><span class="chapter-number">51</span>&nbsp; <span class="chapter-title">The <code>DifferentialEquations</code> suite</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    
+  </div>
+  
+
+</header>
+
+<p>This section uses these add-on packages:</p>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">OrdinaryDiffEq</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Plots</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">ModelingToolkit</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<hr>
+<p>The <a href="https://github.com/SciML/DifferentialEquations.jl"><code>DifferentialEquations</code></a> suite of packages contains solvers for a wide range of various differential equations. This section just briefly touches touch on ordinary differential equations (ODEs), and so relies only on <code>OrdinaryDiffEq</code> part of the suite. For more detail on this type and many others covered by the suite of packages, there are many other resources, including the <a href="https://diffeq.sciml.ai/stable/">documentation</a> and accompanying <a href="https://github.com/SciML/SciMLTutorials.jl">tutorials</a>.</p>
+<section id="sir-model" class="level2" data-number="51.1">
+<h2 data-number="51.1" class="anchored" data-anchor-id="sir-model"><span class="header-section-number">51.1</span> SIR Model</h2>
+<p>We follow along with an introduction to the SIR model for the spread of disease by <a href="https://www.maa.org/press/periodicals/loci/joma/the-sir-model-for-spread-of-disease-introduction">Smith and Moore</a>. This model received a workout due to the COVID-19 pandemic.</p>
+<p>The basic model breaks a population into three cohorts: The <strong>susceptible</strong> individuals, the <strong>infected</strong> individuals, and the <strong>recovered</strong> individuals. These add to the population size, <span class="math inline">\(N\)</span>, which is fixed, but the cohort sizes vary in time. We name these cohort sizes <span class="math inline">\(S(t)\)</span>, <span class="math inline">\(I(t)\)</span>, and <span class="math inline">\(R(t)\)</span> and define <span class="math inline">\(s(t)=S(t)/N\)</span>, <span class="math inline">\(i(t) = I(t)/N\)</span> and <span class="math inline">\(r(t) = R(t)/N\)</span> to be the respective proportions.</p>
+<p>The following <em>assumptions</em> are made about these cohorts by Smith and Moore:</p>
+<blockquote class="blockquote">
+<p>No one is added to the susceptible group, since we are ignoring births and immigration. The only way an individual leaves the susceptible group is by becoming infected.</p>
+</blockquote>
+<p>This implies the rate of change in time of <span class="math inline">\(S(t)\)</span> depends on the current number of susceptibles, and the amount of interaction with the infected cohorts. The model <em>assumes</em> each infected person has <span class="math inline">\(b\)</span> contacts per day that are sufficient to spread the disease. Not all contacts will be with susceptible people, but if people are assumed to mix within the cohorts, then there will be on average <span class="math inline">\(b \cdot S(t)/N\)</span> contacts with susceptible people per infected person. As each infected person is modeled identically, the time rate of change of <span class="math inline">\(S(t)\)</span> is:</p>
+<p><span class="math display">\[
+\frac{dS}{dt} = - b \cdot \frac{S(t)}{N} \cdot I(t) = -b \cdot s(t) \cdot I(t)
+\]</span></p>
+<p>It is negative, as no one is added, only taken off. After dividing by <span class="math inline">\(N\)</span>, this can also be expressed as <span class="math inline">\(s'(t) = -b s(t) i(t)\)</span>.</p>
+<blockquote class="blockquote">
+<p>assume that a fixed fraction <span class="math inline">\(k\)</span> of the infected group will recover during any given day.</p>
+</blockquote>
+<p>This means the change in time of the recovered depends on <span class="math inline">\(k\)</span> and the number infected, giving rise to the equation</p>
+<p><span class="math display">\[
+\frac{dR}{dt} = k \cdot I(t)
+\]</span></p>
+<p>which can also be expressed in proportions as <span class="math inline">\(r'(t) = k \cdot i(t)\)</span>.</p>
+<p>Finally, from <span class="math inline">\(S(t) + I(T) + R(t) = N\)</span> we have <span class="math inline">\(S'(T) + I'(t) + R'(t) = 0\)</span> or <span class="math inline">\(s'(t) + i'(t) + r'(t) = 0\)</span>.</p>
+<p>Combining, it is possible to express the rate of change of the infected population through:</p>
+<p><span class="math display">\[
+\frac{di}{dt} = b   \cdot s(t)   \cdot i(t) - k   \cdot i(t)
+\]</span></p>
+<p>The author’s apply this model to flu statistics from Hong Kong where:</p>
+<p><span class="math display">\[
+\begin{align*}
+S(0) &amp;= 7,900,000\\
+I(0) &amp;= 10\\
+R(0) &amp;= 0\\
+\end{align*}
+\]</span></p>
+<p>In <code>Julia</code> we define these, <code>N</code> to model the total population, and <code>u0</code> to be the proportions.</p>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>S0, I0, R0 <span class="op">=</span> <span class="fl">7_900_000</span>, <span class="fl">10</span>, <span class="fl">0</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>N <span class="op">=</span> S0 <span class="op">+</span> I0 <span class="op">+</span> R0</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>u0 <span class="op">=</span> [S0, I0, R0]<span class="op">/</span>N       <span class="co"># initial proportions</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<pre><code>3-element Vector{Float64}:
+ 0.9999987341788175
+ 1.2658211825048323e-6
+ 0.0</code></pre>
+</div>
+</div>
+<p>An <em>estimated</em> set of values for <span class="math inline">\(k\)</span> and <span class="math inline">\(b\)</span> are <span class="math inline">\(k=1/3\)</span>, coming from the average period of infectiousness being estimated at three days and <span class="math inline">\(b=1/2\)</span>, which seems low in normal times, but not for an infected person who may be feeling quite ill and staying at home. (The model for COVID would certainly have a larger <span class="math inline">\(b\)</span> value).</p>
+<p>Okay, the mathematical modeling is done; now we try to solve for the unknown functions using <code>DifferentialEquations</code>.</p>
+<p>To warm up, if <span class="math inline">\(b=0\)</span> then <span class="math inline">\(i'(t) = -k \cdot i(t)\)</span> describes the infected. (There is no circulation of people in this case.) The solution would be achieved through:</p>
+<div class="cell" data-hold="true" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="fl">3</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(u,p,t) <span class="op">=</span> <span class="op">-</span>k <span class="op">*</span> u  <span class="co"># solving  u′(t) = - k u(t)</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>time_span <span class="op">=</span> (<span class="fl">0.0</span>, <span class="fl">20.0</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>prob <span class="op">=</span> <span class="fu">ODEProblem</span>(f, I0<span class="op">/</span>N, time_span)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>sol <span class="op">=</span> <span class="fu">solve</span>(prob, <span class="fu">Tsit5</span>(), reltol<span class="op">=</span><span class="fl">1e-8</span>, abstol<span class="op">=</span><span class="fl">1e-8</span>)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sol)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<p><img src="differential_equations_files/figure-html/cell-6-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>The <code>sol</code> object is a set of numbers with a convenient <code>plot</code> method. As may have been expected, this graph shows exponential decay.</p>
+<p>A few comments are in order. The problem we want to solve is</p>
+<p><span class="math display">\[
+\frac{di}{dt} = -k   \cdot i(t) = F(i(t), k, t)
+\]</span></p>
+<p>where <span class="math inline">\(F\)</span> depends on the current value (<span class="math inline">\(i\)</span>), a parameter (<span class="math inline">\(k\)</span>), and the time (<span class="math inline">\(t\)</span>). We did not utilize <span class="math inline">\(p\)</span> above for the parameter, as it was easy not to, but could have, and will in the following. The time variable <span class="math inline">\(t\)</span> does not appear by itself in our equation, so only <code>f(u, p, t) = -k * u</code> was used, <code>u</code> the generic name for a solution which in this case is <span class="math inline">\(i\)</span>.</p>
+<p>The problem we set up needs an initial value (the <span class="math inline">\(u0\)</span>) and a time span to solve over. Here we want time to model real time, so use floating point values.</p>
+<p>The plot shows steady decay, as there is no mixing of infected with others.</p>
+<p>Adding in the interaction requires a bit more work. We now have what is known as a <em>system</em> of equations:</p>
+<p><span class="math display">\[
+\begin{align*}
+\frac{ds}{dt} &amp;= -b   \cdot s(t)  \cdot  i(t)\\
+\frac{di}{dt} &amp;= b  \cdot  s(t)  \cdot  i(t) - k  \cdot  i(t)\\
+\frac{dr}{dt} &amp;= k  \cdot  i(t)\\
+\end{align*}
+\]</span></p>
+<p>Systems of equations can be solved in a similar manner as a single ordinary differential equation, though adjustments are made to accommodate the multiple functions.</p>
+<p>We use a style that updates values in place, and note that <code>u</code> now holds <span class="math inline">\(3\)</span> different functions at once:</p>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">sir!</span>(du, u, p, t)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    k, b <span class="op">=</span> p</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    s, i, r <span class="op">=</span> u[<span class="fl">1</span>], u[<span class="fl">2</span>], u[<span class="fl">3</span>]</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    ds <span class="op">=</span> <span class="op">-</span>b <span class="op">*</span> s <span class="op">*</span> i</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    di <span class="op">=</span>  b <span class="op">*</span> s <span class="op">*</span> i <span class="op">-</span> k <span class="op">*</span> i</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    dr <span class="op">=</span>              k <span class="op">*</span> i</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    du[<span class="fl">1</span>], du[<span class="fl">2</span>], du[<span class="fl">3</span>] <span class="op">=</span> ds, di, dr</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<pre><code>sir! (generic function with 1 method)</code></pre>
+</div>
+</div>
+<p>The notation <code>du</code> is suggestive of both the derivative and a small increment. The mathematical formulation follows the derivative, the numeric solution uses a time step and increments the solution over this time step. The <code>Tsit5()</code> solver, used here, adaptively chooses a time step, <code>dt</code>; were the <code>Euler</code> method used, this time step would need to be explicit.</p>
+<div class="callout-note callout callout-style-default callout-captioned">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-caption-container flex-fill">
+Mutation not re-binding
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The <code>sir!</code> function has the trailing <code>!</code> indicating – by convention – it <em>mutates</em> its first value, <code>du</code>. In this case, through an assignment, as in <code>du[1]=ds</code>. This could use some explanation. The <em>binding</em> <code>du</code> refers to the <em>container</em> holding the <span class="math inline">\(3\)</span> values, whereas <code>du[1]</code> refers to the first value in that container. So <code>du[1]=ds</code> changes the first value, but not the <em>binding</em> of <code>du</code> to the container. That is, <code>du</code> mutates. This would be quite different were the call <code>du = [ds,di,dr]</code> which would create a new <em>binding</em> to a new container and not mutate the values in the original container.</p>
+</div>
+</div>
+<p>With the update function defined, the problem is setup and a solution found with in the same manner:</p>
+<div class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> (k<span class="op">=</span><span class="fl">1</span><span class="op">/</span><span class="fl">3</span>, b<span class="op">=</span><span class="fl">1</span><span class="op">/</span><span class="fl">2</span>)        <span class="co"># parameters</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>time_span <span class="op">=</span> (<span class="fl">0.0</span>, <span class="fl">150.0</span>)  <span class="co"># time span to solve over, 5 months</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>prob <span class="op">=</span> <span class="fu">ODEProblem</span>(sir!, u0, time_span, p)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>sol <span class="op">=</span> <span class="fu">solve</span>(prob, <span class="fu">Tsit5</span>())</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sol)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(x <span class="op">-&gt;</span> <span class="fl">0.5</span>, linewidth<span class="op">=</span><span class="fl">2</span>) <span class="co"># mark 50% line</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<p><img src="differential_equations_files/figure-html/cell-8-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>The lower graph shows the number of infected at each day over the five-month period displayed. The peak is around 6-7% of the population at any one time. However, over time the recovered part of the population reaches over 50%, meaning more than half the population is modeled as getting sick.</p>
+<p>Now we change the parameter <span class="math inline">\(b\)</span> and observe the difference. We passed in a value <code>p</code> holding our two parameters, so we just need to change that and run the model again:</p>
+<div class="cell" data-hold="true" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> (k<span class="op">=</span><span class="fl">1</span><span class="op">/</span><span class="fl">2</span>, b<span class="op">=</span><span class="fl">2</span>) <span class="co"># change b from 1/2 to 2 -- more daily contact</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>prob <span class="op">=</span> <span class="fu">ODEProblem</span>(sir!, u0, time_span, p)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>sol <span class="op">=</span> <span class="fu">solve</span>(prob, <span class="fu">Tsit5</span>())</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sol)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<p><img src="differential_equations_files/figure-html/cell-9-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>The graphs are somewhat similar, but the steady state is reached much more quickly and nearly everyone became infected.</p>
+<p>What about if <span class="math inline">\(k\)</span> were bigger?</p>
+<div class="cell" data-hold="true" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> (k<span class="op">=</span><span class="fl">2</span><span class="op">/</span><span class="fl">3</span>, b<span class="op">=</span><span class="fl">1</span><span class="op">/</span><span class="fl">2</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>prob <span class="op">=</span> <span class="fu">ODEProblem</span>(sir!, u0, time_span, p)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>sol <span class="op">=</span> <span class="fu">solve</span>(prob, <span class="fu">Tsit5</span>())</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sol)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<p><img src="differential_equations_files/figure-html/cell-10-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>The graphs show that under these conditions the infections never take off; we have <span class="math inline">\(i' = (b\cdot s-k)i = k\cdot((b/k) s - 1) i\)</span> which is always negative, since <code>(b/k)s &lt; 1</code>, so infections will only decay.</p>
+<p>The solution object is indexed by time, then has the <code>s</code>, <code>i</code>, <code>r</code> estimates. We use this structure below to return the estimated proportion of recovered individuals at the end of the time span.</p>
+<div class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">recovered</span>(k,b)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    prob <span class="op">=</span> <span class="fu">ODEProblem</span>(sir!, u0, time_span, (k,b));</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    sol <span class="op">=</span> <span class="fu">solve</span>(prob, <span class="fu">Tsit5</span>());</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    s,i,r <span class="op">=</span> <span class="fu">last</span>(sol)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    r</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="11">
+<pre><code>recovered (generic function with 1 method)</code></pre>
+</div>
+</div>
+<p>This function makes it easy to see the impact of changing the parameters. For example, fixing <span class="math inline">\(k=1/3\)</span> we have:</p>
+<div class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(b) <span class="op">=</span> <span class="fu">recovered</span>(<span class="fl">1</span><span class="op">/</span><span class="fl">3</span>, b)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(f, <span class="fl">0</span>, <span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="12">
+<p><img src="differential_equations_files/figure-html/cell-12-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>This very clearly shows the sharp dependence on the value of <span class="math inline">\(b\)</span>; below some level, the proportion of people who are ever infected (the recovered cohort) remains near <span class="math inline">\(0\)</span>; above that level it can climb quickly towards <span class="math inline">\(1\)</span>.</p>
+<p>The function <code>recovered</code> is of two variables returning a single value. In subsequent sections we will see a few <span class="math inline">\(3\)</span>-dimensional plots that are common for such functions, here we skip ahead and show how to visualize multiple function plots at once using “<code>z</code>” values in a graph.</p>
+<div class="cell" data-hold="true" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>k, ks <span class="op">=</span> <span class="fl">0.1</span>, <span class="fl">0.2</span><span class="op">:</span><span class="fl">0.1</span><span class="op">:</span><span class="fl">0.9</span>  <span class="co"># first `k` and then the rest</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>bs <span class="op">=</span> <span class="fu">range</span>(<span class="fl">0</span>, <span class="fl">2</span>, length<span class="op">=</span><span class="fl">100</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>zs <span class="op">=</span> <span class="fu">recovered</span>.(k, bs)    <span class="co"># find values for fixed k, each of bs</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="fu">plot</span>(bs, <span class="fu">k*one</span>.(bs), zs, legend<span class="op">=</span><span class="cn">false</span>)  <span class="co"># k*one.(ks) is [k,k,...,k]</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k <span class="kw">in</span> ks</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot!</span>(p, bs, <span class="fu">k*one</span>.(bs), <span class="fu">recovered</span>.(k, bs))</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>p</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="13">
+<p><img src="differential_equations_files/figure-html/cell-13-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>The 3-dimensional graph with <code>plotly</code> can have its viewing angle adjusted with the mouse. When looking down on the <span class="math inline">\(x-y\)</span> plane, which code <code>b</code> and <code>k</code>, we can see the rapid growth along a line related to <span class="math inline">\(b/k\)</span>.</p>
+<p>Smith and Moore point out that <span class="math inline">\(k\)</span> is roughly the reciprocal of the number of days an individual is sick enough to infect others. This can be estimated during a breakout. However, they go on to note that there is no direct way to observe <span class="math inline">\(b\)</span>, but there is an indirect way.</p>
+<p>The ratio <span class="math inline">\(c = b/k\)</span> is the number of close contacts per day times the number of days infected which is the number of close contacts per infected individual.</p>
+<p>This can be estimated from the curves once steady state has been reached (at the end of the pandemic).</p>
+<p><span class="math display">\[
+\frac{di}{ds} = \frac{di/dt}{ds/dt} = \frac{b \cdot s(t)  \cdot i(t) - k  \cdot i(t)}{-b \cdot  s(t) \cdot  i(t)} = -1 + \frac{1}{c \cdot  s}
+\]</span></p>
+<p>This equation does not depend on <span class="math inline">\(t\)</span>; <span class="math inline">\(s\)</span> is the dependent variable. It could be solved numerically, but in this case affords an algebraic solution: <span class="math inline">\(i = -s + (1/c) \log(s) + q\)</span>, where <span class="math inline">\(q\)</span> is some constant. The quantity <span class="math inline">\(q = i + s - (1/c) \log(s)\)</span> does not depend on time, so is the same at time <span class="math inline">\(t=0\)</span> as it is as <span class="math inline">\(t \rightarrow \infty\)</span>. At <span class="math inline">\(t=0\)</span> we have <span class="math inline">\(s(0) \approx 1\)</span> and <span class="math inline">\(i(0) \approx 0\)</span>, whereas <span class="math inline">\(t \rightarrow \infty\)</span>, <span class="math inline">\(i(t) \rightarrow 0\)</span> and <span class="math inline">\(s(t)\)</span> goes to the steady state value, which can be estimated. Solving with <span class="math inline">\(t=0\)</span>, we see <span class="math inline">\(q=0 + 1 - (1/c)\log(1) = 1\)</span>. In the limit them <span class="math inline">\(1 = 0 + s_{\infty} - (1/c)\log(s_\infty)\)</span> or <span class="math inline">\(c = \log(s_\infty)/(1-s_\infty)\)</span>.</p>
+</section>
+<section id="trajectory-with-drag" class="level2" data-number="51.2">
+<h2 data-number="51.2" class="anchored" data-anchor-id="trajectory-with-drag"><span class="header-section-number">51.2</span> Trajectory with drag</h2>
+<p>We now solve numerically the problem of a trajectory with a drag force from air resistance.</p>
+<p>The general model is:</p>
+<p><span class="math display">\[
+\begin{align*}
+x''(t) &amp;= - W(t,x(t), x'(t), y(t), y'(t)) \cdot x'(t)\\
+y''(t) &amp;= -g - W(t,x(t), x'(t), y(t), y'(t)) \cdot y'(t)\\
+\end{align*}
+\]</span></p>
+<p>with initial conditions: <span class="math inline">\(x(0) = y(0) = 0\)</span> and <span class="math inline">\(x'(0) = v_0 \cos(\theta), y'(0) = v_0 \sin(\theta)\)</span>.</p>
+<p>This into an ODE by a standard trick. Here we define our function for updating a step. As can be seen the vector <code>u</code> contains both <span class="math inline">\(\langle x,y \rangle\)</span> and <span class="math inline">\(\langle x',y' \rangle\)</span></p>
+<div class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">xy!</span>(du, u, p, t)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    g, γ <span class="op">=</span> p.g, p.k</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    x, y <span class="op">=</span> u[<span class="fl">1</span>], u[<span class="fl">2</span>]</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    x′, y′ <span class="op">=</span> u[<span class="fl">3</span>], u[<span class="fl">4</span>]  <span class="co"># unicode \prime[tab]</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    W <span class="op">=</span> γ</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    du[<span class="fl">1</span>] <span class="op">=</span> x′</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    du[<span class="fl">2</span>] <span class="op">=</span> y′</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    du[<span class="fl">3</span>] <span class="op">=</span>  <span class="fl">0</span> <span class="op">-</span> W <span class="op">*</span> x′</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    du[<span class="fl">4</span>] <span class="op">=</span> <span class="op">-</span>g <span class="op">-</span> W <span class="op">*</span> y′</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="14">
+<pre><code>xy! (generic function with 1 method)</code></pre>
+</div>
+</div>
+<p>This function <span class="math inline">\(W\)</span> is just a constant above, but can be easily modified as desired.</p>
+<div class="callout-note callout callout-style-default callout-captioned">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-caption-container flex-fill">
+A second-order ODE is a coupled first-order ODE
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The “standard” trick is to take a second order ODE like <span class="math inline">\(u''(t)=u\)</span> and turn this into two coupled ODEs by using a new name: <span class="math inline">\(v=u'(t)\)</span> and then <span class="math inline">\(v'(t) = u(t)\)</span>. In this application, there are <span class="math inline">\(4\)</span> equations, as we have <em>both</em> <span class="math inline">\(x''\)</span> and <span class="math inline">\(y''\)</span> being so converted. The first and second components of <span class="math inline">\(du\)</span> are new variables, the third and fourth show the original equation.</p>
+</div>
+</div>
+<p>The initial conditions are specified through:</p>
+<div class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>θ <span class="op">=</span> <span class="cn">pi</span><span class="op">/</span><span class="fl">4</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>v₀ <span class="op">=</span> <span class="fl">200</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>xy₀ <span class="op">=</span> [<span class="fl">0.0</span>, <span class="fl">0.0</span>]</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>vxy₀ <span class="op">=</span> v₀ <span class="op">*</span> [<span class="fu">cos</span>(θ), <span class="fu">sin</span>(θ)]</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>INITIAL <span class="op">=</span> <span class="fu">vcat</span>(xy₀, vxy₀)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="15">
+<pre><code>4-element Vector{Float64}:
+   0.0
+   0.0
+ 141.4213562373095
+ 141.42135623730948</code></pre>
+</div>
+</div>
+<p>The time span can be computed using an <em>upper</em> bound of no drag, for which the classic physics formulas give (when <span class="math inline">\(y_0=0\)</span>) <span class="math inline">\((0, 2v_{y0}/g)\)</span></p>
+<div class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> <span class="fl">9.8</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>TSPAN <span class="op">=</span> (<span class="fl">0</span>, <span class="fl">2</span><span class="op">*</span>vxy₀[<span class="fl">2</span>] <span class="op">/</span> g)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="16">
+<pre><code>(0, 28.8615012729203)</code></pre>
+</div>
+</div>
+<p>This allows us to define an <code>ODEProblem</code>:</p>
+<div class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>trajectory_problem <span class="op">=</span> <span class="fu">ODEProblem</span>(xy!, INITIAL, TSPAN)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="17">
+<div class="ansi-escaped-output">
+<pre><span class="ansi-cyan-fg">ODEProblem</span> with uType <span class="ansi-cyan-fg">Vector{Float64}</span> and tType <span class="ansi-cyan-fg">Float64</span>. In-place: <span class="ansi-cyan-fg">true</span>
+timespan: (0.0, 28.8615012729203)
+u0: 4-element Vector{Float64}:
+   0.0
+   0.0
+ 141.4213562373095
+ 141.42135623730948</pre>
+</div>
+</div>
+</div>
+<p>When <span class="math inline">\(\gamma = 0\)</span> there should be no drag and we expect to see a parabola:</p>
+<div class="cell" data-hold="true" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>ps <span class="op">=</span> (g<span class="op">=</span><span class="fl">9.8</span>, k<span class="op">=</span><span class="fl">0</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>SOL <span class="op">=</span> <span class="fu">solve</span>(trajectory_problem, <span class="fu">Tsit5</span>(); p <span class="op">=</span> ps)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(t <span class="op">-&gt;</span> <span class="fu">SOL</span>(t)[<span class="fl">1</span>], t <span class="op">-&gt;</span> <span class="fu">SOL</span>(t)[<span class="fl">2</span>], TSPAN<span class="op">...</span>; legend<span class="op">=</span><span class="cn">false</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="18">
+<p><img src="differential_equations_files/figure-html/cell-18-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>The plot is a parametric plot of the <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> parts of the solution over the time span. We can see the expected parabolic shape.</p>
+<p>On a <em>windy</em> day, the value of <span class="math inline">\(k\)</span> would be positive. Repeating the above with <span class="math inline">\(k=1/4\)</span> gives:</p>
+<div class="cell" data-hold="true" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>ps <span class="op">=</span> (g<span class="op">=</span><span class="fl">9.8</span>, k<span class="op">=</span><span class="fl">1</span><span class="op">/</span><span class="fl">4</span>)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>SOL <span class="op">=</span> <span class="fu">solve</span>(trajectory_problem, <span class="fu">Tsit5</span>(); p <span class="op">=</span> ps)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(t <span class="op">-&gt;</span> <span class="fu">SOL</span>(t)[<span class="fl">1</span>], t <span class="op">-&gt;</span> <span class="fu">SOL</span>(t)[<span class="fl">2</span>], TSPAN<span class="op">...</span>; legend<span class="op">=</span><span class="cn">false</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="19">
+<p><img src="differential_equations_files/figure-html/cell-19-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>We see that the <span class="math inline">\(y\)</span> values have gone negative. The <code>DifferentialEquations</code> package can adjust for that with a <em>callback</em> which terminates the problem once <span class="math inline">\(y\)</span> has gone negative. This can be implemented as follows:</p>
+<div class="cell" data-hold="true" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">condition</span>(u,t,integrator) <span class="op">=</span> u[<span class="fl">2</span>] <span class="co"># called when `u[2]` is negative</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">affect!</span>(integrator) <span class="op">=</span> <span class="fu">terminate!</span>(integrator) <span class="co"># stop the process</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>cb <span class="op">=</span> <span class="fu">ContinuousCallback</span>(condition, affect!)</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>ps <span class="op">=</span> (g<span class="op">=</span><span class="fl">9.8</span>, k <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="fl">4</span>)</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>SOL <span class="op">=</span> <span class="fu">solve</span>(trajectory_problem, <span class="fu">Tsit5</span>(); p <span class="op">=</span> ps, callback<span class="op">=</span>cb)</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(t <span class="op">-&gt;</span> <span class="fu">SOL</span>(t)[<span class="fl">1</span>], t <span class="op">-&gt;</span> <span class="fu">SOL</span>(t)[<span class="fl">2</span>], TSPAN<span class="op">...</span>; legend<span class="op">=</span><span class="cn">false</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="20">
+<p><img src="differential_equations_files/figure-html/cell-20-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>Finally, we note that the <code>ModelingToolkit</code> package provides symbolic-numeric computing. This allows the equations to be set up symbolically, as in <code>SymPy</code> before being passed off to <code>DifferentialEquations</code> to solve numerically. The above example with no wind resistance could be translated into the following:</p>
+<div class="cell" data-hold="true" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@parameters</span> t γ g</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@variables</span> <span class="fu">x</span>(t) <span class="fu">y</span>(t)</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>D <span class="op">=</span> <span class="fu">Differential</span>(t)</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>eqs <span class="op">=</span> [<span class="fu">D</span>(<span class="fu">D</span>(x)) <span class="op">~</span> <span class="op">-</span>γ <span class="op">*</span> <span class="fu">D</span>(x),</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>       <span class="fu">D</span>(<span class="fu">D</span>(y)) <span class="op">~</span> <span class="op">-</span>g <span class="op">-</span> γ <span class="op">*</span> <span class="fu">D</span>(y)]</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@named</span> sys <span class="op">=</span> <span class="fu">ODESystem</span>(eqs)</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>sys <span class="op">=</span> <span class="fu">ode_order_lowering</span>(sys) <span class="co"># turn 2nd order into 1st</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>u0 <span class="op">=</span> [<span class="fu">D</span>(x) <span class="op">=&gt;</span> vxy₀[<span class="fl">1</span>],</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">D</span>(y) <span class="op">=&gt;</span> vxy₀[<span class="fl">2</span>],</span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>      x <span class="op">=&gt;</span> <span class="fl">0.0</span>,</span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>      y <span class="op">=&gt;</span> <span class="fl">0.0</span>]</span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>p  <span class="op">=</span> [γ <span class="op">=&gt;</span> <span class="fl">0.0</span>,</span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>      g <span class="op">=&gt;</span> <span class="fl">9.8</span>]</span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>prob <span class="op">=</span> <span class="fu">ODEProblem</span>(sys, u0, TSPAN, p, jac<span class="op">=</span><span class="cn">true</span>)</span>
+<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>sol <span class="op">=</span> <span class="fu">solve</span>(prob,<span class="fu">Tsit5</span>())</span>
+<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(t <span class="op">-&gt;</span> <span class="fu">sol</span>(t)[<span class="fl">3</span>], t <span class="op">-&gt;</span> <span class="fu">sol</span>(t)[<span class="fl">4</span>], TSPAN<span class="op">...</span>, legend<span class="op">=</span><span class="cn">false</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="21">
+<p><img src="differential_equations_files/figure-html/cell-21-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>The toolkit will automatically generate fast functions and can perform transformations (such as is done by <code>ode_order_lowering</code>) before passing along to the numeric solves.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+    var links = window.document.querySelectorAll('a:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+          // target, if specified
+          link.setAttribute("target", "_blank");
+      }
+    }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../ODEs/solve.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">50</span>&nbsp; <span class="chapter-title">The problem-algorithm-solve interface</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../differentiable_vector_calculus/polar_coordinates.html" class="pagination-link">
+        <span class="nav-page-text"><span class="chapter-number">52</span>&nbsp; <span class="chapter-title">Polar Coordinates and Curves</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+      <div class="nav-footer-center">Copyright 2022, John Verzani</div>
+  </div>
+</footer>
+
+
+
+</body></html>
