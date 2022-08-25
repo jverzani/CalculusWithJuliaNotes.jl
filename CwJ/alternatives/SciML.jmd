@@ -1,17 +1,17 @@
 # The SciML suite of packages
 
 
-The `Julia` ecosystem advances rapidly and for much of it the driving force is the [SciML](https://github.com/SciML) organization (Scientific Machine Learning).
+The `Julia` ecosystem advances rapidly. For much of it, the driving force is the [SciML](https://github.com/SciML) organization (Scientific Machine Learning).
 
-In this section we describe some packages provided by this organization that could be used as alternatives to the ones utilized in these notes. Many recent efforts of this organization have been to write uniform interfaces to other packages in the ecosystem.
+In this section we describe some packages provided by this organization that could be used as alternatives to the ones utilized in these notes. Many recent efforts of this organization have been to write uniform interfaces to other packages in the ecosystem. Members of this organization created many packages for solving different types of differential equations.
 
 
-The basic interface of many of these packages is the "problem-algorithm-solve" interface described in [The problem-algorithm-solve interface](../ODEs/solve.html). We also discussed this interface a bit in [ODEs](../ODEs/differential_equations.html).
+The basic interface of these packages is the "problem-algorithm-solve" interface described in [The problem-algorithm-solve interface](../ODEs/solve.html). We also discussed this interface a bit in [ODEs](../ODEs/differential_equations.html).
 
 
 ## Symbolic math (`Symbolics`)
 
-The `Symbolics` package, along with `SymbolicUtils` and `ModelingToolkit` are provided by this organization. See this section on [Symbolics](./symbolics.html) for additional details or the package [documentation](https://symbolics.juliasymbolics.org/stable/) or the documentation for [SymbolicsUtils](https://github.com/JuliaSymbolics/SymbolicUtils.jl).
+The `Symbolics`, `SymbolicUtils`, and `ModelingToolkit` packages are provided by this organization. These can be viewed as an alternative to `SymPy`, which is used throughout this set of notes. See this section on [Symbolics](./symbolics.html) for additional details or the package [documentation](https://symbolics.juliasymbolics.org/stable/) or the documentation for [SymbolicsUtils](https://github.com/JuliaSymbolics/SymbolicUtils.jl).
 
 
 ## Solving equations (`LinearSolve`, `NonlinearSolve`)
@@ -19,15 +19,15 @@ The `Symbolics` package, along with `SymbolicUtils` and `ModelingToolkit` are pr
 The `LinearSolve` package aims to generalize the solving of linear equations. For many cases these are simply represented as matrix equations of the form `Ax=b`, from which `Julia` (borrowing from MATLAB) offers the interface `A \ b` to yield `x`. There are scenarios that don't naturally fit this structure and perhaps problems where different tolerances need to be specified, and the `LinearSolve` package aims to provide a common interface to handle these scenarios. As this set of notes doesn't bump into such, this package is not described here.
 
 
-The `NonlinearSolve` package can be seen as an alternative to our use of the `Roots` package. The package presents itself as "Fast implementations of root finding algorithms in Julia that satisfy the SciML common interface."
+The `NonlinearSolve` package can be seen as an alternative to the use of the `Roots` package in this set of notes. The package presents itself as "Fast implementations of root finding algorithms in Julia that satisfy the SciML common interface."
 
-The package is loaded through the following:
+The package is loaded through the following command:
 
 ```julia
 using NonlinearSolve
 ```
 
-Unlike `Roots` the package handles problems beyond the univariate case, as such the simplest problems have a little extra required.
+Unlike `Roots`, the package handles problems beyond the univariate case, as such the simplest problems have a little extra required.
 
 For example, suppose we want to use this package to solve for zeros of ``f(x) = x^5 - x - 1``. We could do so a few different ways.
 
@@ -37,7 +37,7 @@ First, we need to define a `Julia` function representing `f`. We do so with:
 f(u, p) = @. (u^5 - u - 1)
 ```
 
-The function definition expects a container for the "`x`" variables and allows the passing of a container to hold parameters. We use the "dots" to allow vectorization of the basic math operations, as `u` is a container of values. The `@.` macro makes this quite easy, as illustrated above.
+The function definition expects a container for the "`x`" variables and allows the passing of a container to hold parameters. We could use the "dots" to allow vectorization of the basic math operations, as `u` is a container of values. The `@.` macro makes this quite easy, as illustrated above.
 
 A problem is set up with this function and an initial guess. The `@SVector` specification for the guess is for performance purposes and is provided by the `StaticArrays` package.
 
@@ -112,22 +112,22 @@ peaks(u) = _peaks(u...)
 The gradient can be computed different ways within `Julia`, but here we use the fact that the `ForwardDiff` package is loaded by `NonlinearSolve`. Once the function is defined, the pattern is similar to above:
 
 ```julia
-λ = (x, p=nothing) -> NonlinearSolve.ForwardDiff.gradient(peaks, x)
+f(x, p=nothing) = NonlinearSolve.ForwardDiff.gradient(peaks, x)
 u0 = @SVector[1.0, 1.0]
-prob = NonlinearProblem(λ, u0)
+prob = NonlinearProblem(f, u0)
 u = solve(prob, NewtonRaphson())
 ```
 
 We can see that this value is a "zero" through:
 
 ```julia; error=true
-λ(u.u)
+f(u.u)
 ```
 
 ### Using Modeling toolkit to model the non-linear problem
 
 
-Nonlinear problems can also be approached symbolically, using `ModelingToolkit`. There is one additional step necessary.
+Nonlinear problems can also be approached symbolically using the `ModelingToolkit` package. There is one additional step necessary.
 
 As an example, we look to solve numerically for the zeros of ``x^5-x-\alpha`` for a parameter ``\alpha``. We can describe this equation as follows:
 
@@ -140,7 +140,7 @@ using ModelingToolkit
 eq = x^5 - x - α ~ 0
 ```
 
-The extra step is to specify a "NonlinearSystem". It is a system as in practice one or more equations can be considered. The `NonlinearSystem`constructor handles the details where the equation, the variable, and the parameter are specified. Here this is done using vectors with just one element:
+The extra step is to specify a "NonlinearSystem". It is a system, as in practice one or more equations can be considered. The `NonlinearSystem`constructor handles the details where the equation, the variable, and the parameter are specified. Here this is done using vectors with just one element:
 
 ```julia
 ns = NonlinearSystem([eq], [x], [α], name=:ns)
@@ -152,7 +152,7 @@ The `name` argument is special. The name of the object (`ns`) is assigned throug
 @named ns = NonlinearSystem([eq], [x], [α])
 ```
 
-With the system defined, we can pass this to `NonlinearProblem`, as was done with a function. The parameter is specified here, and in this case is `a => 1.0`. The initial guess is `[1.0]`:
+With the system defined, we can pass this to `NonlinearProblem`, as was done with a function. The parameter is specified here, and in this case is `α => 1.0`. The initial guess is `[1.0]`:
 
 ```julia
 prob = NonlinearProblem(ns, [1.0], [α => 1.0])
@@ -166,9 +166,7 @@ solve(prob, NewtonRaphson())
 
 ## Optimization (`Optimization.jl`)
 
-We describe briefly the `Optimization` package which provides a common interface to *numerous* optimization packages in the `Julia` ecosystem. The two packages mentioned here are `Optim` and `BlackBoxOptimization`. The tie-in packages `OptimizationOptimJL` and `OptimizationBBO` must be loaded for these.
-
-### Local
+We describe briefly the `Optimization` package which provides a common interface to *numerous* optimization packages in the `Julia` ecosystem. We discuss only the interface for `Optim.jl` defined in  `OptimizationOptimJL`.
 
 We begin with a simple example from first semester calculus: among all rectangle of perimeter 25, find the one with the largest area. The mathematical setup has a constraint (``P=25=2x+2y``) and from the objective (``A=xy``), the function to *maximize* is ``A(x) = x \cdot (25-2x)/2``. This is easily done different ways, such as finding the one critical point and identifying this as the point of maximum.
 
@@ -188,7 +186,7 @@ using OptimizationOptimJL
 ```
 
 
-Next, we define an optimization function with information on how its derivatives will be take. The following uses `ForwardDiff`, which is a good choice in the typical calculus setting with a small number of inputs (just ``q`` here.)
+Next, we define an optimization function with information on how its derivatives will be taken. The following uses `ForwardDiff`, which is a good choice in the typical calculus setting, where there are a small number of inputs (just ``1`` here.)
 
 ```julia
 F = OptimizationFunction(A, Optimization.AutoForwardDiff())
@@ -203,7 +201,7 @@ soln = solve(prob, Newton())
 ```
 
 !!! note
-    We use `Newton` not `NewtonRaphson` as above. Both methods are similar, but they come from different uses -- for latter for solving non-linear equation(s), the form for for solving optimization problems.
+    We use `Newton` not `NewtonRaphson` as above. Both methods are similar, but they come from different uses -- for latter for solving non-linear equation(s), the former for solving optimization problems.
 
 The solution is an object containing the identified answer and more. To get the value, use index notation:
 
@@ -289,4 +287,216 @@ approximations as well as the gradient."  On this problem it performs similarly 
 
 ### Two dimensional
 
+XXX
+
 ## Integration (`Integrals.jl`)
+
+
+The `Integrals` package provides a common interface to different numeric integration packages in the `Julia` ecosystem. For example, `QuadGK` and `HCubature`. The value of this interface, over those two packages, is its non-differentiated access to other packages.
+
+The package follows the same `problem-algorithm-solve` interface.
+
+The interface is designed for ``1`` and higher dimensional integrals.
+
+The package is loaded with
+
+```julia
+using Integrals
+```
+
+
+For a simple definite integral, such as ``\int_0^\pi \sin(x)dx``, we have:
+
+```julia
+f(x, p) = sin(x)
+prob = IntegralProblem(f, 0.0, pi)
+soln = solve(prob, QuadGKJL())
+```
+
+To get access to the answer, we can use indexing notation:
+
+```julia
+soln[]
+```
+
+Comparing to just using `QuadGK`, we would have:
+
+```julia
+using QuadGK
+quadgk(sin, 0, pi)
+```
+
+The estimated upper bound on the error from `QuadGK`, is available through the `resid` property on the `Integrals` output:
+
+```julia
+soln.resid
+```
+
+
+The `Integrals` solution a bit more verbose, but it is more flexible. For example, the `HCubature` package provides a similar means to compute ``n``- dimensional integrals. For this problem, the modifications would be:
+
+```julia
+f(x, p) = sin.(x)
+prob = IntegralProblem(f, [0.0], [pi])
+soln = solve(prob, HCubatureJL())
+```
+
+```julia
+soln[]
+```
+
+The estimated maximum error is also given by `resid`:
+
+```julia
+soln.resid
+```
+
+----
+
+As well, suppose we wanted to parameterize our function and then differentiate.
+
+Consider ``d/dp \int_0^\pi \sin(px) dx``. We can do this integral directly to get
+
+```math
+\begin{align*}
+\frac{d}{dp} \int_0^\pi \sin(px)dx
+&= \frac{d}{dp} \frac{-1}{p} \cos(px)\mid_0^\pi\\
+&= \frac{d}{dp} -\frac{\cos(p\cdot\pi)-1}{p}\\
+&= \frac{\cos(p\cdot \pi - 1)){p^2} + \frac{\pi*\sin(p\cdot\pi)}{p}
+\end{align*}
+```
+
+Using `Integrals` with `QuadGK` we have:
+
+```julia
+f(x, p) = sin(p*x)
+function ∫sinpx(p)
+    prob = IntegralProblem(f, 0.0, pi, p)
+    solve(prob, QuadGKJL())
+end
+```
+
+We can compute values at both ``p=1`` and ``p=2``:
+
+```julia
+∫sinpx(1), ∫sinpx(2)
+```
+
+And to find the derivative in ``p`` , we have:
+
+```julia
+using ForwardDiff
+ForwardDiff.derivative(∫sinpx, 1), ForwardDiff.derivative(∫sinpx, 2)
+```
+
+
+(In `QuadGK`, the following can be differentiated `∫sinpx(p) = quadgk(x -> sin(p*x), 0, pi)[1]` as well. `Integrals` gives a consistent interface.
+
+
+### Higher dimension integrals
+
+The power of a common interface is the ability to swap backends and the uniformity for different dimensions. Here we discuss integrals of scalar-valued and vector valued functions.
+
+#### ``f: R^n \rightarrow R``
+
+The area under a surface generated by ``z=f(x,y)`` over a rectangular region ``[a,b]\times[c,d]`` can be readily computed. The two coding implementations require ``f`` to be expressed as a function of a vector *and* a parameter and the interval to be expressed using two vectors, one of the left endpoints (`[a,c]`) and on or the right (`[b,d]`).
+
+For example, the area under the function ``f(x,y) = 1 + x^2 + 2y^2`` over ``[-1/2, 1/2] \times [-1,1]`` is computed by:
+
+```julia
+ls = [-1/2, -1]
+rs = [1/2, 1]
+f(x, y) = 1 + x^2 + y^2  # match math
+fxp(x, p) = f(x...)      # prepare for IntegralProblem
+prob = IntegralProblem(fxp, ls, rs)
+soln = solve(prob, HCubatureJL())
+```
+
+Of course, we could have directly defined the function (`fxp`) using indexing of the `x` variable.
+
+----
+
+For non-rectangular domains a change of variable is required.
+
+For example, an integral to assist in finding the volume of a sphere might be
+
+```math
+V = 2 \iint_R \sqrt{\rho^2 - x^2 - y^2} dx dy
+```
+
+where ``R`` is the disc of radius ``\rho`` in the ``x-y`` plane.
+
+The usual approach is to change to polar-coordinates and write this integral as
+
+```math
+V = \int_0^{2\pi}\int_0^\rho \sqrt{\rho^2 - r^2} r dr d\theta
+```
+
+the latter being an integral over a rectangular domain.
+
+To compute this, we might have:
+
+```julia
+function vol_sphere(ρ)
+    f(rθ, p) = sqrt(ρ^2 - rθ[1]^2) * rθ[1]
+    ls = [0,0]
+    rs = [ρ, 2pi]
+    prob = IntegralProblem(f, ls, rs)
+    solve(prob, HCubatureJL())
+end
+
+vol_sphere(2)
+```
+
+If it is possible to express the region to integrate as ``G(R)`` where ``R`` is a rectangular region, then the change of variable formula,
+
+```math
+\iint_{G(R)} f(x) dA = \iint_R (f\circ G)(u) |det(J_G(u)| dU
+```
+
+turns the integral into the non-rectangular domain ``G(R)`` into one over the rectangular domain ``R``. The key is to *identify* ``G`` and to compute the Jacobian. The latter is simply accomplished with `ForwardDiff.jacobian`.
+
+For an example, we find the moment of inertia about the  axis of the unit square tilted counter-clockwise an angle ``0 \leq \alpha \leq \pi/2``.
+
+The counter clockwise rotation of a unit square by angle ``\alpha`` is described by
+
+```math
+G(u, v) = \langle \cos(\alpha)\cdot u - \sin(\alpha)\cdot v, \sin(\alpha)\cdot u, +\cos(\alpha)\cdot v \rangle
+```
+
+So we have ``\iint_{G(R)} x^2 dA`` is computed by the following with ``\alpha=\pi/4``:
+
+```julia
+alpha = pi/4
+
+function G(uv)
+    u,v = uv
+    [cos(alpha)*u - sin(alpha)*v, sin(alpha)*u + cos(alpha)*v]
+end
+
+import LinearAlgebra: det
+function f(u, p)
+    x,y = u
+    x^2 * det(ForwardDiff.jacobian(G, u))
+end
+
+prob = IntegralProblem(f, [0,0], [1,1])
+solve(prob, HCubatureJL())
+```
+
+#### ``f: R^n \rightarrow R^m``
+
+The `Integrals` package provides an interface for vector-valued functions. By default, the number of dimensions in the output is assumed to be ``1``, but the `nout` argument can adjust that.
+
+
+Let ``f`` be vector valued with components ``f_1, f_2, \dots, f_m``, then the output below is the vector with components ``\iint_R f_1 dV, \iint_R f_2 dV, \dots, \iint_R f_m dV``.
+
+
+
+For a trivial example, we have:
+
+```julia
+f(x, p) = [x[1], x[2]^2]
+prob = IntegralProblem(f, [0,0],[3,4], nout=2)
+solve(prob, HCubatureJL())
+```
