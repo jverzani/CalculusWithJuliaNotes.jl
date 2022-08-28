@@ -25,7 +25,7 @@ using Symbolics
 Symbolic math at its core involves symbolic variables, which essentially defer evaluation until requested. The creation of symbolic variables differs between the two packages discussed here.
 
 
-`SymbolicUtils` creates variables which carry `Julia` type information (e.g. `Int`, `Float64`, ...). This type information carries through operations involving these variables. Symbolic variables can be created with the `@syms` macro. For example
+`SymbolicUtils` creates variables which carry `Julia` type information (e.g. `Int`, `Float64`, ...). This type information carries through operations involving these variables. Symbolic variables can be created with the `@syms` macro. For example:
 
 
 ```{julia}
@@ -104,7 +104,7 @@ typeof(x), symtype(x), typeof(Symbolics.value(x))
 ## Symbolic expressions
 
 
-Symbolic expressions are built up from symbolic variables through natural `Julia` idioms. `SymbolicUtils` privileges a few key operations: `Add`, `Mul`, `Pow`, and `Div`. For examples:
+Symbolic expressions are built up from symbolic variables through natural `Julia` idioms. `SymbolicUtils` privileges a few key operations: `Add`, `Mul`, `Pow`, and `Div`. For example:
 
 
 ```{julia}
@@ -287,7 +287,7 @@ ex = sin(x)^2 + cos(x)^2
 ex, simplify(ex)
 ```
 
-The `simplify` function applies a series of rewriting rule until the expression stabilizes. The rewrite rules can be user generated, if desired. For example, the Pythagorean identity of trigonometry, just used, can be implement with this rule:
+The `simplify` function applies a series of rewriting rule until the expression stabilizes. The rewrite rules can be user generated, if desired. For example, the Pythagorean identity of trigonometry, just used, can be implemented with this rule:
 
 
 ```{julia}
@@ -341,7 +341,7 @@ The notation `~x` is called a "slot variable" in the [documentation](https://sym
 ### Creating functions
 
 
-By utilizing the tree-like nature of a symbolic expression, a `Julia` expression can be  built from an symbolic expression easily enough. The `Symbolics.toexpr` function does this:
+By utilizing the tree-like nature of a symbolic expression, a `Julia` expression can be  built from a symbolic expression easily enough. The `Symbolics.toexpr` function does this:
 
 
 ```{julia}
@@ -443,7 +443,7 @@ Symbolics.get_variables(ex)
 There are some facilities for manipulating polynomial expressions in `Symbolics`. A polynomial, mathematically, is an expression involving one or more symbols with coefficients from a collection that has, at a minimum, addition and multiplication defined. The basic building blocks of polynomials are *monomials*, which are comprised of products of powers of the symbols. Mathematically, monomials are often allowed to have a multiplying coefficient and may be just a coefficient (if each symbol is taken to the power $0$), but here we consider just expressions of the type $x_1^{a_1} \cdot x_2^{a_2} \cdots x_k^{a_k}$ with the $a_i > 0$ as monomials.
 
 
-With this understanding, then an expression can be broken up into monomials with a possible leading coefficient (possibly $1$) *and* terms which are not monomials (such as a constant or a more complicated function of the symbols). This is what is returned by the `polynomial_coeffs` function.
+With this understanding, then an expression can be broken up into monomials with a possible coefficient (possibly just $1$) *and* terms which are not monomials (such as a constant or a more complicated function of the symbols). This is what is returned by the `polynomial_coeffs` function.
 
 
 For example
@@ -454,7 +454,7 @@ For example
 d, r = polynomial_coeffs(a*x^2 + b*x + c, (x,))
 ```
 
-The first term output is dictionary with keys which are the monomials and with values which are the coefficients. The second term, the residual, is all the remaining parts of the expression, in this case just the constant `c`.
+The first term output is a dictionary with keys which are the monomials and with values which are the coefficients. The second term, the residual, is all the remaining parts of the expression, in this case just the constant `c`.
 
 
 The expression can then be reconstructed through
@@ -513,7 +513,7 @@ Mathematically the degree of the $0$ polynomial may be $-1$ or undefined, but he
 degree(0), degree(1), degree(x), degree(x^a)
 ```
 
-The coefficients are returned as *values* of a dictionary, and dictionaries are unsorted. To have a natural map between polynomials of a single symbol in the standard basis and a vector, we could use a pattern like this:
+The coefficients are returned as *values* of a dictionary, and dictionaries are unsorted.
 
 
 ```{julia}
@@ -523,7 +523,7 @@ d, r = polynomial_coeffs(p, (x,))
 d
 ```
 
-To sort the values we can use a pattern like the following:
+To have a natural map between polynomials of a single symbol in the standard basis and a vector, we could use a pattern like this to sort the values:
 
 
 ```{julia}
@@ -533,7 +533,7 @@ vcat(r, [d[k] for k ∈ sort(collect(keys(d)), by=degree)])
 ---
 
 
-Rational expressions can be decomposed into a numerator and denominator using the following idiom, which ensures the outer operation is division (a binary operation):
+Rational expressions can be decomposed into a numerator and denominator using the following idiom, which assumes the outer operation is division (a binary operation):
 
 
 ```{julia}
@@ -591,7 +591,7 @@ and
 norm(collect(v))
 ```
 
-Matrix multiplication is also deferred, but the size compatability of the matrices and vectors is considered early:
+Matrix multiplication is also deferred, but the size compatability of the matrices and vectors is considered immediately:
 
 
 ```{julia}
@@ -775,7 +775,7 @@ The `SymbolicNumericIntegration` package includes many more predicates for doing
 If $f(x)$ is to be integrated, a set of *candidate* answers is generated. The following is **proposed** as an answer: $\sum q_i \Theta_i(x)$. Differentiating the proposed answer leads to a *linear system of equations* that can be solved.
 
 
-The example in the [paper](https://arxiv.org/pdf/2201.12468v2.pdf) describing the method is with $f(x) = x \sin(x)$ and the candidate thetas are ${x, \sin(x), \cos(x), x\sin(x), x\cos(x)}$ so that the propose answer is:
+The example in the [paper](https://arxiv.org/pdf/2201.12468v2.pdf) describing the method is with $f(x) = x \sin(x)$ and the candidate thetas are ${x, \sin(x), \cos(x), x\sin(x), x\cos(x)}$ so that the proposed answer is:
 
 
 $$
@@ -896,4 +896,3 @@ cs = [first(arguments(term)) for term ∈ arguments(a)] # pick off coefficients
 ```{julia}
 rationalize.(cs; tol=1e-8)
 ```
-
