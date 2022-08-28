@@ -5,22 +5,17 @@
 The `Julia` ecosystem advances rapidly. For much of it, the driving force is the [SciML](https://github.com/SciML) organization (Scientific Machine Learning).
 
 
-In this section we describe some packages provided by this organization that could be used as alternatives to the ones utilized in these notes. Members of this organization created many packages for solving different types of differential equations, and have branched out from there.  Many newer efforts of this organization have been to write uniform interfaces to other packages in the ecosystem, some of which are discussed below. We don't discuss the promise of SCIML: "Performance is considered a priority, and performance issues are considered bugs," as we don't pursue features like in-place modification, sparsity, etc. Interested readers should consult the relevant packages documentation.
+In this section we describe some packages provided by this organization that could be used as alternatives to the ones utilized in these notes. Members of this organization created many packages for solving different types of differential equations, and have branched out from there.  Many newer efforts of this organization have been to write uniform interfaces to other packages in the ecosystem, some of which are discussed below. We don't discuss this key promise of SciML: "Performance is considered a priority, and performance issues are considered bugs," as we don't pursue features like in-place modification, sparsity, etc. Interested readers should consult the relevant packages documentation.
 
 
-The basic structure to use these packages is the "problem-algorithm-solve" interface described in [The problem-algorithm-solve interface](../ODEs/solve.html). We also discussed this interface a bit in [ODEs](../ODEs/differential_equations.html).
+The basic structure to use these packages is the "problem-algorithm-solve" interface described in [The problem-algorithm-solve interface](../ODEs/solve.html) sectino. We also discussed this interface a bit in [ODEs](../ODEs/differential_equations.html).
 
 
 :::{.callout-note}
 ## Note
-These packages are in a process of rapid development and change to them is expected. These notes were written using the following versions:
-
+These packages are in a process of rapid development and change to them is expected.
 :::
 
-```{julia}
-pkgs = ["Symbolics", "NonlinearSolve", "Optimization", "Integrals"]
-import Pkg; Pkg.status(pkgs)
-```
 
 ## Symbolic math (`Symbolics`)
 
@@ -31,7 +26,7 @@ The `Symbolics`, `SymbolicUtils`, and `ModelingToolkit` packages are provided by
 ## Solving equations
 
 
-Solving one or more equations (simultaneously) is different in the linear case (where solutions are readily found – though performance can distinguish approaches – and the nonlinear case – where for most situations, numeric approaches are required.
+Solving one or more equations (simultaneously) is different in the linear case (where solutions are readily found – though performance can distinguish approaches) and the nonlinear case – where for most situations, numeric approaches are required.
 
 
 ### `LinearSolve`
@@ -53,14 +48,22 @@ The package is loaded through the following command:
 using NonlinearSolve
 ```
 
-Unlike `Roots`, the package handles problems beyond the univariate case, as such the simplest problems have a little extra setup required.
+Unlike `Roots`, the package handles problems beyond the univariate case, as such, the simplest problems have a little extra setup required.
 
 
 For example, suppose we want to use this package to solve for zeros of $f(x) = x^5 - x - 1$. We could do so a few different ways.
 
+An approach that most closely mirrors that of `Roots` would be:
 
-First, we need to define a `Julia` function representing `f`. We do so with:
+```{julia}
+f(x, p) = x^5 - x - 1
+prob = NonlinearProblem(f, 1.0)
+solve(prob, NewtonRaphson())
+```
 
+The `NewtonRaphson` method uses a derivative of `f`, which `NonlinearSolve` computes using automatic differentiation.
+
+However, it is more performant and not much more work to allow for a vector of starting values. For this, `f` can be defined as:
 
 ```{julia}
 f(u, p) = @. (u^5 - u - 1)
@@ -78,14 +81,16 @@ u0 = @SVector[1.0]
 prob = NonlinearProblem(f, u0)
 ```
 
-The problem is solved by calling `solve` with an appropriate method specified. Here we use Newton's method. The derivative of `f` is computed automatically.
+The problem is solved by calling `solve` with an appropriate method specified. Here we use Newton's method.
 
 
 ```{julia}
 soln = solve(prob, NewtonRaphson())
 ```
 
-The basic interface for retrieving the solution from the solution object is to use indexing:
+Again, the derivative of `f` is computed automatically.
+
+The basic interface for retrieving the numeric solution from the solution object is to use indexing:
 
 
 ```{julia}
@@ -94,12 +99,10 @@ soln[]
 
 ---
 
-
 :::{.callout-note}
 ## Note
-This interface is more performant than `Roots`, though it isn't an apples to oranges comparison as different stopping criteria are used by the two. In order to be so, we need to help out the call to `NonlinearProblem` to indicate the problem is non-mutating by adding a "`false`", as follows:
+This interface is more performant than `Roots`, though it isn't an apples to oranges comparison, as different stopping criteria are used by the two. In order to compare, we help out the call to `NonlinearProblem` to indicate the problem is non-mutating by adding a "`false`", as follows:
 
-:::
 
 ```{julia}
 using BenchmarkTools
@@ -117,7 +120,8 @@ gp(x) = ForwardDiff.derivative(g, x)
 @btime solve(Roots.ZeroProblem((g, gp), 1.0), Roots.Newton())
 ```
 
----
+:::
+
 
 
 This problem can also be solved using a bracketing method. The package has both `Bisection` and `Falsi` as possible methods. To use a bracketing method, the initial bracket must be specified.
@@ -153,7 +157,6 @@ solve(prob, Bisection())
 ## Note
 The *insignificant* difference in stopping criteria used by `NonlinearSolve` and `Roots` is illustrated in this example, where the value returned by `NonlinearSolve` differs by one floating point value:
 
-:::
 
 ```{julia}
 an = solve(NonlinearProblem{false}(f, u0, p), Bisection())
@@ -161,10 +164,11 @@ ar = solve(Roots.ZeroProblem(f, u0), Roots.Bisection(); p=p)
 nextfloat(an[]) == ar, f(an[], p), f(ar, p)
 ```
 
----
+:::
 
 
-We can solve for several parameters at once, by using an equal number of initial positions as follows:
+
+We can solve for several parameters at once, by using a matching number of initial positions as follows:
 
 
 ```{julia}
@@ -208,7 +212,7 @@ We can see that this identified value is a "zero" through:
 ∇peaks(u.u)
 ```
 
-### Using Modeling toolkit to model the non-linear problem
+### Using `ModelingToolkit` to model a non-linear problem
 
 
 Nonlinear problems can also be approached symbolically using the `ModelingToolkit` package. There is one additional step necessary.
@@ -260,7 +264,7 @@ solve(prob, NewtonRaphson())
 We describe briefly the `Optimization` package which provides a common interface to *numerous* optimization packages in the `Julia` ecosystem. We discuss only the interface for `Optim.jl` defined in  `OptimizationOptimJL`.
 
 
-We begin with a simple example from first semester calculus:
+We begin with a standard example from first semester calculus:
 
 
 > Among all rectangles of fixed perimeter, find the one with the *maximum* area.
@@ -270,8 +274,15 @@ We begin with a simple example from first semester calculus:
 If the perimeter is taken to be $25$, the mathematical setup has a constraint ($P=25=2x+2y$) and an objective ($A=xy$) to maximize. In this case, the function to *maximize* is $A(x) = x \cdot (25-2x)/2$. This is easily done different ways, such as finding the one critical point and identifying this as the point of maximum.
 
 
-To do this last step using `Optimization` we would have.
+To do this last step using the `Optimization` package, we must first load the package **and** the underlying backend glue code we intend to use:
 
+
+```{julia}
+using Optimization
+using OptimizationOptimJL
+```
+
+Our objective function is defined using an intermediate function derived from the constraint:
 
 ```{julia}
 height(x) = @. (25 - 2x)/2
@@ -281,13 +292,6 @@ A(x, p=nothing) = @.(- x * height(x))
 The minus sign is needed here as optimization routines find *minimums*, not maximums.
 
 
-To use `Optimization` we must load the package **and** the underlying backend glue code we intend to use:
-
-
-```{julia}
-using Optimization
-using OptimizationOptimJL
-```
 
 Next, we define an optimization function with information on how its derivatives will be taken. The following uses `ForwardDiff`, which is a good choice in the typical calculus setting, where there are a small number of inputs (just $1$ here.)
 
@@ -307,7 +311,7 @@ soln = solve(prob, Newton())
 
 :::{.callout-note}
 ## Note
-We use `Newton` not `NewtonRaphson` as above. Both methods are similar, but they come from different uses – for latter for solving non-linear equation(s), the former for solving optimization problems.
+We use the method `Newton` and not `NewtonRaphson`, as above. Both methods are similar, but they come from different packages – the latter for solving non-linear equation(s), the former for solving optimization problems.
 
 :::
 
@@ -697,7 +701,6 @@ So we have $\iint_{G(R)} x^2 dA$ is computed by the following with $\alpha=\pi/4
 ```{julia}
 import LinearAlgebra: det
 
-
 𝑓(uv) = uv[1]^2
 
 function G(uv)
@@ -706,6 +709,7 @@ function G(uv)
 
     u,v = uv
     [cos(α)*u - sin(α)*v, sin(α)*u + cos(α)*v]
+
 end
 
 f(u, p) = (𝑓∘G)(u) * det(ForwardDiff.jacobian(G, u))
@@ -731,4 +735,3 @@ f(x, p) = [x[1], x[2]^2]
 prob = IntegralProblem(f, [0,0],[3,4], nout=2)
 solve(prob, HCubatureJL())
 ```
-
