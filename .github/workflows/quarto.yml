@@ -1,0 +1,50 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Quarto Publish to gh-pages
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push events but only for the "master" branch
+  push:
+    branches: [ "master" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+      
+      # setup Quarto
+      - uses: quarto-dev/quarto-actions/setup@v2
+
+      # setup Python / Jupyter
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x' # Version range or exact version of a Python version to use, using SemVer's version range syntax
+      - run: pip install jupyter
+      
+      # setup Julia
+      - uses: julia-actions/setup-julia@v1
+      - run: julia --project -e 'using Pkg; Pkg.instantiate()'
+
+      # setup R
+      - uses: r-lib/actions/setup-r@v2
+
+      # render and push to the gh-pages branch
+      - name: Publish to GitHub Pages (and render)
+        uses: quarto-dev/quarto-actions/publish@v2
+        with:
+          target: gh-pages
+          path: quarto
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # this secret is always available for github actions
+

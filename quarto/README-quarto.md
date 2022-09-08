@@ -30,12 +30,42 @@ To compile the pages through quarto
 * should also push project to github
 * no need to push `_freeze` the repo, as files are locally rendered for now.
 
+* XXX to get `PlotlyLight` to work the plotly library needs loading **before** require.min.js. This is accomplished by **editing** the .html file and moving up this line:
+
+<script src="https://cdn.plot.ly/plotly-2.11.0.min.js"></script>
+
+This can be done with this commandline call: julia adjust_plotly.jl
+
 * This error
 > fatal: 'gh-pages' is already checked out at '/Users/verzani/julia/CalculusWithJuliaNotes/quarto/f5611730'
 
 was solved with (https://waylonwalker.com/til/git-checkout-worktree/)
-
 > git worktree remove f5611730
+
+
+# ------
+
+In summary, there are two steps
+
+```
+quarto render
+```
+
+Preview output in `_book/index.html`. If okay to publish:
+
+
+```
+julia adjust_plotly.jl
+quarto publish gh-pages --no-render
+```
+
+Then one should:
+
+* push changes to origin
+* merge into main
+* branch to new version
+* pull origin to merge
+
 
 
 
@@ -46,7 +76,7 @@ Eventually, if this workflow seems to be settled:
 * deprecate .jmd files
 * deprecate need to make "pluto friendly"
 DONE? * do something with JSXGraph
-* figure out why PlotlyLight doesn't work
+DONE * figure out why PlotlyLight doesn't work XXX hacky!
 * move to not use CalculusWithJulia.WeaveSupport
 DONE * use an include file not the "hack" in jmd2qmd
 * modify sympy's show method

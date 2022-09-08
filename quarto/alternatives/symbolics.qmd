@@ -254,6 +254,13 @@ ex = sin(x)
 substitute(ex, x=>π), substitute(ex, x=>π, fold=false)
 ```
 
+For the latter, it is more efficient to directly use `Term`, which creates the symbolic expression representing the calling of `sin(π)`:
+
+```{julia}
+Symbolics.Term(sin, [π])
+```
+
+
 ### Simplify
 
 
@@ -467,6 +474,8 @@ r + sum(v*k for (k,v) ∈ d)
 The above has `a,b,c` as parameters and `x` as the symbol. This separation is designated by passing the desired polynomial symbols to `polynomial_coeff` as an iterable. (Above as a $1$-element tuple.)
 
 
+
+
 More complicated polynomials can be similarly decomposed:
 
 
@@ -529,6 +538,20 @@ To have a natural map between polynomials of a single symbol in the standard bas
 ```{julia}
 vcat(r, [d[k] for k ∈ sort(collect(keys(d)), by=degree)])
 ```
+
+
+As an example usage, we write a function that can determine if an expression is a polynomial expression over some specified variables.
+
+```{julia}
+function is_poly(expr, vars)
+    all(Symbolics.SymbolicUtils.issym ∘ Symbolics.value, vars) || error("vars must be an iterable of symbols")
+    p,r = polynomial_coeffs(expr, vars)
+    length(intersect(Symbolics.get_variables(r), vars)) == 0
+end
+
+is_poly(p, (x,))
+```
+
 
 ---
 
