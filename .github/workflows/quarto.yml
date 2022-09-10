@@ -6,7 +6,7 @@ name: Quarto Publish to gh-pages
 on:
   # Triggers the workflow on push events but only for the "master" branch
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -26,15 +26,15 @@ jobs:
       # setup Quarto
       - uses: quarto-dev/quarto-actions/setup@v2
 
+      # setup Julia
+      - uses: julia-actions/setup-julia@v1
+      - run: julia --project -e 'using Pkg; ENV["PYTHON"]=""; Pkg.add("PyCall"); Pkg.build("PyCall"); Pkg.instantiate(); '
+
       # setup Python / Jupyter
       - uses: actions/setup-python@v4
         with:
           python-version: '3.x' # Version range or exact version of a Python version to use, using SemVer's version range syntax
       - run: pip install jupyter
-
-      # setup Julia
-      - uses: julia-actions/setup-julia@v1
-      - run: julia --project -e 'using Pkg; Pkg.instantiate()'
 
       # render and push to the gh-pages branch
       - name: Publish to GitHub Pages (and render)
