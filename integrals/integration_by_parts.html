@@ -20,69 +20,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1.6em;
   vertical-align: middle;
 }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-    color: #aaaaaa;
-  }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { color: #008000; } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { color: #008000; font-weight: bold; } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
 
@@ -124,9 +61,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   }
 }</script>
 <script async="" src="https://hypothes.is/embed.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
-<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
@@ -662,10 +596,47 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 </header>
 
+<pre class="{julia}"><code>#| echo: false
+
+import Logging
+Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
+Logging.disable_logging(Logging.Warn)
+
+import SymPy
+function Base.show(io::IO, ::MIME"text/html", x::T) where {T &lt;: SymPy.SymbolicObject}
+    println(io, "&lt;span class=\"math-left-align\" style=\"padding-left: 4px; width:0; float:left;\"&gt; ")
+    println(io, "\\[")
+    println(io, sympy.latex(x))
+    println(io, "\\]")
+    println(io, "&lt;/span&gt;")
+end
+
+# hack to work around issue
+import Markdown
+import CalculusWithJulia
+function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
+    nm = joinpath("..", string(d), f)
+    u = "![$caption]($nm)"
+    Markdown.parse(u)
+end
+
+nothing</code></pre>
 <p>This section uses these add-on packages:</p>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">CalculusWithJulia</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Plots</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">SymPy</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<pre class="{julia}"><code>using CalculusWithJulia
+using Plots
+using SymPy</code></pre>
+<pre class="{julia}"><code>#| echo: false
+#| results: "hidden"
+using CalculusWithJulia.WeaveSupport
+using QuadGK
+
+frontmatter = (
+    title = "Integration By Parts",
+    description = "Calculus with Julia: Integration By Parts",
+    tags = ["CalculusWithJulia", "integrals", "integration by parts"],
+);
+
+nothing</code></pre>
 <hr>
 <p>So far we have seen that the <em>derivative</em> rules lead to <em>integration rules</em>. In particular:</p>
 <ul>
@@ -674,11 +645,23 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul>
 <p>Now we turn our attention to the implications of the <em>product rule</em>: <span class="math inline">\([uv]' = u'v + uv'\)</span>. The resulting technique is called integration by parts.</p>
 <p>The following illustrates integration by parts of the integral <span class="math inline">\((uv)'\)</span> over <span class="math inline">\([a,b]\)</span> <a href="http://en.wikipedia.org/wiki/Integration_by_parts#Visualization">original</a>.</p>
-<div class="cell" data-execution_count="4">
-<div class="cell-output cell-output-display" data-execution_count="5">
-<p><img src="integration_by_parts_files/figure-html/cell-5-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| echo: false
+let
+    ## parts picture
+    u(x) = sin(x*pi/2)
+    v(x) = x
+    xs = range(0, stop=1, length=50)
+    a,b = 1/4, 3/4
+    p = plot(u, v, 0, 1, legend=false)
+    plot!(p, zero, 0, 1)
+    scatter!(p, [u(a), u(b)], [v(a), v(b)], color=:orange, markersize=5)
+
+    plot!(p, [u(a),u(a),0, 0, u(b),u(b),u(a)],
+          [0, v(a), v(a), v(b), v(b), 0, 0],
+          linetype=:polygon, fillcolor=:orange, alpha=0.25)
+    annotate!(p, [(0.65, .25, "A"), (0.4, .55, "B")])
+    annotate!(p, [(u(a),v(a) + .08, "(u(a),v(a))"), (u(b),v(b)+.08, "(u(b),v(b))")])
+end</code></pre>
 <p>The figure is a parametric plot of <span class="math inline">\((u,v)\)</span> with the points <span class="math inline">\((u(a), v(a))\)</span> and <span class="math inline">\((u(b), v(b))\)</span> marked. The difference <span class="math inline">\(u(b)v(b) - u(a)v(a) = u(x)v(x) \mid_a^b\)</span> is shaded. This area breaks into two pieces, <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span>, partitioned by the curve. If <span class="math inline">\(u\)</span> is increasing and the curve is parameterized by <span class="math inline">\(t \rightarrow u^{-1}(t)\)</span>, then <span class="math inline">\(A=\int_{u^{-1}(a)}^{u^{-1}(b)} v(u^{-1}(t))dt\)</span>. A <span class="math inline">\(u\)</span>-substitution with <span class="math inline">\(t = u(x)\)</span> changes this into the integral <span class="math inline">\(\int_a^b v(x) u'(x) dx\)</span>. Similarly, for increasing <span class="math inline">\(v\)</span>, it can be seen that <span class="math inline">\(B=\int_a^b u(x) v'(x) dx\)</span>. This suggests a relationship between the integral of <span class="math inline">\(u v'\)</span>, the integral of <span class="math inline">\(u' v\)</span> and the value <span class="math inline">\(u(b)v(b) - u(a)v(a)\)</span>.</p>
 <p>In terms of formulas, by the fundamental theorem of calculus:</p>
 <p><span class="math display">\[
@@ -769,17 +752,8 @@ du &amp;= \frac{1}{x}dx &amp; v &amp;= x
 e^x(x^2  - 2x - 1) \big|_a^b.
 \]</span></p>
 <p>In fact, it isn’t hard to see that an integral of <span class="math inline">\(x^m e^x\)</span>, <span class="math inline">\(m\)</span> a positive integer, can be handled in this manner. For example, when <span class="math inline">\(m=10\)</span>, <code>SymPy</code> gives:</p>
-<div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> 𝒙</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate</span>(𝒙<span class="op">^</span><span class="fl">10</span> <span class="op">*</span> <span class="fu">exp</span>(𝒙), 𝒙)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="6">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-\left(𝒙^{10} - 10 𝒙^{9} + 90 𝒙^{8} - 720 𝒙^{7} + 5040 𝒙^{6} - 30240 𝒙^{5} + 151200 𝒙^{4} - 604800 𝒙^{3} + 1814400 𝒙^{2} - 3628800 𝒙 + 3628800\right) e^{𝒙}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>@syms 𝒙
+integrate(𝒙^10 * exp(𝒙), 𝒙)</code></pre>
 <p>The general answer is <span class="math inline">\(\int x^n e^xdx = p(x) e^x\)</span>, where <span class="math inline">\(p(x)\)</span> is a polynomial of degree <span class="math inline">\(n\)</span>.</p>
 </section>
 <section id="example-2" class="level5">
@@ -818,16 +792,7 @@ e^x(x^2  - 2x - 1) \big|_a^b.
 \]</span></p>
 <p>This is called a reduction formula as it reduces the problem from an integral with a power of <span class="math inline">\(n\)</span> to one with a power of <span class="math inline">\(n - 2\)</span>, so could be repeated until the remaining indefinite integral required knowing either <span class="math inline">\(\int \cos(x) dx\)</span> (which is <span class="math inline">\(-\sin(x)\)</span>) or <span class="math inline">\(\int \cos(x)^2 dx\)</span>, which by a double angle formula application, is <span class="math inline">\(x/2 - \sin(2x)/4\)</span>.</p>
 <p><code>SymPy</code> is quite able to do this repeated bookkeeping. For example with <span class="math inline">\(n=10\)</span>:</p>
-<div class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate</span>(<span class="fu">cos</span>(𝒙)<span class="op">^</span><span class="fl">10</span>, 𝒙)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="7">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-\frac{63 𝒙}{256} + \frac{\sin{\left(𝒙 \right)} \cos^{9}{\left(𝒙 \right)}}{10} + \frac{9 \sin{\left(𝒙 \right)} \cos^{7}{\left(𝒙 \right)}}{80} + \frac{21 \sin{\left(𝒙 \right)} \cos^{5}{\left(𝒙 \right)}}{160} + \frac{21 \sin{\left(𝒙 \right)} \cos^{3}{\left(𝒙 \right)}}{128} + \frac{63 \sin{\left(𝒙 \right)} \cos{\left(𝒙 \right)}}{256}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>integrate(cos(𝒙)^10, 𝒙)</code></pre>
 </section>
 <section id="example-4" class="level5">
 <h5 class="anchored" data-anchor-id="example-4">Example</h5>
@@ -903,11 +868,19 @@ du &amp;= f''(t + x_i) &amp; v  &amp;= \frac{(t + A)^2}{2} + B
 <p>The figure introduced to motivate the integration by parts formula also suggests that areas described parametrically (by a pair of functions <span class="math inline">\(x=u(t), y=v(t)\)</span> for <span class="math inline">\(a \le t \le b\)</span>) can have their area computed.</p>
 <p>When <span class="math inline">\(u(t)\)</span> is strictly <em>increasing</em>, and hence having an inverse function, then re-parameterizing by <span class="math inline">\(\phi(t) = u^{-1}(t)\)</span> gives a <span class="math inline">\(x=u(u^{-1}(t))=t, y=v(u^{-1}(t))\)</span> and integrating this gives the area by <span class="math inline">\(A=\int_a^b v(t) u'(t) dt\)</span></p>
 <p>However, the correct answer requires understanding a minus sign. Consider the area enclosed by <span class="math inline">\(x(t) = \cos(t), y(t) = \sin(t)\)</span>:</p>
-<div class="cell" data-execution_count="7">
-<div class="cell-output cell-output-display" data-execution_count="8">
-<p><img src="integration_by_parts_files/figure-html/cell-8-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| echo: false
+let
+    r(t) = [cos(t), sin(t)]
+    p=plot_parametric(0..2pi, r, aspect_ratio=:equal, legend=false)
+    for t ∈ (pi/4, 3pi/4, 5pi/4, 7pi/4)
+        quiver!(unzip([r(t)])..., quiver=Tuple(unzip([0.1*r'(t)])))
+    end
+    ti, tj = pi/3, pi/3+0.1
+    plot!([cos(tj), cos(ti), cos(ti), cos(tj), cos(tj)], [0,0,sin(tj), sin(tj),0])
+    quiver!([0],[0], quiver=Tuple(unzip([r(ti)])))
+    quiver!([0],[0], quiver=Tuple(unzip([r(tj)])))
+    p
+end</code></pre>
 <p>We added a rectangle for a Riemann sum for <span class="math inline">\(t_i = \pi/3\)</span> and <span class="math inline">\(t_{i+1} = \pi/3 + \pi/8\)</span>. The height of this rectangle if <span class="math inline">\(y(t_i)\)</span>, the base is of length <span class="math inline">\(x(t_i) - x(t_{i+1})\)</span> <em>given</em> the orientation of how the circular curve is parameterized (counter clockwise here).</p>
 <p>Taking this Riemann sum approach, we can approximate the area under the curve parameterized by <span class="math inline">\((u(t), v(t))\)</span> over the time range <span class="math inline">\([t_i, t_{i+1}]\)</span> as a rectangle with height <span class="math inline">\(y(t_i)\)</span> and base <span class="math inline">\(x(t_{i}) - x(t_{i+1})\)</span>. Then we get, as expected:</p>
 <p><span class="math display">\[
@@ -923,60 +896,42 @@ A &amp;\approx \sum_i y(t_i) \cdot (x(t_{i}) - x(t_{i+1}))\\
 <section id="example-6" class="level5">
 <h5 class="anchored" data-anchor-id="example-6">Example</h5>
 <p>Apply the formula to a parameterized circle to ensure, the signed area is properly computed. If we use <span class="math inline">\(x(t) = r\cos(t)\)</span> and <span class="math inline">\(y(t) = r\sin(t)\)</span> then we have the motion is counterclockwise:</p>
-<div class="cell" data-hold="true" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> 𝒓 t</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>𝒙 <span class="op">=</span> 𝒓 <span class="op">*</span> <span class="fu">cos</span>(t)</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>𝒚 <span class="op">=</span> 𝒓 <span class="op">*</span> <span class="fu">sin</span>(t)</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">-integrate</span>(𝒚 <span class="op">*</span> <span class="fu">diff</span>(𝒙, t), (t, <span class="fl">0</span>, <span class="fl">2</span>PI))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="9">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-\pi 𝒓^{2}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+@syms 𝒓 t
+𝒙 = 𝒓 * cos(t)
+𝒚 = 𝒓 * sin(t)
+-integrate(𝒚 * diff(𝒙, t), (t, 0, 2PI))</code></pre>
 <p>We see the expected answer for the area of a circle.</p>
 </section>
 <section id="example-7" class="level5">
 <h5 class="anchored" data-anchor-id="example-7">Example</h5>
 <p>Apply the formula to find the area under one arch of a cycloid, parameterized by <span class="math inline">\(x(t) = t - \sin(t), y(t) = 1 - \cos(t)\)</span>.</p>
 <p>Working symbolically, we have one arch given by the following described in a <em>clockwise</em> manner, so we use <span class="math inline">\(\int y(t) x'(t) dt\)</span>:</p>
-<div class="cell" data-hold="true" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> t</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>𝒙 <span class="op">=</span> t <span class="op">-</span> <span class="fu">sin</span>(t)</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>𝒚 <span class="op">=</span> <span class="fl">1</span> <span class="op">-</span> <span class="fu">cos</span>(t)</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate</span>(𝒚 <span class="op">*</span> <span class="fu">diff</span>(𝒙, t), (t, <span class="fl">0</span>, <span class="fl">2</span>PI))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="10">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-3 \pi
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+@syms t
+𝒙 = t - sin(t)
+𝒚 = 1 - cos(t)
+integrate(𝒚 * diff(𝒙, t), (t, 0, 2PI))</code></pre>
 <p>(<a href="https://mathshistory.st-andrews.ac.uk/Curves/Cycloid/">Galileo</a> was thwarted in finding this answer exactly and resorted to constructing one from metal to <em>estimate</em> the value.)</p>
 </section>
 <section id="example-8" class="level5">
 <h5 class="anchored" data-anchor-id="example-8">Example</h5>
 <p>Consider the example <span class="math inline">\(x(t) = \cos(t) + t\sin(t), y(t) = \sin(t) - t\cos(t)\)</span> for <span class="math inline">\(0 \leq t \leq 2\pi\)</span>.</p>
-<div class="cell" data-execution_count="10">
-<div class="cell-output cell-output-display" data-execution_count="11">
-<p><img src="integration_by_parts_files/figure-html/cell-11-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| echo: false
+let
+    x(t) = cos(t) + t*sin(t)
+    y(t) = sin(t) - t*cos(t)
+    ts = range(0,2pi, length=100)
+    plot(x.(ts), y.(ts))
+end</code></pre>
 <p>How much area is enclosed by this curve and the <span class="math inline">\(x\)</span> axis? The area is described in a counterclockwise manner, so we have:</p>
-<div class="cell" data-hold="true" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">x</span>(t) <span class="op">=</span> <span class="fu">cos</span>(t) <span class="op">+</span> <span class="fu">t*sin</span>(t)</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">y</span>(t) <span class="op">=</span> <span class="fu">sin</span>(t) <span class="op">-</span> <span class="fu">t*cos</span>(t)</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">yx′</span>(t) <span class="op">=</span> <span class="fu">-y</span>(t) <span class="op">*</span> x<span class="op">'</span>(t)  <span class="co"># yx\prime[tab]</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">quadgk</span>(yx′, <span class="fl">0</span>, <span class="fl">2</span>pi)</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="12">
-<pre><code>(44.483294893989545, 6.295185999150021e-7)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+let
+    x(t) = cos(t) + t*sin(t)
+    y(t) = sin(t) - t*cos(t)
+    yx′(t) = -y(t) * x'(t)  # yx\prime[tab]
+    quadgk(yx′, 0, 2pi)
+end</code></pre>
 <p>This particular problem could also have been done symbolically, but many curves will need to have a numeric approximation used.</p>
 </section>
 </section>
@@ -985,849 +940,126 @@ A &amp;\approx \sum_i y(t_i) \cdot (x(t_{i}) - x(t_{i+1}))\\
 <section id="question" class="level6">
 <h6 class="anchored" data-anchor-id="question">Question</h6>
 <p>In the integral of <span class="math inline">\(\int \log(x) dx\)</span> we let <span class="math inline">\(u=\log(x)\)</span> and <span class="math inline">\(dv=dx\)</span>. What are <span class="math inline">\(du\)</span> and <span class="math inline">\(v\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="12">
-<div class="cell-output cell-output-display" data-execution_count="13">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="12488691866768770163" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_12488691866768770163">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_12488691866768770163_1">
-      <input class="form-check-input" type="radio" name="radio_12488691866768770163" id="radio_12488691866768770163_1" value="1">
-      
-      <span class="label-body px-1">
-        \(du=x\log(x) dx\quad v = 1\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_12488691866768770163_2">
-      <input class="form-check-input" type="radio" name="radio_12488691866768770163" id="radio_12488691866768770163_2" value="2">
-      
-      <span class="label-body px-1">
-        \(du=1/x dx \quad v = x\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_12488691866768770163_3">
-      <input class="form-check-input" type="radio" name="radio_12488691866768770163" id="radio_12488691866768770163_3" value="3">
-      
-      <span class="label-body px-1">
-        \(du=1/x dx\quad v = x^2/2\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="12488691866768770163_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_12488691866768770163"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('12488691866768770163_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_12488691866768770163")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_12488691866768770163")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+"``du=1/x dx \\quad v = x``",
+"``du=x\\log(x) dx\\quad v = 1``",
+"``du=1/x dx\\quad v = x^2/2``"]
+answ = 1
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-1" class="level6">
 <h6 class="anchored" data-anchor-id="question-1">Question</h6>
 <p>In the integral <span class="math inline">\(\int \sec(x)^3 dx\)</span> we let <span class="math inline">\(u=\sec(x)\)</span> and <span class="math inline">\(dv = \sec(x)^2 dx\)</span>. What are <span class="math inline">\(du\)</span> and <span class="math inline">\(v\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="13">
-<div class="cell-output cell-output-display" data-execution_count="14">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="13777681461185582822" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_13777681461185582822">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_13777681461185582822_1">
-      <input class="form-check-input" type="radio" name="radio_13777681461185582822" id="radio_13777681461185582822_1" value="1">
-      
-      <span class="label-body px-1">
-        \(du=\csc(x) dx \quad v=\sec(x)^3 / 3\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_13777681461185582822_2">
-      <input class="form-check-input" type="radio" name="radio_13777681461185582822" id="radio_13777681461185582822_2" value="2">
-      
-      <span class="label-body px-1">
-        \(du=\tan(x)  dx \quad v=\sec(x)\tan(x)\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_13777681461185582822_3">
-      <input class="form-check-input" type="radio" name="radio_13777681461185582822" id="radio_13777681461185582822_3" value="3">
-      
-      <span class="label-body px-1">
-        \(du=\sec(x)\tan(x)dx \quad v=\tan(x)\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="13777681461185582822_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_13777681461185582822"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 3;
-    var msgBox = document.getElementById('13777681461185582822_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_13777681461185582822")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_13777681461185582822")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+"``du=\\sec(x)\\tan(x)dx \\quad v=\\tan(x)``",
+"``du=\\csc(x) dx \\quad v=\\sec(x)^3 / 3``",
+"``du=\\tan(x)  dx \\quad v=\\sec(x)\\tan(x)``"
+]
+answ = 1
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-2" class="level6">
 <h6 class="anchored" data-anchor-id="question-2">Question</h6>
 <p>In the integral <span class="math inline">\(\int e^{-x} \cos(x)dx\)</span> we let <span class="math inline">\(u=e^{-x}\)</span> and <span class="math inline">\(dv=\cos(x) dx\)</span>. What are <span class="math inline">\(du\)</span> and <span class="math inline">\(v\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="14">
-<div class="cell-output cell-output-display" data-execution_count="15">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="8273614187717696730" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_8273614187717696730">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_8273614187717696730_1">
-      <input class="form-check-input" type="radio" name="radio_8273614187717696730" id="radio_8273614187717696730_1" value="1">
-      
-      <span class="label-body px-1">
-        \(du=-e^{-x} dx \quad v=\sin(x)\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_8273614187717696730_2">
-      <input class="form-check-input" type="radio" name="radio_8273614187717696730" id="radio_8273614187717696730_2" value="2">
-      
-      <span class="label-body px-1">
-        \(du=-e^{-x} dx \quad v=-\sin(x)\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_8273614187717696730_3">
-      <input class="form-check-input" type="radio" name="radio_8273614187717696730" id="radio_8273614187717696730_3" value="3">
-      
-      <span class="label-body px-1">
-        \(du=\sin(x)dx \quad v=-e^{-x}\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="8273614187717696730_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_8273614187717696730"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('8273614187717696730_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_8273614187717696730")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_8273614187717696730")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+"``du=-e^{-x} dx \\quad v=\\sin(x)``",
+"``du=-e^{-x} dx \\quad v=-\\sin(x)``",
+"``du=\\sin(x)dx \\quad v=-e^{-x}``"
+]
+answ = 1
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-3" class="level6">
 <h6 class="anchored" data-anchor-id="question-3">Question</h6>
 <p>Find the value of <span class="math inline">\(\int_1^4 x \log(x) dx\)</span>. You can integrate by parts.</p>
-<div class="cell" data-hold="true" data-execution_count="15">
-<div class="cell-output cell-output-display" data-execution_count="16">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="3809059964379459478" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_3809059964379459478">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="3809059964379459478" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="3809059964379459478_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("3809059964379459478").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 7.340354888959126) <= 0.001);
-  var msgBox = document.getElementById('3809059964379459478_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_3809059964379459478")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_3809059964379459478")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+f(x) = x*log(x)
+a,b = 1,4
+val,err = quadgk(f, a, b)
+numericq(val)</code></pre>
 </section>
 <section id="question-4" class="level6">
 <h6 class="anchored" data-anchor-id="question-4">Question</h6>
 <p>Find the value of <span class="math inline">\(\int_0^{\pi/2} x\cos(2x) dx\)</span>. You can integrate by parts.</p>
-<div class="cell" data-hold="true" data-execution_count="16">
-<div class="cell-output cell-output-display" data-execution_count="17">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="6864915166706009573" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_6864915166706009573">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="6864915166706009573" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="6864915166706009573_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("6864915166706009573").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - -0.49999999999999983) <= 0.001);
-  var msgBox = document.getElementById('6864915166706009573_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_6864915166706009573")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_6864915166706009573")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+f(x) = x*cos(2x)
+a,b = 0, pi/2
+val,err = quadgk(f, a, b)
+numericq(val)</code></pre>
 </section>
 <section id="question-5" class="level6">
 <h6 class="anchored" data-anchor-id="question-5">Question</h6>
 <p>Find the value of <span class="math inline">\(\int_1^e (\log(x))^2 dx\)</span>. You can integrate by parts.</p>
-<div class="cell" data-hold="true" data-execution_count="17">
-<div class="cell-output cell-output-display" data-execution_count="18">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="17489947935099236" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_17489947935099236">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="17489947935099236" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="17489947935099236_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("17489947935099236").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 0.7182818284590451) <= 0.001);
-  var msgBox = document.getElementById('17489947935099236_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_17489947935099236")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_17489947935099236")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+f(x) = log(x)^2
+a,b = 1,exp(1)
+val,err = quadgk(f, a, b)
+numericq(val)</code></pre>
 </section>
 <section id="question-6" class="level6">
 <h6 class="anchored" data-anchor-id="question-6">Question</h6>
 <p>Integration by parts can be used to provide “reduction” formulas, where an antiderivative is written in terms of another antiderivative with a lower power. Which is the proper reduction formula for <span class="math inline">\(\int (\log(x))^n dx\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="18">
-<div class="cell-output cell-output-display" data-execution_count="19">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="12755710984255893598" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_12755710984255893598">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_12755710984255893598_1">
-      <input class="form-check-input" type="radio" name="radio_12755710984255893598" id="radio_12755710984255893598_1" value="1">
-      
-      <span class="label-body px-1">
-        \(x(\log(x))^n - n \int (\log(x))^{n-1} dx\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_12755710984255893598_2">
-      <input class="form-check-input" type="radio" name="radio_12755710984255893598" id="radio_12755710984255893598_2" value="2">
-      
-      <span class="label-body px-1">
-        \(x(\log(x))^n - \int (\log(x))^{n-1} dx\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_12755710984255893598_3">
-      <input class="form-check-input" type="radio" name="radio_12755710984255893598" id="radio_12755710984255893598_3" value="3">
-      
-      <span class="label-body px-1">
-        \(\int (\log(x))^{n+1}/(n+1) dx\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="12755710984255893598_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_12755710984255893598"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('12755710984255893598_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_12755710984255893598")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_12755710984255893598")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+"``x(\\log(x))^n - n \\int (\\log(x))^{n-1} dx``",
+"``\\int (\\log(x))^{n+1}/(n+1) dx``",
+"``x(\\log(x))^n - \\int (\\log(x))^{n-1} dx``"
+]
+answ = 1
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-7" class="level6">
 <h6 class="anchored" data-anchor-id="question-7">Question</h6>
 <p>The <a href="http://en.wikipedia.org/wiki/Integration_by_parts">Wikipedia</a> page has a rule of thumb with an acronym LIATE to indicate what is a good candidate to be “<span class="math inline">\(u\)</span>”: <strong>L</strong>og function, <strong>I</strong>nverse functions, <strong>A</strong>lgebraic functions (<span class="math inline">\(x^n\)</span>), <strong>T</strong>rigonmetric functions, and <strong>E</strong>xponential functions.</p>
 <p>Consider the integral <span class="math inline">\(\int x \cos(x) dx\)</span>. Which letter should be tried first?</p>
-<div class="cell" data-hold="true" data-execution_count="19">
-<div class="cell-output cell-output-display" data-execution_count="20">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="12869603942671396372" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_12869603942671396372">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_12869603942671396372_1">
-      <input class="form-check-input" type="radio" name="radio_12869603942671396372" id="radio_12869603942671396372_1" value="1">
-      
-      <span class="label-body px-1">
-        L
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_12869603942671396372_2">
-      <input class="form-check-input" type="radio" name="radio_12869603942671396372" id="radio_12869603942671396372_2" value="2">
-      
-      <span class="label-body px-1">
-        I
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_12869603942671396372_3">
-      <input class="form-check-input" type="radio" name="radio_12869603942671396372" id="radio_12869603942671396372_3" value="3">
-      
-      <span class="label-body px-1">
-        A
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_12869603942671396372_4">
-      <input class="form-check-input" type="radio" name="radio_12869603942671396372" id="radio_12869603942671396372_4" value="4">
-      
-      <span class="label-body px-1">
-        T
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_12869603942671396372_5">
-      <input class="form-check-input" type="radio" name="radio_12869603942671396372" id="radio_12869603942671396372_5" value="5">
-      
-      <span class="label-body px-1">
-        E
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="12869603942671396372_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_12869603942671396372"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 3;
-    var msgBox = document.getElementById('12869603942671396372_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_12869603942671396372")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_12869603942671396372")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = ["L", "I", "A", "T", "E"]
+answ = 3
+radioq(choices, answ, keep_order=true)</code></pre>
 <hr>
 <p>Consider the integral <span class="math inline">\(\int x^2\log(x) dx\)</span>. Which letter should be tried first?</p>
-<div class="cell" data-hold="true" data-execution_count="20">
-<div class="cell-output cell-output-display" data-execution_count="21">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="1757134732697709979" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_1757134732697709979">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_1757134732697709979_1">
-      <input class="form-check-input" type="radio" name="radio_1757134732697709979" id="radio_1757134732697709979_1" value="1">
-      
-      <span class="label-body px-1">
-        L
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_1757134732697709979_2">
-      <input class="form-check-input" type="radio" name="radio_1757134732697709979" id="radio_1757134732697709979_2" value="2">
-      
-      <span class="label-body px-1">
-        I
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_1757134732697709979_3">
-      <input class="form-check-input" type="radio" name="radio_1757134732697709979" id="radio_1757134732697709979_3" value="3">
-      
-      <span class="label-body px-1">
-        A
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_1757134732697709979_4">
-      <input class="form-check-input" type="radio" name="radio_1757134732697709979" id="radio_1757134732697709979_4" value="4">
-      
-      <span class="label-body px-1">
-        T
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_1757134732697709979_5">
-      <input class="form-check-input" type="radio" name="radio_1757134732697709979" id="radio_1757134732697709979_5" value="5">
-      
-      <span class="label-body px-1">
-        E
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="1757134732697709979_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_1757134732697709979"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('1757134732697709979_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_1757134732697709979")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_1757134732697709979")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = ["L", "I", "A", "T", "E"]
+answ = 1
+radioq(choices, answ, keep_order=true)</code></pre>
 <hr>
 <p>Consider the integral <span class="math inline">\(\int x^2 \sin^{-1}(x) dx\)</span>. Which letter should be tried first?</p>
-<div class="cell" data-hold="true" data-execution_count="21">
-<div class="cell-output cell-output-display" data-execution_count="22">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="5437609310435932955" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_5437609310435932955">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_5437609310435932955_1">
-      <input class="form-check-input" type="radio" name="radio_5437609310435932955" id="radio_5437609310435932955_1" value="1">
-      
-      <span class="label-body px-1">
-        L
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_5437609310435932955_2">
-      <input class="form-check-input" type="radio" name="radio_5437609310435932955" id="radio_5437609310435932955_2" value="2">
-      
-      <span class="label-body px-1">
-        I
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_5437609310435932955_3">
-      <input class="form-check-input" type="radio" name="radio_5437609310435932955" id="radio_5437609310435932955_3" value="3">
-      
-      <span class="label-body px-1">
-        A
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_5437609310435932955_4">
-      <input class="form-check-input" type="radio" name="radio_5437609310435932955" id="radio_5437609310435932955_4" value="4">
-      
-      <span class="label-body px-1">
-        T
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_5437609310435932955_5">
-      <input class="form-check-input" type="radio" name="radio_5437609310435932955" id="radio_5437609310435932955_5" value="5">
-      
-      <span class="label-body px-1">
-        E
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="5437609310435932955_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_5437609310435932955"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('5437609310435932955_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_5437609310435932955")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_5437609310435932955")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = ["L", "I", "A", "T", "E"]
+answ = 2
+radioq(choices, answ, keep_order=true)</code></pre>
 <hr>
 <p>Consider the integral <span class="math inline">\(\int e^x \sin(x) dx\)</span>. Which letter should be tried first?</p>
-<div class="cell" data-hold="true" data-execution_count="22">
-<div class="cell-output cell-output-display" data-execution_count="23">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="16262314712967535292" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_16262314712967535292">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_16262314712967535292_1">
-      <input class="form-check-input" type="radio" name="radio_16262314712967535292" id="radio_16262314712967535292_1" value="1">
-      
-      <span class="label-body px-1">
-        L
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_16262314712967535292_2">
-      <input class="form-check-input" type="radio" name="radio_16262314712967535292" id="radio_16262314712967535292_2" value="2">
-      
-      <span class="label-body px-1">
-        I
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_16262314712967535292_3">
-      <input class="form-check-input" type="radio" name="radio_16262314712967535292" id="radio_16262314712967535292_3" value="3">
-      
-      <span class="label-body px-1">
-        A
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_16262314712967535292_4">
-      <input class="form-check-input" type="radio" name="radio_16262314712967535292" id="radio_16262314712967535292_4" value="4">
-      
-      <span class="label-body px-1">
-        T
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_16262314712967535292_5">
-      <input class="form-check-input" type="radio" name="radio_16262314712967535292" id="radio_16262314712967535292_5" value="5">
-      
-      <span class="label-body px-1">
-        E
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="16262314712967535292_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_16262314712967535292"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 4;
-    var msgBox = document.getElementById('16262314712967535292_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_16262314712967535292")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_16262314712967535292")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = ["L", "I", "A", "T", "E"]
+answ = 4
+radioq(choices, answ, keep_order=true)</code></pre>
 </section>
 <section id="question-8" class="level6">
 <h6 class="anchored" data-anchor-id="question-8">Question</h6>
 <p>Find an antiderivative for <span class="math inline">\(\cos^{-1}(x)\)</span> using the integration by parts formula.</p>
-<div class="cell" data-hold="true" data-execution_count="23">
-<div class="cell-output cell-output-display" data-execution_count="24">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="1587973727920908811" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_1587973727920908811">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_1587973727920908811_1">
-      <input class="form-check-input" type="radio" name="radio_1587973727920908811" id="radio_1587973727920908811_1" value="1">
-      
-      <span class="label-body px-1">
-        \(-\sin^{-1}(x)\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_1587973727920908811_2">
-      <input class="form-check-input" type="radio" name="radio_1587973727920908811" id="radio_1587973727920908811_2" value="2">
-      
-      <span class="label-body px-1">
-        \(x^2/2 \cos^{-1}(x) - x\sqrt{1-x^2}/4 - \cos^{-1}(x)/4\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_1587973727920908811_3">
-      <input class="form-check-input" type="radio" name="radio_1587973727920908811" id="radio_1587973727920908811_3" value="3">
-      
-      <span class="label-body px-1">
-        \(x\cos^{-1}(x)-\sqrt{1 - x^2}\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="1587973727920908811_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_1587973727920908811"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 3;
-    var msgBox = document.getElementById('1587973727920908811_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_1587973727920908811")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_1587973727920908811")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+"``x\\cos^{-1}(x)-\\sqrt{1 - x^2}``",
+"``x^2/2 \\cos^{-1}(x) - x\\sqrt{1-x^2}/4 - \\cos^{-1}(x)/4``",
+"``-\\sin^{-1}(x)``"]
+answ = 1
+radioq(choices, answ)</code></pre>
 
 
 </section>

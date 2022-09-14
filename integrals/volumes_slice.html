@@ -20,69 +20,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1.6em;
   vertical-align: middle;
 }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-    color: #aaaaaa;
-  }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { color: #008000; } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { color: #008000; font-weight: bold; } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
 
@@ -124,9 +61,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   }
 }</script>
 <script async="" src="https://hypothes.is/embed.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
-<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
@@ -670,16 +604,60 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 </header>
 
+<pre class="{julia}"><code>#| echo: false
+
+import Logging
+Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
+Logging.disable_logging(Logging.Warn)
+
+import SymPy
+function Base.show(io::IO, ::MIME"text/html", x::T) where {T &lt;: SymPy.SymbolicObject}
+    println(io, "&lt;span class=\"math-left-align\" style=\"padding-left: 4px; width:0; float:left;\"&gt; ")
+    println(io, "\\[")
+    println(io, sympy.latex(x))
+    println(io, "\\]")
+    println(io, "&lt;/span&gt;")
+end
+
+# hack to work around issue
+import Markdown
+import CalculusWithJulia
+function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
+    nm = joinpath("..", string(d), f)
+    u = "![$caption]($nm)"
+    Markdown.parse(u)
+end
+
+nothing</code></pre>
 <p>This section uses these add-on packages:</p>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">CalculusWithJulia</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Plots</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">QuadGK</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Unitful</span>, <span class="bu">UnitfulUS</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Roots</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">SymPy</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<pre class="{julia}"><code>using CalculusWithJulia
+using Plots
+using QuadGK
+using Unitful, UnitfulUS
+using Roots
+using SymPy</code></pre>
+<pre class="{julia}"><code>#| echo: false
+#| results: "hidden"
+using CalculusWithJulia.WeaveSupport
+
+import LinearAlgebra: norm
+
+const frontmatter = (
+        title = "Volumes by slicing",
+        description = "Calculus with Julia: Volumes by slicing",
+        tags = ["CalculusWithJulia", "integrals", "volumes by slicing"],
+);
+nothing</code></pre>
 <hr>
-<p>![ Hey Michelin Man, how much does that costume weigh?</p>
-<p>](../integrals/figures/michelin-man.jpg)</p>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+imgfile = "figures/michelin-man.jpg"
+caption = """
+
+Hey Michelin Man, how much does that costume weigh?
+
+"""
+ImageFile(:integrals, imgfile, caption)</code></pre>
 <p>An ad for a summer job says work as the Michelin Man! Sounds promising, but how much will that costume weigh? A very hot summer may make walking around in a heavy costume quite uncomfortable.</p>
 <p>A back-of-the envelope calculation would start by</p>
 <ul>
@@ -705,8 +683,17 @@ V = \pi \cdot r_1^2 \cdot h_1 + \pi \cdot r_2^2 \cdot h_2 + \cdot + \pi \cdot r_
 <h2 data-number="45.1" class="anchored" data-anchor-id="solids-of-revolution"><span class="header-section-number">45.1</span> Solids of revolution</h2>
 <p>We begin with some examples of a special class of solids - solids of revolution. These have an axis of symmetry from which the slabs are then just circular disks.</p>
 <p>Consider the volume contained in this glass, it will depend on the radius at different values of <span class="math inline">\(x\)</span>:</p>
-<p>![ A wine glass oriented so that it is seen as generated by revolving a curve about the <span class="math inline">\(x\)</span> axis. The radius of revolution varies as a function of <span class="math inline">\(x\)</span> between about <span class="math inline">\(0\)</span> and <span class="math inline">\(6.2\)</span>cm.</p>
-<p>](../integrals/figures/integration-glass.jpg)</p>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+imgfile = "figures/integration-glass.jpg"
+caption = L"""
+
+A wine glass oriented so that it is seen as generated by revolving a
+curve about the $x$ axis. The radius of revolution varies as a function of $x$
+between about $0$ and $6.2$cm.
+
+"""
+ImageFile(:integrals, imgfile, caption)</code></pre>
 <p>If <span class="math inline">\(r(x)\)</span> is the radius as a function of <span class="math inline">\(x\)</span>, then the cross sectional area is <span class="math inline">\(\pi r(x)^2\)</span> so the volume is given by:</p>
 <p><span class="math display">\[
 V = \int_a^b \pi r(x)^2 dx.
@@ -734,70 +721,34 @@ r(x) = \frac{d_0}{2} + \frac{d_1/2 - d_0/2}{h}x = \frac{5}{4} + \frac{5}{38}x
 V = \int_0^h \pi r(x)^2 dx
 \]</span></p>
 <p>This is</p>
-<div class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>d0, d1, h <span class="op">=</span> <span class="fl">2.5</span>, <span class="fl">3.75</span>, <span class="fl">4.75</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rad</span>(x) <span class="op">=</span> d0<span class="op">/</span><span class="fl">2</span> <span class="op">+</span> (d1<span class="op">/</span><span class="fl">2</span> <span class="op">-</span> d0<span class="op">/</span><span class="fl">2</span>)<span class="op">/</span>h <span class="op">*</span> x</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>vol, _ <span class="op">=</span> <span class="fu">quadgk</span>(x <span class="op">-&gt;</span> <span class="cn">pi</span> <span class="op">*</span> <span class="fu">rad</span>(x)<span class="op">^</span><span class="fl">2</span>, <span class="fl">0</span>, h)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="7">
-<pre><code>(36.917804295114436, 7.105427357601002e-15)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>d0, d1, h = 2.5, 3.75, 4.75
+rad(x) = d0/2 + (d1/2 - d0/2)/h * x
+vol, _ = quadgk(x -&gt; pi * rad(x)^2, 0, h)</code></pre>
 <p>So <span class="math inline">\(36.9 \text{in}^3\)</span>. How many ounces is that? It is useful to know that 1 <a href="http://en.wikipedia.org/wiki/Gallon">gallon</a> of water is defined as <span class="math inline">\(231\)</span> cubic inches, contains <span class="math inline">\(128\)</span> ounces, and weighs <span class="math inline">\(8.34\)</span> pounds.</p>
 <p>So our cup holds this many ounces:</p>
-<div class="cell" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>ozs <span class="op">=</span> vol <span class="op">/</span> <span class="fl">231</span> <span class="op">*</span> <span class="fl">128</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="8">
-<pre><code>20.456618830193282</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>ozs = vol / 231 * 128</code></pre>
 <p>Full it is about <span class="math inline">\(20\)</span> ounces, though this doesn’t really account for the volume taken up by the bottom of the cup, etc.</p>
 <p>If you are poor with units, <code>Julia</code> can provide some help through the <code>Unitful</code> package. Here the additional <code>UnitfulUS</code> package must also be included, as was done above, to access fluid ounces:</p>
-<div class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>vol <span class="op">*</span> u<span class="st">"inch"</span><span class="op">^</span><span class="fl">3</span> <span class="op">|&gt;</span> us<span class="st">"floz"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="9">
-<pre><code>20.456618830193282 fl ozᵘˢ</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>vol * u"inch"^3 |&gt; us"floz"</code></pre>
 <p>Before Solo “squared” the cup, the Solo cup had markings that - <a href="http://www.snopes.com/food/prepare/solocups.asp">some thought</a> - indicated certain volume amounts.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="../integrals/figures/red-solo-cup.jpg" class="img-fluid figure-img"></p>
-<p></p><figcaption class="figure-caption">Markings on the red Solo cup indicated various volumes</figcaption><p></p>
-</figure>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+imgfile = "figures/red-solo-cup.jpg"
+caption = "Markings on the red Solo cup indicated various volumes"
+ImageFile(:integrals, imgfile, caption)</code></pre>
 <p>What is the height for <span class="math inline">\(5\)</span> ounces (for a glass of wine)? <span class="math inline">\(12\)</span> ounces (for a beer unit)?</p>
 <p>Here the volume is fixed, but the height is not. For <span class="math inline">\(v\)</span> ounces, we need to convert to cubic inches. The conversion is <span class="math inline">\(1\)</span> ounce is <span class="math inline">\(231/128 \text{in}^3\)</span>.</p>
 <p>So we need to solve <span class="math inline">\(v \cdot (231/128) = \int_0^h\pi r(x)^2 dx\)</span> for <span class="math inline">\(h\)</span> when <span class="math inline">\(v=5\)</span> and <span class="math inline">\(v=12\)</span>.</p>
 <p>Let’s express volume as a function of <span class="math inline">\(h\)</span>:</p>
-<div class="cell" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">Vol</span>(h) <span class="op">=</span> <span class="fu">quadgk</span>(x <span class="op">-&gt;</span> <span class="cn">pi</span> <span class="op">*</span> <span class="fu">rad</span>(x)<span class="op">^</span><span class="fl">2</span>, <span class="fl">0</span>, h)[<span class="fl">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="11">
-<pre><code>Vol (generic function with 1 method)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>Vol(h) = quadgk(x -&gt; pi * rad(x)^2, 0, h)[1]</code></pre>
 <p>Then to solve we have:</p>
-<div class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>v₅ <span class="op">=</span> <span class="fl">5</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>h5 <span class="op">=</span> <span class="fu">find_zero</span>(h <span class="op">-&gt;</span> <span class="fu">Vol</span>(h) <span class="op">-</span> v₅ <span class="op">*</span> <span class="fl">231</span> <span class="op">/</span> <span class="fl">128</span>, <span class="fl">4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="12">
-<pre><code>1.5659355800223222</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>v₅ = 5
+h5 = find_zero(h -&gt; Vol(h) - v₅ * 231 / 128, 4)</code></pre>
 <p>and</p>
-<div class="cell" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>v₁₂ <span class="op">=</span> <span class="fl">12</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>h12 <span class="op">=</span> <span class="fu">find_zero</span>(h <span class="op">-&gt;</span> <span class="fu">Vol</span>(h) <span class="op">-</span> v₁₂ <span class="op">*</span> <span class="fl">231</span> <span class="op">/</span> <span class="fl">128</span>, <span class="fl">4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="13">
-<pre><code>3.207188125690385</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>v₁₂ = 12
+h12 = find_zero(h -&gt; Vol(h) - v₁₂ * 231 / 128, 4)</code></pre>
 <p>As a percentage of the total height, these are:</p>
-<div class="cell" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>h5<span class="op">/</span>h, h12<span class="op">/</span>h</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="14">
-<pre><code>(0.32967064842575206, 0.6751975001453442)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>h5/h, h12/h</code></pre>
 <div class="callout-note callout callout-style-default callout-captioned">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -814,31 +765,18 @@ Note
 <section id="example" class="level5">
 <h5 class="anchored" data-anchor-id="example">Example</h5>
 <p>By rotating the line segment <span class="math inline">\(x/r + y/h=1\)</span> that sits in the first quadrant around the <span class="math inline">\(y\)</span> axis, we will generate a right-circular cone. The volume of which can be expressed through the above formula by noting the radius, as a function of <span class="math inline">\(y\)</span>, will be <span class="math inline">\(R = r(1 - y/h)\)</span>. This gives the well-known volume of a cone:</p>
-<div class="cell" data-hold="true" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> r h x y</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>R <span class="op">=</span> <span class="fu">r*</span>(<span class="fl">1</span> <span class="op">-</span> y<span class="op">/</span>h)</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate</span>(<span class="cn">pi</span><span class="op">*</span>R<span class="op">^</span><span class="fl">2</span>, (y, <span class="fl">0</span>, h))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="15">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-\frac{\pi h r^{2}}{3}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+@syms r h x y
+R = r*(1 - y/h)
+integrate(pi*R^2, (y, 0, h))</code></pre>
 <p>The frustum of a cone is simply viewed as a cone with its top cut off. If the original height would have been <span class="math inline">\(h_0\)</span> and the actual height <span class="math inline">\(h_1\)</span>, then the volume remaining is just <span class="math inline">\(\int_{h_0}^h \pi r(y)^2 dy = \pi h_1 r^2/3 - \pi h_0 r^2/3 = \pi r^2 (h_1-h_0)/3\)</span>.</p>
 <p>It is not unusual to parameterize a cone by the angle <span class="math inline">\(\theta\)</span> it makes and the height. Since <span class="math inline">\(r/h=\tan\theta\)</span>, this gives the formula <span class="math inline">\(V = \pi/3\cdot h^3\tan(\theta)^2\)</span>.</p>
 </section>
 <section id="example-1" class="level5">
 <h5 class="anchored" data-anchor-id="example-1">Example</h5>
 <p><a href="http://tinyurl.com/8a6ygv">Gabriel’s</a> horn is a geometric figure of mathematics - but not the real world - which has infinite height, but not volume! The figure is found by rotating the curve <span class="math inline">\(y=1/x\)</span> around the <span class="math inline">\(x\)</span> axis from <span class="math inline">\(1\)</span> to <span class="math inline">\(\infty\)</span>. If the volume formula holds, what is the volume of this “horn?”</p>
-<div class="cell" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">radius</span>(x) <span class="op">=</span> <span class="fl">1</span><span class="op">/</span>x</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">quadgk</span>(x <span class="op">-&gt;</span> <span class="fu">pi*radius</span>(x)<span class="op">^</span><span class="fl">2</span>, <span class="fl">1</span>, <span class="cn">Inf</span>)[<span class="fl">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="16">
-<pre><code>3.141592653589793</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>radius(x) = 1/x
+quadgk(x -&gt; pi*radius(x)^2, 1, Inf)[1]</code></pre>
 <p>That is a value very reminiscent of <span class="math inline">\(\pi\)</span>, which it is as <span class="math inline">\(\int_1^\infty 1/x^2 dx = -1/x\big|_1^\infty=1\)</span>.</p>
 <div class="callout-note callout callout-style-default callout-captioned">
 <div class="callout-header d-flex align-content-center">
@@ -865,36 +803,16 @@ d(h) = \begin{cases}
 \]</span></p>
 <p>If the vase were solid, what would be the volume?</p>
 <p>We define <code>d</code> using a ternary operator to handle the two cases:</p>
-<div class="cell" data-execution_count="16">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">d</span>(h) <span class="op">=</span> h <span class="op">&lt;=</span> <span class="fl">44</span> ? <span class="fl">2</span><span class="fu">*sqrt</span>(<span class="fl">26</span><span class="op">^</span><span class="fl">2</span> <span class="op">-</span> (h<span class="op">-</span><span class="fl">20</span>)<span class="op">^</span><span class="fl">2</span>) <span class="op">:</span> <span class="fl">20</span> <span class="op">*</span> <span class="fu">exp</span>(<span class="fu">-</span>(h<span class="op">-</span><span class="fl">44</span>)<span class="op">/</span><span class="fl">10</span>)</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rad</span>(h) <span class="op">=</span> <span class="fu">d</span>(h)<span class="op">/</span><span class="fl">2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="17">
-<pre><code>rad (generic function with 1 method)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>d(h) = h &lt;= 44 ? 2*sqrt(26^2 - (h-20)^2) : 20 * exp(-(h-44)/10)
+rad(h) = d(h)/2</code></pre>
 <p>The volume in cm<span class="math inline">\(^3\)</span> is then:</p>
-<div class="cell" data-execution_count="17">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>Vₜ, _ <span class="op">=</span> <span class="fu">quadgk</span>(h <span class="op">-&gt;</span> <span class="cn">pi</span> <span class="op">*</span> <span class="fu">rad</span>(h)<span class="op">^</span><span class="fl">2</span>, <span class="fl">0</span>, <span class="fl">50</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="18">
-<pre><code>(71687.1744525789, 0.00030474267730795646)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>Vₜ, _ = quadgk(h -&gt; pi * rad(h)^2, 0, 50)</code></pre>
 <p>For the actual shoot, the vase is to be filled with ash, to simulate a funeral urn. (It will then be knocked over in a humorous manner, of course.) How much ash is needed if the vase has walls that are 1/2 centimeter thick</p>
 <p>We need to subtract <span class="math inline">\(0.5\)</span> from the radius and <code>a</code> then recompute:</p>
-<div class="cell" data-execution_count="18">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>V_int, _ <span class="op">=</span> <span class="fu">quadgk</span>(h <span class="op">-&gt;</span> <span class="cn">pi</span> <span class="op">*</span> (<span class="fu">rad</span>(h) <span class="op">-</span> <span class="fl">1</span><span class="op">/</span><span class="fl">2</span>)<span class="op">^</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">2</span>, <span class="fl">50</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="19">
-<pre><code>(68082.16068327641, 0.00044615780792156556)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>V_int, _ = quadgk(h -&gt; pi * (rad(h) - 1/2)^2, 1/2, 50)</code></pre>
 <p>A liter of volume is <span class="math inline">\(1000 \text{cm}^3\)</span>. So this is about <span class="math inline">\(68\)</span> liters, or more than 15 gallons. Perhaps the dimensions given were bit off.</p>
 <p>While we are here, to compute the actual volume of the material in the vase could be done by subtraction.</p>
-<div class="cell" data-execution_count="19">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>Vₜ <span class="op">-</span> V_int</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="20">
-<pre><code>3605.013769302488</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>Vₜ - V_int</code></pre>
 </section>
 <section id="the-washer-method" class="level3" data-number="45.1.1">
 <h3 data-number="45.1.1" class="anchored" data-anchor-id="the-washer-method"><span class="header-section-number">45.1.1</span> The washer method</h3>
@@ -916,14 +834,10 @@ R(x) = \sqrt{1^2 - (x-1)^2}, \quad r(x) = x,
 \]</span></p>
 <p>with <span class="math inline">\(x\)</span> ranging from <span class="math inline">\(x=0\)</span> to <span class="math inline">\(1\)</span>?</p>
 <p>The answer comes by integrating:</p>
-<div class="cell" data-hold="true" data-execution_count="20">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">Rad</span>(x) <span class="op">=</span> <span class="fu">sqrt</span>(<span class="fl">1</span> <span class="op">-</span> (x<span class="op">-</span><span class="fl">1</span>)<span class="op">^</span><span class="fl">2</span>)</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rad</span>(x) <span class="op">=</span> x</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>V, _ <span class="op">=</span> <span class="fu">quadgk</span>(x <span class="op">-&gt;</span> <span class="fu">pi*</span>(<span class="fu">Rad</span>(x)<span class="op">^</span><span class="fl">2</span> <span class="op">-</span> <span class="fu">rad</span>(x)<span class="op">^</span><span class="fl">2</span>), <span class="fl">0</span>, <span class="fl">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="21">
-<pre><code>(1.0471975511965974, 0.0)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+Rad(x) = sqrt(1 - (x-1)^2)
+rad(x) = x
+V, _ = quadgk(x -&gt; pi*(Rad(x)^2 - rad(x)^2), 0, 1)</code></pre>
 </section>
 </section>
 </section>
@@ -931,15 +845,11 @@ R(x) = \sqrt{1^2 - (x-1)^2}, \quad r(x) = x,
 <h2 data-number="45.2" class="anchored" data-anchor-id="solids-with-known-cross-section"><span class="header-section-number">45.2</span> Solids with known cross section</h2>
 <p>The Dart cup company now produces the red solo cup with a <a href="http://www.solocup.com/products/squared-plastic-cup/">square</a> cross section. Suppose the dimensions are the same: a top diameter of <span class="math inline">\(d_1 = 3 3/4\)</span> inches, a bottom diameter of <span class="math inline">\(d_0 = 2 1/2\)</span> inches and a height of <span class="math inline">\(h = 4 3/4\)</span> inches. What is the volume now?</p>
 <p>The difference, of course, is that cross sections now have area <span class="math inline">\(d^2\)</span>, as opposed to <span class="math inline">\(\pi r^2\)</span>. This leads to some difference, which we quantify, as follows:</p>
-<div class="cell" data-hold="true" data-execution_count="21">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>d0, d1, h <span class="op">=</span> <span class="fl">2.5</span>, <span class="fl">3.75</span>, <span class="fl">4.75</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="fu">d</span>(x) <span class="op">=</span> d0 <span class="op">+</span> (d1 <span class="op">-</span> d0)<span class="op">/</span>h <span class="op">*</span> x</span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>vol, _ <span class="op">=</span> <span class="fu">quadgk</span>(x <span class="op">-&gt;</span> <span class="fu">d</span>(x)<span class="op">^</span><span class="fl">2</span>, <span class="fl">0</span>, h)</span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>vol <span class="op">/</span> <span class="fl">231</span> <span class="op">*</span> <span class="fl">128</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="22">
-<pre><code>26.046176046176043</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+d0, d1, h = 2.5, 3.75, 4.75
+d(x) = d0 + (d1 - d0)/h * x
+vol, _ = quadgk(x -&gt; d(x)^2, 0, h)
+vol / 231 * 128</code></pre>
 <p>This shape would have more volume - the cross sections are bigger. Presumably the dimensions have changed. Without going out and buying a cup, let’s assume the cross-sectional diameter remained the same, not the diameter. This means the largest dimension is the same. The cross section diameter is <span class="math inline">\(\sqrt{2}\)</span> larger. What would this do to the area?</p>
 <p>We could do this two ways: divide <span class="math inline">\(d_0\)</span> and <span class="math inline">\(d_1\)</span> by <span class="math inline">\(\sqrt{2}\)</span> and recompute. However, each cross section of this narrower cup would simply be <span class="math inline">\(\sqrt{2}^2\)</span> smaller, so the total volume would change by <span class="math inline">\(2\)</span>, or be 13 ounces. We have <span class="math inline">\(26.04\)</span> is too big, and <span class="math inline">\(13.02\)</span> is too small, so some other overall dimensions are used.</p>
 <section id="example-4" class="level5">
@@ -949,11 +859,19 @@ R(x) = \sqrt{1^2 - (x-1)^2}, \quad r(x) = x,
 <p>A cone is the solid figure bounded by a base in a plane and by a surface (called the lateral surface) formed by the locus of all straight line segments joining the apex to the perimeter of the base.</p>
 </blockquote>
 <p>Let <span class="math inline">\(h\)</span> be the distance from the apex to the base. Consider cones with the property that all planes parallel to the base intersect the cone with the same shape, though perhaps a different scale. This figure shows an example, with the rays coming from the apex defining the volume.</p>
-<div class="cell" data-hold="true" data-execution_count="22">
-<div class="cell-output cell-output-display" data-execution_count="23">
-<p><img src="volumes_slice_files/figure-html/cell-23-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+h = 5
+R, r, rho = 1, 1/4, 1/4
+f(t) = (R-r) * cos(t) + rho * cos((R-r)/r * t)
+g(t) = (R-r) * sin(t) - rho * sin((R-r)/r * t)
+ts = range(0, 2pi, length=100)
+
+p = plot(f.(ts), g.(ts), zero.(ts), legend=false)
+for t ∈ range(0, 2pi, length=25)
+    plot!(p, [0,f(t)], [0,g(t)], [h, 0], linecolor=:red)
+end
+p</code></pre>
 <p>A right circular cone is one where this shape is a circle. This definition can be more general, as a square-based right pyramid is also such a cone. After possibly reorienting the cone in space so the base is at <span class="math inline">\(u=0\)</span> and the apex at <span class="math inline">\(u=h\)</span> the volume of the cone can be found from:</p>
 <p><span class="math display">\[
 V = \int_0^h A_{xc}(u) du.
@@ -972,11 +890,33 @@ V = \int_0^h A_{xc}(u) du = A_{xc}(0) \int_0^h (1 - \frac{u}{h})^2 du = A_{xc}(0
 <h3 data-number="45.2.1" class="anchored" data-anchor-id="cavalieris-method"><span class="header-section-number">45.2.1</span> Cavalieri’s method</h3>
 <p><a href="http://tinyurl.com/oda9xd9">Cavalieri’s</a> Principle is “Suppose two regions in three-space (solids) are included between two parallel planes. If every plane parallel to these two planes intersects both regions in cross-sections of equal area, then the two regions have equal volumes.” (Wikipedia).</p>
 <p>With the formula for the volume of solids based on cross sections, this is a trivial observation, as the functions giving the cross-sectional area are identical. Still, it can be surprising. Consider a sphere with an interior cylinder bored out of it. (The <a href="http://tinyurl.com/o237v83">Napkin</a> ring problem.) The bore has height <span class="math inline">\(h\)</span> - for larger radius spheres this means very wide bores.</p>
-<div class="cell" data-hold="true" data-execution_count="23">
-<div class="cell-output cell-output-display" data-execution_count="24">
-<p><img src="volumes_slice_files/figure-html/cell-24-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+#The following illustrates $R=5$ and $h=8$.
+
+R =5; h1 = 2*4
+
+theta = asin(h1/2/R)
+thetas = range(-theta, stop=theta, length=100)
+ts = range(-pi, stop=pi, length=100)
+y = h1/4
+
+p = plot(legend=false, aspect_ratio=:equal);
+plot!(p, R*cos.(ts), R*sin.(ts));
+plot!(p, R*cos.(thetas), R*sin.(thetas), color=:orange);
+
+plot!(p, [R*cos.(theta), R*cos.(theta)], [h1/2, -h1/2], color=:orange);
+plot!(p, [R*cos.(theta), sqrt(R^2 - y^2)], [y, y], color=:orange)
+
+plot!(p, [0, R*cos.(theta)], [0,0], color=:red);
+plot!(p,[ 0, R*cos.(theta)], [0,h1/2], color=:red);
+
+annotate!(p, [(.5, -2/3, "sqrt(R²- (h/2)²)"),
+              (R*cos.(theta)-.6, h1/4, "h/2"),
+              (1.5, 1.75*tan.(theta), "R")])
+
+p
+</code></pre>
 <p>The small orange line is rotated, so using the washer method we get the cross sections given by <span class="math inline">\(\pi(r_0^2 - r_i^2)\)</span>, the outer and inner radii, as a function of <span class="math inline">\(y\)</span>.</p>
 <p>The outer radii has points <span class="math inline">\((x,y)\)</span> satisfying <span class="math inline">\(x^2 + y^2 = R^2\)</span>, so is <span class="math inline">\(\sqrt{R^2 - y^2}\)</span>. The inner radii has a constant value, and as indicated in the figure, is <span class="math inline">\(\sqrt{R^2 - (h/2)^2}\)</span>, by the Pythagorean theorem.</p>
 <p>Thus the cross sectional area is</p>
@@ -1003,72 +943,34 @@ V = \int_0^h A_{xc}(u) du = A_{xc}(0) \int_0^h (1 - \frac{u}{h})^2 du = A_{xc}(0
 <section id="question" class="level6">
 <h6 class="anchored" data-anchor-id="question">Question</h6>
 <p>Consider this big Solo cup:</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="../integrals/figures/big-solo-cup.jpg" class="img-fluid figure-img"></p>
-<p></p><figcaption class="figure-caption">Big solo cup.</figcaption><p></p>
-</figure>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+imgfile ="figures/big-solo-cup.jpg"
+caption = " Big solo cup. "
+ImageFile(:integrals, imgfile, caption)</code></pre>
 <p>It has approximate dimensions: smaller radius 5 feet, upper radius 8 feet and height 15 feet. How many gallons is it? At <span class="math inline">\(8\)</span> pounds a gallon this would be pretty heavy!</p>
 <p>Two facts are useful:</p>
 <ul>
 <li>a cubic foot is 7.48052 gallons</li>
 <li>the radius as a function of height is <span class="math inline">\(r(h) = 5 + (3/15)\cdot h\)</span></li>
 </ul>
-<div class="cell" data-hold="true" data-execution_count="25">
-<div class="cell-output cell-output-display" data-execution_count="26">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="18208746593712515987" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_18208746593712515987">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="18208746593712515987" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="18208746593712515987_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("18208746593712515987").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 15157.98160668533) <= 10.0);
-  var msgBox = document.getElementById('18208746593712515987_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_18208746593712515987")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_18208746593712515987")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+gft = 7.48052
+rad(h) = 5 + (3/15)*h
+a,err = quadgk(h -&gt; pi*rad(h)^2, 0, 15)
+val = a*gft
+numericq(val, 1e1)</code></pre>
 </section>
 <section id="question-1" class="level6">
 <h6 class="anchored" data-anchor-id="question-1">Question</h6>
 <p>In <em>Glass Shape Influences Consumption Rate</em> for Alcoholic <a href="http://www.plosone.org/article/info%3Adoi%2F10.1371%2Fjournal.pone.0043007">Beverages</a> the authors demonstrate that the shape of the glass can have an effect on the rate of consumption, presumably people drink faster when they aren’t sure how much they have left. In particular, they comment that people have difficulty judging the half-finished-by-volume mark.</p>
 <p>This figure shows some of the wide variety of beer-serving glasses:</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="../integrals/figures/beer_glasses.jpg" class="img-fluid figure-img"></p>
-<p></p><figcaption class="figure-caption">A variety of different serving glasses for beer.</figcaption><p></p>
-</figure>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+imgfile ="figures/beer_glasses.jpg"
+caption = "A variety of different serving glasses for beer."
+ImageFile(:integrals, imgfile, caption)</code></pre>
 <p>We work with metric units, as there is a natural relation between volume in cm<span class="math inline">\(^3\)</span> and liquid measure (<span class="math inline">\(1\)</span> liter = <span class="math inline">\(1000\)</span> cm<span class="math inline">\(^3\)</span>, so a <span class="math inline">\(16\)</span>-oz pint glass is roughly <span class="math inline">\(450\)</span> cm<span class="math inline">\(^3\)</span>.)</p>
 <p>Let two glasses be given as follows. A typical pint glass with linearly increasing radius:</p>
 <p><span class="math display">\[
@@ -1079,388 +981,55 @@ r(h) = 3 + \frac{1}{5}h, \quad 0 \leq h \leq b;
 s(h) = 3 + \log(1 + h), \quad 0 \leq h \leq b
 \]</span></p>
 <p>The following functions find the volume as a function of height, <span class="math inline">\(h\)</span>:</p>
-<div class="cell" data-execution_count="27">
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">r1</span>(h) <span class="op">=</span> <span class="fl">3</span> <span class="op">+</span> h<span class="op">/</span><span class="fl">5</span></span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">s1</span>(h) <span class="op">=</span> <span class="fl">2</span> <span class="op">+</span> <span class="fu">log</span>(<span class="fl">1</span> <span class="op">+</span> h)</span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="fu">r_vol</span>(h) <span class="op">=</span> <span class="fu">quadgk</span>(x <span class="op">-&gt;</span> <span class="fu">pi*r1</span>(x)<span class="op">^</span><span class="fl">2</span>, <span class="fl">0</span>, h)[<span class="fl">1</span>]</span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="fu">s_vol</span>(h) <span class="op">=</span> <span class="fu">quadgk</span>(x <span class="op">-&gt;</span> <span class="fu">pi*s1</span>(x)<span class="op">^</span><span class="fl">2</span>, <span class="fl">0</span>, h)[<span class="fl">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="28">
-<pre><code>s_vol (generic function with 1 method)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>r1(h) = 3 + h/5
+s1(h) = 2 + log(1 + h)
+r_vol(h) = quadgk(x -&gt; pi*r1(x)^2, 0, h)[1]
+s_vol(h) = quadgk(x -&gt; pi*s1(x)^2, 0, h)[1]</code></pre>
 <ul>
 <li>For the straight-sided glass find <span class="math inline">\(h\)</span> so that the volume is <span class="math inline">\(450\)</span>.</li>
 </ul>
-<div class="cell" data-execution_count="28">
-<div class="cell-output cell-output-display" data-execution_count="29">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="3947915875985635273" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_3947915875985635273">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="3947915875985635273" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="3947915875985635273_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("3947915875985635273").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 9.168923214523724) <= 0.001);
-  var msgBox = document.getElementById('3947915875985635273_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_3947915875985635273")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_3947915875985635273")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| echo: false
+h450 = find_zero(h -&gt; r_vol(h) - 450, 10)
+numericq(h450)</code></pre>
 <ul>
 <li>For the straight-sided glass find <span class="math inline">\(h\)</span> so that the volume is <span class="math inline">\(225\)</span> (half full).</li>
 </ul>
-<div class="cell" data-execution_count="29">
-<div class="cell-output cell-output-display" data-execution_count="30">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="15786593076196634935" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_15786593076196634935">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="15786593076196634935" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="15786593076196634935_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("15786593076196634935").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 5.603662378152273) <= 0.001);
-  var msgBox = document.getElementById('15786593076196634935_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_15786593076196634935")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_15786593076196634935")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| echo: false
+h225 = find_zero(h -&gt; r_vol(h) - 225, 10)
+numericq(h225)</code></pre>
 <ul>
 <li>For the straight-sided glass, what is the percentage of the total height when the glass is half full. (For a cylinder it would just be 50.</li>
 </ul>
-<div class="cell" data-execution_count="30">
-<div class="cell-output cell-output-display" data-execution_count="31">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="14915686366760625539" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_14915686366760625539">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="14915686366760625539" type="number" class="form-control" placeholder="Numeric answer">
-    <span class="input-group-append">&nbsp;percent&nbsp;</span>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="14915686366760625539_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("14915686366760625539").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 1.2452583062560607) <= 2);
-  var msgBox = document.getElementById('14915686366760625539_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_14915686366760625539")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_14915686366760625539")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| echo: false
+numericq(h225/450 * 100, 2, units="percent")</code></pre>
 <ul>
 <li>People often confuse the half-way by height amount for the half way by volume, as it is for the cylinder. Take the height for the straight-sided glass filled with <span class="math inline">\(450\)</span> mm, divide it by <span class="math inline">\(2\)</span>, then compute the percentage of volume at the half way height to the original.</li>
 </ul>
-<div class="cell" data-execution_count="31">
-<div class="cell-output cell-output-display" data-execution_count="32">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="12465042011518064259" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_12465042011518064259">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="12465042011518064259" type="number" class="form-control" placeholder="Numeric answer">
-    <span class="input-group-append">&nbsp;percent&nbsp;</span>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="12465042011518064259_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("12465042011518064259").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 38.505616912184344) <= 2);
-  var msgBox = document.getElementById('12465042011518064259_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_12465042011518064259")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_12465042011518064259")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| echo: false
+numericq(r_vol(h450/2)/450*100, 2, units="percent")</code></pre>
 <hr>
 <ul>
 <li>For the curved-sided glass find <span class="math inline">\(h\)</span> so that the volume is <span class="math inline">\(450\)</span>.</li>
 </ul>
-<div class="cell" data-execution_count="32">
-<div class="cell-output cell-output-display" data-execution_count="33">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="12464088767385047703" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_12464088767385047703">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="12464088767385047703" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="12464088767385047703_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("12464088767385047703").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 10.37133536401327) <= 0.001);
-  var msgBox = document.getElementById('12464088767385047703_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_12464088767385047703")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_12464088767385047703")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| echo: false
+h_450 = find_zero(h -&gt; s_vol(h) - 450, 10)
+numericq(h_450)</code></pre>
 <ul>
 <li>For the curved-sided glass find <span class="math inline">\(h\)</span> so that the volume is <span class="math inline">\(225\)</span> (half full).</li>
 </ul>
-<div class="cell" data-execution_count="33">
-<div class="cell-output cell-output-display" data-execution_count="34">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="8163335450508807788" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_8163335450508807788">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="8163335450508807788" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="8163335450508807788_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("8163335450508807788").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 6.372119100356652) <= 0.001);
-  var msgBox = document.getElementById('8163335450508807788_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_8163335450508807788")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_8163335450508807788")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| echo: false
+h_225 = find_zero(h -&gt; s_vol(h) - 225, 10)
+numericq(h_225)</code></pre>
 <ul>
 <li>For the curved-sided glass, what is the percentage of the total height when the glass is half full. (For a cylinder it would just be 50.</li>
 </ul>
-<div class="cell" data-execution_count="34">
-<div class="cell-output cell-output-display" data-execution_count="35">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="5407975823731853338" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_5407975823731853338">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="5407975823731853338" type="number" class="form-control" placeholder="Numeric answer">
-    <span class="input-group-append">&nbsp;percent&nbsp;</span>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="5407975823731853338_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("5407975823731853338").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 1.4160264667459228) <= 2);
-  var msgBox = document.getElementById('5407975823731853338_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_5407975823731853338")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_5407975823731853338")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| echo: false
+numericq(h_225/450 * 100, 2, units="percent")</code></pre>
 <ul>
 <li>People often confuse the half-way by height amount for the half way by volume, as it is for the cylinder. Take the height for the curved-sided glass filled with <span class="math inline">\(450\)</span> mm, divide it by <span class="math inline">\(2\)</span>, then compute the percentage of volume at the half way height to the original.</li>
 </ul>
-<div class="cell" data-execution_count="35">
-<div class="cell-output cell-output-display" data-execution_count="36">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="13372838084153702912" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_13372838084153702912">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="13372838084153702912" type="number" class="form-control" placeholder="Numeric answer">
-    <span class="input-group-append">&nbsp;percent&nbsp;</span>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="13372838084153702912_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("13372838084153702912").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 37.31833223550184) <= 2);
-  var msgBox = document.getElementById('13372838084153702912_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_13372838084153702912")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_13372838084153702912")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| echo: false
+numericq(s_vol(h_450/2)/450*100, 2, units="percent")</code></pre>
 </section>
 <section id="question-2" class="level6">
 <h6 class="anchored" data-anchor-id="question-2">Question</h6>
@@ -1469,552 +1038,117 @@ document.getElementById("13372838084153702912").addEventListener("change", funct
 <p><span class="math display">\[
 V = \int_0^h w^2 (1 - \frac{y}{h})^2 dy?
 \]</span></p>
-<div class="cell" data-hold="true" data-execution_count="36">
-<div class="cell-output cell-output-display" data-execution_count="37">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="831754086940500240" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_831754086940500240">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_831754086940500240_1">
-      <input class="form-check-input" type="radio" name="radio_831754086940500240" id="radio_831754086940500240_1" value="1">
-      
-      <span class="label-body px-1">
-        Yes
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_831754086940500240_2">
-      <input class="form-check-input" type="radio" name="radio_831754086940500240" id="radio_831754086940500240_2" value="2">
-      
-      <span class="label-body px-1">
-        No
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="831754086940500240_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_831754086940500240"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('831754086940500240_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_831754086940500240")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_831754086940500240")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+yesnoq("yes")</code></pre>
 <p>What is the volume?</p>
-<div class="cell" data-hold="true" data-execution_count="37">
-<div class="cell-output cell-output-display" data-execution_count="38">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="4169221886532280075" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_4169221886532280075">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_4169221886532280075_1">
-      <input class="form-check-input" type="radio" name="radio_4169221886532280075" id="radio_4169221886532280075_1" value="1">
-      
-      <span class="label-body px-1">
-        \(l\cdot w \cdot h/ 3\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_4169221886532280075_2">
-      <input class="form-check-input" type="radio" name="radio_4169221886532280075" id="radio_4169221886532280075_2" value="2">
-      
-      <span class="label-body px-1">
-        \(1/3 \cdot w^2\cdot h\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_4169221886532280075_3">
-      <input class="form-check-input" type="radio" name="radio_4169221886532280075" id="radio_4169221886532280075_3" value="3">
-      
-      <span class="label-body px-1">
-        \(1/3 \cdot b\cdot h\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="4169221886532280075_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_4169221886532280075"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('4169221886532280075_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_4169221886532280075")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_4169221886532280075")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+"``1/3 \\cdot b\\cdot h``",
+"``1/3 \\cdot w^2\\cdot h``",
+"``l\\cdot w \\cdot h/ 3``"
+]
+answ = 2
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-3" class="level6">
 <h6 class="anchored" data-anchor-id="question-3">Question</h6>
 <p>An ellipsoid is formed by rotating the region in the first and second quadrants bounded by the ellipse <span class="math inline">\((x/2)^2 + (y/3)^2=1\)</span> and the <span class="math inline">\(x\)</span> axis around the <span class="math inline">\(x\)</span> axis. What is the volume of this ellipsoid? Find it numerically.</p>
-<div class="cell" data-hold="true" data-execution_count="38">
-<div class="cell-output cell-output-display" data-execution_count="39">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="5418496021268974538" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_5418496021268974538">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="5418496021268974538" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="5418496021268974538_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("5418496021268974538").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 75.39822368615503) <= 0.001);
-  var msgBox = document.getElementById('5418496021268974538_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_5418496021268974538")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_5418496021268974538")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+f(x) = 3*sqrt( 1 - (x/2)^2 )
+val, _ = quadgk(x -&gt; pi * f(x)^2, -2, 2)
+numericq(val)</code></pre>
 </section>
 <section id="question-4" class="level6">
 <h6 class="anchored" data-anchor-id="question-4">Question</h6>
 <p>An ellipsoid is formed by rotating the region in the first and second quadrants bounded by the ellipse <span class="math inline">\((x/a)^2 + (y/b)^2=1\)</span> and the <span class="math inline">\(x\)</span> axis around the <span class="math inline">\(x\)</span> axis. What is the volume of this ellipsoid? Find it symbolically.</p>
-<div class="cell" data-hold="true" data-execution_count="39">
-<div class="cell-output cell-output-display" data-execution_count="40">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="6429716055055845741" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_6429716055055845741">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_6429716055055845741_1">
-      <input class="form-check-input" type="radio" name="radio_6429716055055845741" id="radio_6429716055055845741_1" value="1">
-      
-      <span class="label-body px-1">
-        \(4/3 \cdot \pi a b^2\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_6429716055055845741_2">
-      <input class="form-check-input" type="radio" name="radio_6429716055055845741" id="radio_6429716055055845741_2" value="2">
-      
-      <span class="label-body px-1">
-        \(\pi/3 \cdot a b^2\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_6429716055055845741_3">
-      <input class="form-check-input" type="radio" name="radio_6429716055055845741" id="radio_6429716055055845741_3" value="3">
-      
-      <span class="label-body px-1">
-        \(4/3 \cdot \pi a^2 b\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="6429716055055845741_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_6429716055055845741"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('6429716055055845741_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_6429716055055845741")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_6429716055055845741")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+"``4/3 \\cdot \\pi a b^2``",
+"``4/3 \\cdot \\pi a^2 b``",
+"``\\pi/3 \\cdot a b^2``"
+]
+answ = 1
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-5" class="level6">
 <h6 class="anchored" data-anchor-id="question-5">Question</h6>
 <p>A solid is generated by rotating the region enclosed by the graph <span class="math inline">\(y=\sqrt{x}\)</span>, the lines <span class="math inline">\(x=1\)</span>, <span class="math inline">\(x=2\)</span>, and <span class="math inline">\(y=1\)</span> about the <span class="math inline">\(x\)</span> axis. Find the volume of the solid.</p>
-<div class="cell" data-hold="true" data-execution_count="40">
-<div class="cell-output cell-output-display" data-execution_count="41">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="15512869933431955028" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_15512869933431955028">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="15512869933431955028" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="15512869933431955028_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("15512869933431955028").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 1.5707963267948963) <= 0.001);
-  var msgBox = document.getElementById('15512869933431955028_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_15512869933431955028")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_15512869933431955028")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+Ra(x) = sqrt(x)
+ra(x) = 1
+a,b=1,2
+val, _ = quadgk(x -&gt; pi * (Ra(x)^2 - ra(x)^2), a,b)
+numericq(val)</code></pre>
 </section>
 <section id="question-6" class="level6">
 <h6 class="anchored" data-anchor-id="question-6">Question</h6>
 <p>The region enclosed by the graphs of <span class="math inline">\(y=x^3 - 1\)</span> and <span class="math inline">\(y=x-1\)</span> are rotated around the <span class="math inline">\(y\)</span> axis. What is the volume of the solid?</p>
-<div class="cell" data-hold="true" data-execution_count="41">
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> x</span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x<span class="op">^</span><span class="fl">3</span> <span class="op">-</span> <span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span>, legend<span class="op">=</span><span class="cn">false</span>)</span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(x<span class="op">-</span><span class="fl">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="42">
-<p><img src="volumes_slice_files/figure-html/cell-42-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
-<div class="cell" data-hold="true" data-execution_count="42">
-<div class="cell-output cell-output-display" data-execution_count="43">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="5224819947228102040" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_5224819947228102040">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="5224819947228102040" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="5224819947228102040_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("5224819947228102040").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - -3.2309774707332535) <= 0.001);
-  var msgBox = document.getElementById('5224819947228102040_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_5224819947228102040")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_5224819947228102040")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+@syms x
+plot(x^3 - 1, 0, 1, legend=false)
+plot!(x-1)</code></pre>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+Ra(y) = cbrt(y+1)
+ra(y) = y + 1
+a,b = 0, 1
+val, _ = quadgk(x -&gt; pi * (Ra(x)^2 - ra(x)^2), a,b)
+numericq(val)</code></pre>
 </section>
 <section id="question-7" class="level6">
 <h6 class="anchored" data-anchor-id="question-7">Question</h6>
 <p>Rotate the region bounded by <span class="math inline">\(y=e^x\)</span>, the line <span class="math inline">\(x=\log(2)\)</span> and the first quadrant about the line <span class="math inline">\(x=\log(2)\)</span>.</p>
 <p>(Be careful, the radius in the formula <span class="math inline">\(V=\int_a^b \pi r(u)^2 du\)</span> is from the line <span class="math inline">\(x=\log(2)\)</span>.)</p>
-<div class="cell" data-hold="true" data-execution_count="43">
-<div class="cell-output cell-output-display" data-execution_count="44">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="15501349619963860015" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_15501349619963860015">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="15501349619963860015" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="15501349619963860015_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("15501349619963860015").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 12.56637058324514) <= 0.001);
-  var msgBox = document.getElementById('15501349619963860015_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_15501349619963860015")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_15501349619963860015")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+a, b = 0, exp(log(2))
+ra(y) = log(2) - log(y)
+val, _ = quadgk(y -&gt; pi * ra(y)^2, a, b)
+numericq(val)</code></pre>
 </section>
 <section id="question-8" class="level6">
 <h6 class="anchored" data-anchor-id="question-8">Question</h6>
 <p>Find the volume of rotating the region bounded by the line <span class="math inline">\(y=x\)</span>, <span class="math inline">\(x=1\)</span> and the <span class="math inline">\(x\)</span>-axis around the line <span class="math inline">\(y=x\)</span>. (The Theorem of Pappus is convenient and the fact that the centroid of the triangular region lies at <span class="math inline">\((2/3, 1/3)\)</span>.)</p>
-<div class="cell" data-hold="true" data-execution_count="44">
-<div class="cell-output cell-output-display" data-execution_count="45">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="3979598230678498149" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_3979598230678498149">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="3979598230678498149" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="3979598230678498149_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("3979598230678498149").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 0.740480489693061) <= 0.001);
-  var msgBox = document.getElementById('3979598230678498149_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_3979598230678498149")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_3979598230678498149")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+cm=[2/3, 1/3]
+c = [1/2, 1/2]
+rr = norm(cm - c)
+A = 1/2 * 1 * 1
+val = 2pi * rr * A
+numericq(val)</code></pre>
 </section>
 <section id="question-9" class="level6">
 <h6 class="anchored" data-anchor-id="question-9">Question</h6>
 <p>Rotate the region bounded by the line <span class="math inline">\(y=x\)</span> and the function <span class="math inline">\(f(x) = x^2\)</span> about the line <span class="math inline">\(y=x\)</span>. What is the resulting volume?</p>
 <p>You can integrate in the length along the line <span class="math inline">\(y=x\)</span> (<span class="math inline">\(u\)</span> from <span class="math inline">\(0\)</span> to <span class="math inline">\(\sqrt{2}\)</span>). The radius then can be found by intersecting the line perpendicular line to <span class="math inline">\(y=x\)</span> at <span class="math inline">\(u\)</span> to the curve <span class="math inline">\(f(x)\)</span>. This will do so:</p>
-<div class="cell" data-execution_count="45">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>theta <span class="op">=</span> <span class="cn">pi</span><span class="op">/</span><span class="fl">4</span>  <span class="co">## we write y=x as y = x * tan(pi/4) for more generality, as this allows other slants.</span></span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> x<span class="op">^</span><span class="fl">2</span></span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="fu">𝒙</span>(u) <span class="op">=</span> <span class="fu">find_zero</span>(x <span class="op">-&gt;</span> <span class="fu">u*sin</span>(theta) <span class="op">-</span> <span class="fl">1</span><span class="op">/</span><span class="fu">tan</span>(theta) <span class="op">*</span> (x <span class="op">-</span> <span class="fu">u*cos</span>(theta)) <span class="op">-</span> <span class="fu">f</span>(x), (<span class="fu">u*cos</span>(theta), <span class="fl">1</span>))</span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="fu">𝒓</span>(u) <span class="op">=</span> <span class="fu">sqrt</span>((<span class="fu">u*cos</span>(theta) <span class="op">-</span> <span class="fu">𝒙</span>(u))<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> (<span class="fu">u*sin</span>(theta) <span class="op">-</span> <span class="fu">f</span>(<span class="fu">𝒙</span>(u)))<span class="op">^</span><span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="46">
-<pre><code>𝒓 (generic function with 1 method)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>theta = pi/4  ## we write y=x as y = x * tan(pi/4) for more generality, as this allows other slants.
+
+f(x) = x^2
+𝒙(u) = find_zero(x -&gt; u*sin(theta) - 1/tan(theta) * (x - u*cos(theta)) - f(x), (u*cos(theta), 1))
+𝒓(u) = sqrt((u*cos(theta) - 𝒙(u))^2 + (u*sin(theta) - f(𝒙(u)))^2)</code></pre>
 <p>(Though in this case you can also find <code>r(u)</code> using the quadratic formula.)</p>
 <p>With this, find the volume.</p>
-<div class="cell" data-hold="true" data-execution_count="46">
-<div class="cell-output cell-output-display" data-execution_count="47">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="12023821830111801359" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_12023821830111801359">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="12023821830111801359" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="12023821830111801359_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("12023821830111801359").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 0.07404804896930606) <= 0.001);
-  var msgBox = document.getElementById('12023821830111801359_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_12023821830111801359")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_12023821830111801359")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+a, b = 0, sqrt(2)
+val, _ = quadgk(u -&gt; pi*𝒓(u)^2, a, b)
+numericq(val)</code></pre>
 <hr>
 <p>Repeat (find the volume) only this time with the function <span class="math inline">\(f(x) = x^{20}\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="47">
-<div class="cell-output cell-output-display" data-execution_count="48">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="12714493009625784603" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_12714493009625784603">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="12714493009625784603" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="12714493009625784603_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("12714493009625784603").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 0.59271276447715) <= 0.001);
-  var msgBox = document.getElementById('12714493009625784603_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_12714493009625784603")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_12714493009625784603")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+a, b = 0, sqrt(2)
+f(x) = x^20
+xval(u) = find_zero(x -&gt; u*sin(theta) - 1/tan(theta) * (x - u*cos(theta)) - f(x), (0,sqrt(2)))
+rad(u) = sqrt((u*cos(theta) - xval(u))^2 + (u*sin(theta) - f(xval(u)))^2)
+val, _ = quadgk(u -&gt; pi*rad(u)^2, a, b)
+numericq(val)</code></pre>
 
 
 </section>

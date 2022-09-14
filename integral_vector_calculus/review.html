@@ -608,6 +608,44 @@ ul.task-list li input[type="checkbox"] {
 
 </header>
 
+<pre class="{julia}"><code>#| echo: false
+
+import Logging
+Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
+Logging.disable_logging(Logging.Warn)
+
+import SymPy
+function Base.show(io::IO, ::MIME"text/html", x::T) where {T &lt;: SymPy.SymbolicObject}
+    println(io, "&lt;span class=\"math-left-align\" style=\"padding-left: 4px; width:0; float:left;\"&gt; ")
+    println(io, "\\[")
+    println(io, sympy.latex(x))
+    println(io, "\\]")
+    println(io, "&lt;/span&gt;")
+end
+
+# hack to work around issue
+import Markdown
+import CalculusWithJulia
+function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
+    nm = joinpath("..", string(d), f)
+    u = "![$caption]($nm)"
+    Markdown.parse(u)
+end
+
+nothing</code></pre>
+<pre class="{julia}"><code>#| echo: false
+#| results: "hidden"
+using CalculusWithJulia
+using CalculusWithJulia.WeaveSupport
+using Plots
+
+const frontmatter = (
+        title = "Quick Review of Vector Calculus",
+        description = "Calculus with Julia: Quick Review of Vector Calculus",
+        tags = ["CalculusWithJulia", "integral_vector_calculus", "quick review of vector calculus"],
+);
+
+nothing</code></pre>
 <p>This section considers functions from <span class="math inline">\(R^n\)</span> into <span class="math inline">\(R^m\)</span> where one or both of <span class="math inline">\(n\)</span> or <span class="math inline">\(m\)</span> is greater than <span class="math inline">\(1\)</span>:</p>
 <ul>
 <li>functions <span class="math inline">\(f:R \rightarrow R^m\)</span> are called univariate functions.</li>

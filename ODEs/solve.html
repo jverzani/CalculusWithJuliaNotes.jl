@@ -20,69 +20,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1.6em;
   vertical-align: middle;
 }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-    color: #aaaaaa;
-  }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { color: #008000; } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { color: #008000; font-weight: bold; } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
 
@@ -652,9 +589,45 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 </header>
 
+<pre class="{julia}"><code>#| echo: false
+
+import Logging
+Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
+Logging.disable_logging(Logging.Warn)
+
+import SymPy
+function Base.show(io::IO, ::MIME"text/html", x::T) where {T &lt;: SymPy.SymbolicObject}
+    println(io, "&lt;span class=\"math-left-align\" style=\"padding-left: 4px; width:0; float:left;\"&gt; ")
+    println(io, "\\[")
+    println(io, sympy.latex(x))
+    println(io, "\\]")
+    println(io, "&lt;/span&gt;")
+end
+
+# hack to work around issue
+import Markdown
+import CalculusWithJulia
+function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
+    nm = joinpath("..", string(d), f)
+    u = "![$caption]($nm)"
+    Markdown.parse(u)
+end
+
+nothing</code></pre>
 <p>This section uses these add-on packages:</p>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Plots</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">MonteCarloMeasurements</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<pre class="{julia}"><code>using Plots
+using MonteCarloMeasurements</code></pre>
+<pre class="{julia}"><code>#| echo: false
+#| results: "hidden"
+using CalculusWithJulia.WeaveSupport
+
+const frontmatter = (
+        title = "The problem-algorithm-solve interface",
+        description = "Calculus with Julia: The problem-algorithm-solve interface",
+        tags = ["CalculusWithJulia", "odes", "the problem-algorithm-solve interface"],
+);
+fig_size = (800, 600)
+nothing</code></pre>
 <hr>
 <p>The <a href="https://github.com/SciML">DifferentialEquations.jl</a> package is an entry point to a suite of <code>Julia</code> packages for numerically solving differential equations in <code>Julia</code> and other languages. A common interface is implemented that flexibly adjusts to the many different problems and algorithms covered by this suite of packages. In this section, we review a very informative <a href="https://discourse.julialang.org/t/function-depending-on-the-global-variable-inside-module/64322/10">post</a> by discourse user <code>@genkuroki</code> which very nicely demonstrates the usefulness of the problem-algorithm-solve approach used with <code>DifferentialEquations.jl</code>. We slightly modify the presentation below for our needs, but suggest a perusal of the original post.</p>
 <section id="example-freefall" class="level5">
@@ -662,201 +635,158 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>The motion of an object under a uniform gravitational field is of interest.</p>
 <p>The parameters that govern the equation of motions are the gravitational constant, <code>g</code>; the initial height, <code>y0</code>; and the initial velocity, <code>v0</code>. The time span for which a solution is sought is <code>tspan</code>.</p>
 <p>A problem consists of these parameters. Typical <code>Julia</code> usage would be to create a structure to hold the parameters, which may be done as follows:</p>
-<div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Problem{G, Y0, V0, TS}</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    g<span class="op">::</span><span class="dt">G</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    y0<span class="op">::</span><span class="dt">Y0</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    v0<span class="op">::</span><span class="dt">V0</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    tspan<span class="op">::</span><span class="dt">TS</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">Problem</span>(;g<span class="op">=</span><span class="fl">9.80665</span>, y0<span class="op">=</span><span class="fl">0.0</span>, v0<span class="op">=</span><span class="fl">30.0</span>, tspan<span class="op">=</span>(<span class="fl">0.0</span>,<span class="fl">8.0</span>)) <span class="op">=</span> <span class="fu">Problem</span>(g, y0, v0, tspan)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="5">
-<pre><code>Problem</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>struct Problem{G, Y0, V0, TS}
+    g::G
+    y0::Y0
+    v0::V0
+    tspan::TS
+end
+
+Problem(;g=9.80665, y0=0.0, v0=30.0, tspan=(0.0,8.0)) = Problem(g, y0, v0, tspan)</code></pre>
 <p>The above creates a type, <code>Problem</code>, <em>and</em> a default constructor with default values. (The original uses a more sophisticated setup that allows the two things above to be combined.)</p>
 <p>Just calling <code>Problem()</code> will create a problem suitable for the earth, passing different values for <code>g</code> would be possible for other planets.</p>
 <p>To solve differential equations there are many different possible algorithms. Here is the construction of two types to indicate two algorithms:</p>
-<div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> EulerMethod{T}</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  dt<span class="op">::</span><span class="dt">T</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">EulerMethod</span>(; dt<span class="op">=</span><span class="fl">0.1</span>) <span class="op">=</span> <span class="fu">EulerMethod</span>(dt)</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> ExactFormula{T}</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  dt<span class="op">::</span><span class="dt">T</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="fu">ExactFormula</span>(; dt<span class="op">=</span><span class="fl">0.1</span>) <span class="op">=</span> <span class="fu">ExactFormula</span>(dt)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="6">
-<pre><code>ExactFormula</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>struct EulerMethod{T}
+  dt::T
+end
+EulerMethod(; dt=0.1) = EulerMethod(dt)
+
+struct ExactFormula{T}
+  dt::T
+end
+ExactFormula(; dt=0.1) = ExactFormula(dt)</code></pre>
 <p>The above just specifies a type for dispatch –- the directions indicating what code to use to solve the problem. As seen, each specifies a size for a time step with default of <code>0.1</code>.</p>
 <p>A type for solutions is useful for different <code>show</code> methods or other methods. One can be created through:</p>
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Solution{Y, V, T, P<span class="op">&lt;:</span><span class="dt">Problem</span>, A}</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    y<span class="op">::</span><span class="dt">Y</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    v<span class="op">::</span><span class="dt">V</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    t<span class="op">::</span><span class="dt">T</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    prob<span class="op">::</span><span class="dt">P</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    alg<span class="op">::</span><span class="dt">A</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<pre class="{julia}"><code>struct Solution{Y, V, T, P&lt;:Problem, A}
+    y::Y
+    v::V
+    t::T
+    prob::P
+    alg::A
+end</code></pre>
 <p>The different algorithms then can be implemented as part of a generic <code>solve</code> function. Following the post we have:</p>
-<div class="cell" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">solve</span>(prob<span class="op">::</span><span class="dt">Problem</span>) <span class="op">=</span> <span class="fu">solve</span>(prob, <span class="fu">default_algorithm</span>(prob))</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">default_algorithm</span>(prob<span class="op">::</span><span class="dt">Problem</span>) <span class="op">=</span> <span class="fu">EulerMethod</span>()</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">solve</span>(prob<span class="op">::</span><span class="dt">Problem</span>, alg<span class="op">::</span><span class="dt">ExactFormula</span>)</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    g, y0, v0, tspan <span class="op">=</span> prob.g, prob.y0, prob.v0, prob.tspan</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    dt <span class="op">=</span> alg.dt</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    t0, t1 <span class="op">=</span> tspan</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    t <span class="op">=</span> <span class="fu">range</span>(t0, t1 <span class="op">+</span> dt<span class="op">/</span><span class="fl">2</span>; step <span class="op">=</span> dt)</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">y</span>(t) <span class="op">=</span> y0 <span class="op">+</span> <span class="fu">v0*</span>(t <span class="op">-</span> t0) <span class="op">-</span> <span class="fu">g*</span>(t <span class="op">-</span> t0)<span class="op">^</span><span class="fl">2</span><span class="op">/</span><span class="fl">2</span></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">v</span>(t) <span class="op">=</span> v0 <span class="op">-</span> <span class="fu">g*</span>(t <span class="op">-</span> t0)</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">Solution</span>(<span class="fu">y</span>.(t), <span class="fu">v</span>.(t), t, prob, alg)</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">solve</span>(prob<span class="op">::</span><span class="dt">Problem</span>, alg<span class="op">::</span><span class="dt">EulerMethod</span>)</span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    g, y0, v0, tspan <span class="op">=</span> prob.g, prob.y0, prob.v0, prob.tspan</span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    dt <span class="op">=</span> alg.dt</span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    t0, t1 <span class="op">=</span> tspan</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    t <span class="op">=</span> <span class="fu">range</span>(t0, t1 <span class="op">+</span> dt<span class="op">/</span><span class="fl">2</span>; step <span class="op">=</span> dt)</span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="fu">length</span>(t)</span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> <span class="fu">Vector</span><span class="dt">{typeof(y0)}</span>(<span class="cn">undef</span>, n)</span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    v <span class="op">=</span> <span class="fu">Vector</span><span class="dt">{typeof(v0)}</span>(<span class="cn">undef</span>, n)</span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>    y[<span class="fl">1</span>] <span class="op">=</span> y0</span>
-<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    v[<span class="fl">1</span>] <span class="op">=</span> v0</span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>n<span class="op">-</span><span class="fl">1</span></span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>        v[i<span class="op">+</span><span class="fl">1</span>] <span class="op">=</span> v[i] <span class="op">-</span> g<span class="op">*</span>dt     <span class="co"># F*h step of Euler</span></span>
-<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>        y[i<span class="op">+</span><span class="fl">1</span>] <span class="op">=</span> y[i] <span class="op">+</span> v[i]<span class="op">*</span>dt  <span class="co"># F*h step of Euler</span></span>
-<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
-<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>    <span class="fu">Solution</span>(y, v, t, prob, alg)</span>
-<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="8">
-<pre><code>solve (generic function with 3 methods)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>solve(prob::Problem) = solve(prob, default_algorithm(prob))
+default_algorithm(prob::Problem) = EulerMethod()
+
+function solve(prob::Problem, alg::ExactFormula)
+    g, y0, v0, tspan = prob.g, prob.y0, prob.v0, prob.tspan
+    dt = alg.dt
+    t0, t1 = tspan
+    t = range(t0, t1 + dt/2; step = dt)
+
+    y(t) = y0 + v0*(t - t0) - g*(t - t0)^2/2
+    v(t) = v0 - g*(t - t0)
+
+    Solution(y.(t), v.(t), t, prob, alg)
+end
+
+function solve(prob::Problem, alg::EulerMethod)
+    g, y0, v0, tspan = prob.g, prob.y0, prob.v0, prob.tspan
+    dt = alg.dt
+    t0, t1 = tspan
+    t = range(t0, t1 + dt/2; step = dt)
+
+    n = length(t)
+    y = Vector{typeof(y0)}(undef, n)
+    v = Vector{typeof(v0)}(undef, n)
+    y[1] = y0
+    v[1] = v0
+
+    for i in 1:n-1
+        v[i+1] = v[i] - g*dt     # F*h step of Euler
+        y[i+1] = y[i] + v[i]*dt  # F*h step of Euler
+    end
+
+    Solution(y, v, t, prob, alg)
+end</code></pre>
 <p>The post has a more elegant means to unpack the parameters from the structures, but for each of the above, the parameters are unpacked, and then the corresponding algorithm employed. As of version <code>v1.7</code> of <code>Julia</code>, the syntax <code>(;g,y0,v0,tspan) = prob</code> could also be employed.</p>
 <p>The exact formulas, <code>y(t) = y0 + v0*(t - t0) - g*(t - t0)^2/2</code> and <code>v(t) = v0 - g*(t - t0)</code>, follow from well-known physics formulas. Each answer is wrapped in a <code>Solution</code> type so that the answers found can be easily extracted in a uniform manner.</p>
 <p>For example, plots of each can be obtained through:</p>
-<div class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>earth <span class="op">=</span> <span class="fu">Problem</span>()</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>sol_euler <span class="op">=</span> <span class="fu">solve</span>(earth)</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>sol_exact <span class="op">=</span> <span class="fu">solve</span>(earth, <span class="fu">ExactFormula</span>())</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sol_euler.t, sol_euler.y;</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>     label<span class="op">=</span><span class="st">"Euler's method (dt = </span><span class="sc">$</span>(sol_euler.alg.dt)<span class="st">)"</span>, ls<span class="op">=:</span>auto)</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(sol_exact.t, sol_exact.y; label<span class="op">=</span><span class="st">"exact solution"</span>, ls<span class="op">=:</span>auto)</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="fu">title!</span>(<span class="st">"On the Earth"</span>; xlabel<span class="op">=</span><span class="st">"t"</span>, legend<span class="op">=:</span>bottomleft)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="9">
-<p><img src="solve_files/figure-html/cell-9-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>earth = Problem()
+sol_euler = solve(earth)
+sol_exact = solve(earth, ExactFormula())
+
+plot(sol_euler.t, sol_euler.y;
+     label="Euler's method (dt = $(sol_euler.alg.dt))", ls=:auto)
+plot!(sol_exact.t, sol_exact.y; label="exact solution", ls=:auto)
+title!("On the Earth"; xlabel="t", legend=:bottomleft)</code></pre>
 <p>Following the post, since the time step <code>dt = 0.1</code> is not small enough, the error of the Euler method is rather large. Next we change the algorithm parameter, <code>dt</code>, to be smaller:</p>
-<div class="cell" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>earth₂ <span class="op">=</span> <span class="fu">Problem</span>()</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>sol_euler₂ <span class="op">=</span> <span class="fu">solve</span>(earth₂, <span class="fu">EulerMethod</span>(dt <span class="op">=</span> <span class="fl">0.01</span>))</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>sol_exact₂ <span class="op">=</span> <span class="fu">solve</span>(earth₂, <span class="fu">ExactFormula</span>())</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sol_euler₂.t, sol_euler₂.y;</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>     label<span class="op">=</span><span class="st">"Euler's method (dt = </span><span class="sc">$</span>(sol_euler₂.alg.dt)<span class="st">)"</span>, ls<span class="op">=:</span>auto)</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(sol_exact₂.t, sol_exact₂.y; label<span class="op">=</span><span class="st">"exact solution"</span>, ls<span class="op">=:</span>auto)</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="fu">title!</span>(<span class="st">"On the Earth"</span>; xlabel<span class="op">=</span><span class="st">"t"</span>, legend<span class="op">=:</span>bottomleft)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="10">
-<p><img src="solve_files/figure-html/cell-10-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>earth₂ = Problem()
+sol_euler₂ = solve(earth₂, EulerMethod(dt = 0.01))
+sol_exact₂ = solve(earth₂, ExactFormula())
+
+plot(sol_euler₂.t, sol_euler₂.y;
+     label="Euler's method (dt = $(sol_euler₂.alg.dt))", ls=:auto)
+plot!(sol_exact₂.t, sol_exact₂.y; label="exact solution", ls=:auto)
+title!("On the Earth"; xlabel="t", legend=:bottomleft)</code></pre>
 <p>It is worth noting that only the first line is modified, and only the method requires modification.</p>
 <p>Were the moon to be considered, the gravitational constant would need adjustment. This parameter is part of the problem, not the solution algorithm.</p>
 <p>Such adjustments are made by passing different values to the <code>Problem</code> constructor:</p>
-<div class="cell" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>moon <span class="op">=</span> <span class="fu">Problem</span>(g <span class="op">=</span> <span class="fl">1.62</span>, tspan <span class="op">=</span> (<span class="fl">0.0</span>, <span class="fl">40.0</span>))</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>sol_eulerₘ <span class="op">=</span> <span class="fu">solve</span>(moon)</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>sol_exactₘ <span class="op">=</span> <span class="fu">solve</span>(moon, <span class="fu">ExactFormula</span>(dt <span class="op">=</span> sol_euler.alg.dt))</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sol_eulerₘ.t, sol_eulerₘ.y;</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>     label<span class="op">=</span><span class="st">"Euler's method (dt = </span><span class="sc">$</span>(sol_eulerₘ.alg.dt)<span class="st">)"</span>, ls<span class="op">=:</span>auto)</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(sol_exactₘ.t, sol_exactₘ.y; label<span class="op">=</span><span class="st">"exact solution"</span>, ls<span class="op">=:</span>auto)</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="fu">title!</span>(<span class="st">"On the Moon"</span>; xlabel<span class="op">=</span><span class="st">"t"</span>, legend<span class="op">=:</span>bottomleft)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="11">
-<p><img src="solve_files/figure-html/cell-11-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>moon = Problem(g = 1.62, tspan = (0.0, 40.0))
+sol_eulerₘ = solve(moon)
+sol_exactₘ = solve(moon, ExactFormula(dt = sol_euler.alg.dt))
+
+plot(sol_eulerₘ.t, sol_eulerₘ.y;
+     label="Euler's method (dt = $(sol_eulerₘ.alg.dt))", ls=:auto)
+plot!(sol_exactₘ.t, sol_exactₘ.y; label="exact solution", ls=:auto)
+title!("On the Moon"; xlabel="t", legend=:bottomleft)</code></pre>
 <p>The code above also adjusts the time span in addition to the graviational constant. The algorithm for exact formula is set to use the <code>dt</code> value used in the <code>euler</code> formula, for easier comparison. Otherwise, outside of the labels, the patterns are the same. Only those things that need changing are changed, the rest comes from defaults.</p>
 <p>The above shows the benefits of using a common interface. Next, the post illustrates how <em>other</em> authors could extend this code, simply by adding a <em>new</em> <code>solve</code> method. For example,</p>
-<div class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Symplectic2ndOrder{T}</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    dt<span class="op">::</span><span class="dt">T</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="fu">Symplectic2ndOrder</span>(;dt<span class="op">=</span><span class="fl">0.1</span>) <span class="op">=</span> <span class="fu">Symplectic2ndOrder</span>(dt)</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">solve</span>(prob<span class="op">::</span><span class="dt">Problem</span>, alg<span class="op">::</span><span class="dt">Symplectic2ndOrder</span>)</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    g, y0, v0, tspan <span class="op">=</span> prob.g, prob.y0, prob.v0, prob.tspan</span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    dt <span class="op">=</span> alg.dt</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    t0, t1 <span class="op">=</span> tspan</span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    t <span class="op">=</span> <span class="fu">range</span>(t0, t1 <span class="op">+</span> dt<span class="op">/</span><span class="fl">2</span>; step <span class="op">=</span> dt)</span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="fu">length</span>(t)</span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> <span class="fu">Vector</span><span class="dt">{typeof(y0)}</span>(<span class="cn">undef</span>, n)</span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    v <span class="op">=</span> <span class="fu">Vector</span><span class="dt">{typeof(v0)}</span>(<span class="cn">undef</span>, n)</span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    y[<span class="fl">1</span>] <span class="op">=</span> y0</span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    v[<span class="fl">1</span>] <span class="op">=</span> v0</span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>n<span class="op">-</span><span class="fl">1</span></span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>        ytmp <span class="op">=</span> y[i] <span class="op">+</span> v[i]<span class="op">*</span>dt<span class="op">/</span><span class="fl">2</span></span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>        v[i<span class="op">+</span><span class="fl">1</span>] <span class="op">=</span> v[i] <span class="op">-</span> g<span class="op">*</span>dt</span>
-<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>        y[i<span class="op">+</span><span class="fl">1</span>] <span class="op">=</span> ytmp <span class="op">+</span> v[i<span class="op">+</span><span class="fl">1</span>]<span class="op">*</span>dt<span class="op">/</span><span class="fl">2</span></span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
-<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">Solution</span>(y, v, t, prob, alg)</span>
-<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="12">
-<pre><code>solve (generic function with 4 methods)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>struct Symplectic2ndOrder{T}
+    dt::T
+end
+Symplectic2ndOrder(;dt=0.1) = Symplectic2ndOrder(dt)
+
+function solve(prob::Problem, alg::Symplectic2ndOrder)
+    g, y0, v0, tspan = prob.g, prob.y0, prob.v0, prob.tspan
+    dt = alg.dt
+    t0, t1 = tspan
+    t = range(t0, t1 + dt/2; step = dt)
+
+    n = length(t)
+    y = Vector{typeof(y0)}(undef, n)
+    v = Vector{typeof(v0)}(undef, n)
+    y[1] = y0
+    v[1] = v0
+
+    for i in 1:n-1
+        ytmp = y[i] + v[i]*dt/2
+        v[i+1] = v[i] - g*dt
+        y[i+1] = ytmp + v[i+1]*dt/2
+    end
+
+    Solution(y, v, t, prob, alg)
+end</code></pre>
 <p>Had the two prior methods been in a package, the other user could still extend the interface, as above, with just a slight standard modification.</p>
 <p>The same approach works for this new type:</p>
-<div class="cell" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>earth₃ <span class="op">=</span> <span class="fu">Problem</span>()</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>sol_sympl₃ <span class="op">=</span> <span class="fu">solve</span>(earth₃, <span class="fu">Symplectic2ndOrder</span>(dt <span class="op">=</span> <span class="fl">2.0</span>))</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>sol_exact₃ <span class="op">=</span> <span class="fu">solve</span>(earth₃, <span class="fu">ExactFormula</span>())</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sol_sympl₃.t, sol_sympl₃.y; label<span class="op">=</span><span class="st">"2nd order symplectic (dt = </span><span class="sc">$</span>(sol_sympl₃.alg.dt)<span class="st">)"</span>, ls<span class="op">=:</span>auto)</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(sol_exact₃.t, sol_exact₃.y; label<span class="op">=</span><span class="st">"exact solution"</span>, ls<span class="op">=:</span>auto)</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="fu">title!</span>(<span class="st">"On the Earth"</span>; xlabel<span class="op">=</span><span class="st">"t"</span>, legend<span class="op">=:</span>bottomleft)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="13">
-<p><img src="solve_files/figure-html/cell-13-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>
+earth₃ = Problem()
+sol_sympl₃ = solve(earth₃, Symplectic2ndOrder(dt = 2.0))
+sol_exact₃ = solve(earth₃, ExactFormula())
+
+plot(sol_sympl₃.t, sol_sympl₃.y; label="2nd order symplectic (dt = $(sol_sympl₃.alg.dt))", ls=:auto)
+plot!(sol_exact₃.t, sol_exact₃.y; label="exact solution", ls=:auto)
+title!("On the Earth"; xlabel="t", legend=:bottomleft)</code></pre>
 <p>Finally, the author of the post shows how the interface can compose with other packages in the <code>Julia</code> package ecosystem. This example uses the external package <code>MonteCarloMeasurements</code> which plots the behavior of the system for perturbations of the initial value:</p>
-<div class="cell" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>earth₄ <span class="op">=</span> <span class="fu">Problem</span>(y0 <span class="op">=</span> <span class="fl">0.0</span> <span class="op">±</span> <span class="fl">0.0</span>, v0 <span class="op">=</span> <span class="fl">30.0</span> <span class="op">±</span> <span class="fl">1.0</span>)</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>sol_euler₄ <span class="op">=</span> <span class="fu">solve</span>(earth₄)</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>sol_sympl₄ <span class="op">=</span> <span class="fu">solve</span>(earth₄, <span class="fu">Symplectic2ndOrder</span>(dt <span class="op">=</span> <span class="fl">2.0</span>))</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>sol_exact₄ <span class="op">=</span> <span class="fu">solve</span>(earth₄, <span class="fu">ExactFormula</span>())</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>ylim <span class="op">=</span> (<span class="op">-</span><span class="fl">100</span>, <span class="fl">60</span>)</span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> <span class="fu">plot</span>(sol_euler₄.t, sol_euler₄.y;</span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>         label<span class="op">=</span><span class="st">"Euler's method (dt = </span><span class="sc">$</span>(sol_euler₄.alg.dt)<span class="st">)"</span>, ls<span class="op">=:</span>auto)</span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="fu">title!</span>(<span class="st">"On the Earth"</span>; xlabel<span class="op">=</span><span class="st">"t"</span>, legend<span class="op">=:</span>bottomleft, ylim)</span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>Q <span class="op">=</span> <span class="fu">plot</span>(sol_sympl₄.t, sol_sympl₄.y;</span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>         label<span class="op">=</span><span class="st">"2nd order symplectic (dt = </span><span class="sc">$</span>(sol_sympl₄.alg.dt)<span class="st">)"</span>, ls<span class="op">=:</span>auto)</span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="fu">title!</span>(<span class="st">"On the Earth"</span>; xlabel<span class="op">=</span><span class="st">"t"</span>, legend<span class="op">=:</span>bottomleft, ylim)</span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>R <span class="op">=</span> <span class="fu">plot</span>(sol_exact₄.t, sol_exact₄.y; label<span class="op">=</span><span class="st">"exact solution"</span>, ls<span class="op">=:</span>auto)</span>
-<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="fu">title!</span>(<span class="st">"On the Earth"</span>; xlabel<span class="op">=</span><span class="st">"t"</span>, legend<span class="op">=:</span>bottomleft, ylim)</span>
-<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(P, Q, R; size<span class="op">=</span>(<span class="fl">720</span>, <span class="fl">600</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="14">
-<p><img src="solve_files/figure-html/cell-14-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>
+earth₄ = Problem(y0 = 0.0 ± 0.0, v0 = 30.0 ± 1.0)
+sol_euler₄ = solve(earth₄)
+sol_sympl₄ = solve(earth₄, Symplectic2ndOrder(dt = 2.0))
+sol_exact₄ = solve(earth₄, ExactFormula())
+
+ylim = (-100, 60)
+P = plot(sol_euler₄.t, sol_euler₄.y;
+         label="Euler's method (dt = $(sol_euler₄.alg.dt))", ls=:auto)
+title!("On the Earth"; xlabel="t", legend=:bottomleft, ylim)
+
+Q = plot(sol_sympl₄.t, sol_sympl₄.y;
+         label="2nd order symplectic (dt = $(sol_sympl₄.alg.dt))", ls=:auto)
+title!("On the Earth"; xlabel="t", legend=:bottomleft, ylim)
+
+R = plot(sol_exact₄.t, sol_exact₄.y; label="exact solution", ls=:auto)
+title!("On the Earth"; xlabel="t", legend=:bottomleft, ylim)
+
+plot(P, Q, R; size=(720, 600))</code></pre>
 <p>The only change was in the problem, <code>Problem(y0 = 0.0 ± 0.0, v0 = 30.0 ± 1.0)</code>, where a different number type is used which accounts for uncertainty. The rest follows the same pattern.</p>
 <p>This example, shows the flexibility of the problem-algorithm-solver pattern while maintaining a consistent pattern for execution.</p>
 

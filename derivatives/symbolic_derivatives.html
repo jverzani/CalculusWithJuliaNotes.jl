@@ -20,69 +20,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1.6em;
   vertical-align: middle;
 }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-    color: #aaaaaa;
-  }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { color: #008000; } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { color: #008000; font-weight: bold; } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
 
@@ -652,187 +589,153 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 </header>
 
+<pre class="{julia}"><code>#| echo: false
+
+import Logging
+Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
+Logging.disable_logging(Logging.Warn)
+
+import SymPy
+function Base.show(io::IO, ::MIME"text/html", x::T) where {T &lt;: SymPy.SymbolicObject}
+    println(io, "&lt;span class=\"math-left-align\" style=\"padding-left: 4px; width:0; float:left;\"&gt; ")
+    println(io, "\\[")
+    println(io, sympy.latex(x))
+    println(io, "\\]")
+    println(io, "&lt;/span&gt;")
+end
+
+# hack to work around issue
+import Markdown
+import CalculusWithJulia
+function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
+    nm = joinpath("..", string(d), f)
+    u = "![$caption]($nm)"
+    Markdown.parse(u)
+end
+
+nothing</code></pre>
 <p>This section uses this add-on package:</p>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">TermInterface</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<pre class="{julia}"><code>using TermInterface</code></pre>
+<pre class="{julia}"><code>#| echo: false
+const frontmatter = (
+        title = "Symbolic derivatives",
+        description = "Calculus with Julia: Symbolic derivatives",
+        tags = ["CalculusWithJulia", "derivatives", "symbolic derivatives"],
+);</code></pre>
 <hr>
 <p>The ability to breakdown an expression into operations and their arguments is necessary when trying to apply the differentiation rules. Such rules are applied from the outside in. Identifying the proper “outside” function is usually most of the battle when finding derivatives.</p>
 <p>In the following example, we provide a sketch of a framework to differentiate expressions by a chosen symbol to illustrate how the outer function drives the task of differentiation.</p>
 <p>The <code>Symbolics</code> package provides native symbolic manipulation abilities for <code>Julia</code>, similar to <code>SymPy</code>, though without the dependence on <code>Python</code>. The <code>TermInterface</code> package, used by <code>Symbolics</code>, provides a generic interface for expression manipulation for this package that <em>also</em> is implemented for <code>Julia</code>’s expressions and symbols.</p>
 <p>An expression is an unevaluated portion of code that for our purposes below contains other expressions, symbols, and numeric literals. They are held in the <code>Expr</code> type. A symbol, such as <code>:x</code>, is distinct from a string (e.g.&nbsp;<code>"x"</code>) and is useful to the programmer to distinguish between the contents a variable points to from the name of the variable. Symbols are fundamental to metaprogramming in <code>Julia</code>. An expression is a specification of some set of statements to execute. A numeric literal is just a number.</p>
 <p>The three main functions from <code>TermInterface</code> we leverage are <code>istree</code>, <code>operation</code>, and <code>arguments</code>. The <code>operation</code> function returns the “outside” function of an expression. For example:</p>
-<div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">operation</span>(<span class="op">:</span>(<span class="fu">sin</span>(x)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="5">
-<pre><code>:sin</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>operation(:(sin(x)))</code></pre>
 <p>We see the <code>sin</code> function, referred to by a symbol (<code>:sin</code>). The <code>:(...)</code> above <em>quotes</em> the argument, and does not evaluate it, hence <code>x</code> need not be defined above. (The <code>:</code> notation is used to create both symbols and expressions.)</p>
 <p>The arguments are the terms that the outside function is called on. For our purposes there may be <span class="math inline">\(1\)</span> (<em>unary</em>), <span class="math inline">\(2\)</span> (<em>binary</em>), or more than <span class="math inline">\(2\)</span> (<em>nary</em>) arguments. (We ignore zero-argument functions.) For example:</p>
-<div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">arguments</span>(<span class="op">:</span>(<span class="op">-</span>x)), <span class="fu">arguments</span>(<span class="op">:</span>(<span class="cn">pi</span><span class="op">^</span><span class="fl">2</span>)), <span class="fu">arguments</span>(<span class="op">:</span>(<span class="fl">1</span> <span class="op">+</span> x <span class="op">+</span> x<span class="op">^</span><span class="fl">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="6">
-<pre><code>(Any[:x], Any[:pi, 2], Any[1, :x, :(x ^ 2)])</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>arguments(:(-x)), arguments(:(pi^2)), arguments(:(1 + x + x^2))</code></pre>
 <p>(The last one may be surprising, but all three arguments are passed to the <code>+</code> function.)</p>
 <p>Here we define a function to decide the <em>arity</em> of an expression based on the number of arguments it is called with:</p>
-<div class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">arity</span>(ex)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>        n <span class="op">=</span> <span class="fu">length</span>(<span class="fu">arguments</span>(ex))</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>        n <span class="op">==</span> <span class="fl">1</span> ? <span class="fu">Val</span>(<span class="op">:</span>unary) <span class="op">:</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>        n <span class="op">==</span> <span class="fl">2</span> ? <span class="fu">Val</span>(<span class="op">:</span>binary) <span class="op">:</span> <span class="fu">Val</span>(<span class="op">:</span>nary)</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="7">
-<pre><code>arity (generic function with 1 method)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>function arity(ex)
+        n = length(arguments(ex))
+        n == 1 ? Val(:unary) :
+        n == 2 ? Val(:binary) : Val(:nary)
+end</code></pre>
 <p>Differentiation must distinguish between expressions, variables, and numbers. Mathematically expressions have an “outer” function, whereas variables and numbers can be directly differentiated. The <code>istree</code> function in <code>TermInterface</code> returns <code>true</code> when passed an expression, and <code>false</code> when passed a symbol or numeric literal. The latter two may be distinguished by <code>isa(..., Symbol)</code>.</p>
 <p>Here we create a function, <code>D</code>, that when it encounters an expression it <em>dispatches</em> to a specific method of <code>D</code> based on the outer operation and arity, otherwise if it encounters a symbol or a numeric literal it does the differentiation:</p>
-<div class="cell" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">D</span>(ex, var<span class="op">=:</span>x)</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="fu">istree</span>(ex)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>        op, args <span class="op">=</span> <span class="fu">operation</span>(ex), <span class="fu">arguments</span>(ex)</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">D</span>(<span class="fu">Val</span>(op), <span class="fu">arity</span>(ex), args, var)</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elseif</span> <span class="fu">isa</span>(ex, <span class="dt">Symbol</span>) <span class="op">&amp;&amp;</span> ex <span class="op">==</span> <span class="op">:</span>x</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>        <span class="fl">1</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        <span class="fl">0</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="8">
-<pre><code>D (generic function with 2 methods)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>function D(ex, var=:x)
+    if istree(ex)
+        op, args = operation(ex), arguments(ex)
+        D(Val(op), arity(ex), args, var)
+    elseif isa(ex, Symbol) &amp;&amp; ex == :x
+        1
+    else
+        0
+    end
+end</code></pre>
 <p>Now to develop methods for <code>D</code> for different “outside” functions and arities.</p>
 <p>Addition can be unary (<code>:(+x)</code> is a valid quoting, even if it might simplify to the symbol <code>:x</code> when evaluated), <em>binary</em>, or <em>nary</em>. Here we implement the <em>sum rule</em>:</p>
-<div class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">D</span>(<span class="op">::</span><span class="dt">Val{:+}</span>, <span class="op">::</span><span class="dt">Val{:unary}</span>, args, var) <span class="op">=</span> <span class="fu">D</span>(<span class="fu">first</span>(args), var)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">D</span>(<span class="op">::</span><span class="dt">Val{:+}</span>, <span class="op">::</span><span class="dt">Val{:binary}</span>, args, var)</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    a′, b′ <span class="op">=</span> <span class="fu">D</span>.(args, var)</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span>(<span class="op">$</span>a′ <span class="op">+</span> <span class="op">$</span>b′)</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">D</span>(<span class="op">::</span><span class="dt">Val{:+}</span>, <span class="op">::</span><span class="dt">Val{:nary}</span>, args, var)</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    a′s <span class="op">=</span> <span class="fu">D</span>.(args, var)</span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span>(<span class="fu">+</span>(<span class="op">$</span>a′s<span class="op">...</span>))</span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="9">
-<pre><code>D (generic function with 5 methods)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>D(::Val{:+}, ::Val{:unary}, args, var) = D(first(args), var)
+
+function D(::Val{:+}, ::Val{:binary}, args, var)
+    a′, b′ = D.(args, var)
+    :($a′ + $b′)
+end
+
+function D(::Val{:+}, ::Val{:nary}, args, var)
+    a′s = D.(args, var)
+    :(+($a′s...))
+end</code></pre>
 <p>The <code>args</code> are always held in a container, so the unary method must pull out the first one. The binary case should read as: apply <code>D</code> to each of the two arguments, and then create a quoted expression containing the sum of the results. The dollar signs interpolate into the quoting. (The “primes” are unicode notation achieved through <code>\prime[tab]</code> and not operations.) The <em>nary</em> case does something similar, only uses splatting to produce the sum.</p>
 <p>Subtraction must also be implemented in a similar manner, but not for the <em>nary</em> case:</p>
-<div class="cell" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">D</span>(<span class="op">::</span><span class="dt">Val{:-}</span>, <span class="op">::</span><span class="dt">Val{:unary}</span>, args, var)</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    a′ <span class="op">=</span> <span class="fu">D</span>(<span class="fu">first</span>(args), var)</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span>(<span class="op">-$</span>a′)</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">D</span>(<span class="op">::</span><span class="dt">Val{:-}</span>, <span class="op">::</span><span class="dt">Val{:binary}</span>, args, var)</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    a′, b′ <span class="op">=</span> <span class="fu">D</span>.(args, var)</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span>(<span class="op">$</span>a′ <span class="op">-</span> <span class="op">$</span>b′)</span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="10">
-<pre><code>D (generic function with 7 methods)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>function D(::Val{:-}, ::Val{:unary}, args, var)
+    a′ = D(first(args), var)
+    :(-$a′)
+end
+function D(::Val{:-}, ::Val{:binary}, args, var)
+    a′, b′ = D.(args, var)
+    :($a′ - $b′)
+end</code></pre>
 <p>The <em>product rule</em> is similar to addition, in that <span class="math inline">\(3\)</span> cases are considered:</p>
-<div class="cell" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">D</span>(op<span class="op">::</span><span class="dt">Val{:*}</span>, <span class="op">::</span><span class="dt">Val{:unary}</span>, args, var) <span class="op">=</span> <span class="fu">D</span>(<span class="fu">first</span>(args), var)</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">D</span>(<span class="op">::</span><span class="dt">Val{:*}</span>, <span class="op">::</span><span class="dt">Val{:binary}</span>, args, var)</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    a, b <span class="op">=</span> args</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    a′, b′ <span class="op">=</span> <span class="fu">D</span>.(args, var)</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span>(<span class="op">$</span>a′ <span class="op">*</span> <span class="op">$</span>b <span class="op">+</span> <span class="op">$</span>a <span class="op">*</span> <span class="op">$</span>b′)</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">D</span>(op<span class="op">::</span><span class="dt">Val{:*}</span>, <span class="op">::</span><span class="dt">Val{:nary}</span>, args, var)</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    a, bs<span class="op">...</span> <span class="op">=</span> args</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    b <span class="op">=</span> <span class="op">:</span>(<span class="fu">*</span>(<span class="op">$</span>(bs<span class="op">...</span>)))</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    a′ <span class="op">=</span> <span class="fu">D</span>(a, var)</span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    b′ <span class="op">=</span> <span class="fu">D</span>(b, var)</span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span>(<span class="op">$</span>a′ <span class="op">*</span> <span class="op">$</span>b <span class="op">+</span> <span class="op">$</span>a <span class="op">*</span> <span class="op">$</span>b′)</span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="11">
-<pre><code>D (generic function with 10 methods)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>D(op::Val{:*}, ::Val{:unary}, args, var) = D(first(args), var)
+
+function D(::Val{:*}, ::Val{:binary}, args, var)
+    a, b = args
+    a′, b′ = D.(args, var)
+    :($a′ * $b + $a * $b′)
+end
+
+function D(op::Val{:*}, ::Val{:nary}, args, var)
+    a, bs... = args
+    b = :(*($(bs...)))
+    a′ = D(a, var)
+    b′ = D(b, var)
+    :($a′ * $b + $a * $b′)
+end</code></pre>
 <p>The <em>nary</em> case above just peels off the first factor and then uses the binary product rule.</p>
 <p>Division is only a binary operation, so here we have the <em>quotient rule</em>:</p>
-<div class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">D</span>(<span class="op">::</span><span class="dt">Val{:/}</span>, <span class="op">::</span><span class="dt">Val{:binary}</span>, args, var)</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    u,v <span class="op">=</span> args</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    u′, v′ <span class="op">=</span> <span class="fu">D</span>(u, var), <span class="fu">D</span>(v, var)</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span>( (<span class="op">$</span>u′<span class="op">*$</span>v <span class="op">-</span> <span class="op">$</span>u<span class="op">*$</span>v′)<span class="op">/$</span>v<span class="op">^</span><span class="fl">2</span> )</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="12">
-<pre><code>D (generic function with 11 methods)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>function D(::Val{:/}, ::Val{:binary}, args, var)
+    u,v = args
+    u′, v′ = D(u, var), D(v, var)
+    :( ($u′*$v - $u*$v′)/$v^2 )
+end</code></pre>
 <p>Powers are handled a bit differently. The power rule would require checking if the exponent does not contain the variable of differentiation, exponential derivatives would require checking the base does not contain the variable of differentation. Trying to implement both would be tedious, so we use the fact that <span class="math inline">\(x = \exp(\log(x))\)</span> (for <code>x</code> in the domain of <code>log</code>, more care is necessary if <code>x</code> is negative) to differentiate:</p>
-<div class="cell" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">D</span>(<span class="op">::</span><span class="dt">Val{:^}</span>, <span class="op">::</span><span class="dt">Val{:binary}</span>, args, var)</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    a, b <span class="op">=</span> args</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">D</span>(<span class="op">:</span>(<span class="fu">exp</span>(<span class="op">$</span><span class="fu">b*log</span>(<span class="op">$</span>a))), var)  <span class="co"># a &gt; 0 assumed here</span></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="13">
-<pre><code>D (generic function with 12 methods)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>function D(::Val{:^}, ::Val{:binary}, args, var)
+    a, b = args
+    D(:(exp($b*log($a))), var)  # a &gt; 0 assumed here
+end</code></pre>
 <p>That leaves the task of defining a rule to differentiate both <code>exp</code> and <code>log</code>. We do so with <em>unary</em> definitions. In the following we also implement <code>sin</code> and <code>cos</code> rules:</p>
-<div class="cell" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">D</span>(<span class="op">::</span><span class="dt">Val{:exp}</span>, <span class="op">::</span><span class="dt">Val{:unary}</span>, args, var)</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    a <span class="op">=</span> <span class="fu">first</span>(args)</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    a′ <span class="op">=</span> <span class="fu">D</span>(a, var)</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span>(<span class="fu">exp</span>(<span class="op">$</span>a) <span class="op">*</span> <span class="op">$</span>a′)</span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">D</span>(<span class="op">::</span><span class="dt">Val{:log}</span>, <span class="op">::</span><span class="dt">Val{:unary}</span>, args, var)</span>
-<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>    a <span class="op">=</span> <span class="fu">first</span>(args)</span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>    a′ <span class="op">=</span> <span class="fu">D</span>(a, var)</span>
-<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span>(<span class="fl">1</span><span class="op">/$</span>a <span class="op">*</span> <span class="op">$</span>a′)</span>
-<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">D</span>(<span class="op">::</span><span class="dt">Val{:sin}</span>, <span class="op">::</span><span class="dt">Val{:unary}</span>, args, var)</span>
-<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>    a <span class="op">=</span> <span class="fu">first</span>(args)</span>
-<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>    a′ <span class="op">=</span> <span class="fu">D</span>(a, var)</span>
-<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span>(<span class="fu">cos</span>(<span class="op">$</span>a) <span class="op">*</span> <span class="op">$</span>a′)</span>
-<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">D</span>(<span class="op">::</span><span class="dt">Val{:cos}</span>, <span class="op">::</span><span class="dt">Val{:unary}</span>, args, var)</span>
-<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>    a <span class="op">=</span> <span class="fu">first</span>(args)</span>
-<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>    a′ <span class="op">=</span> <span class="fu">D</span>(a, var)</span>
-<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span>(<span class="fu">-sin</span>(<span class="op">$</span>a) <span class="op">*</span> <span class="op">$</span>a′)</span>
-<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="14">
-<pre><code>D (generic function with 16 methods)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>function D(::Val{:exp}, ::Val{:unary}, args, var)
+    a = first(args)
+    a′ = D(a, var)
+    :(exp($a) * $a′)
+end
+
+function D(::Val{:log}, ::Val{:unary}, args, var)
+    a = first(args)
+    a′ = D(a, var)
+    :(1/$a * $a′)
+end
+
+function D(::Val{:sin}, ::Val{:unary}, args, var)
+    a = first(args)
+    a′ = D(a, var)
+    :(cos($a) * $a′)
+end
+
+function D(::Val{:cos}, ::Val{:unary}, args, var)
+    a = first(args)
+    a′ = D(a, var)
+    :(-sin($a) * $a′)
+end</code></pre>
 <p>The pattern is similar for each. The <code>$a′</code> factor is needed due to the <em>chain rule</em>. The above illustrates the simple pattern necessary to add a derivative rule for a function. More could be, but for this example the above will suffice, as now the system is ready to be put to work.</p>
-<div class="cell" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>ex₁ <span class="op">=</span> <span class="op">:</span>(x <span class="op">+</span> <span class="fl">2</span><span class="op">/</span>x)</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">D</span>(ex₁, <span class="op">:</span>x)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="15">
-<pre><code>:(1 + (0 * x - 2 * 1) / x ^ 2)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>ex₁ = :(x + 2/x)
+D(ex₁, :x)</code></pre>
 <p>The output does not simplify, so some work is needed to identify <code>1 - 2/x^2</code> as the answer.</p>
-<div class="cell" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>ex₂ <span class="op">=</span> <span class="op">:</span>( (x <span class="op">+</span> <span class="fu">sin</span>(x))<span class="op">/</span><span class="fu">sin</span>(x))</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">D</span>(ex₂, <span class="op">:</span>x)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="16">
-<pre><code>:(((1 + cos(x) * 1) * sin(x) - (x + sin(x)) * (cos(x) * 1)) / sin(x) ^ 2)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>ex₂ = :( (x + sin(x))/sin(x))
+D(ex₂, :x)</code></pre>
 <p>Again, simplification is not performed.</p>
 <p>Finally, we have a second derivative taken below:</p>
-<div class="cell" data-execution_count="16">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>ex₃ <span class="op">=</span> <span class="op">:</span>(<span class="fu">sin</span>(x) <span class="op">-</span> x <span class="op">-</span> x<span class="op">^</span><span class="fl">3</span><span class="op">/</span><span class="fl">6</span>)</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">D</span>(<span class="fu">D</span>(ex₃, <span class="op">:</span>x), <span class="op">:</span>x)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="17">
-<pre><code>:((((-(sin(x)) * 1) * 1 + cos(x) * 0) - 0) - (((((exp(3 * log(x)) * (0 * log(x) + 3 * ((1 / x) * 1))) * (0 * log(x) + 3 * ((1 / x) * 1)) + exp(3 * log(x)) * ((0 * log(x) + 0 * ((1 / x) * 1)) + (0 * ((1 / x) * 1) + 3 * (((0 * x - 1 * 1) / x ^ 2) * 1 + (1 / x) * 0)))) * 6 + (exp(3 * log(x)) * (0 * log(x) + 3 * ((1 / x) * 1))) * 0) - ((exp(3 * log(x)) * (0 * log(x) + 3 * ((1 / x) * 1))) * 0 + x ^ 3 * 0)) * 6 ^ 2 - ((exp(3 * log(x)) * (0 * log(x) + 3 * ((1 / x) * 1))) * 6 - x ^ 3 * 0) * (exp(2 * log(6)) * (0 * log(6) + 2 * ((1 / 6) * 0)))) / (6 ^ 2) ^ 2)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>ex₃ = :(sin(x) - x - x^3/6)
+D(D(ex₃, :x), :x)</code></pre>
 <p>The length of the expression should lead to further appreciation for simplification steps taken when doing such a computation by hand.</p>
 
 

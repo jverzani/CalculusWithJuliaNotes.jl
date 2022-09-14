@@ -20,69 +20,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1.6em;
   vertical-align: middle;
 }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-    color: #aaaaaa;
-  }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { color: #008000; } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { color: #008000; font-weight: bold; } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
 
@@ -124,9 +61,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   }
 }</script>
 <script async="" src="https://hypothes.is/embed.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
-<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
@@ -669,6 +603,42 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 </header>
 
+<pre class="{julia}"><code>#| echo: false
+
+import Logging
+Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
+Logging.disable_logging(Logging.Warn)
+
+import SymPy
+function Base.show(io::IO, ::MIME"text/html", x::T) where {T &lt;: SymPy.SymbolicObject}
+    println(io, "&lt;span class=\"math-left-align\" style=\"padding-left: 4px; width:0; float:left;\"&gt; ")
+    println(io, "\\[")
+    println(io, sympy.latex(x))
+    println(io, "\\]")
+    println(io, "&lt;/span&gt;")
+end
+
+# hack to work around issue
+import Markdown
+import CalculusWithJulia
+function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
+    nm = joinpath("..", string(d), f)
+    u = "![$caption]($nm)"
+    Markdown.parse(u)
+end
+
+nothing</code></pre>
+<pre class="{julia}"><code>#| echo: false
+#| results: "hidden"
+using CalculusWithJulia
+using CalculusWithJulia.WeaveSupport
+const frontmatter = (
+        title = "Number systems",
+        description = "Calculus with Julia: Number systems",
+        tags = ["CalculusWithJulia", "precalc", "number systems"],
+);
+
+nothing</code></pre>
 <p>In mathematics, there are many different number systems in common use. For example by the end of pre-calculus, all of the following have been introduced:</p>
 <ul>
 <li>The integers, <span class="math inline">\(\{\dots, -3, -2, -1, 0, 1, 2, 3, \dots\}\)</span>;</li>
@@ -681,12 +651,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>Calculators typically have just one type of number - floating point values. These model the real numbers. <code>Julia</code>, on other other hand, has a rich type system, and within that has many different number types. There are types that model each of the four main systems above, and within each type, specializations for how these values are stored.</p>
 <p>Most of the details will not be of interest to all, and will be described later.</p>
 <p>For now, let’s consider the number <span class="math inline">\(1\)</span>. It can be viewed as either an integer, rational, real, or complex number. To construct “<span class="math inline">\(1\)</span>” in each type within <code>Julia</code> we have these different styles:</p>
-<div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1</span>, <span class="fl">1.0</span>, <span class="fl">1</span><span class="op">//</span><span class="fl">1</span>, <span class="fl">1</span> <span class="op">+</span> <span class="fl">0im</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="4">
-<pre><code>(1, 1.0, 1//1, 1 + 0im)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>1, 1.0, 1//1, 1 + 0im</code></pre>
 <p>The basic number types in <code>Julia</code> are <code>Int</code>, <code>Float64</code>, <code>Rational</code> and <code>Complex</code>, though in fact there are many more, and the last two aren’t even <em>concrete</em> types. This distinction is important, as the type of number dictates how it will be stored and how precisely the stored value can be expected to be to the mathematical value it models.</p>
 <p>Though there are explicit constructors for these types, these notes avoid them unless necessary, as <code>Julia</code>’s parser can distinguish these types through an easy to understand syntax:</p>
 <ul>
@@ -711,21 +676,11 @@ Warning
 <p>Similarly, each type is printed slightly differently.</p>
 <p>The key distinction is between integers and floating points. While floating point values include integers, and so can be used exclusively on the calculator, the difference is that an integer is guaranteed to be an exact value, whereas a floating point value, while often an exact representation of a number is also often just an <em>approximate</em> value. This can be an advantage – floating point values can model a much wider range of numbers.</p>
 <p>Now in nearly all cases the differences are not noticeable. Take for instance this simple calculation involving mixed types.</p>
-<div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1</span> <span class="op">+</span> <span class="fl">1.25</span> <span class="op">+</span> <span class="fl">3</span><span class="op">//</span><span class="fl">2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="5">
-<pre><code>3.75</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>1 + 1.25 + 3//2</code></pre>
 <p>The sum of an integer, a floating point number and rational number returns a floating point number without a complaint.</p>
 <p>This is because behind the scenes, <code>Julia</code> will often “promote” a type to match, so for example to compute <code>1 + 1.25</code> the integer <code>1</code> will be promoted to a floating point value and the two values are then added. Similarly, with <code>2.25 + 3//2</code>, where the fraction is promoted to the floating point value <code>1.5</code> and addition is carried out.</p>
 <p>As floating point numbers may be approximations, some values are not quite what they would be mathematically:</p>
-<div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sqrt</span>(<span class="fl">2</span>) <span class="op">*</span> <span class="fu">sqrt</span>(<span class="fl">2</span>) <span class="op">-</span> <span class="fl">2</span>, <span class="fu">sin</span>(<span class="cn">pi</span>), <span class="fl">1</span><span class="op">/</span><span class="fl">10</span> <span class="op">+</span> <span class="fl">1</span><span class="op">/</span><span class="fl">5</span> <span class="op">-</span> <span class="fl">3</span><span class="op">/</span><span class="fl">10</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="6">
-<pre><code>(4.440892098500626e-16, 1.2246467991473532e-16, 5.551115123125783e-17)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>sqrt(2) * sqrt(2) - 2, sin(pi), 1/10 + 1/5 - 3/10</code></pre>
 <p>These values are <em>very</em> small numbers, but not exactly <span class="math inline">\(0\)</span>, as they are mathematically.</p>
 <hr>
 <p>The only common issue is with powers. <code>Julia</code> tries to keep a predictable output from the input types (not their values). Here are the two main cases that arise where this can cause unexpected results:</p>
@@ -733,31 +688,15 @@ Warning
 <li>integer bases and integer exponents can <em>easily</em> overflow. Not only <code>m^n</code> is always an integer, it is always an integer with a fixed storage size computed from the sizes of <code>m</code> and <code>n</code>. So the powers can quickly get too big. This can be especially noticeable on older <span class="math inline">\(32\)</span>-bit machines, where too big is <span class="math inline">\(2^{32} = 4,294,967,296\)</span>. On <span class="math inline">\(64\)</span>-bit machines, this limit is present but much bigger.</li>
 </ul>
 <p>Rather than give an error though, <code>Julia</code> gives seemingly arbitrary answers, as can be seen in this example on a <span class="math inline">\(64\)</span>-bit machine:</p>
-<div class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fl">2</span><span class="op">^</span><span class="fl">62</span>, <span class="fl">2</span><span class="op">^</span><span class="fl">63</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="7">
-<pre><code>(4611686018427387904, -9223372036854775808)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>2^62, 2^63</code></pre>
 <p>(They aren’t arbitrary, rather integer arithmetic is implemented as modular arithmetic.)</p>
 <p>This could be worked around, as it is with some programming languages, but it isn’t, as it would slow down this basic computation. So, it is up to the user to be aware of cases where their integer values can grow to big. The suggestion is to use floating point numbers in this domain, as they have more room, at the cost of sometimes being approximate values.</p>
 <ul>
 <li>the <code>sqrt</code> function will give a domain error for negative values:</li>
 </ul>
-<div class="cell" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sqrt</span>(<span class="op">-</span><span class="fl">1.0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-error">
-<pre><code>LoadError: DomainError with -1.0:
-sqrt will only return a complex result if called with a complex argument. Try sqrt(Complex(x)).</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>sqrt(-1.0)</code></pre>
 <p>This is because for real-valued inputs <code>Julia</code> expects to return a real-valued output. Of course, this is true in mathematics until the complex numbers are introduced. Similarly in <code>Julia</code> - to take square roots of negative numbers, start with complex numbers:</p>
-<div class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sqrt</span>(<span class="op">-</span><span class="fl">1.0</span> <span class="op">+</span> <span class="fl">0im</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="9">
-<pre><code>0.0 + 1.0im</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>sqrt(-1.0 + 0im)</code></pre>
 <ul>
 <li>At one point, <code>Julia</code> had an issue with a third type of power:</li>
 </ul>
@@ -807,80 +746,35 @@ More on floating point numbers
 <section id="scientific-notation" class="level4">
 <h4 class="anchored" data-anchor-id="scientific-notation">Scientific notation</h4>
 <p>Floating point numbers may print in a familiar manner:</p>
-<div class="cell" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> <span class="fl">1.23</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="10">
-<pre><code>1.23</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>x = 1.23</code></pre>
 <p>or may be represented in scientific notation:</p>
-<div class="cell" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fl">6.022</span> <span class="op">*</span> <span class="fl">10.0</span><span class="op">^</span><span class="fl">23</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="11">
-<pre><code>6.0219999999999996e23</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>6.022 * 10.0^23</code></pre>
 <p>The special coding <code>aeb</code> (or if the exponent is negative <code>ae-b</code>) is used to represent the number <span class="math inline">\(a \cdot 10^b\)</span> (<span class="math inline">\(1 \leq a &lt; 10\)</span>). This notation can be used directly to specify a floating point value:</p>
-<div class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>avogadro <span class="op">=</span> <span class="fl">6.022e23</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="12">
-<pre><code>6.022e23</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>avogadro = 6.022e23</code></pre>
 <p>Here <code>e</code> is decidedly <em>not</em> the Euler number, rather syntax to separate the exponent from the mantissa.</p>
 <p>The first way of representing this number required using <code>10.0</code> and not <code>10</code> as the integer power will return an integer and even for 64-bit systems is only valid up to <code>10^18</code>. Using scientific notation avoids having to concentrate on such limitations.</p>
 <section id="example" class="level5">
 <h5 class="anchored" data-anchor-id="example">Example</h5>
 <p>Floating point values in scientific notation will always be normalized. This is easy for the computer to do, but tedious to do by hand. Here we see:</p>
-<div class="cell" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fl">4e30</span> <span class="op">*</span> <span class="fl">3e40</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="13">
-<pre><code>1.2000000000000001e71</code></pre>
-</div>
-</div>
-<div class="cell" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fl">3e40</span> <span class="op">/</span> <span class="fl">4e30</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="14">
-<pre><code>7.5e9</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>4e30 * 3e40</code></pre>
+<pre class="{julia}"><code>3e40 / 4e30</code></pre>
 <p>The power in the first is <span class="math inline">\(71\)</span>, not <span class="math inline">\(70 = 30+40\)</span>, as the product of <span class="math inline">\(3\)</span> and <span class="math inline">\(4\)</span> as <span class="math inline">\(12\)</span> or <code>1.2e^1</code>. (We also see the artifact of <code>1.2</code> not being exactly representable in floating point.)</p>
 </section>
 <section id="example-32-bit-floating-point" class="level5">
 <h5 class="anchored" data-anchor-id="example-32-bit-floating-point">Example: 32-bit floating point</h5>
 <p>In some uses, such as using a GPU, <span class="math inline">\(32\)</span>-bit floating point (single precision) is also common. These values may be specified with an <code>f</code> in place of the <code>e</code> in scientific notation:</p>
-<div class="cell" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1.23f0</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="15">
-<pre><code>1.23f0</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>1.23f0</code></pre>
 <p>As with the use of <code>e</code>, some exponent is needed after the <code>f</code>, even if it is <code>0</code>.</p>
 </section>
 </section>
 <section id="special-values-inf--inf-nan" class="level4">
 <h4 class="anchored" data-anchor-id="special-values-inf--inf-nan">Special values: Inf, -Inf, NaN</h4>
 <p>The coding of floating point numbers also allows for the special values of <code>Inf</code>, <code>-Inf</code> to represent positive and negative infinity. As well, a special value <code>NaN</code> (“not a number”) is used to represent a value that arises when an operation is not closed (e.g., <span class="math inline">\(0.0/0.0\)</span> yields <code>NaN</code>). (Technically <code>NaN</code> has several possible “values,” a point ignored here.) Except for negative bases, the floating point numbers with the addition of <code>Inf</code> and <code>NaN</code> are closed under the operations <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, and <code>^</code>. Here are some computations that produce <code>NaN</code>:</p>
-<div class="cell" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fl">0</span><span class="op">/</span><span class="fl">0</span>, <span class="cn">Inf</span><span class="op">/</span><span class="cn">Inf</span>, <span class="cn">Inf</span> <span class="op">-</span> <span class="cn">Inf</span>, <span class="fl">0</span> <span class="op">*</span> <span class="cn">Inf</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="16">
-<pre><code>(NaN, NaN, NaN, NaN)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>0/0, Inf/Inf, Inf - Inf, 0 * Inf</code></pre>
 <p>Whereas, these produce an infinity</p>
-<div class="cell" data-execution_count="16">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1</span><span class="op">/</span><span class="fl">0</span>, <span class="cn">Inf</span> <span class="op">+</span> <span class="cn">Inf</span>, <span class="fl">1</span> <span class="op">*</span> <span class="cn">Inf</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="17">
-<pre><code>(Inf, Inf, Inf)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>1/0, Inf + Inf, 1 * Inf</code></pre>
 <p>Finally, these are mathematically undefined, but still yield a finite value with <code>Julia</code>:</p>
-<div class="cell" data-execution_count="17">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fl">0</span><span class="op">^</span><span class="fl">0</span>, <span class="cn">Inf</span><span class="op">^</span><span class="fl">0</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="18">
-<pre><code>(1, 1.0)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>0^0, Inf^0</code></pre>
 </section>
 <section id="floating-point-numbers-and-real-numbers" class="level4">
 <h4 class="anchored" data-anchor-id="floating-point-numbers-and-real-numbers">Floating point numbers and real numbers</h4>
@@ -889,159 +783,58 @@ More on floating point numbers
 <li>For real and rational numbers, between any two numbers <span class="math inline">\(a &lt; b\)</span>, there is another real number in between. This is not so for floating point numbers which have a finite precision. (Julia has some functions for working with this distinction.)</li>
 <li>Floating point numbers are approximations for most values, even simple rational ones like <span class="math inline">\(1/3\)</span>. This leads to oddities such as this value not being <span class="math inline">\(0\)</span>:</li>
 </ul>
-<div class="cell" data-execution_count="18">
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sqrt</span>(<span class="fl">2</span>)<span class="fu">*sqrt</span>(<span class="fl">2</span>) <span class="op">-</span> <span class="fl">2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="19">
-<pre><code>4.440892098500626e-16</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>sqrt(2)*sqrt(2) - 2</code></pre>
 <p>It is no surprise that an irrational number, like <span class="math inline">\(\sqrt{2}\)</span>, can’t be represented <strong>exactly</strong> within floating point, but it is perhaps surprising that simple numbers can not be, so <span class="math inline">\(1/3\)</span>, <span class="math inline">\(1/5\)</span>, <span class="math inline">\(\dots\)</span> are approximated. Here is a surprising-at-first consequence:</p>
-<div class="cell" data-execution_count="19">
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1</span><span class="op">/</span><span class="fl">10</span> <span class="op">+</span> <span class="fl">2</span><span class="op">/</span><span class="fl">10</span> <span class="op">==</span> <span class="fl">3</span><span class="op">/</span><span class="fl">10</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="20">
-<pre><code>false</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>1/10 + 2/10 == 3/10</code></pre>
 <p>That is adding <code>1/10</code> and <code>2/10</code> is not exactly <code>3/10</code>, as expected mathematically. Such differences are usually very small and are generally attributed to rounding error. The user needs to be mindful when testing for equality, as is done above with the <code>==</code> operator.</p>
 <ul>
 <li>Floating point addition is not necessarily associative, that is the property <span class="math inline">\(a + (b+c) = (a+b) + c\)</span> may not hold exactly. For example:</li>
 </ul>
-<div class="cell" data-execution_count="20">
-<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1</span><span class="op">/</span><span class="fl">10</span> <span class="op">+</span> (<span class="fl">2</span><span class="op">/</span><span class="fl">10</span> <span class="op">+</span> <span class="fl">3</span><span class="op">/</span><span class="fl">10</span>) <span class="op">==</span> (<span class="fl">1</span><span class="op">/</span><span class="fl">10</span> <span class="op">+</span> <span class="fl">2</span><span class="op">/</span><span class="fl">10</span>) <span class="op">+</span> <span class="fl">3</span><span class="op">/</span><span class="fl">10</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="21">
-<pre><code>false</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>1/10 + (2/10 + 3/10) == (1/10 + 2/10) + 3/10</code></pre>
 <ul>
 <li>For real numbers subtraction of similar-sized numbers is not exceptional, for example <span class="math inline">\(1 - \cos(x)\)</span> is positive if <span class="math inline">\(0 &lt; x &lt; \pi/2\)</span>, say. This will not be the case for floating point values. If <span class="math inline">\(x\)</span> is close enough to <span class="math inline">\(0\)</span>, then <span class="math inline">\(\cos(x)\)</span> and <span class="math inline">\(1\)</span> will be so close, that they will be represented by the same floating point value, <code>1.0</code>, so the difference will be zero:</li>
 </ul>
-<div class="cell" data-execution_count="21">
-<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1.0</span> <span class="op">-</span> <span class="fu">cos</span>(<span class="fl">1e-8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="22">
-<pre><code>0.0</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>1.0 - cos(1e-8)</code></pre>
 </section>
 </section>
 <section id="rational-numbers" class="level3" data-number="3.1.3">
 <h3 data-number="3.1.3" class="anchored" data-anchor-id="rational-numbers"><span class="header-section-number">3.1.3</span> Rational numbers</h3>
 <p>Rational numbers can be used when the exactness of the number is more important than the speed or wider range of values offered by floating point numbers. In <code>Julia</code> a rational number is comprised of a numerator and a denominator, each an integer of the same type, and reduced to lowest terms. The operations of addition, subtraction, multiplication, and division will keep their answers as rational numbers. As well, raising a rational number to a positive, integer value will produce a rational number.</p>
 <p>As mentioned, these are constructed using double slashes:</p>
-<div class="cell" data-execution_count="22">
-<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1</span><span class="op">//</span><span class="fl">2</span>, <span class="fl">2</span><span class="op">//</span><span class="fl">1</span>, <span class="fl">6</span><span class="op">//</span><span class="fl">4</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="23">
-<pre><code>(1//2, 2//1, 3//2)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>1//2, 2//1, 6//4</code></pre>
 <p>Rational numbers are exact, so the following are identical to their mathematical counterparts:</p>
-<div class="cell" data-execution_count="23">
-<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1</span><span class="op">//</span><span class="fl">10</span> <span class="op">+</span> <span class="fl">2</span><span class="op">//</span><span class="fl">10</span> <span class="op">==</span> <span class="fl">3</span><span class="op">//</span><span class="fl">10</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="24">
-<pre><code>true</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>1//10 + 2//10 == 3//10</code></pre>
 <p>and associativity:</p>
-<div class="cell" data-execution_count="24">
-<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>(<span class="fl">1</span><span class="op">//</span><span class="fl">10</span> <span class="op">+</span> <span class="fl">2</span><span class="op">//</span><span class="fl">10</span>) <span class="op">+</span> <span class="fl">3</span><span class="op">//</span><span class="fl">10</span> <span class="op">==</span> <span class="fl">1</span><span class="op">//</span><span class="fl">10</span> <span class="op">+</span> (<span class="fl">2</span><span class="op">//</span><span class="fl">10</span> <span class="op">+</span> <span class="fl">3</span><span class="op">//</span><span class="fl">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="25">
-<pre><code>true</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>(1//10 + 2//10) + 3//10 == 1//10 + (2//10 + 3//10)</code></pre>
 <p>Here we see that the type is preserved under the basic operations:</p>
-<div class="cell" data-execution_count="25">
-<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>(<span class="fl">1</span><span class="op">//</span><span class="fl">2</span> <span class="op">+</span> <span class="fl">1</span><span class="op">//</span><span class="fl">3</span> <span class="op">*</span> <span class="fl">1</span><span class="op">//</span><span class="fl">4</span> <span class="op">/</span> <span class="fl">1</span><span class="op">//</span><span class="fl">5</span>) <span class="op">^</span> <span class="fl">6</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="26">
-<pre><code>1771561//2985984</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>(1//2 + 1//3 * 1//4 / 1//5) ^ 6</code></pre>
 <p>For powers, a non-integer exponent is converted to floating point, so this operation is defined, though will always return a floating point value:</p>
-<div class="cell" data-execution_count="26">
-<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>(<span class="fl">1</span><span class="op">//</span><span class="fl">2</span>)<span class="op">^</span>(<span class="fl">1</span><span class="op">//</span><span class="fl">2</span>)   <span class="co"># the first parentheses are necessary as `^` will be evaluated before `//`.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="27">
-<pre><code>0.7071067811865476</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>(1//2)^(1//2)   # the first parentheses are necessary as `^` will be evaluated before `//`.</code></pre>
 <section id="example-different-types-of-real-numbers" class="level5">
 <h5 class="anchored" data-anchor-id="example-different-types-of-real-numbers">Example: different types of real numbers</h5>
 <p>This table shows what attributes are implemented for the different types.</p>
-<div class="cell" data-execution_count="27">
-<div class="cell-output cell-output-display" data-execution_count="28">
-
-
-<div class="table-responsive">
-<table class="table table-hover">
-<tbody><tr><th>Attributes</th><th>Integer</th><th>Rational</th><th>FloatingPoint</th></tr>
-
-<tr><td><div class="markdown"><p>construction</p>
-</div></td><td><div class="markdown"><p><code>1</code></p>
-</div></td><td><div class="markdown"><p><code>1//1</code></p>
-</div></td><td><div class="markdown"><p><code>1.0</code></p>
-</div></td></tr>
-<tr><td><div class="markdown"><p>exact</p>
-</div></td><td><div class="markdown"><p>true</p>
-</div></td><td><div class="markdown"><p>true</p>
-</div></td><td><div class="markdown"><p>not usually</p>
-</div></td></tr>
-<tr><td><div class="markdown"><p>wide range</p>
-</div></td><td><div class="markdown"><p>false</p>
-</div></td><td><div class="markdown"><p>false</p>
-</div></td><td><div class="markdown"><p>true</p>
-</div></td></tr>
-<tr><td><div class="markdown"><p>has infinity</p>
-</div></td><td><div class="markdown"><p>false</p>
-</div></td><td><div class="markdown"><p>false</p>
-</div></td><td><div class="markdown"><p>true</p>
-</div></td></tr>
-<tr><td><div class="markdown"><p>has <code>-0</code></p>
-</div></td><td><div class="markdown"><p>false</p>
-</div></td><td><div class="markdown"><p>false</p>
-</div></td><td><div class="markdown"><p>true</p>
-</div></td></tr>
-<tr><td><div class="markdown"><p>fast</p>
-</div></td><td><div class="markdown"><p>true</p>
-</div></td><td><div class="markdown"><p>false</p>
-</div></td><td><div class="markdown"><p>true</p>
-</div></td></tr>
-<tr><td><div class="markdown"><p>closed under</p>
-</div></td><td><div class="markdown"><p><code>+</code>, <code>-</code>, <code>*</code>, <code>^</code> (non-negative exponent)</p>
-</div></td><td><div class="markdown"><p><code>+</code>, <code>-</code>, <code>*</code>, <code>/</code> (non zero denominator),<code>^</code> (integer power)</p>
-</div></td><td><div class="markdown"><p><code>+</code>, <code>-</code>, <code>*</code>, <code>/</code> (possibly <code>NaN</code>, <code>Inf</code>),<code>^</code> (non-negative base)</p>
-</div></td></tr>
-
-</tbody></table>
-</div>
-
-</div>
-</div>
+<pre class="{julia}"><code>#| echo: false
+using DataFrames
+attributes = ["construction", "exact", "wide range", "has infinity", "has `-0`", "fast", "closed under"]
+integer = [q"1", "true", "false", "false", "false", "true", "`+`, `-`, `*`, `^` (non-negative exponent)"]
+rational = ["`1//1`", "true", "false", "false", "false", "false", "`+`, `-`, `*`, `/` (non zero denominator),`^` (integer power)"]
+float = [q"1.0", "not usually", "true", "true", "true", "true", "`+`, `-`, `*`, `/` (possibly `NaN`, `Inf`),`^` (non-negative base)"]
+d = DataFrame(Attributes=attributes, Integer=integer, Rational=rational, FloatingPoint=float)
+table(d)</code></pre>
 </section>
 </section>
 <section id="complex-numbers" class="level3" data-number="3.1.4">
 <h3 data-number="3.1.4" class="anchored" data-anchor-id="complex-numbers"><span class="header-section-number">3.1.4</span> Complex numbers</h3>
 <p>Complex numbers in <code>Julia</code> are stored as two numbers, a real and imaginary part, each some type of <code>Real</code> number. The special constant <code>im</code> is used to represent <span class="math inline">\(i=\sqrt{-1}\)</span>. This makes the construction of complex numbers fairly standard:</p>
-<div class="cell" data-execution_count="28">
-<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1</span> <span class="op">+</span> <span class="fl">2im</span>, <span class="fl">3</span> <span class="op">+</span> <span class="fl">4.0im</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="29">
-<pre><code>(1 + 2im, 3.0 + 4.0im)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>1 + 2im, 3 + 4.0im</code></pre>
 <p>(These two aren’t exactly the same, the <code>3</code> is promoted from an integer to a float to match the <code>4.0</code>. Each of the components must be of the same type of number.)</p>
 <p>Mathematically, complex numbers are needed so that certain equations can be satisfied. For example <span class="math inline">\(x^2 = -2\)</span> has solutions <span class="math inline">\(-\sqrt{2}i\)</span> and <span class="math inline">\(\sqrt{2}i\)</span> over the complex numbers. Finding this in <code>Julia</code> requires some attention, as we have both <code>sqrt(-2)</code> and <code>sqrt(-2.0)</code> throwing a <code>DomainError</code>, as the <code>sqrt</code> function expects non-negative real arguments. However first creating a complex number does work:</p>
-<div class="cell" data-execution_count="29">
-<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sqrt</span>(<span class="op">-</span><span class="fl">2</span> <span class="op">+</span> <span class="fl">0im</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="30">
-<pre><code>0.0 + 1.4142135623730951im</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>sqrt(-2 + 0im)</code></pre>
 <p>For complex arguments, the <code>sqrt</code> function will return complex values (even if the answer is a real number).</p>
 <p>This means, if you wanted to perform the quadratic equation for any real inputs, your computations might involve something like the following:</p>
-<div class="cell" data-execution_count="30">
-<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>a,b,c <span class="op">=</span> <span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">3</span>  <span class="co">## x^2 + 2x + 3</span></span>
-<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>discr <span class="op">=</span> b<span class="op">^</span><span class="fl">2</span> <span class="op">-</span> <span class="fl">4</span>a<span class="op">*</span>c</span>
-<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>(<span class="op">-</span>b <span class="op">+</span> <span class="fu">sqrt</span>(discr <span class="op">+</span> <span class="fl">0im</span>))<span class="op">/</span>(<span class="fl">2</span>a), (<span class="op">-</span>b <span class="op">-</span> <span class="fu">sqrt</span>(discr <span class="op">+</span> <span class="fl">0im</span>))<span class="op">/</span>(<span class="fl">2</span>a)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="31">
-<pre><code>(-1.0 + 1.4142135623730951im, -1.0 - 1.4142135623730951im)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>a,b,c = 1,2,3  ## x^2 + 2x + 3
+discr = b^2 - 4a*c
+(-b + sqrt(discr + 0im))/(2a), (-b - sqrt(discr + 0im))/(2a)</code></pre>
 <p>When learning calculus, the only common usage of complex numbers arises when solving polynomial equations for roots, or zeros, though they are very important for subsequent work using the concepts of calculus.</p>
 <div class="callout-note callout callout-style-default callout-captioned">
 <div class="callout-header d-flex align-content-center">
@@ -1088,905 +881,96 @@ a^n=a \cdot a \cdot a \cdots a \text{ (n times); }  a, n \text{ are integers } n
 </section>
 <section id="questions" class="level2" data-number="3.3">
 <h2 data-number="3.3" class="anchored" data-anchor-id="questions"><span class="header-section-number">3.3</span> Questions</h2>
+<pre class="{julia}"><code>#| echo: false
+choices = ["Integer", "Rational", "Floating point", "Complex", "None, an error occurs"]
+nothing</code></pre>
 <section id="question" class="level6">
 <h6 class="anchored" data-anchor-id="question">Question</h6>
 <p>The number created by <code>pi/2</code> is?</p>
-<div class="cell" data-hold="true" data-execution_count="32">
-<div class="cell-output cell-output-display" data-execution_count="33">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="7440588270067955454" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_7440588270067955454">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_7440588270067955454_1">
-      <input class="form-check-input" type="radio" name="radio_7440588270067955454" id="radio_7440588270067955454_1" value="1">
-      
-      <span class="label-body px-1">
-        Integer
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_7440588270067955454_2">
-      <input class="form-check-input" type="radio" name="radio_7440588270067955454" id="radio_7440588270067955454_2" value="2">
-      
-      <span class="label-body px-1">
-        Rational
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_7440588270067955454_3">
-      <input class="form-check-input" type="radio" name="radio_7440588270067955454" id="radio_7440588270067955454_3" value="3">
-      
-      <span class="label-body px-1">
-        Floating point
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_7440588270067955454_4">
-      <input class="form-check-input" type="radio" name="radio_7440588270067955454" id="radio_7440588270067955454_4" value="4">
-      
-      <span class="label-body px-1">
-        Complex
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_7440588270067955454_5">
-      <input class="form-check-input" type="radio" name="radio_7440588270067955454" id="radio_7440588270067955454_5" value="5">
-      
-      <span class="label-body px-1">
-        None, an error occurs
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="7440588270067955454_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_7440588270067955454"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 3;
-    var msgBox = document.getElementById('7440588270067955454_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_7440588270067955454")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_7440588270067955454")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+answ = 3
+radioq(choices, answ, keep_order=true)</code></pre>
 </section>
 <section id="question-1" class="level6">
 <h6 class="anchored" data-anchor-id="question-1">Question</h6>
 <p>The number created by <code>2/2</code> is?</p>
-<div class="cell" data-hold="true" data-execution_count="33">
-<div class="cell-output cell-output-display" data-execution_count="34">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="15630539238432023783" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_15630539238432023783">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_15630539238432023783_1">
-      <input class="form-check-input" type="radio" name="radio_15630539238432023783" id="radio_15630539238432023783_1" value="1">
-      
-      <span class="label-body px-1">
-        Integer
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_15630539238432023783_2">
-      <input class="form-check-input" type="radio" name="radio_15630539238432023783" id="radio_15630539238432023783_2" value="2">
-      
-      <span class="label-body px-1">
-        Rational
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_15630539238432023783_3">
-      <input class="form-check-input" type="radio" name="radio_15630539238432023783" id="radio_15630539238432023783_3" value="3">
-      
-      <span class="label-body px-1">
-        Floating point
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_15630539238432023783_4">
-      <input class="form-check-input" type="radio" name="radio_15630539238432023783" id="radio_15630539238432023783_4" value="4">
-      
-      <span class="label-body px-1">
-        Complex
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_15630539238432023783_5">
-      <input class="form-check-input" type="radio" name="radio_15630539238432023783" id="radio_15630539238432023783_5" value="5">
-      
-      <span class="label-body px-1">
-        None, an error occurs
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="15630539238432023783_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_15630539238432023783"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 3;
-    var msgBox = document.getElementById('15630539238432023783_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_15630539238432023783")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_15630539238432023783")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+answ = 3
+radioq(choices, answ, keep_order=true)</code></pre>
 </section>
 <section id="question-2" class="level6">
 <h6 class="anchored" data-anchor-id="question-2">Question</h6>
 <p>The number created by <code>2//2</code> is?</p>
-<div class="cell" data-hold="true" data-execution_count="34">
-<div class="cell-output cell-output-display" data-execution_count="35">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="1206051283691700590" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_1206051283691700590">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_1206051283691700590_1">
-      <input class="form-check-input" type="radio" name="radio_1206051283691700590" id="radio_1206051283691700590_1" value="1">
-      
-      <span class="label-body px-1">
-        Integer
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_1206051283691700590_2">
-      <input class="form-check-input" type="radio" name="radio_1206051283691700590" id="radio_1206051283691700590_2" value="2">
-      
-      <span class="label-body px-1">
-        Rational
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_1206051283691700590_3">
-      <input class="form-check-input" type="radio" name="radio_1206051283691700590" id="radio_1206051283691700590_3" value="3">
-      
-      <span class="label-body px-1">
-        Floating point
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_1206051283691700590_4">
-      <input class="form-check-input" type="radio" name="radio_1206051283691700590" id="radio_1206051283691700590_4" value="4">
-      
-      <span class="label-body px-1">
-        Complex
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_1206051283691700590_5">
-      <input class="form-check-input" type="radio" name="radio_1206051283691700590" id="radio_1206051283691700590_5" value="5">
-      
-      <span class="label-body px-1">
-        None, an error occurs
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="1206051283691700590_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_1206051283691700590"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('1206051283691700590_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_1206051283691700590")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_1206051283691700590")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+answ = 2
+radioq(choices, answ, keep_order=true)</code></pre>
 </section>
 <section id="question-3" class="level6">
 <h6 class="anchored" data-anchor-id="question-3">Question</h6>
 <p>The number created by <code>1 + 1//2 + 1/3</code> is?</p>
-<div class="cell" data-hold="true" data-execution_count="35">
-<div class="cell-output cell-output-display" data-execution_count="36">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="16315216786502254108" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_16315216786502254108">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_16315216786502254108_1">
-      <input class="form-check-input" type="radio" name="radio_16315216786502254108" id="radio_16315216786502254108_1" value="1">
-      
-      <span class="label-body px-1">
-        Integer
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_16315216786502254108_2">
-      <input class="form-check-input" type="radio" name="radio_16315216786502254108" id="radio_16315216786502254108_2" value="2">
-      
-      <span class="label-body px-1">
-        Rational
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_16315216786502254108_3">
-      <input class="form-check-input" type="radio" name="radio_16315216786502254108" id="radio_16315216786502254108_3" value="3">
-      
-      <span class="label-body px-1">
-        Floating point
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_16315216786502254108_4">
-      <input class="form-check-input" type="radio" name="radio_16315216786502254108" id="radio_16315216786502254108_4" value="4">
-      
-      <span class="label-body px-1">
-        Complex
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_16315216786502254108_5">
-      <input class="form-check-input" type="radio" name="radio_16315216786502254108" id="radio_16315216786502254108_5" value="5">
-      
-      <span class="label-body px-1">
-        None, an error occurs
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="16315216786502254108_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_16315216786502254108"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 3;
-    var msgBox = document.getElementById('16315216786502254108_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_16315216786502254108")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_16315216786502254108")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+answ = 3
+radioq(choices, answ, keep_order=true)</code></pre>
 </section>
 <section id="question-4" class="level6">
 <h6 class="anchored" data-anchor-id="question-4">Question</h6>
 <p>The number created by <code>2^3</code> is?</p>
-<div class="cell" data-hold="true" data-execution_count="36">
-<div class="cell-output cell-output-display" data-execution_count="37">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="18120571955783807854" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_18120571955783807854">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_18120571955783807854_1">
-      <input class="form-check-input" type="radio" name="radio_18120571955783807854" id="radio_18120571955783807854_1" value="1">
-      
-      <span class="label-body px-1">
-        Integer
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_18120571955783807854_2">
-      <input class="form-check-input" type="radio" name="radio_18120571955783807854" id="radio_18120571955783807854_2" value="2">
-      
-      <span class="label-body px-1">
-        Rational
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_18120571955783807854_3">
-      <input class="form-check-input" type="radio" name="radio_18120571955783807854" id="radio_18120571955783807854_3" value="3">
-      
-      <span class="label-body px-1">
-        Floating point
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_18120571955783807854_4">
-      <input class="form-check-input" type="radio" name="radio_18120571955783807854" id="radio_18120571955783807854_4" value="4">
-      
-      <span class="label-body px-1">
-        Complex
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_18120571955783807854_5">
-      <input class="form-check-input" type="radio" name="radio_18120571955783807854" id="radio_18120571955783807854_5" value="5">
-      
-      <span class="label-body px-1">
-        None, an error occurs
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="18120571955783807854_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_18120571955783807854"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('18120571955783807854_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_18120571955783807854")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_18120571955783807854")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+answ = 1
+radioq(choices, answ, keep_order=true)</code></pre>
 </section>
 <section id="question-5" class="level6">
 <h6 class="anchored" data-anchor-id="question-5">Question</h6>
 <p>The number created by <code>sqrt(im)</code> is?</p>
-<div class="cell" data-hold="true" data-execution_count="37">
-<div class="cell-output cell-output-display" data-execution_count="38">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="11160835371496509088" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_11160835371496509088">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_11160835371496509088_1">
-      <input class="form-check-input" type="radio" name="radio_11160835371496509088" id="radio_11160835371496509088_1" value="1">
-      
-      <span class="label-body px-1">
-        Integer
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_11160835371496509088_2">
-      <input class="form-check-input" type="radio" name="radio_11160835371496509088" id="radio_11160835371496509088_2" value="2">
-      
-      <span class="label-body px-1">
-        Rational
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_11160835371496509088_3">
-      <input class="form-check-input" type="radio" name="radio_11160835371496509088" id="radio_11160835371496509088_3" value="3">
-      
-      <span class="label-body px-1">
-        Floating point
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_11160835371496509088_4">
-      <input class="form-check-input" type="radio" name="radio_11160835371496509088" id="radio_11160835371496509088_4" value="4">
-      
-      <span class="label-body px-1">
-        Complex
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_11160835371496509088_5">
-      <input class="form-check-input" type="radio" name="radio_11160835371496509088" id="radio_11160835371496509088_5" value="5">
-      
-      <span class="label-body px-1">
-        None, an error occurs
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="11160835371496509088_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_11160835371496509088"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 4;
-    var msgBox = document.getElementById('11160835371496509088_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_11160835371496509088")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_11160835371496509088")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+answ = 4
+radioq(choices, answ, keep_order=true)</code></pre>
 </section>
 <section id="question-6" class="level6">
 <h6 class="anchored" data-anchor-id="question-6">Question</h6>
 <p>The number created by <code>2^(-1)</code> is?</p>
-<div class="cell" data-hold="true" data-execution_count="38">
-<div class="cell-output cell-output-display" data-execution_count="39">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="7600861875889362954" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_7600861875889362954">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_7600861875889362954_1">
-      <input class="form-check-input" type="radio" name="radio_7600861875889362954" id="radio_7600861875889362954_1" value="1">
-      
-      <span class="label-body px-1">
-        Integer
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_7600861875889362954_2">
-      <input class="form-check-input" type="radio" name="radio_7600861875889362954" id="radio_7600861875889362954_2" value="2">
-      
-      <span class="label-body px-1">
-        Rational
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_7600861875889362954_3">
-      <input class="form-check-input" type="radio" name="radio_7600861875889362954" id="radio_7600861875889362954_3" value="3">
-      
-      <span class="label-body px-1">
-        Floating point
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_7600861875889362954_4">
-      <input class="form-check-input" type="radio" name="radio_7600861875889362954" id="radio_7600861875889362954_4" value="4">
-      
-      <span class="label-body px-1">
-        Complex
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_7600861875889362954_5">
-      <input class="form-check-input" type="radio" name="radio_7600861875889362954" id="radio_7600861875889362954_5" value="5">
-      
-      <span class="label-body px-1">
-        None, an error occurs
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="7600861875889362954_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_7600861875889362954"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 3;
-    var msgBox = document.getElementById('7600861875889362954_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_7600861875889362954")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_7600861875889362954")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+answ = 3
+radioq(choices, answ, keep_order=true)</code></pre>
 </section>
 <section id="question-7" class="level6">
 <h6 class="anchored" data-anchor-id="question-7">Question</h6>
 <p>The “number” created by <code>1/0</code> is?</p>
-<div class="cell" data-hold="true" data-execution_count="39">
-<div class="cell-output cell-output-display" data-execution_count="40">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="3076507061381767057" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_3076507061381767057">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_3076507061381767057_1">
-      <input class="form-check-input" type="radio" name="radio_3076507061381767057" id="radio_3076507061381767057_1" value="1">
-      
-      <span class="label-body px-1">
-        Integer
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_3076507061381767057_2">
-      <input class="form-check-input" type="radio" name="radio_3076507061381767057" id="radio_3076507061381767057_2" value="2">
-      
-      <span class="label-body px-1">
-        Rational
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_3076507061381767057_3">
-      <input class="form-check-input" type="radio" name="radio_3076507061381767057" id="radio_3076507061381767057_3" value="3">
-      
-      <span class="label-body px-1">
-        Floating point
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_3076507061381767057_4">
-      <input class="form-check-input" type="radio" name="radio_3076507061381767057" id="radio_3076507061381767057_4" value="4">
-      
-      <span class="label-body px-1">
-        Complex
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_3076507061381767057_5">
-      <input class="form-check-input" type="radio" name="radio_3076507061381767057" id="radio_3076507061381767057_5" value="5">
-      
-      <span class="label-body px-1">
-        None, an error occurs
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="3076507061381767057_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_3076507061381767057"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 3;
-    var msgBox = document.getElementById('3076507061381767057_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_3076507061381767057")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_3076507061381767057")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+answ = 3
+radioq(choices, answ, keep_order=true)</code></pre>
 </section>
 <section id="question-8" class="level6">
 <h6 class="anchored" data-anchor-id="question-8">Question</h6>
 <p>Is <code>(2 + 6) + 7</code> equal to <code>2 + (6 + 7)</code>?</p>
-<div class="cell" data-hold="true" data-execution_count="40">
-<div class="cell-output cell-output-display" data-execution_count="41">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="10766033261339582419" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_10766033261339582419">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_10766033261339582419_1">
-      <input class="form-check-input" type="radio" name="radio_10766033261339582419" id="radio_10766033261339582419_1" value="1">
-      
-      <span class="label-body px-1">
-        Yes
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_10766033261339582419_2">
-      <input class="form-check-input" type="radio" name="radio_10766033261339582419" id="radio_10766033261339582419_2" value="2">
-      
-      <span class="label-body px-1">
-        No
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="10766033261339582419_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_10766033261339582419"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('10766033261339582419_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_10766033261339582419")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_10766033261339582419")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+yesnoq(true)</code></pre>
 </section>
 <section id="question-9" class="level6">
 <h6 class="anchored" data-anchor-id="question-9">Question</h6>
 <p>Is <code>(2/10 + 6/10) + 7/10</code> equal to <code>2/10 + (6/10 + 7/10)</code>?</p>
-<div class="cell" data-hold="true" data-execution_count="41">
-<div class="cell-output cell-output-display" data-execution_count="42">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="15780077242466113948" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_15780077242466113948">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_15780077242466113948_1">
-      <input class="form-check-input" type="radio" name="radio_15780077242466113948" id="radio_15780077242466113948_1" value="1">
-      
-      <span class="label-body px-1">
-        Yes
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_15780077242466113948_2">
-      <input class="form-check-input" type="radio" name="radio_15780077242466113948" id="radio_15780077242466113948_2" value="2">
-      
-      <span class="label-body px-1">
-        No
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="15780077242466113948_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_15780077242466113948"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('15780077242466113948_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_15780077242466113948")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_15780077242466113948")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+yesnoq(false)</code></pre>
 </section>
 <section id="question-10" class="level6">
 <h6 class="anchored" data-anchor-id="question-10">Question</h6>
 <p>The following <em>should</em> compute <code>2^(-1)</code>, which if entered directly will return <code>0.5</code>. Does it?</p>
-<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>a, b <span class="op">=</span> <span class="fl">2</span>, <span class="op">-</span><span class="fl">1</span></span>
-<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>a<span class="op">^</span>b</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell" data-hold="true" data-execution_count="43">
-<div class="cell-output cell-output-display" data-execution_count="43">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="11937623802218491586" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_11937623802218491586">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_11937623802218491586_1">
-      <input class="form-check-input" type="radio" name="radio_11937623802218491586" id="radio_11937623802218491586_1" value="1">
-      
-      <span class="label-body px-1">
-        Yes
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_11937623802218491586_2">
-      <input class="form-check-input" type="radio" name="radio_11937623802218491586" id="radio_11937623802218491586_2" value="2">
-      
-      <span class="label-body px-1">
-        No
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="11937623802218491586_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_11937623802218491586"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('11937623802218491586_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_11937623802218491586")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_11937623802218491586")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| eval: false
+a, b = 2, -1
+a^b</code></pre>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+yesnoq(false)</code></pre>
 <p>(This shows the special casing that is done when powers use literal numbers.)</p>
 
 

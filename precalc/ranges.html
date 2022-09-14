@@ -20,69 +20,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1.6em;
   vertical-align: middle;
 }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-    color: #aaaaaa;
-  }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { color: #008000; } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { color: #008000; font-weight: bold; } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
 
@@ -124,9 +61,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   }
 }</script>
 <script async="" src="https://hypothes.is/embed.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
-<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
@@ -674,6 +608,42 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 </header>
 
+<pre class="{julia}"><code>#| echo: false
+
+import Logging
+Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
+Logging.disable_logging(Logging.Warn)
+
+import SymPy
+function Base.show(io::IO, ::MIME"text/html", x::T) where {T &lt;: SymPy.SymbolicObject}
+    println(io, "&lt;span class=\"math-left-align\" style=\"padding-left: 4px; width:0; float:left;\"&gt; ")
+    println(io, "\\[")
+    println(io, sympy.latex(x))
+    println(io, "\\]")
+    println(io, "&lt;/span&gt;")
+end
+
+# hack to work around issue
+import Markdown
+import CalculusWithJulia
+function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
+    nm = joinpath("..", string(d), f)
+    u = "![$caption]($nm)"
+    Markdown.parse(u)
+end
+
+nothing</code></pre>
+<pre class="{julia}"><code>#| echo: false
+#| results: "hidden"
+using CalculusWithJulia
+using CalculusWithJulia.WeaveSupport
+frontmatter = (
+        title = "Ranges and Sets",
+        description = "Calculus with Julia: Ranges and Sets",
+        tags = ["CalculusWithJulia", "precalc", "ranges and sets"],
+);
+
+nothing</code></pre>
 <section id="arithmetic-sequences" class="level2" data-number="6.1">
 <h2 data-number="6.1" class="anchored" data-anchor-id="arithmetic-sequences"><span class="header-section-number">6.1</span> Arithmetic sequences</h2>
 <p>Sequences of numbers are prevalent in math. A simple one is just counting by ones:</p>
@@ -694,170 +664,49 @@ a_0, a_0 + h, a_0 + 2h, a_0 + 3h, \dots, a_0 + nh
 \]</span></p>
 <p>The formula for the <span class="math inline">\(a_n\)</span>th term can be written in terms of <span class="math inline">\(a_0\)</span>, or any other <span class="math inline">\(0 \leq m \leq n\)</span> with <span class="math inline">\(a_n = a_m + (n-m)\cdot h\)</span>.</p>
 <p>A typical question might be: The first term of an arithmetic sequence is equal to <span class="math inline">\(200\)</span> and the common difference is equal to <span class="math inline">\(-10\)</span>. Find the value of <span class="math inline">\(a_{20}\)</span>. We could find this using <span class="math inline">\(a_n = a_0 + n\cdot h\)</span>:</p>
-<div class="cell" data-hold="true" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>a0, h, n <span class="op">=</span> <span class="fl">200</span>, <span class="op">-</span><span class="fl">10</span>, <span class="fl">20</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>a0 <span class="op">+</span> n <span class="op">*</span> h</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="4">
-<pre><code>0</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+a0, h, n = 200, -10, 20
+a0 + n * h</code></pre>
 <p>More complicated questions involve an unknown first value, as with: an arithmetic sequence has a common difference equal to <span class="math inline">\(10\)</span> and its <span class="math inline">\(6\)</span>th term is equal to <span class="math inline">\(52\)</span>. Find its <span class="math inline">\(15\)</span>th term, <span class="math inline">\(a_{15}\)</span>. Here we have to answer: <span class="math inline">\(a_0 + 15 \cdot 10\)</span>. Either we could find <span class="math inline">\(a_0\)</span> (using <span class="math inline">\(52 = a_0 + 6\cdot(10)\)</span>) or use the above formula</p>
-<div class="cell" data-hold="true" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>a6, h, m, n <span class="op">=</span> <span class="fl">52</span>, <span class="fl">10</span>, <span class="fl">6</span>, <span class="fl">15</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>a15 <span class="op">=</span> a6 <span class="op">+</span> (n<span class="op">-</span>m)<span class="op">*</span>h</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="5">
-<pre><code>142</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+a6, h, m, n = 52, 10, 6, 15
+a15 = a6 + (n-m)*h</code></pre>
 <section id="the-colon-operator" class="level3" data-number="6.1.1">
 <h3 data-number="6.1.1" class="anchored" data-anchor-id="the-colon-operator"><span class="header-section-number">6.1.1</span> The colon operator</h3>
 <p>Rather than express sequences by the <span class="math inline">\(a_0\)</span>, <span class="math inline">\(h\)</span>, and <span class="math inline">\(n\)</span>, <code>Julia</code> uses the starting point (<code>a</code>), the difference (<code>h</code>) and a <em>suggested</em> stopping value (<code>b</code>). That is, we need three values to specify these ranges of numbers: a <code>start</code>, a <code>step</code>, and an <code>endof</code>. <code>Julia</code> gives a convenient syntax for this: <code>a:h:b</code>. When the difference is just <span class="math inline">\(1\)</span>, all numbers between the start and end are specified by <code>a:b</code>, as in</p>
-<div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1</span><span class="op">:</span><span class="fl">10</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="6">
-<pre><code>1:10</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>1:10</code></pre>
 <p>But wait, nothing different printed? This is because <code>1:10</code> is efficiently stored. Basically, a recipe to generate the next number from the previous number is created and <code>1:10</code> just stores the start and end point and that recipe is used to generate the set of all values. To expand the values, you have to ask for them to be <code>collect</code>ed (though this typically isn’t needed in practice):</p>
-<div class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">collect</span>(<span class="fl">1</span><span class="op">:</span><span class="fl">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="7">
-<pre><code>10-element Vector{Int64}:
-  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>collect(1:10)</code></pre>
 <p>When a non-default step size is needed, it goes in the middle, as in <code>a:h:b</code>. For example, counting by sevens from <span class="math inline">\(1\)</span> to <span class="math inline">\(50\)</span> is achieved by:</p>
-<div class="cell" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">collect</span>(<span class="fl">1</span><span class="op">:</span><span class="fl">7</span><span class="op">:</span><span class="fl">50</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="8">
-<pre><code>8-element Vector{Int64}:
-  1
-  8
- 15
- 22
- 29
- 36
- 43
- 50</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>collect(1:7:50)</code></pre>
 <p>Or counting down from 100:</p>
-<div class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">collect</span>(<span class="fl">100</span><span class="op">:-</span><span class="fl">7</span><span class="op">:</span><span class="fl">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="9">
-<pre><code>15-element Vector{Int64}:
- 100
-  93
-  86
-  79
-  72
-  65
-  58
-  51
-  44
-  37
-  30
-  23
-  16
-   9
-   2</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>collect(100:-7:1)</code></pre>
 <p>In this last example, we said end with <span class="math inline">\(1\)</span>, but it ended with <span class="math inline">\(2\)</span>. The ending value in the range is a suggestion to go up to, but not exceed. Negative values for <code>h</code> are used to make decreasing sequences.</p>
 </section>
 <section id="the-range-function" class="level3" data-number="6.1.2">
 <h3 data-number="6.1.2" class="anchored" data-anchor-id="the-range-function"><span class="header-section-number">6.1.2</span> The range function</h3>
 <p>For generating points to make graphs, a natural set of points to specify is <span class="math inline">\(n\)</span> evenly spaced points between <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>. We can mimic creating this set with the range operation by solving for the correct step size. We have <span class="math inline">\(a_0=a\)</span> and <span class="math inline">\(a_0 + (n-1) \cdot h = b\)</span>. (Why <span class="math inline">\(n-1\)</span> and not <span class="math inline">\(n\)</span>?) Solving yields <span class="math inline">\(h = (b-a)/(n-1)\)</span>. To be concrete we might ask for <span class="math inline">\(9\)</span> points between <span class="math inline">\(-1\)</span> and <span class="math inline">\(1\)</span>:</p>
-<div class="cell" data-hold="true" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>a, b, n <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">9</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>h <span class="op">=</span> (b<span class="op">-</span>a)<span class="op">/</span>(n<span class="op">-</span><span class="fl">1</span>)</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">collect</span>(a<span class="op">:</span>h<span class="op">:</span>b)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="10">
-<pre><code>9-element Vector{Float64}:
- -1.0
- -0.75
- -0.5
- -0.25
-  0.0
-  0.25
-  0.5
-  0.75
-  1.0</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+a, b, n = -1, 1, 9
+h = (b-a)/(n-1)
+collect(a:h:b)</code></pre>
 <p>Pretty neat. If we were doing this many times - such as once per plot - we’d want to encapsulate this into a function, for example:</p>
-<div class="cell" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">evenly_spaced</span>(a, b, n)</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    h <span class="op">=</span> (b<span class="op">-</span>a)<span class="op">/</span>(n<span class="op">-</span><span class="fl">1</span>)</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">collect</span>(a<span class="op">:</span>h<span class="op">:</span>b)</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="11">
-<pre><code>evenly_spaced (generic function with 1 method)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>function evenly_spaced(a, b, n)
+    h = (b-a)/(n-1)
+    collect(a:h:b)
+end</code></pre>
 <p>Great, let’s try it out:</p>
-<div class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">evenly_spaced</span>(<span class="fl">0</span>, <span class="fl">2</span>pi, <span class="fl">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="12">
-<pre><code>5-element Vector{Float64}:
- 0.0
- 1.5707963267948966
- 3.141592653589793
- 4.71238898038469
- 6.283185307179586</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>evenly_spaced(0, 2pi, 5)</code></pre>
 <p>Now, our implementation was straightforward, but only because it avoids somethings. Look at something simple:</p>
-<div class="cell" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">evenly_spaced</span>(<span class="fl">1</span><span class="op">/</span><span class="fl">5</span>, <span class="fl">3</span><span class="op">/</span><span class="fl">5</span>, <span class="fl">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="13">
-<pre><code>3-element Vector{Float64}:
- 0.2
- 0.4
- 0.6</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>evenly_spaced(1/5, 3/5, 3)</code></pre>
 <p>It seems to work as expected. But looking just at the algorithm it isn’t quite so clear:</p>
-<div class="cell" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1</span><span class="op">/</span><span class="fl">5</span> <span class="op">+</span> <span class="fl">2</span><span class="op">*</span><span class="fl">1</span><span class="op">/</span><span class="fl">5</span> <span class="co"># last value</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="14">
-<pre><code>0.6000000000000001</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>1/5 + 2*1/5 # last value</code></pre>
 <p>Floating point roundoff leads to the last value <em>exceeding</em> <code>0.6</code>, so should it be included? Well, here it is pretty clear it <em>should</em> be, but better to have something programmed that hits both <code>a</code> and <code>b</code> and adjusts <code>h</code> accordingly.</p>
 <p>Enter the base function <code>range</code> which solves this seemingly simple - but not really - task. It can use <code>a</code>, <code>b</code>, and <code>n</code>. Like the range operation, this function returns a generator which can be collected to realize the values.</p>
 <p>The number of points is specified with keyword arguments, as in:</p>
-<div class="cell" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> <span class="fu">range</span>(<span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>, length<span class="op">=</span><span class="fl">9</span>)  <span class="co"># or simply range(-1, 1, 9) as of v"1.7"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="15">
-<pre><code>-1.0:0.25:1.0</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>xs = range(-1, 1, length=9)  # or simply range(-1, 1, 9) as of v"1.7"</code></pre>
 <p>and</p>
-<div class="cell" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">collect</span>(xs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="16">
-<pre><code>9-element Vector{Float64}:
- -1.0
- -0.75
- -0.5
- -0.25
-  0.0
-  0.25
-  0.5
-  0.75
-  1.0</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>collect(xs)</code></pre>
 <div class="callout-note callout callout-style-default callout-captioned">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -881,55 +730,11 @@ Note
 <p>For example, another way to get the values between <span class="math inline">\(0\)</span> and <span class="math inline">\(100\)</span> that are multiples of <span class="math inline">\(7\)</span> is to start with all <span class="math inline">\(101\)</span> values and throw out those that don’t match. To check if a number is divisible by <span class="math inline">\(7\)</span>, we could use the <code>rem</code> function. It gives the remainder upon division. Multiples of <code>7</code> match <code>rem(m, 7) == 0</code>. Checking for divisibility by seven is unusual enough there is nothing built in for that, but checking for division by <span class="math inline">\(2\)</span> is common, and for that, there is a built-in function <code>iseven</code>.</p>
 <p>The act of throwing out elements of a collection based on some condition is called <em>filtering</em>. The <code>filter</code> function does this in <code>Julia</code>; the basic syntax being <code>filter(predicate_function, collection)</code>. The “<code>predicate_function</code>” is one that returns either <code>true</code> or <code>false</code>, such as <code>iseven</code>. The output of <code>filter</code> consists of the new collection of values - those where the predicate returns <code>true</code>.</p>
 <p>To see it used, lets start with the numbers between <code>0</code> and <code>25</code> (inclusive) and filter out those that are even:</p>
-<div class="cell" data-execution_count="16">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(iseven, <span class="fl">0</span><span class="op">:</span><span class="fl">25</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="17">
-<pre><code>13-element Vector{Int64}:
-  0
-  2
-  4
-  6
-  8
- 10
- 12
- 14
- 16
- 18
- 20
- 22
- 24</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>filter(iseven, 0:25)</code></pre>
 <p>To get the numbers between <span class="math inline">\(1\)</span> and <span class="math inline">\(100\)</span> that are divisible by <span class="math inline">\(7\)</span> requires us to write a function akin to <code>iseven</code>, which isn’t hard (e.g., <code>is_seven(x) = x%7 == 0</code> or if being fancy <code>Base.Fix2(iszero∘rem, 7)</code>), but isn’t something we continue with just yet.</p>
 <p>For another example, here is an inefficient way to list the prime numbers between <span class="math inline">\(100\)</span> and <span class="math inline">\(200\)</span>. This uses the <code>isprime</code> function from the <code>Primes</code> package</p>
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Primes</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell" data-execution_count="18">
-<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(isprime, <span class="fl">100</span><span class="op">:</span><span class="fl">200</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="19">
-<pre><code>21-element Vector{Int64}:
- 101
- 103
- 107
- 109
- 113
- 127
- 131
- 137
- 139
- 149
- 151
- 157
- 163
- 167
- 173
- 179
- 181
- 191
- 193
- 197
- 199</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>using Primes</code></pre>
+<pre class="{julia}"><code>filter(isprime, 100:200)</code></pre>
 <p>Illustrating <code>filter</code> at this point is mainly a motivation to illustrate that we can start with a regular set of numbers and then modify or filter them. The function takes on more value once we discuss how to write predicate functions.</p>
 </section>
 <section id="comprehensions" class="level3" data-number="6.2.2">
@@ -941,181 +746,40 @@ Note
 <li>The set of numbers <span class="math inline">\(\{2k: k=0, \dots, 50\}\)</span>.</li>
 </ul>
 <p>While <code>Julia</code> has a special type for dealing with sets, we will use a vector for such a set. (Unlike a set, vectors can have repeated values, but as vectors are more widely used, we demonstrate them.) Vectors are described more fully in a previous section, but as a reminder, vectors are constructed using square brackets: <code>[]</code> (a special syntax for <a href="http://docs.julialang.org/en/latest/manual/arrays/#concatenation">concatenation</a>). Square brackets are used in different contexts within <code>Julia</code>, in this case we use them to create a <em>collection</em>. If we separate single values in our collection by commas (or semicolons), we will create a vector:</p>
-<div class="cell" data-execution_count="19">
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> [<span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">6</span>, <span class="fl">8</span>, <span class="fl">10</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="20">
-<pre><code>6-element Vector{Int64}:
-  0
-  2
-  4
-  6
-  8
- 10</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>x = [0, 2, 4, 6, 8, 10]</code></pre>
 <p>That is of course only part of the set of even numbers we want. Creating more might be tedious were we to type them all out, as above. In such cases, it is best to <em>generate</em> the values.</p>
 <p>For this simple case, a range can be used, but more generally a <a href="https://docs.julialang.org/en/v1/manual/arrays/#man-comprehensions">comprehension</a> provides this ability using a construct that closely mirrors a set definition, such as <span class="math inline">\(\{2k: k=0, \dots, 50\}\)</span>. The simplest use of a comprehension takes this form (as we described in the section on vectors):</p>
 <p><code>[expr for variable in collection]</code></p>
 <p>The expression typically involves the variable specified after the keyword <code>for</code>. The collection can be a range, a vector, or many other items that are <em>iterable</em>. Here is how the mathematical set <span class="math inline">\(\{2k: k=0, \dots, 50\}\)</span> may be generated by a comprehension:</p>
-<div class="cell" data-execution_count="20">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>[<span class="fl">2</span>k for k <span class="kw">in</span> <span class="fl">0</span><span class="op">:</span><span class="fl">50</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="21">
-<pre><code>51-element Vector{Int64}:
-   0
-   2
-   4
-   6
-   8
-  10
-  12
-  14
-  16
-  18
-  20
-  22
-  24
-   ⋮
-  78
-  80
-  82
-  84
-  86
-  88
-  90
-  92
-  94
-  96
-  98
- 100</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>[2k for k in 0:50]</code></pre>
 <p>The expression is <code>2k</code>, the variable <code>k</code>, and the collection is the range of values, <code>0:50</code>. The syntax is basically identical to how the math expression is typically read aloud.</p>
 <p>For some other examples, here is how we can create the first <span class="math inline">\(10\)</span> numbers divisible by <span class="math inline">\(7\)</span>:</p>
-<div class="cell" data-execution_count="21">
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>[<span class="fl">7</span>k for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="22">
-<pre><code>10-element Vector{Int64}:
-  7
- 14
- 21
- 28
- 35
- 42
- 49
- 56
- 63
- 70</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>[7k for k in 1:10]</code></pre>
 <p>Here is how we can square the numbers between <span class="math inline">\(1\)</span> and <span class="math inline">\(10\)</span>:</p>
-<div class="cell" data-execution_count="22">
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>[x<span class="op">^</span><span class="fl">2</span> for x <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="23">
-<pre><code>10-element Vector{Int64}:
-   1
-   4
-   9
-  16
-  25
-  36
-  49
-  64
-  81
- 100</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>[x^2 for x in 1:10]</code></pre>
 <p>To generate other progressions, such as powers of <span class="math inline">\(2\)</span>, we could do:</p>
-<div class="cell" data-execution_count="23">
-<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>[<span class="fl">2</span><span class="op">^</span>i for i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="24">
-<pre><code>10-element Vector{Int64}:
-    2
-    4
-    8
-   16
-   32
-   64
-  128
-  256
-  512
- 1024</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>[2^i for i in 1:10]</code></pre>
 <p>Here are decreasing powers of <span class="math inline">\(2\)</span>:</p>
-<div class="cell" data-execution_count="24">
-<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>[<span class="fl">1</span><span class="op">/</span><span class="fl">2</span><span class="op">^</span>i for i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="25">
-<pre><code>10-element Vector{Float64}:
- 0.5
- 0.25
- 0.125
- 0.0625
- 0.03125
- 0.015625
- 0.0078125
- 0.00390625
- 0.001953125
- 0.0009765625</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>[1/2^i for i in 1:10]</code></pre>
 <p>Sometimes, the comprehension does not produce the type of output that may be expected. This is related to <code>Julia</code>’s more limited abilities to infer types at the command line. If the output type is important, the extra prefix of <code>T[]</code> can be used, where <code>T</code> is the desired type. We will see that this will be needed at times with symbolic math.</p>
 </section>
 <section id="generators" class="level3" data-number="6.2.3">
 <h3 data-number="6.2.3" class="anchored" data-anchor-id="generators"><span class="header-section-number">6.2.3</span> Generators</h3>
 <p>A typical pattern would be to generate a collection of numbers and then apply a function to them. For example, here is one way to sum the powers of <span class="math inline">\(2\)</span>:</p>
-<div class="cell" data-execution_count="25">
-<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>([<span class="fl">2</span><span class="op">^</span>i for i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="26">
-<pre><code>2046</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>sum([2^i for i in 1:10])</code></pre>
 <p>Conceptually this is easy to understand, but computationally it is a bit inefficient. The generator syntax allows this type of task to be done more efficiently. To use this syntax, we just need to drop the <code>[]</code>:</p>
-<div class="cell" data-execution_count="26">
-<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fl">2</span><span class="op">^</span>i <span class="cf">for</span> i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="27">
-<pre><code>2046</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>sum(2^i for i in 1:10)</code></pre>
 <p>(The difference being no intermediate object is created to store the collection of all values specified by the generator.)</p>
 </section>
 <section id="filtering-generated-expressions" class="level3" data-number="6.2.4">
 <h3 data-number="6.2.4" class="anchored" data-anchor-id="filtering-generated-expressions"><span class="header-section-number">6.2.4</span> Filtering generated expressions</h3>
 <p>Both comprehensions and generators allow for filtering through the keyword <code>if</code>. The following shows <em>one</em> way to add the prime numbers in <span class="math inline">\([1,100]\)</span>:</p>
-<div class="cell" data-execution_count="27">
-<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(p <span class="cf">for</span> p <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">100</span> <span class="cf">if</span> <span class="fu">isprime</span>(p))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="28">
-<pre><code>1060</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>sum(p for p in 1:100 if isprime(p))</code></pre>
 <p>The value on the other side of <code>if</code> should be an expression that evaluates to either <code>true</code> or <code>false</code> for a given <code>p</code> (like a predicate function, but here specified as an expression). The value returned by <code>isprime(p)</code> is such.</p>
 <p>In this example, we use the fact that <code>rem(k, 7)</code> returns the remainder found from dividing <code>k</code> by <code>7</code>, and so is <code>0</code> when <code>k</code> is a multiple of <code>7</code>:</p>
-<div class="cell" data-execution_count="28">
-<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(k <span class="cf">for</span> k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">100</span> <span class="cf">if</span> <span class="fu">rem</span>(k,<span class="fl">7</span>) <span class="op">==</span> <span class="fl">0</span>)  <span class="co">## add multiples of 7</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="29">
-<pre><code>735</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>sum(k for k in 1:100 if rem(k,7) == 0)  ## add multiples of 7</code></pre>
 <p>The same <code>if</code> can be used in a comprehension. For example, this is an alternative to <code>filter</code> for identifying the numbers divisible by <code>7</code> in a range of numbers:</p>
-<div class="cell" data-execution_count="29">
-<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>[k for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">100</span> if <span class="fu">rem</span>(k,<span class="fl">7</span>) <span class="op">==</span> <span class="fl">0</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="30">
-<pre><code>14-element Vector{Int64}:
-  7
- 14
- 21
- 28
- 35
- 42
- 49
- 56
- 63
- 70
- 77
- 84
- 91
- 98</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>[k for k in 1:100 if rem(k,7) == 0]</code></pre>
 <section id="example-making-change" class="level4">
 <h4 class="anchored" data-anchor-id="example-making-change">Example: Making change</h4>
 <p>This example of Stefan Karpinski’s comes from a <a href="http://julialang.org/blog/2016/10/julia-0.5-highlights">blog</a> post highlighting changes to the <code>Julia</code> language with version <code>v"0.5.0"</code>, which added features to comprehensions that made this example possible.</p>
@@ -1123,38 +787,16 @@ Note
 <p>Well, we can use a comprehension to enumerate the possibilities. This example illustrates how comprehensions and generators can involve one or more variable for the iteration.</p>
 <p>First, we either have <span class="math inline">\(0,1,2,3\)</span>, or <span class="math inline">\(4\)</span> quarters, or <span class="math inline">\(0\)</span>, <span class="math inline">\(25\)</span> cents, <span class="math inline">\(50\)</span> cents, <span class="math inline">\(75\)</span> cents, or a dollar’s worth. If we have, say, <span class="math inline">\(1\)</span> quarter, then we need to make up <span class="math inline">\(75\)</span> cents with the rest. If we had <span class="math inline">\(3\)</span> dimes, then we need to make up <span class="math inline">\(45\)</span> cents out of nickels and pennies, if we then had <span class="math inline">\(6\)</span> nickels, we know we must need <span class="math inline">\(15\)</span> pennies.</p>
 <p>The following expression shows how counting this can be done through enumeration. Here <code>q</code> is the amount contributed by quarters, <code>d</code> the amount from dimes, <code>n</code> the amount from nickels, and <code>p</code> the amount from pennies. <code>q</code> ranges over <span class="math inline">\(0, 25, 50, 75, 100\)</span> or <code>0:25:100</code>, etc. If we know that the sum of quarters, dimes, nickels contributes a certain amount, then the number of pennies must round things up to <span class="math inline">\(100\)</span>.</p>
-<div class="cell" data-execution_count="30">
-<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>ways <span class="op">=</span> [(q, d, n, p) for q <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">25</span><span class="op">:</span><span class="fl">100</span> for d <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">10</span><span class="op">:</span>(<span class="fl">100</span> <span class="op">-</span> q) for n <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">5</span><span class="op">:</span>(<span class="fl">100</span> <span class="op">-</span> q <span class="op">-</span> d) for p <span class="op">=</span> (<span class="fl">100</span> <span class="op">-</span> q <span class="op">-</span> d <span class="op">-</span> n)]</span>
-<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(ways)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="31">
-<pre><code>242</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>ways = [(q, d, n, p) for q = 0:25:100 for d = 0:10:(100 - q) for n = 0:5:(100 - q - d) for p = (100 - q - d - n)]
+length(ways)</code></pre>
 <p>We see <span class="math inline">\(242\)</span> cases, each distinct. The first <span class="math inline">\(3\)</span> are:</p>
-<div class="cell" data-execution_count="31">
-<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>ways[<span class="fl">1</span><span class="op">:</span><span class="fl">3</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="32">
-<pre><code>3-element Vector{NTuple{4, Int64}}:
- (0, 0, 0, 100)
- (0, 0, 5, 95)
- (0, 0, 10, 90)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>ways[1:3]</code></pre>
 <p>The generating expression reads naturally. It introduces the use of multiple <code>for</code> statements, each subsequent one depending on the value of the previous (working left to right). Now suppose, we want to ensure that the amount in pennies is less than the amount in nickels, etc. We could use <code>filter</code> somehow to do this for our last answer, but using <code>if</code> allows for filtering while the events are generating. Here our condition is simply expressed: <code>q &gt; d &gt; n &gt; p</code>:</p>
-<div class="cell" data-execution_count="32">
-<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>[(q, d, n, p) for q <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">25</span><span class="op">:</span><span class="fl">100</span></span>
-<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a> for d <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">10</span><span class="op">:</span>(<span class="fl">100</span> <span class="op">-</span> q)</span>
-<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a> for n <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">5</span><span class="op">:</span>(<span class="fl">100</span> <span class="op">-</span> q <span class="op">-</span> d)</span>
-<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a> for p <span class="op">=</span> (<span class="fl">100</span> <span class="op">-</span> q <span class="op">-</span> d <span class="op">-</span> n)</span>
-<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a> if q <span class="op">&gt;</span> d <span class="op">&gt;</span> n <span class="op">&gt;</span> p]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="33">
-<pre><code>4-element Vector{NTuple{4, Int64}}:
- (50, 30, 15, 5)
- (50, 30, 20, 0)
- (50, 40, 10, 0)
- (75, 20, 5, 0)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>[(q, d, n, p) for q = 0:25:100
+ for d = 0:10:(100 - q)
+ for n = 0:5:(100 - q - d)
+ for p = (100 - q - d - n)
+ if q &gt; d &gt; n &gt; p]</code></pre>
 </section>
 </section>
 </section>
@@ -1166,36 +808,11 @@ Note
 <li>The <code>rand(n)</code> function returns a vector of <code>n</code> randomly chosen numbers in <span class="math inline">\([0,1)\)</span>.</li>
 </ul>
 <p>To illustrate, this will command return a single number</p>
-<div class="cell" data-execution_count="33">
-<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rand</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="34">
-<pre><code>0.4997607881985997</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>rand()</code></pre>
 <p>If the command is run again, it is almost certain that a different value will be returned:</p>
-<div class="cell" data-execution_count="34">
-<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rand</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="35">
-<pre><code>0.1236462916571216</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>rand()</code></pre>
 <p>This call will return a vector of <span class="math inline">\(10\)</span> such random numbers:</p>
-<div class="cell" data-execution_count="35">
-<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rand</span>(<span class="fl">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="36">
-<pre><code>10-element Vector{Float64}:
- 0.5218415896207655
- 0.3465613421305773
- 0.3024511276042172
- 0.7593751281138323
- 0.24170903517256648
- 0.5858817033715646
- 0.5131987956957759
- 0.27962430273398187
- 0.5119649223983749
- 0.819278263397468</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>rand(10)</code></pre>
 <p>The <code>rand</code> function is easy to use. The only common source of confusion is the subtle distinction between <code>rand()</code> and <code>rand(1)</code>, as the latter is a vector of <span class="math inline">\(1\)</span> random number and the former just <span class="math inline">\(1\)</span> random number.</p>
 </section>
 <section id="questions" class="level2" data-number="6.4">
@@ -1203,949 +820,140 @@ Note
 <section id="question" class="level6">
 <h6 class="anchored" data-anchor-id="question">Question</h6>
 <p>Which of these will produce the odd numbers between <span class="math inline">\(1\)</span> and <span class="math inline">\(99\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="36">
-<div class="cell-output cell-output-display" data-execution_count="37">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="3162062178398904219" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_3162062178398904219">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_3162062178398904219_1">
-      <input class="form-check-input" type="radio" name="radio_3162062178398904219" id="radio_3162062178398904219_1" value="1">
-      
-      <span class="label-body px-1">
-        <code>1:3:99</code>
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_3162062178398904219_2">
-      <input class="form-check-input" type="radio" name="radio_3162062178398904219" id="radio_3162062178398904219_2" value="2">
-      
-      <span class="label-body px-1">
-        <code>1:2:99</code>
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_3162062178398904219_3">
-      <input class="form-check-input" type="radio" name="radio_3162062178398904219" id="radio_3162062178398904219_3" value="3">
-      
-      <span class="label-body px-1">
-        <code>1:99</code>
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="3162062178398904219_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_3162062178398904219"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('3162062178398904219_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_3162062178398904219")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_3162062178398904219")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+q"1:99",
+q"1:3:99",
+q"1:2:99"
+]
+answ = 3
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-1" class="level6">
 <h6 class="anchored" data-anchor-id="question-1">Question</h6>
 <p>Which of these will create the sequence <span class="math inline">\(2, 9, 16, 23, \dots, 72\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="37">
-<div class="cell-output cell-output-display" data-execution_count="38">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="6393553213140521043" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_6393553213140521043">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_6393553213140521043_1">
-      <input class="form-check-input" type="radio" name="radio_6393553213140521043" id="radio_6393553213140521043_1" value="1">
-      
-      <span class="label-body px-1">
-        <code>2:72</code>
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_6393553213140521043_2">
-      <input class="form-check-input" type="radio" name="radio_6393553213140521043" id="radio_6393553213140521043_2" value="2">
-      
-      <span class="label-body px-1">
-        <code>2:9:72</code>
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_6393553213140521043_3">
-      <input class="form-check-input" type="radio" name="radio_6393553213140521043" id="radio_6393553213140521043_3" value="3">
-      
-      <span class="label-body px-1">
-        <code>72:-7:2</code>
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_6393553213140521043_4">
-      <input class="form-check-input" type="radio" name="radio_6393553213140521043" id="radio_6393553213140521043_4" value="4">
-      
-      <span class="label-body px-1">
-        <code>2:7:72</code>
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="6393553213140521043_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_6393553213140521043"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 4;
-    var msgBox = document.getElementById('6393553213140521043_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_6393553213140521043")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_6393553213140521043")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [q"2:7:72", q"2:9:72", q"2:72", q"72:-7:2"]
+answ = 1
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-2" class="level6">
 <h6 class="anchored" data-anchor-id="question-2">Question</h6>
 <p>How many numbers are in the sequence produced by <code>0:19:1000</code>?</p>
-<div class="cell" data-hold="true" data-execution_count="38">
-<div class="cell-output cell-output-display" data-execution_count="39">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="11773566419931069743" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_11773566419931069743">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="11773566419931069743" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="11773566419931069743_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("11773566419931069743").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 53) <= 0);
-  var msgBox = document.getElementById('11773566419931069743_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_11773566419931069743")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_11773566419931069743")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+val = length(collect(0:19:1000))
+numericq(val)</code></pre>
 </section>
 <section id="question-3" class="level6">
 <h6 class="anchored" data-anchor-id="question-3">Question</h6>
 <p>The range operation (<code>a:h:b</code>) can also be used to countdown. Which of these will do so, counting down from <code>10</code> to <code>1</code>? (You can call <code>collect</code> to visualize the generated numbers.)</p>
-<div class="cell" data-hold="true" data-execution_count="39">
-<div class="cell-output cell-output-display" data-execution_count="40">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="12831899208654243237" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_12831899208654243237">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_12831899208654243237_1">
-      <input class="form-check-input" type="radio" name="radio_12831899208654243237" id="radio_12831899208654243237_1" value="1">
-      
-      <span class="label-body px-1">
-        <code>1:-1:10</code>
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_12831899208654243237_2">
-      <input class="form-check-input" type="radio" name="radio_12831899208654243237" id="radio_12831899208654243237_2" value="2">
-      
-      <span class="label-body px-1">
-        <code>10:-1:1</code>
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_12831899208654243237_3">
-      <input class="form-check-input" type="radio" name="radio_12831899208654243237" id="radio_12831899208654243237_3" value="3">
-      
-      <span class="label-body px-1">
-        <code>1:10</code>
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_12831899208654243237_4">
-      <input class="form-check-input" type="radio" name="radio_12831899208654243237" id="radio_12831899208654243237_4" value="4">
-      
-      <span class="label-body px-1">
-        <code>10:1</code>
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="12831899208654243237_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_12831899208654243237"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('12831899208654243237_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_12831899208654243237")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_12831899208654243237")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+"`10:-1:1`",
+"`10:1`",
+"`1:-1:10`",
+"`1:10`"
+]
+answ = 1
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-4" class="level6">
 <h6 class="anchored" data-anchor-id="question-4">Question</h6>
 <p>What is the last number generated by <code>1:4:7</code>?</p>
-<div class="cell" data-hold="true" data-execution_count="40">
-<div class="cell-output cell-output-display" data-execution_count="41">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="18318320108952616980" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_18318320108952616980">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="18318320108952616980" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="18318320108952616980_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("18318320108952616980").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 5) <= 0);
-  var msgBox = document.getElementById('18318320108952616980_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_18318320108952616980")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_18318320108952616980")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+val = (1:4:7)[end]
+numericq(val)</code></pre>
 </section>
 <section id="question-5" class="level6">
 <h6 class="anchored" data-anchor-id="question-5">Question</h6>
 <p>While the range operation can generate vectors by collecting, do the objects themselves act like vectors?</p>
 <p>Does scalar multiplication work as expected? In particular, is the result of <code>2*(1:5)</code> <em>basically</em> the same as <code>2 * [1,2,3,4,5]</code>?</p>
-<div class="cell" data-hold="true" data-execution_count="41">
-<div class="cell-output cell-output-display" data-execution_count="42">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="982737945835622637" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_982737945835622637">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_982737945835622637_1">
-      <input class="form-check-input" type="radio" name="radio_982737945835622637" id="radio_982737945835622637_1" value="1">
-      
-      <span class="label-body px-1">
-        Yes
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_982737945835622637_2">
-      <input class="form-check-input" type="radio" name="radio_982737945835622637" id="radio_982737945835622637_2" value="2">
-      
-      <span class="label-body px-1">
-        No
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="982737945835622637_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_982737945835622637"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('982737945835622637_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_982737945835622637")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_982737945835622637")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+yesnoq(true)</code></pre>
 <p>Does vector addition work? as expected? In particular, is the result of <code>(1:4) + (2:5)</code> <em>basically</em> the same as <code>[1,2,3,4]</code> + <code>[2,3,4,5]</code>?</p>
-<div class="cell" data-hold="true" data-execution_count="42">
-<div class="cell-output cell-output-display" data-execution_count="43">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="6142550369190684866" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_6142550369190684866">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_6142550369190684866_1">
-      <input class="form-check-input" type="radio" name="radio_6142550369190684866" id="radio_6142550369190684866_1" value="1">
-      
-      <span class="label-body px-1">
-        Yes
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_6142550369190684866_2">
-      <input class="form-check-input" type="radio" name="radio_6142550369190684866" id="radio_6142550369190684866_2" value="2">
-      
-      <span class="label-body px-1">
-        No
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="6142550369190684866_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_6142550369190684866"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('6142550369190684866_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_6142550369190684866")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_6142550369190684866")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+yesnoq(true)</code></pre>
 <p>What if parentheses are left off? Explain the output of <code>1:4 + 2:5</code>?</p>
-<div class="cell" data-hold="true" data-execution_count="43">
-<div class="cell-output cell-output-display" data-execution_count="44">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="14617937889860922947" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_14617937889860922947">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_14617937889860922947_1">
-      <input class="form-check-input" type="radio" name="radio_14617937889860922947" id="radio_14617937889860922947_1" value="1">
-      
-      <span class="label-body px-1">
-        It is just random
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_14617937889860922947_2">
-      <input class="form-check-input" type="radio" name="radio_14617937889860922947" id="radio_14617937889860922947_2" value="2">
-      
-      <span class="label-body px-1">
-        Addition happens prior to the use of <code>:</code> so this is like <code>1:(4+2):5</code>
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_14617937889860922947_3">
-      <input class="form-check-input" type="radio" name="radio_14617937889860922947" id="radio_14617937889860922947_3" value="3">
-      
-      <span class="label-body px-1">
-        It gives the correct answer, a generator for the vector <code>[3,5,7,9]</code>
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="14617937889860922947_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_14617937889860922947"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('14617937889860922947_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_14617937889860922947")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_14617937889860922947")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = ["It is just random",
+"Addition happens prior to the use of `:` so this is like `1:(4+2):5`",
+"It gives the correct answer, a generator for the vector `[3,5,7,9]`"
+]
+answ = 2
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-6" class="level6">
 <h6 class="anchored" data-anchor-id="question-6">Question</h6>
 <p>How is <code>a:b-1</code> interpreted:</p>
-<div class="cell" data-hold="true" data-execution_count="44">
-<div class="cell-output cell-output-display" data-execution_count="45">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="17469012375245838894" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_17469012375245838894">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_17469012375245838894_1">
-      <input class="form-check-input" type="radio" name="radio_17469012375245838894" id="radio_17469012375245838894_1" value="1">
-      
-      <span class="label-body px-1">
-        as <code>a:(b-1)</code>
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_17469012375245838894_2">
-      <input class="form-check-input" type="radio" name="radio_17469012375245838894" id="radio_17469012375245838894_2" value="2">
-      
-      <span class="label-body px-1">
-        as <code>(a:b) - 1</code>, which is <code>(a-1):(b-1)</code>
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="17469012375245838894_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_17469012375245838894"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('17469012375245838894_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_17469012375245838894")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_17469012375245838894")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = ["as `a:(b-1)`", "as `(a:b) - 1`, which is `(a-1):(b-1)`"]
+answ = 1
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-7" class="level6">
 <h6 class="anchored" data-anchor-id="question-7">Question</h6>
 <p>Create the sequence <span class="math inline">\(10, 100, 1000, \dots, 1,000,000\)</span> using a list comprehension. Which of these works?</p>
-<div class="cell" data-hold="true" data-execution_count="45">
-<div class="cell-output cell-output-display" data-execution_count="46">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="13488088805275503982" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_13488088805275503982">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_13488088805275503982_1">
-      <input class="form-check-input" type="radio" name="radio_13488088805275503982" id="radio_13488088805275503982_1" value="1">
-      
-      <span class="label-body px-1">
-        <code>[10^i for i in 1:6]</code>
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_13488088805275503982_2">
-      <input class="form-check-input" type="radio" name="radio_13488088805275503982" id="radio_13488088805275503982_2" value="2">
-      
-      <span class="label-body px-1">
-        <code>[10^i for i in [10, 100, 1000]]</code>
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_13488088805275503982_3">
-      <input class="form-check-input" type="radio" name="radio_13488088805275503982" id="radio_13488088805275503982_3" value="3">
-      
-      <span class="label-body px-1">
-        <code>[i^10 for i in [1:6]]</code>
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="13488088805275503982_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_13488088805275503982"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('13488088805275503982_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_13488088805275503982")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_13488088805275503982")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [q"[10^i for i in 1:6]", q"[10^i for i in [10, 100, 1000]]", q"[i^10 for i in [1:6]]"]
+answ = 1
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-8" class="level6">
 <h6 class="anchored" data-anchor-id="question-8">Question</h6>
 <p>Create the sequence <span class="math inline">\(0.1, 0.01, 0.001, \dots, 0.0000001\)</span> using a list comprehension. Which of these will work:</p>
-<div class="cell" data-hold="true" data-execution_count="46">
-<div class="cell-output cell-output-display" data-execution_count="47">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="15857697427831502788" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_15857697427831502788">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_15857697427831502788_1">
-      <input class="form-check-input" type="radio" name="radio_15857697427831502788" id="radio_15857697427831502788_1" value="1">
-      
-      <span class="label-body px-1">
-        <code>[10^-i for i in 1:7]</code>
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_15857697427831502788_2">
-      <input class="form-check-input" type="radio" name="radio_15857697427831502788" id="radio_15857697427831502788_2" value="2">
-      
-      <span class="label-body px-1">
-        <code>[(1/10)^i for i in 1:7]</code>
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_15857697427831502788_3">
-      <input class="form-check-input" type="radio" name="radio_15857697427831502788" id="radio_15857697427831502788_3" value="3">
-      
-      <span class="label-body px-1">
-        <code>[i^(1/10) for i in 1:7]</code>
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="15857697427831502788_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_15857697427831502788"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('15857697427831502788_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_15857697427831502788")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_15857697427831502788")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+q"[10^-i for i in 1:7]",
+q"[(1/10)^i for i in 1:7]",
+q"[i^(1/10) for i in 1:7]"]
+answ = 2
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-9" class="level6">
 <h6 class="anchored" data-anchor-id="question-9">Question</h6>
 <p>Evaluate the expression <span class="math inline">\(x^3 - 2x + 3\)</span> for each of the values <span class="math inline">\(-5, -4, \dots, 4, 5\)</span> using a comprehension. Which of these will work?</p>
-<div class="cell" data-hold="true" data-execution_count="47">
-<div class="cell-output cell-output-display" data-execution_count="48">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="1761261977235588895" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_1761261977235588895">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_1761261977235588895_1">
-      <input class="form-check-input" type="radio" name="radio_1761261977235588895" id="radio_1761261977235588895_1" value="1">
-      
-      <span class="label-body px-1">
-        <code>[x^3 - 2x + 3 for x in -(5:5)]</code>
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_1761261977235588895_2">
-      <input class="form-check-input" type="radio" name="radio_1761261977235588895" id="radio_1761261977235588895_2" value="2">
-      
-      <span class="label-body px-1">
-        <code>[x^3 - 2x + 3 for x in -5:5]</code>
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_1761261977235588895_3">
-      <input class="form-check-input" type="radio" name="radio_1761261977235588895" id="radio_1761261977235588895_3" value="3">
-      
-      <span class="label-body px-1">
-        <code>[x^3 - 2x + 3 for i in -5:5]</code>
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="1761261977235588895_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_1761261977235588895"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('1761261977235588895_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_1761261977235588895")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_1761261977235588895")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [q"[x^3 - 2x + 3 for i in -5:5]", q"[x^3 - 2x + 3 for x in -(5:5)]", q"[x^3 - 2x + 3 for x in -5:5]"]
+answ = 3
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-10" class="level6">
 <h6 class="anchored" data-anchor-id="question-10">Question</h6>
 <p>How many prime numbers are there between <span class="math inline">\(1100\)</span> and <span class="math inline">\(1200\)</span>? (Use <code>filter</code> and <code>isprime</code>)</p>
-<div class="cell" data-hold="true" data-execution_count="48">
-<div class="cell-output cell-output-display" data-execution_count="49">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="12607195168787647782" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_12607195168787647782">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="12607195168787647782" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="12607195168787647782_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("12607195168787647782").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 12) <= 0);
-  var msgBox = document.getElementById('12607195168787647782_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_12607195168787647782")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_12607195168787647782")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+val = length(filter(isprime, 1100:1200))
+numericq(val)</code></pre>
 </section>
 <section id="question-11" class="level6">
 <h6 class="anchored" data-anchor-id="question-11">Question</h6>
 <p>Which has more prime numbers the range <code>1000:2000</code> or the range <code>11000:12000</code>?</p>
-<div class="cell" data-hold="true" data-execution_count="49">
-<div class="cell-output cell-output-display" data-execution_count="50">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="1630049560840223159" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_1630049560840223159">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_1630049560840223159_1">
-      <input class="form-check-input" type="radio" name="radio_1630049560840223159" id="radio_1630049560840223159_1" value="1">
-      
-      <span class="label-body px-1">
-        <code>1000:2000</code>
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_1630049560840223159_2">
-      <input class="form-check-input" type="radio" name="radio_1630049560840223159" id="radio_1630049560840223159_2" value="2">
-      
-      <span class="label-body px-1">
-        <code>11000:12000</code>
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="1630049560840223159_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_1630049560840223159"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('1630049560840223159_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_1630049560840223159")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_1630049560840223159")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+n1 = length(filter(isprime, 1000:2000))
+n2 = length(filter(isprime, 11_000:12_000))
+booleanq(n1 &gt; n2, labels=[q"1000:2000", q"11000:12000"])</code></pre>
 </section>
 <section id="question-12" class="level6">
 <h6 class="anchored" data-anchor-id="question-12">Question</h6>
 <p>We can easily add an arithmetic progression with the <code>sum</code> function. For example, <code>sum(1:100)</code> will add the numbers <span class="math inline">\(1, 2, ..., 100\)</span>.</p>
 <p>What is the sum of the odd numbers between <span class="math inline">\(0\)</span> and <span class="math inline">\(100\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="50">
-<div class="cell-output cell-output-display" data-execution_count="51">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="5029491279191088340" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_5029491279191088340">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="5029491279191088340" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="5029491279191088340_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("5029491279191088340").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 2500) <= 0);
-  var msgBox = document.getElementById('5029491279191088340_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_5029491279191088340")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_5029491279191088340")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+val = sum(1:2:99)
+numericq(val)</code></pre>
 </section>
 <section id="question-13" class="level6">
 <h6 class="anchored" data-anchor-id="question-13">Question</h6>
@@ -2153,217 +961,30 @@ document.getElementById("5029491279191088340").addEventListener("change", functi
 <p><span class="math display">\[
 (n+1)\cdot a + h \cdot n(n+1)/2
 \]</span></p>
-<div class="cell" data-hold="true" data-execution_count="51">
-<div class="cell-output cell-output-display" data-execution_count="52">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="13188258358847755619" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_13188258358847755619">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_13188258358847755619_1">
-      <input class="form-check-input" type="radio" name="radio_13188258358847755619" id="radio_13188258358847755619_1" value="1">
-      
-      <span class="label-body px-1">
-        Yes, this is true
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_13188258358847755619_2">
-      <input class="form-check-input" type="radio" name="radio_13188258358847755619" id="radio_13188258358847755619_2" value="2">
-      
-      <span class="label-body px-1">
-        No, this is false
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="13188258358847755619_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_13188258358847755619"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('13188258358847755619_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_13188258358847755619")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_13188258358847755619")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+booleanq(true, labels=["Yes, this is true", "No, this is false"])</code></pre>
 </section>
 <section id="question-14" class="level6">
 <h6 class="anchored" data-anchor-id="question-14">Question</h6>
 <p>A <em>geometric progression</em> is of the form <span class="math inline">\(a^0, a^1, a^2, \dots, a^n\)</span>. These are easily generated by comprehensions of the form <code>[a^i for i in 0:n]</code>. Find the sum of the geometric progression <span class="math inline">\(1, 2^1, 2^2, \dots, 2^{10}\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="52">
-<div class="cell-output cell-output-display" data-execution_count="53">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="13437010918044858292" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_13437010918044858292">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="13437010918044858292" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="13437010918044858292_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("13437010918044858292").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 2047) <= 0);
-  var msgBox = document.getElementById('13437010918044858292_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_13437010918044858292")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_13437010918044858292")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+as = [2^i for i in 0:10]
+val = sum(as)
+numericq(val)</code></pre>
 <p>Is your answer of the form <span class="math inline">\((1 - a^{n+1}) / (1-a)\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="53">
-<div class="cell-output cell-output-display" data-execution_count="54">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="1781599702138593964" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_1781599702138593964">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_1781599702138593964_1">
-      <input class="form-check-input" type="radio" name="radio_1781599702138593964" id="radio_1781599702138593964_1" value="1">
-      
-      <span class="label-body px-1">
-        Yes
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_1781599702138593964_2">
-      <input class="form-check-input" type="radio" name="radio_1781599702138593964" id="radio_1781599702138593964_2" value="2">
-      
-      <span class="label-body px-1">
-        No
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="1781599702138593964_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_1781599702138593964"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('1781599702138593964_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_1781599702138593964")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_1781599702138593964")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+yesnoq(true)</code></pre>
 </section>
 <section id="question-15" class="level6">
 <h6 class="anchored" data-anchor-id="question-15">Question</h6>
 <p>The <a href="http://en.wikipedia.org/wiki/Arithmetic_progression">product</a> of the terms in an arithmetic progression has a known formula. The product can be found by an expression of the form <code>prod(a:h:b)</code>. Find the product of the terms in the sequence <span class="math inline">\(1,3,5,\dots,19\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="54">
-<div class="cell-output cell-output-display" data-execution_count="55">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="12028719529852036585" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_12028719529852036585">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="12028719529852036585" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="12028719529852036585_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("12028719529852036585").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 654729075) <= 0);
-  var msgBox = document.getElementById('12028719529852036585_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_12028719529852036585")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_12028719529852036585")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+val = prod(1:2:19)
+numericq(val)</code></pre>
 
 
 </section>

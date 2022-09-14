@@ -20,69 +20,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1.6em;
   vertical-align: middle;
 }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-    color: #aaaaaa;
-  }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { color: #008000; } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { color: #008000; font-weight: bold; } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
 
@@ -124,9 +61,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   }
 }</script>
 <script async="" src="https://hypothes.is/embed.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
-<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
@@ -665,19 +599,62 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 </header>
 
+<pre class="{julia}"><code>#| echo: false
+
+import Logging
+Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
+Logging.disable_logging(Logging.Warn)
+
+import SymPy
+function Base.show(io::IO, ::MIME"text/html", x::T) where {T &lt;: SymPy.SymbolicObject}
+    println(io, "&lt;span class=\"math-left-align\" style=\"padding-left: 4px; width:0; float:left;\"&gt; ")
+    println(io, "\\[")
+    println(io, sympy.latex(x))
+    println(io, "\\]")
+    println(io, "&lt;/span&gt;")
+end
+
+# hack to work around issue
+import Markdown
+import CalculusWithJulia
+function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
+    nm = joinpath("..", string(d), f)
+    u = "![$caption]($nm)"
+    Markdown.parse(u)
+end
+
+nothing</code></pre>
 <p>This section uses these add-on packages:</p>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">CalculusWithJulia</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Plots</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Roots</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">QuadGK</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">SymPy</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<pre class="{julia}"><code>using CalculusWithJulia
+using Plots
+using Roots
+using QuadGK
+using SymPy
+</code></pre>
+<pre class="{julia}"><code>#| echo: false
+#| results: "hidden"
+using CalculusWithJulia.WeaveSupport
+
+const frontmatter = (
+        title = "Center of Mass",
+        description = "Calculus with Julia: Center of Mass",
+        tags = ["CalculusWithJulia", "integrals", "center of mass"],
+);
+nothing</code></pre>
 <hr>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="../integrals/figures/seesaw.png" class="img-fluid figure-img"></p>
-<p></p><figcaption class="figure-caption">A silhouette of two children on a seesaw. The seesaw can be balanced only if the distance from the central point for each child reflects their relative weights, or masses, through the formula <span class="math inline">\(d_1m_1 = d_2 m_2\)</span>. This means if the two children weigh the same the balance will tip in favor of the child farther away, and if both are the same distance, the balance will tip in favor of the heavier.</figcaption><p></p>
-</figure>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+imgfile = "figures/seesaw.png"
+caption = L"""
+
+A silhouette of two children on a seesaw. The seesaw can be balanced
+only if the distance from the central point for each child reflects
+their relative weights, or masses, through the formula $d_1m_1 = d_2
+m_2$. This means if the two children weigh the same the balance will
+tip in favor of the child farther away, and if both are the same
+distance, the balance will tip in favor of the heavier.
+"""
+ImageFile(:integrals, imgfile, caption)</code></pre>
 <p>The game of seesaw is one where children earn an early appreciation for the effects of distance and relative weight. For children with equal weights, the seesaw will balance if they sit an equal distance from the center (on opposite sides, of course). However, with unequal weights that isn’t the case. If one child weighs twice as much, the other must sit twice as far.</p>
 <p>The key relationship is that <span class="math inline">\(d_1 m_1 = d_2 m_2\)</span>. This come from physics, where the moment about a point is defined by the mass times the distance. This balance relationship says the overall moment balances out. When this is the case, then the <em>center of mass</em> is at the fulcrum point, so there is no impetus to move.</p>
 <p>The <a href="http://en.wikipedia.org/wiki/Center_of_mass">center</a> of mass is an old concept that often allows a possibly complicated relationship involving weights to be reduced to a single point. The seesaw is an example: if the center of mass is at the fulcrum the seesaw can balance.</p>
@@ -709,23 +686,37 @@ w_1 \cdot (x_1 - \bar{\text{cm}}) + w_2 \cdot (x_2 - \bar{\text{cm}}) + \cdots +
 <h2 data-number="44.1" class="anchored" data-anchor-id="center-of-mass-of-figures"><span class="header-section-number">44.1</span> Center of mass of figures</h2>
 <p>Consider now a more general problem, the center of mass of a solid figure. We will restrict our attention to figures that can be represented by functions in the <span class="math inline">\(x-y\)</span> plane which are two dimensional. For example, consider the region in the plane bounded by the <span class="math inline">\(x\)</span> axis and the function <span class="math inline">\(1 - \lvert x \rvert\)</span>. This is triangle with vertices <span class="math inline">\((-1,0)\)</span>, <span class="math inline">\((0,1)\)</span>, and <span class="math inline">\((1,0)\)</span>.</p>
 <p>This graph shows that the figure is symmetric:</p>
-<div class="cell" data-hold="true" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> <span class="fl">1</span> <span class="op">-</span> <span class="fu">abs</span>(x)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>a, b <span class="op">=</span> <span class="op">-</span><span class="fl">1.5</span>, <span class="fl">1.5</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(f, a, b)</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(zero, a, b)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="6">
-<p><img src="center_of_mass_files/figure-html/cell-6-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+f(x) = 1 - abs(x)
+a, b = -1.5, 1.5
+plot(f, a, b)
+plot!(zero, a, b)</code></pre>
 <p>As the center of mass should be a balancing value, we would guess intuitively that the center of mass in the <span class="math inline">\(x\)</span> direction will be <span class="math inline">\(x=0\)</span>.</p>
 <p>But what should the center of mass formula be?</p>
 <p>As with many formulas that will end up involving a derived integral, we start with a sum approximation. If the region is described as the area under the graph of <span class="math inline">\(f(x)\)</span> between <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>, then we can form a Riemann sum approximation, that is a choice of <span class="math inline">\(a = x_0 &lt; x_1 &lt; x_2 \cdots &lt; x_n = b\)</span> and points <span class="math inline">\(c_1\)</span>, <span class="math inline">\(\dots\)</span>, <span class="math inline">\(c_n\)</span>. If all the rectangles are made up of a material of uniform density, say <span class="math inline">\(\rho\)</span>, then the mass of each rectangle will be the area times <span class="math inline">\(\rho\)</span>, or <span class="math inline">\(\rho f(c_i) \cdot (x_i - x_{i-1})\)</span>, for <span class="math inline">\(i = 1, \dots , n\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="6">
-<div class="cell-output cell-output-display" data-execution_count="7">
-<p><img src="center_of_mass_files/figure-html/cell-7-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+n = 21
+f(x) = 1 - abs(x)
+a, b = -1.5, 1.5
+
+xs = range(-1, stop=1, length=n)
+cs = (xs[1:(end-1)] + xs[2:end]) / 2
+
+p = plot(legend=false);
+
+for i in 1:(n-1)
+   xi, xi1 = xs[i], xs[i+1]
+   plot!(p, [xi, xi1, xi1, xi], [0,0,1,1]*f(cs[i]), linetype=:polygon, color=:red);
+end
+
+for i in 1:(n-1)
+  ci = cs[i]
+  scatter!(p, [ci], [.1], markersize=12*f(cs[i]), color=:orange);
+end
+plot!(p, [-1,1], [0,0])
+
+p</code></pre>
 <p>The figure shows the approximating rectangles and circles representing their masses for <span class="math inline">\(n=20\)</span>.</p>
 <p>Generalizing from this figure shows the center of mass for such an approximation will be:</p>
 <p><span class="math display">\[
@@ -745,14 +736,10 @@ w_1 \cdot (x_1 - \bar{\text{cm}}) + w_2 \cdot (x_2 - \bar{\text{cm}}) + \cdots +
 <section id="example-1" class="level5">
 <h5 class="anchored" data-anchor-id="example-1">Example</h5>
 <p>What about the center of mass of the triangle formed by the line <span class="math inline">\(x=-1\)</span>, the <span class="math inline">\(x\)</span> axis and <span class="math inline">\((1-x)/2\)</span>? This too is defined between <span class="math inline">\(a=-1\)</span> and <span class="math inline">\(b=-1\)</span>, but the center of mass will be negative, as a graph shows more mass to the left of <span class="math inline">\(0\)</span> than the right:</p>
-<div class="cell" data-hold="true" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> (<span class="fl">1</span><span class="op">-</span>x)<span class="op">/</span><span class="fl">2</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(f, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(zero, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="8">
-<p><img src="center_of_mass_files/figure-html/cell-8-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+f(x) = (1-x)/2
+plot(f, -1, 1)
+plot!(zero, -1, 1)</code></pre>
 <p>The formulas give:</p>
 <p><span class="math display">\[
 \int_{-1}^1 xf(x) dx = \int_{-1}^1 x\cdot (1-x)/2 = (\frac{x^2}{4} - \frac{x^3}{6})\big|_{-1}^1 = -\frac{1}{3}.
@@ -763,26 +750,17 @@ w_1 \cdot (x_1 - \bar{\text{cm}}) + w_2 \cdot (x_2 - \bar{\text{cm}}) + \cdots +
 <h5 class="anchored" data-anchor-id="example-2">Example</h5>
 <p>Find the center of mass formed by the intersection of the parabolas <span class="math inline">\(y=1 - x^2\)</span> and <span class="math inline">\(y=(x-1)^2 - 2\)</span>.</p>
 <p>The center of mass (in the <span class="math inline">\(x\)</span> direction) can be seen to be close to <span class="math inline">\(x=1/2\)</span>:</p>
-<div class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f1</span>(x) <span class="op">=</span> <span class="fl">1</span> <span class="op">-</span> x<span class="op">^</span><span class="fl">2</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">f2</span>(x) <span class="op">=</span> (x<span class="op">-</span><span class="fl">1</span>)<span class="op">^</span><span class="fl">2</span> <span class="op">-</span><span class="fl">2</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(f1, <span class="op">-</span><span class="fl">3</span>, <span class="fl">3</span>)</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(f2, <span class="op">-</span><span class="fl">3</span>, <span class="fl">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="9">
-<p><img src="center_of_mass_files/figure-html/cell-9-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>f1(x) = 1 - x^2
+f2(x) = (x-1)^2 -2
+plot(f1, -3, 3)
+plot!(f2, -3, 3)</code></pre>
 <p>To find it, we need to find the intersection points, then integrate. We do so numerically.</p>
-<div class="cell" data-hold="true" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">h</span>(x) <span class="op">=</span> <span class="fu">f1</span>(x) <span class="op">-</span> <span class="fu">f2</span>(x)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>a,b <span class="op">=</span> <span class="fu">find_zeros</span>(h, <span class="op">-</span><span class="fl">3</span>, <span class="fl">3</span>)</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>top, err <span class="op">=</span> <span class="fu">quadgk</span>(x <span class="op">-&gt;</span> x <span class="op">*</span> <span class="fu">h</span>(x), a, b)</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>bottom, err <span class="op">=</span> <span class="fu">quadgk</span>(h, a, b)</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>cm <span class="op">=</span> top <span class="op">/</span> bottom</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="10">
-<pre><code>0.5000000000000001</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+h(x) = f1(x) - f2(x)
+a,b = find_zeros(h, -3, 3)
+top, err = quadgk(x -&gt; x * h(x), a, b)
+bottom, err = quadgk(h, a, b)
+cm = top / bottom</code></pre>
 <p>Our guess from the diagram proves correct.</p>
 <div class="callout-note callout callout-style-default callout-captioned">
 <div class="callout-header d-flex align-content-center">
@@ -828,36 +806,32 @@ Note
 <section id="example-4" class="level5">
 <h5 class="anchored" data-anchor-id="example-4">Example</h5>
 <p>A figure is formed by transformations of the function <span class="math inline">\(\phi(u) = e^{2(k-1)} - e^{2(k-u)}\)</span>, for some fixed <span class="math inline">\(k\)</span>, as follows:</p>
-<div class="cell" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="fl">3</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">phi</span>(u) <span class="op">=</span> <span class="fu">exp</span>(<span class="fl">2</span>(k<span class="op">-</span><span class="fl">1</span>)) <span class="op">-</span> <span class="fu">exp</span>(<span class="fl">2</span>(k<span class="op">-</span>u))</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(u) <span class="op">=</span> <span class="fu">max</span>(<span class="fl">0</span>, <span class="fu">phi</span>(u))</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">g</span>(u) <span class="op">=</span> <span class="fu">min</span>(<span class="fu">f</span>(u<span class="op">+</span><span class="fl">1</span>), <span class="fu">f</span>(k))</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(f, <span class="fl">0</span>, k, legend<span class="op">=</span><span class="cn">false</span>)</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(g, <span class="fl">0</span>, k)</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(zero, <span class="fl">0</span>, k)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="11">
-<p><img src="center_of_mass_files/figure-html/cell-11-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>k = 3
+phi(u) = exp(2(k-1)) - exp(2(k-u))
+f(u) = max(0, phi(u))
+g(u) = min(f(u+1), f(k))
+
+plot(f, 0, k, legend=false)
+plot!(g, 0, k)
+plot!(zero, 0, k)</code></pre>
 <p>(This is basically the graph of <span class="math inline">\(\phi(u)\)</span> and the graph of its shifted value <span class="math inline">\(\phi(u+1)\)</span>, only truncated on the top and bottom.)</p>
 <p>The center of mass of this figure is found with:</p>
-<div class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">h</span>(x) <span class="op">=</span> <span class="fu">g</span>(x) <span class="op">-</span> <span class="fu">f</span>(x)</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>top, _ <span class="op">=</span> <span class="fu">quadgk</span>(x <span class="op">-&gt;</span> <span class="fu">x*h</span>(x), <span class="fl">0</span>, k)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>bottom, _ <span class="op">=</span> <span class="fu">quadgk</span>(h, <span class="fl">0</span>, k)</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>top<span class="op">/</span>bottom</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="12">
-<pre><code>0.9626852772498595</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>h(x) = g(x) - f(x)
+top, _ = quadgk(x -&gt; x*h(x), 0, k)
+bottom, _ = quadgk(h, 0, k)
+top/bottom</code></pre>
 <p>This figure has constant slices of length <span class="math inline">\(1\)</span> for fixed values of <span class="math inline">\(y\)</span>. If we were to approximate the values with blocks of height <span class="math inline">\(1\)</span>, then the center of mass would be to the left of <span class="math inline">\(1\)</span> - for any <span class="math inline">\(k\)</span>, but the top most block would have an overhang to the right of <span class="math inline">\(1\)</span> - out to a value of <span class="math inline">\(k\)</span>. That is, this figure should balance:</p>
-<div class="cell" data-execution_count="12">
-<div class="cell-output cell-output-display" data-execution_count="13">
-<p><img src="center_of_mass_files/figure-html/cell-13-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| echo: false
+u(i) = 1/2*(2k - log(exp(2(k-1)) - i))
+p = plot(legend=false);
+for i in 0:floor(phi(k))
+  x = u(i)
+  plot!(p, [x,x,x-1,x-1], [f(x),f(x)+1, f(x)+1, f(x)], linetype=:polygon, color=:orange);
+end
+xs = range(0, stop=exp(1), length=50)
+plot!(p, f, 0, e, linewidth=5);
+plot!(p, g, 0, 3, linewidth=5)
+p</code></pre>
 <p>See this <a href="https://math.dartmouth.edu/~pw/papers/maxover.pdf">paper</a> and its references for some background on this example and its extensions.</p>
 </section>
 <section id="the-y-direction." class="level3" data-number="44.1.1">
@@ -875,31 +849,13 @@ Note
 <section id="example-5" class="level5">
 <h5 class="anchored" data-anchor-id="example-5">Example</h5>
 <p>More generally, consider a right triangle with vertices <span class="math inline">\((0,0)\)</span>, <span class="math inline">\((0,a)\)</span>, and <span class="math inline">\((b,0)\)</span>. The center of mass of this can be computed with the help of the equation for the line that forms the hypotenuse: <span class="math inline">\(x/b + y/a = 1\)</span>. We find the center of mass symbolically in the <span class="math inline">\(y\)</span> variable by solving for <span class="math inline">\(x\)</span> in terms of <span class="math inline">\(y\)</span>, then integrating from <span class="math inline">\(0\)</span> to <span class="math inline">\(a\)</span>:</p>
-<div class="cell" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> a b x y</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>eqn <span class="op">=</span> x<span class="op">/</span>b <span class="op">+</span> y<span class="op">/</span>a <span class="op">-</span> <span class="fl">1</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>fy <span class="op">=</span> <span class="fu">solve</span>(eqn, x)[<span class="fl">1</span>]</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate</span>(y<span class="op">*</span>fy, (y, <span class="fl">0</span>, a)) <span class="op">/</span> <span class="fu">integrate</span>(fy, (y, <span class="fl">0</span>, a))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="14">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-\frac{a}{3}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>@syms a b x y
+eqn = x/b + y/a - 1
+fy = solve(eqn, x)[1]
+integrate(y*fy, (y, 0, a)) / integrate(fy, (y, 0, a))</code></pre>
 <p>The answer involves <span class="math inline">\(a\)</span> linearly, but not <span class="math inline">\(b\)</span>. If we find the center of mass in <span class="math inline">\(x\)</span>, we <em>could</em> do something similar:</p>
-<div class="cell" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>fx <span class="op">=</span> <span class="fu">solve</span>(eqn, y)[<span class="fl">1</span>]</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate</span>(x<span class="op">*</span>fx, (x, <span class="fl">0</span>, b)) <span class="op">/</span> <span class="fu">integrate</span>(fx, (x, <span class="fl">0</span>, b))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="15">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-\frac{b}{3}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>fx = solve(eqn, y)[1]
+integrate(x*fx, (x, 0, b)) / integrate(fx, (x, 0, b))</code></pre>
 <p>But really, we should have just noted that simply by switching the labels <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> in the diagram we could have discovered this formula.</p>
 <div class="callout-note callout callout-style-default callout-captioned">
 <div class="callout-header d-flex align-content-center">
@@ -919,13 +875,9 @@ Note
 <h5 class="anchored" data-anchor-id="example-6">Example</h5>
 <p>Compute the <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> values of the center of mass of the half circle described by the area below the function <span class="math inline">\(f(x) = \sqrt{1 - x^2}\)</span> and above the <span class="math inline">\(x\)</span>-axis.</p>
 <p>A plot shows the value of cm<span class="math inline">\(_x\)</span> will be <span class="math inline">\(0\)</span> by symmetry:</p>
-<div class="cell" data-hold="true" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> <span class="fu">sqrt</span>(<span class="fl">1</span> <span class="op">-</span> x<span class="op">^</span><span class="fl">2</span>)</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(f, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="16">
-<p><img src="center_of_mass_files/figure-html/cell-16-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+f(x) = sqrt(1 - x^2)
+plot(f, -1, 1)</code></pre>
 <p>(<span class="math inline">\(f(x)\)</span> is even, so <span class="math inline">\(xf(x)\)</span> will be odd.)</p>
 <p>However, the value for cm<span class="math inline">\(_y\)</span> will - like the last problem - be around <span class="math inline">\(1/3\)</span>. The exact value is compute using slices in the <span class="math inline">\(y\)</span> direction. Solving for <span class="math inline">\(x\)</span> in <span class="math inline">\(y=\sqrt{1-x^2}\)</span>, or <span class="math inline">\(x = \pm \sqrt{1-y^2}\)</span>, if <span class="math inline">\(f(y) = 2\sqrt{1 - y^2}\)</span>. The value is then:</p>
 <p><span class="math display">\[
@@ -938,22 +890,24 @@ Note
 <h5 class="anchored" data-anchor-id="example-7">Example</h5>
 <p>A disc of radius <span class="math inline">\(2\)</span> is centered at the origin, as a disc of radius <span class="math inline">\(1\)</span> is bored out between <span class="math inline">\(y=0\)</span> and <span class="math inline">\(y=1\)</span>. Find the resulting center of mass.</p>
 <p>A picture shows that this could be complicated, especially for <span class="math inline">\(y &gt; 0\)</span>, as we need to describe the length of the red lines below for <span class="math inline">\(-2 &lt; y &lt; 2\)</span>:</p>
-<div class="cell" data-hold="true" data-execution_count="16">
-<div class="cell-output cell-output-display" data-execution_count="17">
-<p><img src="center_of_mass_files/figure-html/cell-17-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+a,b = 0, 2pi
+ts = range(a, stop=b, length=50)
+p = plot(t -&gt; 2cos(t), t-&gt;2sin(t), a, b, legend=false, aspect_ratio=:equal);
+plot!(p, cos.(ts), 1 .+ sin.(ts), linetype=:polygon, color=:red);
+plot!(p, [-sqrt(3), sqrt(3)], [-1,-1], color=:orange);
+plot!(p, [-sqrt(3), -1],      [1,1],   color=:orange);
+plot!(p, [sqrt(3), 1],        [1,1],   color=:orange);
+p
+</code></pre>
 <p>We can see that cm<span class="math inline">\(_x = 0\)</span>, by symmetry, but to compute cm<span class="math inline">\(_y\)</span> we need to find <span class="math inline">\(f(y)\)</span>, which will depend on the value of <span class="math inline">\(y\)</span> between <span class="math inline">\(-2\)</span> and <span class="math inline">\(2\)</span>. The outer circle is <span class="math inline">\(x^2 + y^2 = 4\)</span>, the inner circle <span class="math inline">\(x^2 + (y-1)^2 = 1\)</span>. When <span class="math inline">\(y &lt; 0\)</span>, <span class="math inline">\(f(y)\)</span> is the distance across the outer circle or, <span class="math inline">\(2\sqrt{4 - y^2}\)</span>. When <span class="math inline">\(y \geq 0\)</span>, <span class="math inline">\(f(y)\)</span> is <em>twice</em> the distance from the bigger circle to the smaller, of <span class="math inline">\(2(\sqrt{4 - y^2} - \sqrt{1 - (y-1)^2})\)</span>.</p>
 <p>We use this to compute:</p>
-<div class="cell" data-hold="true" data-execution_count="17">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(y) <span class="op">=</span> y <span class="op">&lt;</span> <span class="fl">0</span> ? <span class="fl">2</span><span class="fu">*sqrt</span>(<span class="fl">4</span> <span class="op">-</span> y<span class="op">^</span><span class="fl">2</span>) <span class="op">:</span> <span class="fl">2</span><span class="op">*</span> (<span class="fu">sqrt</span>(<span class="fl">4</span> <span class="op">-</span> y<span class="op">^</span><span class="fl">2</span>)<span class="op">-</span> <span class="fu">sqrt</span>(<span class="fl">1</span> <span class="op">-</span> (y<span class="op">-</span><span class="fl">1</span>)<span class="op">^</span><span class="fl">2</span>))</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>top, _ <span class="op">=</span> <span class="fu">quadgk</span>( y <span class="op">-&gt;</span> y <span class="op">*</span> <span class="fu">f</span>(y), <span class="op">-</span><span class="fl">2</span>, <span class="fl">2</span>)</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>bottom, _ <span class="op">=</span> <span class="fu">quadgk</span>( f, <span class="op">-</span><span class="fl">2</span>, <span class="fl">2</span>)</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>top<span class="op">/</span>bottom</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="18">
-<pre><code>-0.3333333333594305</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+f(y) = y &lt; 0 ? 2*sqrt(4 - y^2) : 2* (sqrt(4 - y^2)- sqrt(1 - (y-1)^2))
+top, _ = quadgk( y -&gt; y * f(y), -2, 2)
+bottom, _ = quadgk( f, -2, 2)
+top/bottom</code></pre>
 <p>The nice answer of <span class="math inline">\(-1/3\)</span> makes us think there may be a different way to visualize this. Were we to rearrange the top integral, we could write it as <span class="math inline">\(\int_{-2}^2 y 2 \sqrt{4 -y^2}dy - \int_0^2 2y\sqrt{1 - (y-1)^2}dy\)</span>. Call this <span class="math inline">\(A - B\)</span>. The left term, <span class="math inline">\(A\)</span>, is part of the center of mass formula for the big circle (which is this value divided by <span class="math inline">\(M=4\pi\)</span>), and the right term, <span class="math inline">\(B\)</span>, is part of the center of mass formula for the (drilled out) smaller circle (which is this value divided by <span class="math inline">\(m=\pi\)</span>. These values are weighted according to <span class="math inline">\((AM - Bm)/(M-m)\)</span>. In this case <span class="math inline">\(A=0\)</span>, <span class="math inline">\(B=1\)</span> and <span class="math inline">\(M=4m\)</span>, so the answer is <span class="math inline">\(-1/3\)</span>.</p>
 </section>
 </section>
@@ -963,143 +917,40 @@ Note
 <section id="question" class="level6">
 <h6 class="anchored" data-anchor-id="question">Question</h6>
 <p>Find the center of mass in the <span class="math inline">\(x\)</span> variable for the region bounded by parabola <span class="math inline">\(x=4 - y^2\)</span> and the <span class="math inline">\(y\)</span> axis.</p>
-<div class="cell" data-hold="true" data-execution_count="18">
-<div class="cell-output cell-output-display" data-execution_count="19">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="2712662296280799724" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_2712662296280799724">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="2712662296280799724" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="2712662296280799724_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("2712662296280799724").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 1.5999999998855376) <= 0.001);
-  var msgBox = document.getElementById('2712662296280799724_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_2712662296280799724")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_2712662296280799724")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+f(x) = sqrt(4 - x)
+a, b = 0, 4
+top, _ = quadgk(x -&gt; x*f(x), a,b)
+bottom, _ = quadgk(f, a,b)
+val = top/bottom
+numericq(val)</code></pre>
 </section>
 <section id="question-1" class="level6">
 <h6 class="anchored" data-anchor-id="question-1">Question</h6>
 <p>Find the center of mass in the <span class="math inline">\(x\)</span> variable of the region in the first and fourth quadrants bounded by the ellipse <span class="math inline">\((x/2)^2 + (y/3)^2 = 1\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="19">
-<div class="cell-output cell-output-display" data-execution_count="20">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="16053011755346121608" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_16053011755346121608">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="16053011755346121608" type="number" class="form-control" placeholder="Numeric answer">
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+f(x) = 3 * sqrt(1 - (x/2)^2)
+a, b= 0, 2
 
-    
-        </div>
-      </div>
-      <div id="16053011755346121608_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("16053011755346121608").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 0.8488263630519628) <= 0.001);
-  var msgBox = document.getElementById('16053011755346121608_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_16053011755346121608")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_16053011755346121608")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+top, _ = quadgk(x -&gt; x*f(x), a,b)
+bottom, _ = quadgk(f, a,b)
+val = top/bottom
+numericq(val)</code></pre>
 </section>
 <section id="question-2" class="level6">
 <h6 class="anchored" data-anchor-id="question-2">Question</h6>
 <p>Find the center of mass of the region in the first quadrant bounded by the function <span class="math inline">\(f(x) = x^3(1-x)^4\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="20">
-<div class="cell-output cell-output-display" data-execution_count="21">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="7000663892997765835" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_7000663892997765835">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="7000663892997765835" type="number" class="form-control" placeholder="Numeric answer">
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+f(x) = x^3 * (1-x)^4
+a, b= 0, 1
 
-    
-        </div>
-      </div>
-      <div id="7000663892997765835_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("7000663892997765835").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 0.4444444444444445) <= 0.001);
-  var msgBox = document.getElementById('7000663892997765835_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_7000663892997765835")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_7000663892997765835")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+top, _ = quadgk(x -&gt; x*f(x), a,b)
+bottom, _ = quadgk(f, a,b)
+val = top/bottom
+numericq(val)</code></pre>
 </section>
 <section id="question-3" class="level6">
 <h6 class="anchored" data-anchor-id="question-3">Question</h6>
@@ -1108,49 +959,16 @@ document.getElementById("7000663892997765835").addEventListener("change", functi
 f(x) = \frac{k}{\lambda}\left(\frac{x}{\lambda}\right)^{k-1} \exp(-(\frac{x}{\lambda})^k)
 \]</span></p>
 <p>For <span class="math inline">\(k=2\)</span> and <span class="math inline">\(\lambda = 2\)</span>, compute the mean. (The center of mass, assuming the total area is <span class="math inline">\(1\)</span>.)</p>
-<div class="cell" data-hold="true" data-execution_count="21">
-<div class="cell-output cell-output-display" data-execution_count="22">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="5736086945818285880" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_5736086945818285880">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="5736086945818285880" type="number" class="form-control" placeholder="Numeric answer">
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+k, lambda = 2, 2
+f(x) = (k/lambda) * (x/lambda)^(k-1) * exp(-(x/lambda)^k)
+a, b = 0, Inf
 
-    
-        </div>
-      </div>
-      <div id="5736086945818285880_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("5736086945818285880").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 1.7724538509055145) <= 0.001);
-  var msgBox = document.getElementById('5736086945818285880_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_5736086945818285880")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_5736086945818285880")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+top, _ = quadgk(x -&gt; x*f(x), a,b)
+bottom, _ = quadgk(f, a,b)
+val = top/bottom
+numericq(val)</code></pre>
 </section>
 <section id="question-4" class="level6">
 <h6 class="anchored" data-anchor-id="question-4">Question</h6>
@@ -1160,152 +978,59 @@ f(x) = \frac{1}{4s} \text{sech}(\frac{x-\mu}{2s})^2, \quad -\infty &lt; x &lt; \
 \]</span></p>
 <p>(Where <span class="math inline">\(\text{sech}\)</span> is the hyperbolic secant, implemented in <code>julia</code> through <code>sech</code>.)</p>
 <p>For <span class="math inline">\(m=2\)</span> and <span class="math inline">\(s=4\)</span> compute the mean, or center of mass, of this density.</p>
-<div class="cell" data-hold="true" data-execution_count="22">
-<div class="cell-output cell-output-display" data-execution_count="23">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="4867357519955812764" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_4867357519955812764">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="4867357519955812764" type="number" class="form-control" placeholder="Numeric answer">
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+m, s = 2, 4
+f(x) = 1/(4s) * sech((x-m)/2s)^2
+a,b = -Inf, Inf
 
-    
-        </div>
-      </div>
-      <div id="4867357519955812764_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("4867357519955812764").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 2.0000000000002287) <= 0.001);
-  var msgBox = document.getElementById('4867357519955812764_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_4867357519955812764")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_4867357519955812764")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+top, _ = quadgk(x -&gt; x*f(x), a,b)
+bottom, _ = quadgk(f, a,b)
+val = top/bottom
+numericq(val)</code></pre>
 </section>
 <section id="question-5" class="level6">
 <h6 class="anchored" data-anchor-id="question-5">Question</h6>
 <p>A region is formed by intersecting the area bounded by the circle <span class="math inline">\(x^2 + y^2 = 1\)</span> that lies above the line <span class="math inline">\(y=3/4\)</span>. Find the center of mass in the <span class="math inline">\(y\)</span> direction (that of the <span class="math inline">\(x\)</span> direction is <span class="math inline">\(0\)</span> by symmetry).</p>
-<div class="cell" data-hold="true" data-execution_count="23">
-<div class="cell-output cell-output-display" data-execution_count="24">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="6635539158490749542" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_6635539158490749542">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="6635539158490749542" type="number" class="form-control" placeholder="Numeric answer">
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+f(y) = 2*sqrt(1 - y^2)
+a, b = 3/4, 1
 
-    
-        </div>
-      </div>
-      <div id="6635539158490749542_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
 
-<script text="text/javascript">
-document.getElementById("6635539158490749542").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 0.8511553682895965) <= 0.001);
-  var msgBox = document.getElementById('6635539158490749542_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_6635539158490749542")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_6635539158490749542")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+top, _ = quadgk(x -&gt; x*f(x), a,b)
+bottom, _ = quadgk(f, a,b)
+val = top/bottom
+numericq(val)</code></pre>
 </section>
 <section id="question-6" class="level6">
 <h6 class="anchored" data-anchor-id="question-6">Question</h6>
 <p>Find the center of mass in the <span class="math inline">\(y\)</span> direction of the area bounded by the cosine curve and the <span class="math inline">\(x\)</span> axis between <span class="math inline">\(-\pi/2\)</span> and <span class="math inline">\(\pi/2\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="24">
-<div class="cell-output cell-output-display" data-execution_count="25">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="2690918391619960307" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_2690918391619960307">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="2690918391619960307" type="number" class="form-control" placeholder="Numeric answer">
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+f(y) = 2*acos(y)
+a, b= 0, 1
 
-    
-        </div>
-      </div>
-      <div id="2690918391619960307_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("2690918391619960307").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 0.392699081675986) <= 0.001);
-  var msgBox = document.getElementById('2690918391619960307_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_2690918391619960307")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_2690918391619960307")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+top, _ = quadgk(x -&gt; x*f(x), a,b)
+bottom, _ = quadgk(f, a,b)
+val = top/bottom
+numericq(val)</code></pre>
 </section>
 <section id="question-7" class="level6">
 <h6 class="anchored" data-anchor-id="question-7">Question</h6>
 <p>A penny, nickel, dime and quarter are stacked so that their right most edges align and are centered so that the center of mass in the <span class="math inline">\(y\)</span> direction is <span class="math inline">\(0\)</span>. Find the center of mass in the <span class="math inline">\(x\)</span> direction.</p>
-<div class="cell" data-hold="true" data-execution_count="25">
-<div class="cell-output cell-output-display" data-execution_count="26">
-<p><img src="center_of_mass_files/figure-html/cell-26-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+ds = [0.75, 0.835, 0.705, 0.955]
+rs = ds/2
+xs = rs[4] .- rs
+ts = range(0,stop=2pi, length=50)
+p = plot(legend=false, aspect_ratio=:equal);
+for i in 1:4
+  plot!(p, xs[i] .+ rs[i]*cos.(ts), rs[i]*sin.(ts));
+end
+
+p</code></pre>
 <p>You will need some specifications, such as these from the <a href="http://www.usmint.gov/about_the_mint/?action=coin_specifications">US Mint</a></p>
 <pre data-eval="false"><code>         diameter(in)   weight(gms)
 penny     0.750           2.500
@@ -1314,49 +1039,14 @@ dime      0.705           2.268
 quarter   0.955           5.670
 </code></pre>
 <p>(Hint: Though this could be done with integration, it is easier to treat each coin as a single point (its centroid) with the given mass and then apply the formula for sums.)</p>
-<div class="cell" data-hold="true" data-execution_count="26">
-<div class="cell-output cell-output-display" data-execution_count="27">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="1974769381138623765" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_1974769381138623765">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="1974769381138623765" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="1974769381138623765_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("1974769381138623765").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 0.05439499935224769) <= 0.001);
-  var msgBox = document.getElementById('1974769381138623765_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_1974769381138623765")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_1974769381138623765")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+ds = [0.75, 0.835, 0.705, 0.955]
+ms = [2.5, 5, 2.268, 5.670]
+rs = ds/2
+xs = rs[4] .- rs
+val = sum(ms .* xs) / sum(ms)
+numericq(val)</code></pre>
 
 
 </section>

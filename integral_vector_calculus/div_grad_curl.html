@@ -20,69 +20,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1.6em;
   vertical-align: middle;
 }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-    color: #aaaaaa;
-  }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { color: #008000; } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { color: #008000; font-weight: bold; } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
 
@@ -124,9 +61,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   }
 }</script>
 <script async="" src="https://hypothes.is/embed.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
-<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
@@ -686,10 +620,82 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 </header>
 
+<pre class="{julia}"><code>#| echo: false
+
+import Logging
+Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
+Logging.disable_logging(Logging.Warn)
+
+import SymPy
+function Base.show(io::IO, ::MIME"text/html", x::T) where {T &lt;: SymPy.SymbolicObject}
+    println(io, "&lt;span class=\"math-left-align\" style=\"padding-left: 4px; width:0; float:left;\"&gt; ")
+    println(io, "\\[")
+    println(io, sympy.latex(x))
+    println(io, "\\]")
+    println(io, "&lt;/span&gt;")
+end
+
+# hack to work around issue
+import Markdown
+import CalculusWithJulia
+function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
+    nm = joinpath("..", string(d), f)
+    u = "![$caption]($nm)"
+    Markdown.parse(u)
+end
+
+nothing</code></pre>
 <p>This section uses these add-on packages:</p>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">CalculusWithJulia</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Plots</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">SymPy</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<pre class="{julia}"><code>using CalculusWithJulia
+using Plots
+using SymPy</code></pre>
+<pre class="{julia}"><code>#| echo: false
+#| results: "hidden"
+using CalculusWithJulia.WeaveSupport
+const frontmatter = (
+        title = "The Gradient, Divergence, and Curl",
+        description = "Calculus with Julia: The Gradient, Divergence, and Curl",
+        tags = ["CalculusWithJulia", "integral_vector_calculus", "the gradient, divergence, and curl"],
+);
+nothing
+
+## used in other blocks
+_bar(x) = sum(x)/length(x)
+_shrink(x, xbar, offset) = xbar .+ (1-offset/100)*(x .- xbar)
+function _poly!(plt::Plots.Plot, ps; offset=5, kwargs...)
+    push!(ps, first(ps))
+    xs, ys = unzip(ps)
+    xbar, ybar = _bar.((xs, ys))
+    xs, ys = _shrink.(xs, xbar, offset), _shrink.(ys, ybar, offset)
+
+    plot!(plt, xs, ys; kwargs...)
+#    xn = [xs[end],ys[end]]
+#    x0 = [xs[1], ys[1]]
+#    dxn = 0.95*(x0 - xn)
+
+#    plot!(plt, xn, dxn; kwargs...)
+
+    plt
+end
+_poly!(ps;offset=5,kwargs...) = _poly!(Plots.current(), ps; offset=offset, kwargs...)
+
+function apoly!(plt::Plots.Plot, ps; offset=5, kwargs...)
+    xs, ys = unzip(ps)
+    xbar, ybar = _bar.((xs, ys))
+    xs, ys = _shrink.(xs, xbar, offset), _shrink.(ys, ybar, offset)
+
+    plot!(plt, xs, ys; kwargs...)
+    xn = [xs[end],ys[end]]
+    x0 = [xs[1], ys[1]]
+    dxn = 0.95*(x0 - xn)
+
+    arrow!(plt, xn, dxn; kwargs...)
+
+    plt
+end
+apoly!(ps;offset=5,kwargs...) = apoly!(Plots.current(), ps; offset=offset, kwargs...)
+
+nothing</code></pre>
 <hr>
 <p>The gradient of a scalar function <span class="math inline">\(f:R^n \rightarrow R\)</span> is a vector field of partial derivatives. In <span class="math inline">\(R^2\)</span>, we have:</p>
 <p><span class="math display">\[
@@ -701,11 +707,37 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <section id="the-divergence" class="level2" data-number="61.1">
 <h2 data-number="61.1" class="anchored" data-anchor-id="the-divergence"><span class="header-section-number">61.1</span> The divergence</h2>
 <p>Let <span class="math inline">\(F:R^3 \rightarrow R^3 = \langle F_x, F_y, F_z\rangle\)</span> be a vector field. Consider now a small box-like region, <span class="math inline">\(R\)</span>, with surface, <span class="math inline">\(S\)</span>, on the cartesian grid, with sides of length <span class="math inline">\(\Delta x\)</span>, <span class="math inline">\(\Delta y\)</span>, and <span class="math inline">\(\Delta z\)</span> with <span class="math inline">\((x,y,z)\)</span> being one corner. The outward pointing unit normals are <span class="math inline">\(\pm \hat{i}, \pm\hat{j},\)</span> and <span class="math inline">\(\pm\hat{k}\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="4">
-<div class="cell-output cell-output-display" data-execution_count="5">
-<p><img src="div_grad_curl_files/figure-html/cell-5-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+dx = .5
+dy = .250
+offset=5
+p = plot(;ylim=(0-.2, 1+dy+.4), legend=false, aspect_ratio=:equal,xticks=nothing,yticks=nothing, border=:none)
+plot!(p, [dx,dx],[dy,1+dy-offset/100], linestyle=:dash)
+plot!(p, [0+offset/100,dx],[0+offset/100,dy], linestyle=:dash)
+plot!(p, [dx,1+dx-2offset/100],[dy,dy], linestyle=:dash)
+
+ps = [[1,1], [0,1],[0,0],[1,0]]
+_poly!(ps, linewidth=3, color=:blue)
+
+ps = [[1,1], [1+dx, 1+dy], [dx, 1+dy],[0,1]]
+_poly!(ps,  linewidth=3, color=:red)
+
+ps = [[1,0],[1+dx, dy],[1+dx, 1+dy],[1,1]]
+_poly!(ps,  linewidth=3, color=:green)
+arrow!([.55,.6],.3*[-1,-1/2], color=:blue)
+arrow!([1+.6dx, .6], .3*[1,0], color=:blue)
+arrow!([.75, 1+.5*dy], .3*[0,1], color=:blue)
+annotate!([
+        (.5, -.1, "Δy"),
+        (1+.75dx, .1, "Δx"),
+        (1+dx+.1, .75, "Δz"),
+        (.5,.15,L"(x,y,z)"),
+        (.45,.6, "î"),
+        (1+.8dx, .7, "ĵ"),
+        (.8, 1+dy+.1, "k̂")
+        ])
+p</code></pre>
 <p>Consider the sides with outward normal <span class="math inline">\(\hat{i}\)</span>. The contribution to the surface integral, <span class="math inline">\(\oint_S (F\cdot\hat{N})dS\)</span>, could be <em>approximated</em> by</p>
 <p><span class="math display">\[
 \left(F(x + \Delta x, y, z) \cdot \hat{i}\right) \Delta y \Delta z,
@@ -741,19 +773,34 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 \]</span></p>
 <hr>
 <p>In <code>Julia</code>, the divergence can be implemented different ways depending on how the problem is presented. Here are two functions from the <code>CalculusWithJulia</code> package for when the problem is symbolic or numeric:</p>
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">divergence</span>(F<span class="op">::</span><span class="dt">Vector{Sym}</span>, vars) <span class="op">=</span> <span class="fu">sum</span>(<span class="fu">diff</span>.(F, vars))</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">divergence</span>(F<span class="op">::</span><span class="dt">Function</span>, pt) <span class="op">=</span> <span class="fu">sum</span>(<span class="fu">diag</span>(ForwardDiff.<span class="fu">jacobian</span>(F, pt)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<pre class="{julia}"><code>#| eval: false
+divergence(F::Vector{Sym}, vars) = sum(diff.(F, vars))
+divergence(F::Function, pt) = sum(diag(ForwardDiff.jacobian(F, pt)))</code></pre>
 <p>The latter being a bit inefficient, as all <span class="math inline">\(n^2\)</span> partial derivatives are found, but only the <span class="math inline">\(n\)</span> diagonal ones are used.</p>
 </section>
 </section>
 <section id="the-curl" class="level2" data-number="61.2">
 <h2 data-number="61.2" class="anchored" data-anchor-id="the-curl"><span class="header-section-number">61.2</span> The curl</h2>
 <p>Before considering the curl for <span class="math inline">\(n=3\)</span>, we derive a related quantity in <span class="math inline">\(n=2\)</span>. The “curl” will be a measure of the microscopic circulation of a vector field. To that end we consider a microscopic box-region in <span class="math inline">\(R^2\)</span>:</p>
-<div class="cell" data-hold="true" data-execution_count="6">
-<div class="cell-output cell-output-display" data-execution_count="6">
-<p><img src="div_grad_curl_files/figure-html/cell-7-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+p = plot(legend=false, xticks=nothing, yticks=nothing, border=:none, xlim=(-1/4, 1+1/4),ylim=(-1/4, 1+1/4))
+apoly!([[0,0],[1,0], [1,1], [0, 1]], linewidth=3, color=:blue)
+
+dx = .025
+arrow!([1/2, dx], .01 *[1,0], linewidth=3, color=:blue)
+arrow!([1/2, 1-dx], .01 *[-1,0], linewidth=3, color=:blue)
+arrow!([1-dx, 1/2], .01 *[0, 1], linewidth=3, color=:blue)
+
+annotate!([
+        (0,-1/16,L"(x,y)"),
+        (1, -1/16, L"(x+\Delta{x},y)"),
+        (0, 1+1/16, L"(x,y+\Delta{y})"),
+        (1/2, 4dx, L"\hat{i}"),
+        (1/2, 1-4dx, L"-\hat{i}"),
+        (3dx, 1/2, L"-\hat{j}"),
+        (1-3dx, 1/2, L"\hat{j}")
+        ])</code></pre>
 <p>Let <span class="math inline">\(F=\langle F_x, F_y\rangle\)</span>. For small enough values of <span class="math inline">\(\Delta{x}\)</span> and <span class="math inline">\(\Delta{y}\)</span> the line integral, <span class="math inline">\(\oint_C F\cdot d\vec{r}\)</span> can be <em>approximated</em> by <span class="math inline">\(4\)</span> terms:</p>
 <p><span class="math display">\[
 \begin{align}
@@ -777,17 +824,72 @@ F_x(x, y+\Delta{y}) (-\Delta{x}) + F_y(x,y) (-\Delta{y})\\
 <p>The scalar function on the right hand side is called the (two-dimensional) curl of <span class="math inline">\(F\)</span> and the left-hand side lends itself as a measure of the microscopic circulation of the vector field, <span class="math inline">\(F:R^2 \rightarrow R^2\)</span>.</p>
 <hr>
 <p>Consider now a similar scenario for the <span class="math inline">\(n=3\)</span> case. Let <span class="math inline">\(F=\langle F_x, F_y,F_z\rangle\)</span> be a vector field and <span class="math inline">\(S\)</span> a box-like region with side lengths <span class="math inline">\(\Delta x\)</span>, <span class="math inline">\(\Delta y\)</span>, and <span class="math inline">\(\Delta z\)</span>, anchored at <span class="math inline">\((x,y,z)\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="7">
-<div class="cell-output cell-output-display" data-execution_count="7">
-<p><img src="div_grad_curl_files/figure-html/cell-8-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+dx = .5
+dy = .250
+offset=5
+p = plot(;ylim=(0-.2, 1+dy+.4), legend=false, aspect_ratio=:equal,xticks=nothing,yticks=nothing, border=:none)
+plot!(p, [dx,dx],[dy,1+dy-offset/100], linestyle=:dash)
+plot!(p, [0+offset/100,dx],[0+offset/100,dy], linestyle=:dash)
+plot!(p, [dx,1+dx-2offset/100],[dy,dy], linestyle=:dash)
+
+ps = [[1,1], [0,1],[0,0],[1,0]]
+apoly!(ps, linewidth=3, color=:blue)
+
+ps = [[1,1], [1+dx, 1+dy], [dx, 1+dy],[0,1]]
+apoly!(ps,  linewidth=3, color=:red)
+
+ps = [[1,0],[1+dx, dy],[1+dx, 1+dy],[1,1]]
+apoly!(ps,  linewidth=3, color=:green)
+arrow!([.55,.6],.3*[-1,-1/2], color=:blue)
+arrow!([1+.6dx, .6], .3*[1,0], color=:blue)
+arrow!([.75, 1+.5*dy], .3*[0,1], color=:blue)
+annotate!([
+        (.5, -.1, "Δy"),
+        (1+.75dx, .1, "Δx"),
+        (1+dx+.1, .75, "Δz"),
+        (.5,.15,L"(x,y,z)"),
+        (.45,.6, "î"),
+        (1+.8dx, .667, "ĵ"),
+        (.8, 1+dy+.067, "k̂"),
+        (.9, 1.1, "S₁")
+        ])
+p</code></pre>
 <p>The box-like volume in space with the top area, with normal <span class="math inline">\(\hat{k}\)</span>, designated as <span class="math inline">\(S_1\)</span>. The curve <span class="math inline">\(C_1\)</span> traces around <span class="math inline">\(S_1\)</span> in a counter clockwise manner, consistent with the right-hand rule pointing in the outward normal direction. The face <span class="math inline">\(S_1\)</span> with unit normal <span class="math inline">\(\hat{k}\)</span> looks like:</p>
-<div class="cell" data-hold="true" data-execution_count="8">
-<div class="cell-output cell-output-display" data-execution_count="8">
-<p><img src="div_grad_curl_files/figure-html/cell-9-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+p = plot(xlim=(-.1,1.25), ylim=(-.2, 1.25),legend=false, xticks=nothing, yticks=nothing, border=:none)
+ps = [[1,0],[1,1],[0,1],[0,0]]
+#push!(ps, first(ps))
+apoly!(p, ps, linewidth=3, color=:red)
+#plot!(p, unzip(ps), linewidth=3, color=:red)
+dx = .025
+arrow!([1/2,dx], .01*[1,0], color=:red, linewidth=3)
+arrow!([1/2,1-dx],  .01*[-1,0], color=:red, linewidth=3)
+arrow!([1-dx,1/2], .01*[0,1], color=:red, linewidth=3)
+arrow!([dx,1/2], .01*[0,-1], color=:red, linewidth=3)
+dx = .05
+annotate!([
+        (0, 1/2, "A"),
+        (1/2,2dx, "B"),
+        (1-(3/2)dx,1/2, "C"),
+        (1/2,1-2dx, "D"),
+
+        (.9, 1+dx, "C₁"),
+
+        (2*dx, 1/2, L"\hat{T}=\hat{i}"),
+        (1+2*dx,1/2, L"\hat{T}=-\hat{i}"),
+        (1/2,-3/2*dx, L"\hat{T}=\hat{j}"),
+        (1/2, 1+(3/2)*dx, L"\hat{T}=-\hat{j}"),
+
+        (3dx,1-2dx, "(x,y,z+Δz)"),
+        (4dx,2dx, "(x+Δx,y,z+Δz)"),
+        (1-4dx, 1-2dx, "(x,y+Δy,z+Δz)"),
+        (1-2dx, 2dx, "S₁")
+        ])
+
+p</code></pre>
 <p>Now we compute the <em>line integral</em>. Consider the top face, <span class="math inline">\(S_1\)</span>, connecting <span class="math inline">\((x,y,z+\Delta z), (x + \Delta x, y, z + \Delta z), (x + \Delta x, y + \Delta y, z + \Delta z), (x, y + \Delta y, z + \Delta z)\)</span>, Using the <em>right hand rule</em>, parameterize the boundary curve, <span class="math inline">\(C_1\)</span>, in a counter clockwise direction so the right hand rule yields the outward pointing normal (<span class="math inline">\(\hat{k}\)</span>). Then the integral <span class="math inline">\(\oint_{C_1} F\cdot \hat{T} ds\)</span> is <em>approximated</em> by the following Riemann sum of <span class="math inline">\(4\)</span> terms:</p>
 <p><span class="math display">\[
 \begin{align*}
@@ -866,13 +968,15 @@ F_x &amp; F_y &amp; F_z
 \]</span></p>
 <hr>
 <p>In <code>Julia</code>, the curl can be implemented different ways depending on how the problem is presented. We will use the Jacobian matrix to compute the required partials. If the Jacobian is known, this function from the <code>CalculusWithJulia</code> package will combine the off-diagonal terms appropriately:</p>
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">curl</span>(J<span class="op">::</span><span class="dt">Matrix</span>)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    Mx, Nx, Px, My, Ny, Py, Mz, Nz, Pz <span class="op">=</span> J</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    [Py<span class="op">-</span>Nz, Mz<span class="op">-</span>Px, Nx<span class="op">-</span>My] <span class="co"># ∇×VF</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<pre class="{julia}"><code>#| eval: false
+function curl(J::Matrix)
+    Mx, Nx, Px, My, Ny, Py, Mz, Nz, Pz = J
+    [Py-Nz, Mz-Px, Nx-My] # ∇×VF
+end</code></pre>
 <p>The computation of the Jacobian differs whether the problem is treated numerically or symbolically. Here are two functions:</p>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span>(F<span class="op">::</span><span class="dt">Vector{Sym}</span>, vars<span class="op">=</span><span class="fu">free_symbols</span>(F)) <span class="op">=</span> <span class="fu">curl</span>(F.<span class="fu">jacobian</span>(vars))</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span>(F<span class="op">::</span><span class="dt">Function</span>, pt) <span class="op">=</span> <span class="fu">curl</span>(ForwardDiff.<span class="fu">jacobian</span>(F, pt))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<pre class="{julia}"><code>#| eval: false
+curl(F::Vector{Sym}, vars=free_symbols(F)) = curl(F.jacobian(vars))
+curl(F::Function, pt) = curl(ForwardDiff.jacobian(F, pt))</code></pre>
 <section id="the-nabla-del-operator" class="level3" data-number="61.2.1">
 <h3 data-number="61.2.1" class="anchored" data-anchor-id="the-nabla-del-operator"><span class="header-section-number">61.2.1</span> The <span class="math inline">\(\nabla\)</span> (del) operator</h3>
 <p>The divergence, gradient, and curl all involve partial derivatives. There is a notation employed that can express the operations more succinctly. Let the <a href="https://en.wikipedia.org/wiki/Del">Del operator</a> be defined in Cartesian coordinates by the formal expression:</p>
@@ -940,95 +1044,28 @@ Note
 </div>
 <hr>
 <p>In the <code>CalculusWithJulia</code> package, the constant <code>\nabla[\tab]</code>, producing <span class="math inline">\(\nabla\)</span> implements this operator for functions and symbolic expressions.</p>
-<div class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> x<span class="op">::</span><span class="dt">real </span>y<span class="op">::</span><span class="dt">real </span>z<span class="op">::</span><span class="dt">real</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="9">
-<pre><code>(x, y, z)</code></pre>
-</div>
-</div>
-<div class="cell" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x,y,z) <span class="op">=</span> x<span class="op">*</span>y<span class="op">*</span>z</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(v) <span class="op">=</span> <span class="fu">f</span>(v<span class="op">...</span>)</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">F</span>(x,y,z) <span class="op">=</span> [x, y, z]</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">F</span>(v) <span class="op">=</span> <span class="fu">F</span>(v<span class="op">...</span>)</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">∇</span>(<span class="fu">f</span>(x,y,z))  <span class="co"># symbolic operation on the symbolic expression f(x,y,z)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="10">
-<pre><code>3-element Vector{Sym}:
- y⋅z
- x⋅z
- x⋅y</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>@syms x::real y::real z::real</code></pre>
+<pre class="{julia}"><code>f(x,y,z) = x*y*z
+f(v) = f(v...)
+F(x,y,z) = [x, y, z]
+F(v) = F(v...)
+
+∇(f(x,y,z))  # symbolic operation on the symbolic expression f(x,y,z)</code></pre>
 <p>This usage of <code>∇</code> takes partial derivatives according to the order given by:</p>
-<div class="cell" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">free_symbols</span>(<span class="fu">f</span>(x,y,z))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="11">
-<pre><code>3-element Vector{Sym}:
- x
- y
- z</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>free_symbols(f(x,y,z))</code></pre>
 <p>which may <strong>not</strong> be as desired. In this case, the variables can be specified using a tuple to pair up the expression with the variables to differentiate against:</p>
-<div class="cell" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">∇</span>( (<span class="fu">f</span>(x,y,z), [x,y,z]) )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="12">
-<pre><code>3-element Vector{Sym}:
- y⋅z
- x⋅z
- x⋅y</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>∇( (f(x,y,z), [x,y,z]) )</code></pre>
 <p>For numeric expressions, we have:</p>
-<div class="cell" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">∇</span>(f)(<span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">3</span>) <span class="co"># a numeric computation. Also can call with a point [1,2,3]</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="13">
-<pre><code>3-element Vector{Int64}:
- 6
- 3
- 2</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>∇(f)(1,2,3) # a numeric computation. Also can call with a point [1,2,3]</code></pre>
 <p>(The extra parentheses are unfortunate. Here <code>∇</code> is called like a function.)</p>
 <p>The divergence can be found symbolically:</p>
-<div class="cell" data-execution_count="16">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>∇ <span class="op">⋅</span> <span class="fu">F</span>(x,y,z)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="14">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-3
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>∇ ⋅ F(x,y,z)</code></pre>
 <p>Or numerically:</p>
-<div class="cell" data-execution_count="17">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>(∇ <span class="op">⋅</span> F)(<span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">3</span>)   <span class="co"># a numeric computation. Also can call (∇ ⋅ F)([1,2,3])</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="15">
-<pre><code>3.0</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>(∇ ⋅ F)(1,2,3)   # a numeric computation. Also can call (∇ ⋅ F)([1,2,3])</code></pre>
 <p>Similarly, the curl. Symbolically:</p>
-<div class="cell" data-execution_count="18">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>∇ <span class="op">×</span> <span class="fu">F</span>(x,y,z)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="16">
-<pre><code>3-element Vector{Sym}:
- 0
- 0
- 0</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>∇ × F(x,y,z)</code></pre>
 <p>and numerically:</p>
-<div class="cell" data-execution_count="19">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>(∇ <span class="op">×</span> F)(<span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">3</span>)  <span class="co"># numeric. Also can call (∇ × F)([1,2,3])</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="17">
-<pre><code>3-element Vector{Float64}:
- 0.0
- 0.0
- 0.0</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>(∇ × F)(1,2,3)  # numeric. Also can call (∇ × F)([1,2,3])</code></pre>
 <p>There is a subtle difference in usage. Symbolically the evaluation of <code>F(x,y,z)</code> first is desired, numerically the evaluation of <code>∇ ⋅ F</code> or <code>∇ × F</code> first is desired. As <code>⋅</code> and <code>×</code> have lower precedence than function evaluation, parentheses must be used in the numeric case.</p>
 <div class="callout-note callout callout-style-default callout-captioned">
 <div class="callout-header d-flex align-content-center">
@@ -1050,146 +1087,88 @@ Note
 <p>The divergence and curl measure complementary aspects of a vector field. The divergence is defined in terms of flow out of an infinitesimal box, the curl is about rotational flow around an infinitesimal area patch.</p>
 <p>Let <span class="math inline">\(F(x,y,z) = [x, 0, 0]\)</span>, a vector field pointing in just the <span class="math inline">\(\hat{i}\)</span> direction. The divergence is simply <span class="math inline">\(1\)</span>. If <span class="math inline">\(V\)</span> is a box, as in the derivation, then the divergence measures the flow into the side with outward normal <span class="math inline">\(-\hat{i}\)</span> and through the side with outward normal <span class="math inline">\(\hat{i}\)</span> which will clearly be positive as the flow passes through the region <span class="math inline">\(V\)</span>, increasing as <span class="math inline">\(x\)</span> increases, when <span class="math inline">\(x &gt; 0\)</span>.</p>
 <p>The radial vector field <span class="math inline">\(F(x,y,z) = \langle x, y, z \rangle\)</span> is also an example of a divergent field. The divergence is:</p>
-<div class="cell" data-hold="true" data-execution_count="20">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">F</span>(x,y,z) <span class="op">=</span> [x,y,z]</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>∇ <span class="op">⋅</span> <span class="fu">F</span>(x,y,z)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="18">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-3
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+F(x,y,z) = [x,y,z]
+∇ ⋅ F(x,y,z)</code></pre>
 <p>There is a constant outward flow, emanating from the origin. Here we picture the field when <span class="math inline">\(z=0\)</span>:</p>
-<div class="cell" data-hold="true" data-execution_count="21">
-<div class="cell-output cell-output-display" data-execution_count="19">
-<p><img src="div_grad_curl_files/figure-html/cell-22-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+gr()
+F12(x,y) = [x,y]
+F12(v) = F12(v...)
+p = plot(legend=false)
+vectorfieldplot!(p, F12, xlim=(-5,5), ylim=(-5,5), nx=10, ny=10)
+t0, dt = -pi/6, 2pi/6
+r0, dr = 3, 1
+plot!(p, unzip(r -&gt; r * [cos(t0), sin(t0)], r0, r0 + dr)..., linewidth=3)
+plot!(p, unzip(r -&gt; r * [cos(t0+dt), sin(t0+dt)], r0, r0 + dr)..., linewidth=3)
+plot!(p, unzip(t -&gt; r0 * [cos(t), sin(t)], t0, t0 + dt)..., linewidth=3)
+plot!(p, unzip(t -&gt; (r0+dr) * [cos(t), sin(t)], t0, t0 + dt)..., linewidth=3)
+
+p</code></pre>
 <p>Consider the limit definition of the divergence:</p>
 <p><span class="math display">\[
 \nabla\cdot{F} = \lim \frac{1}{\Delta{V}} \oint_S F\cdot\hat{N} dA.
 \]</span></p>
 <p>In the vector field above, the shape along the curved edges has constant magnitude field. On the left curved edge, the length is smaller and the field is smaller than on the right. The flux across the left edge will be less than the flux across the right edge, and a net flux will exist. That is, there is divergence.</p>
 <p>Now, were the field on the right edge less, it might be that the two balance out and there is no divergence. This occurs with the inverse square laws, such as for gravity and electric field:</p>
-<div class="cell" data-hold="true" data-execution_count="22">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>R <span class="op">=</span> [x,y,z]</span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>Rhat <span class="op">=</span> R<span class="op">/</span><span class="fu">norm</span>(R)</span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>VF <span class="op">=</span> (<span class="fl">1</span><span class="op">/</span><span class="fu">norm</span>(R)<span class="op">^</span><span class="fl">2</span>) <span class="op">*</span> Rhat</span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>∇ <span class="op">⋅</span> VF  <span class="op">|&gt;</span> simplify</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="20">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-0
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+R = [x,y,z]
+Rhat = R/norm(R)
+VF = (1/norm(R)^2) * Rhat
+∇ ⋅ VF  |&gt; simplify</code></pre>
 <hr>
 <p>The vector field <span class="math inline">\(F(x,y,z) = \langle -y, x, 0 \rangle\)</span> is an example of a rotational field. It’s curl can be computed symbolically through:</p>
-<div class="cell" data-execution_count="23">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span>([<span class="op">-</span>y,x,<span class="fl">0</span>], [x,y,z])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="21">
-<pre><code>3-element Vector{Sym}:
- 0
- 0
- 2</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>curl([-y,x,0], [x,y,z])</code></pre>
 <p>This vector field rotates as seen in this figure showing slices for different values of <span class="math inline">\(z\)</span>:</p>
-<div class="cell" data-hold="true" data-execution_count="24">
-<div class="cell-output cell-output-display" data-execution_count="22">
-<p><img src="div_grad_curl_files/figure-html/cell-25-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+V(x,y,z) = [-y, x,0]
+V(v) = V(v...)
+p = plot([NaN],[NaN],[NaN], legend=false)
+ys = xs = range(-2,2, length=10 )
+zs = range(0, 4, length=3)
+CalculusWithJulia.vectorfieldplot3d!(p, V, xs, ys, zs, nz=3)
+plot!(p, [0,0], [0,0],[-1,5], linewidth=3)
+p</code></pre>
 <p>The field has a clear rotation about the <span class="math inline">\(z\)</span> axis (illustrated with a line), the curl is a vector that points in the direction of the <em>right hand</em> rule as the right hand fingers follow the flow with magnitude given by the amount of rotation.</p>
 <p>This is a bit misleading though, the curl is defined by a limit, and not in terms of a large box. The key point for this field is that the strength of the field is stronger as the points get farther away, so for a properly oriented small box, the integral along the closer edge will be less than that along the outer edge.</p>
 <p>Consider a related field where the strength gets smaller as the point gets farther away but otherwise has the same circular rotation pattern</p>
-<div class="cell" data-hold="true" data-execution_count="25">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>R <span class="op">=</span> [<span class="op">-</span>y, x, <span class="fl">0</span>]</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>VF <span class="op">=</span> R <span class="op">/</span> <span class="fu">norm</span>(R)<span class="op">^</span><span class="fl">2</span></span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span>(VF, [x,y,z]) <span class="op">.|&gt;</span> simplify</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="23">
-<pre><code>3-element Vector{Sym}:
- 0
- 0
- 0</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+R = [-y, x, 0]
+VF = R / norm(R)^2
+curl(VF, [x,y,z]) .|&gt; simplify</code></pre>
 <p>Further, the curl of <code>R/norm(R)^3</code> now points in the <em>opposite</em> direction of the curl of <code>R</code>. This example isn’t typical, as dividing by <code>norm(R)</code> with a power greater than <span class="math inline">\(1\)</span> makes the vector field discontinuous at the origin.</p>
 <p>The curl of the vector field <span class="math inline">\(F(x,y,z) = \langle 0, 1+y^2, 0\rangle\)</span> is <span class="math inline">\(0\)</span>, as there is clearly no rotation as seen in this slice where <span class="math inline">\(z=0\)</span>:</p>
-<div class="cell" data-hold="true" data-execution_count="26">
-<div class="cell-output cell-output-display" data-execution_count="24">
-<p><img src="div_grad_curl_files/figure-html/cell-27-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+vectorfieldplot((x,y) -&gt; [0, 1+y^2], xlim=(-1,1), ylim=(-1,1), nx=10, ny=8)</code></pre>
 <p>Algebraically, this is so:</p>
-<div class="cell" data-execution_count="27">
-<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span>(Sym[<span class="fl">0</span>,<span class="fl">1</span><span class="op">+</span>y<span class="op">^</span><span class="fl">2</span>,<span class="fl">0</span>], [x,y,z])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="25">
-<pre><code>3-element Vector{Sym}:
- 0
- 0
- 0</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>curl(Sym[0,1+y^2,0], [x,y,z])</code></pre>
 <p>Now consider a similar field <span class="math inline">\(F(x,y,z) = \langle 0, 1+x^2, 0,\rangle\)</span>. A slice is somewhat similar, in that the flow lines are all in the <span class="math inline">\(\hat{j}\)</span> direction:</p>
-<div class="cell" data-hold="true" data-execution_count="28">
-<div class="cell-output cell-output-display" data-execution_count="26">
-<p><img src="div_grad_curl_files/figure-html/cell-29-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+vectorfieldplot((x,y) -&gt; [0, 1+x^2], xlim=(-1,1), ylim=(-1,1), nx=10, ny=8)</code></pre>
 <p>However, this vector field has a curl:</p>
-<div class="cell" data-execution_count="29">
-<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span>([<span class="fl">0</span>, <span class="fl">1</span><span class="op">+</span>x<span class="op">^</span><span class="fl">2</span>,<span class="fl">0</span>], [x,y,z])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="27">
-<pre><code>3-element Vector{Sym}:
-   0
-   0
- 2⋅x</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>curl([0, 1+x^2,0], [x,y,z])</code></pre>
 <p>The curl points in the <span class="math inline">\(\hat{k}\)</span> direction (out of the figure). A useful visualization is to mentally place a small paddlewheel at a point and imagine if it will turn. In the constant field case, there is equal flow on both sides of the axis, so it any forces on the wheel blades will balance out. In the latter example, if <span class="math inline">\(x &gt; 0\)</span>, the force on the right side will be greater than the force on the left so the paddlewheel would rotate counter clockwise. The right hand rule for this rotation will point in the upward, or <span class="math inline">\(\hat{k}\)</span> direction, as seen algebraically in the curl.</p>
 <p>Following Strang, in general the curl can point in any direction, so the amount the paddlewheel will spin will be related to how the paddlewheel is oriented. The angular velocity of the wheel will be <span class="math inline">\((1/2)(\nabla\times{F})\cdot\hat{N}\)</span>, <span class="math inline">\(\hat{N}\)</span> being the normal for the paddlewheel.</p>
 <p>If <span class="math inline">\(\vec{a}\)</span> is some vector and <span class="math inline">\(\hat{r} = \langle x, y, z\rangle\)</span> is the radial vector, then <span class="math inline">\(\vec{a} \times \vec{r}\)</span> has a curl, which is given by:</p>
-<div class="cell" data-hold="true" data-execution_count="30">
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> a1 a2 a3</span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>a <span class="op">=</span> [a1, a2, a3]</span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>r <span class="op">=</span> [x, y, z]</span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span>(a <span class="op">×</span> r, [x,y, z])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="28">
-<pre><code>3-element Vector{Sym}:
- 2⋅a₁
- 2⋅a₂
- 2⋅a₃</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+@syms a1 a2 a3
+a = [a1, a2, a3]
+r = [x, y, z]
+curl(a × r, [x,y, z])</code></pre>
 <p>The angular velocity then is <span class="math inline">\(\vec{a} \cdot \hat{N}\)</span>. The curl is constant. As the dot product involves the cosine of the angle between the two vectors, we see the turning speed is largest when <span class="math inline">\(\hat{N}\)</span> is parallel to <span class="math inline">\(\vec{a}\)</span>. This gives a similar statement for the curl like the gradient does for steepest growth rate: the maximum rotation rate of <span class="math inline">\(F\)</span> is <span class="math inline">\((1/2)\|\nabla\times{F}\|\)</span> in the direction of <span class="math inline">\(\nabla\times{F}\)</span>.</p>
 <p>The curl of the radial vector field, <span class="math inline">\(F(x,y,z) = \langle x, y, z\rangle\)</span> will be <span class="math inline">\(\vec{0}\)</span>:</p>
-<div class="cell" data-execution_count="31">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span>([x,y,z], [x,y,z])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="29">
-<pre><code>3-element Vector{Sym}:
- 0
- 0
- 0</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>curl([x,y,z], [x,y,z])</code></pre>
 <p>We will see that this can be anticipated, as <span class="math inline">\(F = (1/2) \nabla(x^2+y^2+z^2)\)</span> is a gradient field.</p>
 <p>In fact, the curl of any radial field will be <span class="math inline">\(\vec{0}\)</span>. Here we represent a radial field as a scalar function of <span class="math inline">\(\vec{r}\)</span> time <span class="math inline">\(\hat{r}\)</span>:</p>
-<div class="cell" data-hold="true" data-execution_count="32">
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> <span class="fu">H</span>()</span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>R <span class="op">=</span> <span class="fu">sqrt</span>(x<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> y<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> z<span class="op">^</span><span class="fl">2</span>)</span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>Rhat <span class="op">=</span> [x, y, z]<span class="op">/</span>R</span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span>(<span class="fu">H</span>(R) <span class="op">*</span> Rhat, [x, y, z])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="30">
-<pre><code>3-element Vector{Sym}:
- 0
- 0
- 0</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+@syms H()
+R = sqrt(x^2 + y^2 + z^2)
+Rhat = [x, y, z]/R
+curl(H(R) * Rhat, [x, y, z])</code></pre>
 <p>Were one to represent the curl in <a href="https://en.wikipedia.org/wiki/Del_in_cylindrical_and_spherical_coordinates">spherical</a> coordinates (below), this follows algebraically from the formula easily enough. To anticipate this, due to symmetry, the curl would need to be the same along any ray emanating from the origin and again by symmetry could only possible point along the ray. Mentally place a paddlewheel along the <span class="math inline">\(x\)</span> axis oriented along <span class="math inline">\(\hat{i}\)</span>. There will be no rotational forces that could make the wheel spin around the <span class="math inline">\(x\)</span>-axis, hence the curl must be <span class="math inline">\(0\)</span>.</p>
 </section>
 <section id="the-maxwell-equations" class="level2" data-number="61.4">
@@ -1300,40 +1279,42 @@ Note
 \]</span></p>
 <p>This is zero under the assumption that the second partial derivatives are continuous.</p>
 <p>From the microscopic picture of a box this can also be seen. Again we focus on just the appearance of the <span class="math inline">\(F_z\)</span> component function. Let the faces with normals <span class="math inline">\(\hat{i}, \hat{j},-\hat{i}, -\hat{j}\)</span> be labeled <span class="math inline">\(A, B, C\)</span>, and <span class="math inline">\(D\)</span>. This figure shows <span class="math inline">\(A\)</span> (enclosed in blue) and <span class="math inline">\(B\)</span> (enclosed in green):</p>
-<div class="cell" data-hold="true" data-execution_count="33">
-<div class="cell-output cell-output-display" data-execution_count="31">
-<p><img src="div_grad_curl_files/figure-html/cell-34-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+
+dx = .5
+dy = .250
+offset=5
+p = plot(;ylim=(0-.1, 1+dy+.1), legend=false, aspect_ratio=:equal,xticks=nothing,yticks=nothing, border=:none)
+plot!(p, [dx,dx],[dy,1+dy-offset/100], linestyle=:dash)
+plot!(p, [0+offset/100,dx],[0+offset/100,dy], linestyle=:dash)
+plot!(p, [dx,1+dx-2offset/100],[dy,dy], linestyle=:dash)
+
+ps = [[1,1], [0,1],[0,0],[1,0]]
+apoly!(ps, linewidth=3, color=:blue)
+
+ps = [[1,1], [1+dx, 1+dy], [dx, 1+dy],[0,1]]
+apoly!(ps,  linewidth=3, color=:red)
+
+ps = [[1,0],[1+dx, dy],[1+dx, 1+dy],[1,1]]
+apoly!(ps,  linewidth=3, color=:green)
+annotate!(dx+.02, dy-0.05, L"P_1")
+annotate!(0+0.05, 0 - 0.02, L"P_2")
+annotate!(1+0.05, 0 - 0.02, L"P_3")
+annotate!(1+dx+.02, dy-0.05, L"P_4")
+p</code></pre>
 <p>We will get from the <em>approximate</em> surface integral of the <em>approximate</em> curl the following terms:</p>
-<div class="cell" data-hold="true" data-execution_count="34">
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> x y z Δx Δy Δz</span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>p1, p2, p3, p4<span class="op">=</span>(x, y, z), (x <span class="op">+</span> Δx, y, z), (x <span class="op">+</span> Δx, y <span class="op">+</span> Δy, z), (x, y <span class="op">+</span> Δy, z)</span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> <span class="fu">F_z</span>()</span>
-<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="kw">global</span> exₐ <span class="op">=</span> (<span class="fu">-F_z</span>(p2<span class="op">...</span>) <span class="op">+</span> <span class="fu">F_z</span>(p3<span class="op">...</span>))<span class="op">*</span>Δz <span class="op">+</span>   <span class="co"># face A</span></span>
-<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>(<span class="fu">-F_z</span>(p3<span class="op">...</span>) <span class="op">+</span> <span class="fu">F_z</span>(p4<span class="op">...</span>))<span class="op">*</span>Δz <span class="op">+</span>   <span class="co"># face B</span></span>
-<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>(<span class="fu">F_z</span>(p1<span class="op">...</span>) <span class="op">-</span> <span class="fu">F_z</span>(p4<span class="op">...</span>))<span class="op">*</span>Δz  <span class="op">+</span>   <span class="co"># face C</span></span>
-<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>(<span class="fu">F_z</span>(p2<span class="op">...</span>) <span class="op">-</span> <span class="fu">F_z</span>(p1<span class="op">...</span>))<span class="op">*</span>Δz      <span class="co"># face D</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="32">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-Δz \left(- \operatorname{F_{z}}{\left(x,y,z \right)} + \operatorname{F_{z}}{\left(x + Δx,y,z \right)}\right) + Δz \left(\operatorname{F_{z}}{\left(x,y,z \right)} - \operatorname{F_{z}}{\left(x,y + Δy,z \right)}\right) + Δz \left(\operatorname{F_{z}}{\left(x,y + Δy,z \right)} - \operatorname{F_{z}}{\left(x + Δx,y + Δy,z \right)}\right) + Δz \left(- \operatorname{F_{z}}{\left(x + Δx,y,z \right)} + \operatorname{F_{z}}{\left(x + Δx,y + Δy,z \right)}\right)
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+@syms x y z Δx Δy Δz
+p1, p2, p3, p4=(x, y, z), (x + Δx, y, z), (x + Δx, y + Δy, z), (x, y + Δy, z)
+@syms F_z()
+global exₐ = (-F_z(p2...) + F_z(p3...))*Δz +   # face A
+(-F_z(p3...) + F_z(p4...))*Δz +   # face B
+(F_z(p1...) - F_z(p4...))*Δz  +   # face C
+(F_z(p2...) - F_z(p1...))*Δz      # face D</code></pre>
 <p>The term for face <span class="math inline">\(A\)</span>, say, should be divided by <span class="math inline">\(\Delta{y}\Delta{z}\)</span> for the curl approximation, but this will be multiplied by the same amount for the divergence calculation, so it isn’t written.</p>
 <p>The expression above simplifies to:</p>
-<div class="cell" data-execution_count="35">
-<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">simplify</span>(exₐ)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="33">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-0
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>simplify(exₐ)</code></pre>
 <p>This is because of how the line integrals are oriented so that the right-hand rule gives outward pointing normals. For each up stroke for one face, there is a downstroke for a different face, and so the corresponding terms cancel each other out. So providing the limit of these two approximations holds, the vanishing identity can be anticipated from the microscopic picture.</p>
 <section id="example" class="level5">
 <h5 class="anchored" data-anchor-id="example">Example</h5>
@@ -1441,11 +1422,43 @@ r \cos(\phi)
 \rangle.
 \]</span></p>
 <p>The following figure draws curves starting at <span class="math inline">\((r_0, \theta_0, \phi_0)\)</span> formed by holding <span class="math inline">\(2\)</span> of the <span class="math inline">\(3\)</span> variables constant. The tangent vectors are added in blue. The surface <span class="math inline">\(S_r\)</span> formed by a constant value of <span class="math inline">\(r\)</span> is illustrated.</p>
-<div class="cell" data-hold="true" data-execution_count="36">
-<div class="cell-output cell-output-display" data-execution_count="34">
-<p><img src="div_grad_curl_files/figure-html/cell-37-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+Fx(r, theta, phi) = r * cos(theta) * sin(phi)
+Fy(r, theta, phi) = r * sin(theta) * sin(phi)
+Fz(r, theta, phi) = r * cos(phi)
+F(r, theta, phi) = [Fx(r,theta,phi), Fy(r, theta, phi), Fz(r, theta, phi)]
+Ftp(theta, phi;r = r0) = F(r, theta, phi)
+
+r0, t0, p0 = 1, pi/4, pi/4
+dr, dt, dp = 0.15, pi/8, pi/24
+nr = nt = np = 5
+rs = range(r0, r0+dr, length=nr)
+ts = range(t0, t0+dt, length=nt)
+ps = range(p0, p0 + dp, length=np)
+
+
+# plot lines for fixed r, theta, phi
+p = plot(unzip(r -&gt; F(r,t0,p0), r0, r0+dr)..., legend=false, linewidth=2, color=:black, camera=(50, 60))
+plot!(p, unzip(t -&gt; F(r0,t,p0), t0, t0+dt)..., linewidth=2, color=:black)
+plot!(p, unzip(p -&gt; F(r0,t0,p), p0, p0+dp)..., linewidth=2, color=:black)
+
+for theta in ts[2:end]
+   plot!(p, unzip(phi -&gt; Ftp(theta, phi), p0, p0+dp)...)
+end
+for phi in ps[2:end]
+   plot!(p, unzip(theta -&gt; Ftp(theta, phi), t0, t0+dt)...)
+end
+
+∂Fr(r, theta, phi) = [cos(theta) * sin(phi), sin(theta) * sin(phi), cos(phi)]
+∂Fθ(r, theta, phi) = [-r*sin(theta)*sin(phi), r*cos(theta)*sin(phi), 0]
+∂Fϕ(r, theta, phi) = [r*cos(theta)*cos(phi), r*sin(theta)*cos(phi), -r*sin(phi)]
+
+pt = (r0, t0, p0)
+arrow!(p, F(pt...), (1/15) * ∂Fr(pt...), color=:blue, linewidth=4)
+arrow!(p, F(pt...), (1/4) * ∂Fθ(pt...), color=:blue, linewidth=4)
+arrow!(p, F(pt...), (1/10) * ∂Fϕ(pt...), color=:blue, linewidth=4)
+p</code></pre>
 <p>The tangent vectors found from the partial derivatives of <span class="math inline">\(\vec{r}\)</span>:</p>
 <p><span class="math display">\[
 \begin{align}
@@ -1468,11 +1481,48 @@ dV &amp;= r^2\sin(\phi) drd\theta d\phi.
 \end{align*}
 \]</span></p>
 <p>The following visualizes the volume and the surface elements.</p>
-<div class="cell" data-hold="true" data-execution_count="37">
-<div class="cell-output cell-output-display" data-execution_count="35">
-<p><img src="div_grad_curl_files/figure-html/cell-38-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+Fx(r, theta, phi) = r * cos(theta) * sin(phi)
+Fy(r, theta, phi) = r * sin(theta) * sin(phi)
+Fz(r, theta, phi) = r * cos(phi)
+F(r, theta, phi) = [Fx(r,theta,phi), Fy(r, theta, phi), Fz(r, theta, phi)]
+Ftp(theta, phi;r = r0) = F(r, theta, phi)
+
+r0, t0, p0 = 1, pi/4, pi/4
+dr, dt, dp = 0.15, pi/8, pi/24
+nr = nt = np = 5
+rs = range(r0, r0+dr, length=nr)
+ts = range(t0, t0+dt, length=nt)
+ps = range(p0, p0 + dp, length=np)
+
+
+# plot lines for fixed r, theta, phi
+p = plot(unzip(r -&gt; F(r,t0,p0), r0, r0+dr)..., legend=false, linewidth=2, color=:black, camera=(50, 60))
+plot!(p, unzip(r -&gt; F(r,t0+dt,p0), r0, r0+dr)..., linewidth=2, color=:black)
+plot!(p, unzip(r -&gt; F(r,t0,p0+dp), r0, r0+dr)..., linewidth=2, color=:black)
+plot!(p, unzip(r -&gt; F(r,t0+dt,p0+dp), r0, r0+dr)..., linewidth=2, color=:black)
+
+plot!(p, unzip(t -&gt; F(r0,t,p0), t0, t0+dt)..., linewidth=2, color=:black)
+plot!(p, unzip(t -&gt; F(r0+dr,t,p0), t0, t0+dt)..., linewidth=2, color=:black)
+plot!(p, unzip(t -&gt; F(r0,t,p0+dp), t0, t0+dt)..., linewidth=2, color=:black)
+plot!(p, unzip(t -&gt; F(r0+dr,t,p0+dp), t0, t0+dt)..., linewidth=2, color=:black)
+
+plot!(p, unzip(p -&gt; F(r0,t0,p), p0, p0+dp)..., linewidth=2, color=:black)
+plot!(p, unzip(p -&gt; F(r0+dr,t0,p), p0, p0+dp)..., linewidth=2, color=:black)
+plot!(p, unzip(p -&gt; F(r0,t0+dt,p), p0, p0+dp)..., linewidth=2, color=:black)
+plot!(p, unzip(p -&gt; F(r0+dr,t0+dt,p), p0, p0+dp)..., linewidth=2, color=:black)
+
+
+∂Fr(r, theta, phi) = [cos(theta) * sin(phi), sin(theta) * sin(phi), cos(phi)]
+∂Fθ(r, theta, phi) = [-r*sin(theta)*sin(phi), r*cos(theta)*sin(phi), 0]
+∂Fϕ(r, theta, phi) = [r*cos(theta)*cos(phi), r*sin(theta)*cos(phi), -r*sin(phi)]
+
+pt = (r0, t0, p0)
+arrow!(p, F(pt...), (1/15) * ∂Fr(pt...), color=:blue, linewidth=4)
+arrow!(p, F(pt...), (1/4) * ∂Fθ(pt...), color=:blue, linewidth=4)
+arrow!(p, F(pt...), (1/10) * ∂Fϕ(pt...), color=:blue, linewidth=4)
+p</code></pre>
 </section>
 <section id="the-gradient-in-a-new-coordinate-system" class="level3" data-number="61.7.2">
 <h3 data-number="61.7.2" class="anchored" data-anchor-id="the-gradient-in-a-new-coordinate-system"><span class="header-section-number">61.7.2</span> The gradient in a new coordinate system</h3>
@@ -1581,309 +1631,64 @@ F_r &amp; rF_\theta &amp; F_z
 <section id="question" class="level6">
 <h6 class="anchored" data-anchor-id="question">Question</h6>
 <p>Numerically find the divergence of <span class="math inline">\(F(x,y,z) = \langle xy, yz, zx\rangle\)</span> at the point <span class="math inline">\(\langle 1,2,3\rangle\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="38">
-<div class="cell-output cell-output-display" data-execution_count="36">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="17718022449901781497" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_17718022449901781497">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="17718022449901781497" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="17718022449901781497_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("17718022449901781497").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 6) <= 0);
-  var msgBox = document.getElementById('17718022449901781497_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_17718022449901781497")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_17718022449901781497")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+F(x,y,z) = [x*y, y*z, z*x]
+pt = [1,2,3]
+Jac = ForwardDiff.jacobian(pt -&gt; F(pt...), pt)
+val = sum(diag(Jac))
+numericq(val)</code></pre>
 </section>
 <section id="question-1" class="level6">
 <h6 class="anchored" data-anchor-id="question-1">Question</h6>
 <p>Numerically find the curl of <span class="math inline">\(F(x,y,z) = \langle xy, yz, zx\rangle\)</span> at the point <span class="math inline">\(\langle 1,2,3\rangle\)</span>. What is the <span class="math inline">\(x\)</span> component?</p>
-<div class="cell" data-hold="true" data-execution_count="39">
-<div class="cell-output cell-output-display" data-execution_count="37">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="1362198839634222682" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_1362198839634222682">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="1362198839634222682" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="1362198839634222682_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("1362198839634222682").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - -2.0) <= 0.001);
-  var msgBox = document.getElementById('1362198839634222682_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_1362198839634222682")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_1362198839634222682")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+F(x,y,z) = [x*y, y*z, z*x]
+F(v) = F(v...)
+pt = [1,2,3]
+vals = (∇×F)(pt)
+val = vals[1]
+numericq(val)</code></pre>
 </section>
 <section id="question-2" class="level6">
 <h6 class="anchored" data-anchor-id="question-2">Question</h6>
 <p>Let <span class="math inline">\(F(x,y,z) = \langle \sin(x), e^{xy}, xyz\rangle\)</span>. Find the divergence of <span class="math inline">\(F\)</span> symbolically.</p>
-<div class="cell" data-hold="true" data-execution_count="40">
-<div class="cell-output cell-output-display" data-execution_count="38">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="3216833851215764592" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_3216833851215764592">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_3216833851215764592_1">
-      <input class="form-check-input" type="radio" name="radio_3216833851215764592" id="radio_3216833851215764592_1" value="1">
-      
-      <span class="label-body px-1">
-        \(x y + x e^{x y} + \cos{\left (x \right )}\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_3216833851215764592_2">
-      <input class="form-check-input" type="radio" name="radio_3216833851215764592" id="radio_3216833851215764592_2" value="2">
-      
-      <span class="label-body px-1">
-        \(x y + x e^{x y}\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_3216833851215764592_3">
-      <input class="form-check-input" type="radio" name="radio_3216833851215764592" id="radio_3216833851215764592_3" value="3">
-      
-      <span class="label-body px-1">
-        \(x e^{x y} + \cos{\left (x \right )}\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="3216833851215764592_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_3216833851215764592"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('3216833851215764592_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_3216833851215764592")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_3216833851215764592")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+raw" ``x y + x e^{x y} + \cos{\left (x \right )}``",
+raw" ``x y + x e^{x y}``",
+raw" ``x e^{x y} + \cos{\left (x \right )}``"
+]
+answ=1
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-3" class="level6">
 <h6 class="anchored" data-anchor-id="question-3">Question</h6>
 <p>Let <span class="math inline">\(F(x,y,z) = \langle \sin(x), e^{xy}, xyz\rangle\)</span>. Find the curl of <span class="math inline">\(F\)</span> symbolically. What is the <span class="math inline">\(x\)</span> component?</p>
-<div class="cell" data-hold="true" data-execution_count="41">
-<div class="cell-output cell-output-display" data-execution_count="39">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="1885746897596596297" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_1885746897596596297">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_1885746897596596297_1">
-      <input class="form-check-input" type="radio" name="radio_1885746897596596297" id="radio_1885746897596596297_1" value="1">
-      
-      <span class="label-body px-1">
-        \(ye^{xy}\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_1885746897596596297_2">
-      <input class="form-check-input" type="radio" name="radio_1885746897596596297" id="radio_1885746897596596297_2" value="2">
-      
-      <span class="label-body px-1">
-        \(-yz\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_1885746897596596297_3">
-      <input class="form-check-input" type="radio" name="radio_1885746897596596297" id="radio_1885746897596596297_3" value="3">
-      
-      <span class="label-body px-1">
-        \(xz\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="1885746897596596297_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_1885746897596596297"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 3;
-    var msgBox = document.getElementById('1885746897596596297_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_1885746897596596297")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_1885746897596596297")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+raw" ``xz``",
+raw" ``-yz``",
+raw" ``ye^{xy}``"
+]
+answ = 1
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-4" class="level6">
 <h6 class="anchored" data-anchor-id="question-4">Question</h6>
 <p>Let <span class="math inline">\(\phi(x,y,z) = x + 2y + 3z\)</span>. We know that <span class="math inline">\(\nabla\times\nabla{\phi}\)</span> is zero by the vanishing property. Compute <span class="math inline">\(\nabla\cdot\nabla{\phi}\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="42">
-<div class="cell-output cell-output-display" data-execution_count="40">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="8665530161075827819" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_8665530161075827819">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_8665530161075827819_1">
-      <input class="form-check-input" type="radio" name="radio_8665530161075827819" id="radio_8665530161075827819_1" value="1">
-      
-      <span class="label-body px-1">
-        \(6\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_8665530161075827819_2">
-      <input class="form-check-input" type="radio" name="radio_8665530161075827819" id="radio_8665530161075827819_2" value="2">
-      
-      <span class="label-body px-1">
-        \(0\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_8665530161075827819_3">
-      <input class="form-check-input" type="radio" name="radio_8665530161075827819" id="radio_8665530161075827819_3" value="3">
-      
-      <span class="label-body px-1">
-        \(\vec{0}\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="8665530161075827819_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_8665530161075827819"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('8665530161075827819_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_8665530161075827819")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_8665530161075827819")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices=[
+raw" ``0``",
+raw" ``\vec{0}``",
+raw" ``6``"
+]
+answ=1
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-5" class="level6">
 <h6 class="anchored" data-anchor-id="question-5">Question</h6>
@@ -1895,360 +1700,78 @@ rb.addEventListener("change", function() {
 \frac{\partial{\frac{\partial{f}}{\partial{y}}}}{\partial{x}} -
 \frac{\partial{\frac{\partial{f}}{\partial{x}}}}{\partial{y}}.
 \]</span></p>
-<div class="cell" data-hold="true" data-execution_count="43">
-<div class="cell-output cell-output-display" data-execution_count="41">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="14367096964824572952" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_14367096964824572952">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_14367096964824572952_1">
-      <input class="form-check-input" type="radio" name="radio_14367096964824572952" id="radio_14367096964824572952_1" value="1">
-      
-      <span class="label-body px-1">
-        This is \(0\) if the partial derivatives are continuous by Schwarz's (Clairault's) theorem
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_14367096964824572952_2">
-      <input class="form-check-input" type="radio" name="radio_14367096964824572952" id="radio_14367096964824572952_2" value="2">
-      
-      <span class="label-body px-1">
-        This is \(0\) for any \(f\), as \(\nabla\times\nabla\) is \(0\) since the cross product of vector with itself is the \(0\) vector.
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="14367096964824572952_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_14367096964824572952"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('14367096964824572952_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_14367096964824572952")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_14367096964824572952")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+L"This is $0$ if the partial derivatives are continuous by Schwarz's (Clairault's) theorem",
+L"This is $0$ for any $f$, as $\nabla\times\nabla$ is $0$ since the cross product of vector with itself is the $0$ vector."
+]
+answ = 1
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-6" class="level6">
 <h6 class="anchored" data-anchor-id="question-6">Question</h6>
 <p>Based on this vector-field plot</p>
-<div class="cell" data-hold="true" data-execution_count="44">
-<div class="cell-output cell-output-display" data-execution_count="42">
-<p><img src="div_grad_curl_files/figure-html/cell-45-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+gr()
+F(x,y) = [-y,x]/sqrt(0.0000001 + x^2+y^2)
+vectorfieldplot(F, xlim=(-5,5),ylim=(-5,5), nx=15, ny=15)</code></pre>
 <p>which seems likely</p>
-<div class="cell" data-hold="true" data-execution_count="45">
-<div class="cell-output cell-output-display" data-execution_count="43">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="14623927074034902017" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_14623927074034902017">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_14623927074034902017_1">
-      <input class="form-check-input" type="radio" name="radio_14623927074034902017" id="radio_14623927074034902017_1" value="1">
-      
-      <span class="label-body px-1">
-        The field is incompressible (divergence free)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_14623927074034902017_2">
-      <input class="form-check-input" type="radio" name="radio_14623927074034902017" id="radio_14623927074034902017_2" value="2">
-      
-      <span class="label-body px-1">
-        The field is irrotational (curl free)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_14623927074034902017_3">
-      <input class="form-check-input" type="radio" name="radio_14623927074034902017" id="radio_14623927074034902017_3" value="3">
-      
-      <span class="label-body px-1">
-        The field has a non-trivial curl and divergence
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="14623927074034902017_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_14623927074034902017"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('14623927074034902017_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_14623927074034902017")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_14623927074034902017")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices=[
+"The field is incompressible (divergence free)",
+"The field is irrotational (curl free)",
+"The field has a non-trivial curl and divergence"
+]
+answ=1
+radioq(choices, answ, keep_order=true)</code></pre>
 </section>
 <section id="question-7" class="level6">
 <h6 class="anchored" data-anchor-id="question-7">Question</h6>
 <p>Based on this vectorfield plot</p>
-<div class="cell" data-hold="true" data-execution_count="46">
-<div class="cell-output cell-output-display" data-execution_count="44">
-<p><img src="div_grad_curl_files/figure-html/cell-47-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+gr()
+F(x,y) = [x,y]/sqrt(0.0000001 + x^2+y^2)
+vectorfieldplot(F, xlim=(-5,5),ylim=(-5,5), nx=15, ny=15)</code></pre>
 <p>which seems likely</p>
-<div class="cell" data-hold="true" data-execution_count="47">
-<div class="cell-output cell-output-display" data-execution_count="45">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="4980910156625003229" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_4980910156625003229">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_4980910156625003229_1">
-      <input class="form-check-input" type="radio" name="radio_4980910156625003229" id="radio_4980910156625003229_1" value="1">
-      
-      <span class="label-body px-1">
-        The field is incompressible (divergence free)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_4980910156625003229_2">
-      <input class="form-check-input" type="radio" name="radio_4980910156625003229" id="radio_4980910156625003229_2" value="2">
-      
-      <span class="label-body px-1">
-        The field is irrotational (curl free)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_4980910156625003229_3">
-      <input class="form-check-input" type="radio" name="radio_4980910156625003229" id="radio_4980910156625003229_3" value="3">
-      
-      <span class="label-body px-1">
-        The field has a non-trivial curl and divergence
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="4980910156625003229_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_4980910156625003229"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('4980910156625003229_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_4980910156625003229")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_4980910156625003229")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices=[
+"The field is incompressible (divergence free)",
+"The field is irrotational (curl free)",
+"The field has a non-trivial curl and divergence"
+]
+answ=2
+radioq(choices, answ, keep_order=true)</code></pre>
 </section>
 <section id="question-8" class="level6">
 <h6 class="anchored" data-anchor-id="question-8">Question</h6>
 <p>The electric field <span class="math inline">\(E\)</span> (by Maxwell’s equations) satisfies:</p>
-<div class="cell" data-hold="true" data-execution_count="48">
-<div class="cell-output cell-output-display" data-execution_count="46">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="16057816997332933581" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_16057816997332933581">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_16057816997332933581_1">
-      <input class="form-check-input" type="radio" name="radio_16057816997332933581" id="radio_16057816997332933581_1" value="1">
-      
-      <span class="label-body px-1">
-        The field is incompressible (divergence free)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_16057816997332933581_2">
-      <input class="form-check-input" type="radio" name="radio_16057816997332933581" id="radio_16057816997332933581_2" value="2">
-      
-      <span class="label-body px-1">
-        The field is irrotational (curl free)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_16057816997332933581_3">
-      <input class="form-check-input" type="radio" name="radio_16057816997332933581" id="radio_16057816997332933581_3" value="3">
-      
-      <span class="label-body px-1">
-        The field has a non-trivial curl and divergence
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="16057816997332933581_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_16057816997332933581"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 3;
-    var msgBox = document.getElementById('16057816997332933581_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_16057816997332933581")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_16057816997332933581")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices=[
+"The field is incompressible (divergence free)",
+"The field is irrotational (curl free)",
+"The field has a non-trivial curl and divergence"
+]
+answ=3
+radioq(choices, answ, keep_order=true)</code></pre>
 </section>
 <section id="question-9" class="level6">
 <h6 class="anchored" data-anchor-id="question-9">Question</h6>
 <p>The magnetic field <span class="math inline">\(B\)</span> (by Maxwell’s equations) satisfies:</p>
-<div class="cell" data-hold="true" data-execution_count="49">
-<div class="cell-output cell-output-display" data-execution_count="47">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="4607853587766475674" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_4607853587766475674">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_4607853587766475674_1">
-      <input class="form-check-input" type="radio" name="radio_4607853587766475674" id="radio_4607853587766475674_1" value="1">
-      
-      <span class="label-body px-1">
-        The field is incompressible (divergence free)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_4607853587766475674_2">
-      <input class="form-check-input" type="radio" name="radio_4607853587766475674" id="radio_4607853587766475674_2" value="2">
-      
-      <span class="label-body px-1">
-        The field is irrotational (curl free)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_4607853587766475674_3">
-      <input class="form-check-input" type="radio" name="radio_4607853587766475674" id="radio_4607853587766475674_3" value="3">
-      
-      <span class="label-body px-1">
-        The field has a non-trivial curl and divergence
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="4607853587766475674_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_4607853587766475674"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('4607853587766475674_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_4607853587766475674")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_4607853587766475674")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices=[
+"The field is incompressible (divergence free)",
+"The field is irrotational (curl free)",
+"The field has a non-trivial curl and divergence"
+]
+answ=1
+radioq(choices, answ, keep_order=true)</code></pre>
 </section>
 <section id="question-10" class="level6">
 <h6 class="anchored" data-anchor-id="question-10">Question</h6>
@@ -2264,73 +1787,15 @@ F_r &amp; r\sin\phi F_\theta &amp; r F_\phi
 \right].
 \]</span></p>
 <p>For a <em>radial</em> function <span class="math inline">\(F = h(r)e_r\)</span>. (That is <span class="math inline">\(F_r = h(r)\)</span>, <span class="math inline">\(F_\theta=0\)</span>, and <span class="math inline">\(F_\phi=0\)</span>. What is the curl of <span class="math inline">\(F\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="50">
-<div class="cell-output cell-output-display" data-execution_count="48">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="1922017757358785351" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_1922017757358785351">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_1922017757358785351_1">
-      <input class="form-check-input" type="radio" name="radio_1922017757358785351" id="radio_1922017757358785351_1" value="1">
-      
-      <span class="label-body px-1">
-        \(re_\phi\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_1922017757358785351_2">
-      <input class="form-check-input" type="radio" name="radio_1922017757358785351" id="radio_1922017757358785351_2" value="2">
-      
-      <span class="label-body px-1">
-        \(rh'(r)e_\phi\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_1922017757358785351_3">
-      <input class="form-check-input" type="radio" name="radio_1922017757358785351" id="radio_1922017757358785351_3" value="3">
-      
-      <span class="label-body px-1">
-        \(\vec{0}\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="1922017757358785351_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_1922017757358785351"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 3;
-    var msgBox = document.getElementById('1922017757358785351_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_1922017757358785351")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_1922017757358785351")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+raw" ``\vec{0}``",
+raw" ``re_\phi``",
+raw" ``rh'(r)e_\phi``"
+]
+answ=1
+radioq(choices, answ)</code></pre>
 
 
 </section>

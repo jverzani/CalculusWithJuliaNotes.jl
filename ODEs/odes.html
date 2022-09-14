@@ -20,69 +20,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1.6em;
   vertical-align: middle;
 }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-    color: #aaaaaa;
-  }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { color: #008000; } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { color: #008000; font-weight: bold; } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
 
@@ -124,9 +61,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   }
 }</script>
 <script async="" src="https://hypothes.is/embed.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
-<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
@@ -666,10 +600,45 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 </header>
 
+<pre class="{julia}"><code>#| echo: false
+
+import Logging
+Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
+Logging.disable_logging(Logging.Warn)
+
+import SymPy
+function Base.show(io::IO, ::MIME"text/html", x::T) where {T &lt;: SymPy.SymbolicObject}
+    println(io, "&lt;span class=\"math-left-align\" style=\"padding-left: 4px; width:0; float:left;\"&gt; ")
+    println(io, "\\[")
+    println(io, sympy.latex(x))
+    println(io, "\\]")
+    println(io, "&lt;/span&gt;")
+end
+
+# hack to work around issue
+import Markdown
+import CalculusWithJulia
+function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
+    nm = joinpath("..", string(d), f)
+    u = "![$caption]($nm)"
+    Markdown.parse(u)
+end
+
+nothing</code></pre>
 <p>This section uses these add-on packages:</p>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">CalculusWithJulia</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Plots</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">SymPy</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<pre class="{julia}"><code>using CalculusWithJulia
+using Plots
+using SymPy</code></pre>
+<pre class="{julia}"><code>#| echo: false
+#| results: "hidden"
+using CalculusWithJulia.WeaveSupport
+
+const frontmatter = (
+        title = "ODEs",
+        description = "Calculus with Julia: ODEs",
+        tags = ["CalculusWithJulia", "odes", "odes"],
+);
+nothing</code></pre>
 <hr>
 <p>Some relationships are easiest to describe in terms of rates or derivatives. For example:</p>
 <ul>
@@ -761,11 +730,15 @@ T(t) - T_a = (T_0 - T_a) e^{-rt}.
 <p>In words, the initial difference in temperature of the object and the environment exponentially decays to <span class="math inline">\(0\)</span>.</p>
 <p>That is, as <span class="math inline">\(t &gt; 0\)</span> goes to <span class="math inline">\(\infty\)</span>, the right hand will go to <span class="math inline">\(0\)</span> for <span class="math inline">\(r &gt; 0\)</span>, so <span class="math inline">\(T(t) \rightarrow T_a\)</span> - the temperature of the object will reach the ambient temperature. The rate of this is largest when the difference between <span class="math inline">\(T(t)\)</span> and <span class="math inline">\(T_a\)</span> is largest, so when objects are cooling the statement “hotter things cool faster” is appropriate.</p>
 <p>A graph of the solution for <span class="math inline">\(T_0=200\)</span> and <span class="math inline">\(T_a=72\)</span> and <span class="math inline">\(r=1/2\)</span> is made as follows. We’ve added a few line segments from the defining formula, and see that they are indeed tangent to the solution found for the differential equation.</p>
-<div class="cell" data-execution_count="4">
-<div class="cell-output cell-output-display" data-execution_count="5">
-<p><img src="odes_files/figure-html/cell-5-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| echo: false
+let
+    T0, Ta, r = 200, 72, 1/2
+    f(u, t) = -r*(u - Ta)
+    v(t) = Ta + (T0 - Ta) * exp(-r*t)
+    p = plot(v, 0, 6, linewidth=4, legend=false)
+    [plot!(p, x -&gt; v(a) + f(v(a), a) * (x-a), 0, 6) for a in 1:2:5]
+    p
+end</code></pre>
 <p>The above is implicitly assuming that there could be no other solution, than the one we found. Is that really the case? We will see that there is a theorem that can answer this, but in this case, the trick of taking the difference of two equations satisfying the equation leads to the equation <span class="math inline">\(W'(t) = r W(t), \text{ and } W(0) = 0\)</span>. This equation has a general solution of <span class="math inline">\(W(t) = Ce^{rt}\)</span> and the initial condition forces <span class="math inline">\(C=0\)</span>, so <span class="math inline">\(W(t) = 0\)</span>, as before. Hence, the initial-value problem for Newton’s law of cooling has a unique solution.</p>
 <p>In general, the equation could be written as (again using <span class="math inline">\(y\)</span> and <span class="math inline">\(x\)</span> as the variables):</p>
 <p><span class="math display">\[
@@ -863,122 +836,47 @@ y(x_0) &amp;= x_0.
 <p>Rather than go over these various families, we demonstrate that <code>SymPy</code> can solve many of these equations symbolically.</p>
 <p>The <code>solve</code> function in <code>SymPy</code> solves equations for unknown <em>variables</em>. As a differential equation involves an unknown <em>function</em> there is a different function, <code>dsolve</code>. The basic idea is to describe the differential equation using a symbolic function and then call <code>dsolve</code> to solve the expression.</p>
 <p>Symbolic functions are defined by the <code>@syms</code> macro (also see <code>?symbols</code>) using parentheses to distinguish a function from a variable:</p>
-<div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> x <span class="fu">u</span>() <span class="co"># a symbolic variable and a symbolic function</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="6">
-<pre><code>(x, u)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>@syms x u() # a symbolic variable and a symbolic function</code></pre>
 <p>We will solve the following, known as the <em>logistic equation</em>:</p>
 <p><span class="math display">\[
 u'(x) = a u(1-u), \quad a &gt; 0
 \]</span></p>
 <p>Before beginning, we look at the form of the equation. When <span class="math inline">\(u=0\)</span> or <span class="math inline">\(u=1\)</span> the rate of change is <span class="math inline">\(0\)</span>, so we expect the function might be bounded within that range. If not, when <span class="math inline">\(u\)</span> gets bigger than <span class="math inline">\(1\)</span>, then the slope is negative and when <span class="math inline">\(u\)</span> gets less than <span class="math inline">\(0\)</span>, the slope is positive, so there will at least be a drift back to the range <span class="math inline">\([0,1]\)</span>. Let’s see exactly what happens. We define a parameter, restricting <code>a</code> to be positive:</p>
-<div class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> a<span class="op">::</span><span class="dt">positive</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="7">
-<pre><code>(a,)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>@syms a::positive</code></pre>
 <p>To specify a derivative of <code>u</code> in our equation we can use <code>diff(u(x),x)</code> but here, for visual simplicity, use the <code>Differential</code> operator, as follows:</p>
-<div class="cell" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>D <span class="op">=</span> <span class="fu">Differential</span>(x)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>eqn <span class="op">=</span> <span class="fu">D</span>(u)(x) <span class="op">~</span> a <span class="op">*</span> <span class="fu">u</span>(x) <span class="op">*</span> (<span class="fl">1</span> <span class="op">-</span> <span class="fu">u</span>(x)) <span class="co"># use l \Equal[tab] r, Eq(l,r), or just l - r</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="8">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-\frac{d}{d x} u{\left(x \right)} = a \left(1 - u{\left(x \right)}\right) u{\left(x \right)}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>D = Differential(x)
+eqn = D(u)(x) ~ a * u(x) * (1 - u(x)) # use l \Equal[tab] r, Eq(l,r), or just l - r</code></pre>
 <p>In the above, we evaluate the symbolic function at the variable <code>x</code> through the use of <code>u(x)</code> in the expression. The equation above uses <code>~</code> to combine the left- and right-hand sides as an equation in <code>SymPy</code>. (A unicode equals is also available for this task). This is a shortcut for <code>Eq(l,r)</code>, but even just using <code>l - r</code> would suffice, as the default assumption for an equation is that it is set to <code>0</code>.</p>
 <p>The <code>Differential</code> operation is borrowed from the <code>ModelingToolkit</code> package, which will be introduced later.</p>
 <p>To finish, we call <code>dsolve</code> to find a solution (if possible):</p>
-<div class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>out <span class="op">=</span> <span class="fu">dsolve</span>(eqn)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="9">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-u{\left(x \right)} = \frac{1}{C_{1} e^{- a x} + 1}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>out = dsolve(eqn)</code></pre>
 <p>This answer - to a first-order equation - has one free constant, <code>C_1</code>, which can be solved for from an initial condition. We can see that when <span class="math inline">\(a &gt; 0\)</span>, as <span class="math inline">\(x\)</span> goes to positive infinity the solution goes to <span class="math inline">\(1\)</span>, and when <span class="math inline">\(x\)</span> goes to negative infinity, the solution goes to <span class="math inline">\(0\)</span> and otherwise is trapped in between, as expected.</p>
 <p>The limits are confirmed by investigating the limits of the right-hand:</p>
-<div class="cell" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">limit</span>(<span class="fu">rhs</span>(out), x <span class="op">=&gt;</span> oo), <span class="fu">limit</span>(<span class="fu">rhs</span>(out), x <span class="op">=&gt;</span> <span class="op">-</span>oo)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="10">
-<pre><code>(1, 0)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>limit(rhs(out), x =&gt; oo), limit(rhs(out), x =&gt; -oo)</code></pre>
 <p>We can confirm that the solution is always increasing, hence trapped within <span class="math inline">\([0,1]\)</span> by observing that the derivative is positive when <code>C₁</code> is positive:</p>
 <pre class="{juila}"><code>diff(rhs(out),x)</code></pre>
 <p>Suppose that <span class="math inline">\(u(0) = 1/2\)</span>. Can we solve for <span class="math inline">\(C_1\)</span> symbolically? We can use <code>solve</code>, but first we will need to get the symbol for <code>C_1</code>:</p>
-<div class="cell" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>eq <span class="op">=</span> <span class="fu">rhs</span>(out)    <span class="co"># just the right hand side</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>C1 <span class="op">=</span> <span class="fu">first</span>(<span class="fu">setdiff</span>(<span class="fu">free_symbols</span>(eq), (x,a))) <span class="co"># fish out constant, it is not x or a</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>c1 <span class="op">=</span> <span class="fu">solve</span>(<span class="fu">eq</span>(x<span class="op">=&gt;</span><span class="fl">0</span>) <span class="op">-</span> <span class="fl">1</span><span class="op">//</span><span class="fl">2</span>, C1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="11">
-<pre><code>1-element Vector{Sym}:
- 1</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>eq = rhs(out)    # just the right hand side
+C1 = first(setdiff(free_symbols(eq), (x,a))) # fish out constant, it is not x or a
+c1 = solve(eq(x=&gt;0) - 1//2, C1)</code></pre>
 <p>And we plug in with:</p>
-<div class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">eq</span>(C1 <span class="op">=&gt;</span> c1[<span class="fl">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="12">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-\frac{1}{1 + e^{- a x}}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>eq(C1 =&gt; c1[1])</code></pre>
 <p>That’s a lot of work. The <code>dsolve</code> function in <code>SymPy</code> allows initial conditions to be specified for some equations. In this case, ours is <span class="math inline">\(x_0=0\)</span> and <span class="math inline">\(y_0=1/2\)</span>. The extra arguments passed in through a dictionary to the <code>ics</code> argument:</p>
-<div class="cell" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>x0, y0 <span class="op">=</span> <span class="fl">0</span>, <span class="fu">Sym</span>(<span class="fl">1</span><span class="op">//</span><span class="fl">2</span>)</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dsolve</span>(eqn, <span class="fu">u</span>(x), ics<span class="op">=</span><span class="fu">Dict</span>(<span class="fu">u</span>(x0) <span class="op">=&gt;</span> y0))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="13">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-u{\left(x \right)} = \frac{1}{1 + e^{- a x}}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>x0, y0 = 0, Sym(1//2)
+dsolve(eqn, u(x), ics=Dict(u(x0) =&gt; y0))</code></pre>
 <p>(The one subtlety is the need to write the rational value as a symbolic expression, as otherwise it will get converted to a floating point value prior to being passed along.)</p>
 <section id="example-hookes-law" class="level5">
 <h5 class="anchored" data-anchor-id="example-hookes-law">Example: Hooke’s law</h5>
 <p>In the first example, we solved for position, <span class="math inline">\(x(t)\)</span>, from an assumption of constant acceleration in two steps. The equation relating the two is a second-order equation: <span class="math inline">\(x''(t) = a\)</span>, so two constants are generated. That a second-order equation could be reduced to two first-order equations is not happy circumstance, as it can always be done. Rather than show the technique though, we demonstrate that <code>SymPy</code> can also handle some second-order ODEs.</p>
 <p>Hooke’s law relates the force on an object to its position via <span class="math inline">\(F=ma = -kx\)</span>, or <span class="math inline">\(x''(t) = -(k/m)x(t)\)</span>.</p>
 <p>Suppose <span class="math inline">\(k &gt; 0\)</span>. Then we can solve, similar to the above, with:</p>
-<div class="cell" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> k<span class="op">::</span><span class="dt">positive </span>m<span class="op">::</span><span class="dt">positive</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>D2 <span class="op">=</span> D <span class="op">∘</span> D  <span class="co"># takes second derivative through composition</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>eqnh <span class="op">=</span> <span class="fu">D2</span>(u)(x) <span class="op">~</span> <span class="fu">-</span>(k<span class="op">/</span>m)<span class="fu">*u</span>(x)</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="fu">dsolve</span>(eqnh)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="14">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-u{\left(x \right)} = C_{1} \sin{\left(\frac{\sqrt{k} x}{\sqrt{m}} \right)} + C_{2} \cos{\left(\frac{\sqrt{k} x}{\sqrt{m}} \right)}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>@syms k::positive m::positive
+D2 = D ∘ D  # takes second derivative through composition
+eqnh = D2(u)(x) ~ -(k/m)*u(x)
+dsolve(eqnh)</code></pre>
 <p>Here we find two constants, as anticipated, for we would guess that two integrations are needed in the solution.</p>
 <p>Suppose the spring were started by pulling it down to a bottom and releasing. The initial position at time <span class="math inline">\(0\)</span> would be <span class="math inline">\(a\)</span>, say, and initial velocity <span class="math inline">\(0\)</span>. Here we get the solution specifying initial conditions on the function and its derivative (expressed through <code>u'</code>):</p>
-<div class="cell" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dsolve</span>(eqnh, <span class="fu">u</span>(x), ics <span class="op">=</span> <span class="fu">Dict</span>(<span class="fu">u</span>(<span class="fl">0</span>) <span class="op">=&gt;</span> <span class="op">-</span>a, <span class="fu">D</span>(u)(<span class="fl">0</span>) <span class="op">=&gt;</span>  <span class="fl">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="15">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-u{\left(x \right)} = - a \cos{\left(\frac{\sqrt{k} x}{\sqrt{m}} \right)}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>dsolve(eqnh, u(x), ics = Dict(u(0) =&gt; -a, D(u)(0) =&gt;  0))</code></pre>
 <p>We get that the motion will follow <span class="math inline">\(u(x) = -a \cos(\sqrt{k/m}x)\)</span>. This is simple oscillatory behavior. As the spring stretches, the force gets large enough to pull it back, and as it compresses the force gets large enough to push it back. The amplitude of this oscillation is <span class="math inline">\(a\)</span> and the period <span class="math inline">\(2\pi/\sqrt{k/m}\)</span>. Larger <span class="math inline">\(k\)</span> values mean shorter periods; larger <span class="math inline">\(m\)</span> values mean longer periods.</p>
 </section>
 <section id="example-the-pendulum" class="level5">
@@ -988,17 +886,8 @@ u{\left(x \right)} = - a \cos{\left(\frac{\sqrt{k} x}{\sqrt{m}} \right)}
 \theta''(t) + \frac{g}{l}\sin(\theta(t)) = 0
 \]</span></p>
 <p>Can this second-order equation be solved by <code>SymPy</code>?</p>
-<div class="cell" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> g<span class="op">::</span><span class="dt">positive </span>l<span class="op">::</span><span class="dt">positive </span><span class="fu">theta</span>()<span class="op">=&gt;</span><span class="st">"θ"</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>eqnp <span class="op">=</span> <span class="fu">D2</span>(theta)(x) <span class="op">+</span> g<span class="op">/</span><span class="fu">l*sin</span>(<span class="fu">theta</span>(x))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="16">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-\frac{g \sin{\left(θ{\left(x \right)} \right)}}{l} + \frac{d^{2}}{d x^{2}} θ{\left(x \right)}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>@syms g::positive l::positive theta()=&gt;"θ"
+eqnp = D2(theta)(x) + g/l*sin(theta(x))</code></pre>
 <p>Trying to do so, can cause <code>SymPy</code> to hang or simply give up and repeat its input; no easy answer is forthcoming for this equation.</p>
 <p>In general, for the first-order initial value problem characterized by <span class="math inline">\(y'(x) = F(y,x)\)</span>, there are conditions (<a href="http://tinyurl.com/h663wba">Peano</a> and <a href="http://tinyurl.com/3rbde5e">Picard-Lindelof</a>) that can guarantee the existence (and uniqueness) of equation locally, but there may not be an accompanying method to actually find it. This particular problem has a solution, but it can not be written in terms of elementary functions.</p>
 <p>However, as <a href="https://en.wikipedia.org/wiki/Christiaan_Huygens">Huygens</a> first noted, if the angles involved are small, then we approximate the solution through the linearization <span class="math inline">\(\sin(\theta(t)) \approx \theta(t)\)</span>. The resulting equation for an approximate answer is just that of Hooke:</p>
@@ -1007,17 +896,8 @@ u{\left(x \right)} = - a \cos{\left(\frac{\sqrt{k} x}{\sqrt{m}} \right)}
 \]</span></p>
 <p>Here, the solution is in terms of sines and cosines, with period given by <span class="math inline">\(T = 2\pi/\sqrt{k} = 2\pi\cdot\sqrt{l/g}\)</span>. The answer does not depend on the mass, <span class="math inline">\(m\)</span>, of the bob nor the amplitude of the motion, provided the small-angle approximation is valid.</p>
 <p>If we pull the bob back an angle <span class="math inline">\(a\)</span> and release it then the initial conditions are <span class="math inline">\(\theta(0) = a\)</span> and <span class="math inline">\(\theta'(a) = 0\)</span>. This gives the solution:</p>
-<div class="cell" data-execution_count="16">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>eqnp₁ <span class="op">=</span> <span class="fu">D2</span>(u)(x) <span class="op">+</span> g<span class="op">/</span>l <span class="op">*</span> <span class="fu">u</span>(x)</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dsolve</span>(eqnp₁, <span class="fu">u</span>(x), ics<span class="op">=</span><span class="fu">Dict</span>(<span class="fu">u</span>(<span class="fl">0</span>) <span class="op">=&gt;</span> a, <span class="fu">D</span>(u)(<span class="fl">0</span>) <span class="op">=&gt;</span> <span class="fl">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="17">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-u{\left(x \right)} = a \cos{\left(\frac{\sqrt{g} x}{\sqrt{l}} \right)}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>eqnp₁ = D2(u)(x) + g/l * u(x)
+dsolve(eqnp₁, u(x), ics=Dict(u(0) =&gt; a, D(u)(0) =&gt; 0))</code></pre>
 </section>
 <section id="example-hanging-cables" class="level5">
 <h5 class="anchored" data-anchor-id="example-hanging-cables">Example: hanging cables</h5>
@@ -1042,66 +922,25 @@ u{\left(x \right)} = a \cos{\left(\frac{\sqrt{g} x}{\sqrt{l}} \right)}
 y''(x) = \frac{w}{H} \sqrt{1 + y'(x)^2}.
 \]</span></p>
 <p>We enter this into <code>Julia</code>:</p>
-<div class="cell" data-execution_count="17">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> w<span class="op">::</span><span class="dt">positive </span>H<span class="op">::</span><span class="dt">positive </span><span class="fu">y</span>()</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>eqnc <span class="op">=</span> <span class="fu">D2</span>(y)(x) <span class="op">~</span> (w<span class="op">/</span>H) <span class="op">*</span> <span class="fu">sqrt</span>(<span class="fl">1</span> <span class="op">+</span> y<span class="op">'</span>(x)<span class="op">^</span><span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="18">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-\frac{d^{2}}{d x^{2}} y{\left(x \right)} = \frac{w \sqrt{\left(\frac{d}{d x} y{\left(x \right)}\right)^{2} + 1}}{H}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>@syms w::positive H::positive y()
+eqnc = D2(y)(x) ~ (w/H) * sqrt(1 + y'(x)^2)</code></pre>
 <p>Unfortunately, <code>SymPy</code> needs a bit of help with this problem, by breaking the problem into steps.</p>
 <p>For the first step we solve for the derivative. Let <span class="math inline">\(u = y'\)</span>, then we have <span class="math inline">\(u'(x) = (w/H)\sqrt{1 + u(x)^2}\)</span>:</p>
-<div class="cell" data-execution_count="18">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>eqnc₁ <span class="op">=</span> <span class="fu">subs</span>(eqnc, <span class="fu">D</span>(y)(x) <span class="op">=&gt;</span> <span class="fu">u</span>(x))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="19">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-\frac{d}{d x} u{\left(x \right)} = \frac{w \sqrt{u^{2}{\left(x \right)} + 1}}{H}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>eqnc₁ = subs(eqnc, D(y)(x) =&gt; u(x))</code></pre>
 <p>and can solve via:</p>
-<div class="cell" data-execution_count="19">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>outc <span class="op">=</span> <span class="fu">dsolve</span>(eqnc₁)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="20">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-u{\left(x \right)} = \sinh{\left(C_{1} + \frac{w x}{H} \right)}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>outc = dsolve(eqnc₁)</code></pre>
 <p>So <span class="math inline">\(y'(x) = u(x) = \sinh(C_1 + w \cdot x/H)\)</span>. This can be solved by direct integration as there is no <span class="math inline">\(y(x)\)</span> term on the right hand side.</p>
-<div class="cell" data-execution_count="20">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">D</span>(y)(x) <span class="op">~</span> <span class="fu">rhs</span>(outc)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="21">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-\frac{d}{d x} y{\left(x \right)} = \sinh{\left(C_{1} + \frac{w x}{H} \right)}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>D(y)(x) ~ rhs(outc)</code></pre>
 <p>We see a simple linear transformation involving the hyperbolic sine. To avoid, <code>SymPy</code> struggling with the above equation, and knowing the hyperbolic sine is the derivative of the hyperbolic cosine, we anticipate an answer and verify it:</p>
-<div class="cell" data-execution_count="21">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>yc <span class="op">=</span> (H<span class="op">/</span>w)<span class="fu">*cosh</span>(C1 <span class="op">+</span> w<span class="op">*</span>x<span class="op">/</span>H)</span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">diff</span>(yc, x) <span class="op">==</span> <span class="fu">rhs</span>(outc) <span class="co"># == not \Equal[tab]</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="22">
-<pre><code>true</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>yc = (H/w)*cosh(C1 + w*x/H)
+diff(yc, x) == rhs(outc) # == not \Equal[tab]</code></pre>
 <p>The shape is a hyperbolic cosine, known as the catenary.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="../ODEs/figures/verrazano-narrows-bridge-anniversary-historic-photos-2.jpeg" class="img-fluid figure-img"></p>
-<p></p><figcaption class="figure-caption">The cables of an unloaded suspension bridge have a different shape than a loaded suspension bridge. As seen, the cables in this <a href="https://www.brownstoner.com/brooklyn-life/verrazano-narrows-bridge-anniversary-historic-photos/">figure</a> would be modeled by a catenary.</figcaption><p></p>
-</figure>
-</div>
+<pre class="{julia}"><code>#| echo: false
+imgfile = "figures/verrazano-narrows-bridge-anniversary-historic-photos-2.jpeg"
+caption = """
+The cables of an unloaded suspension bridge have a different shape than a loaded suspension bridge. As seen, the cables in this [figure](https://www.brownstoner.com/brooklyn-life/verrazano-narrows-bridge-anniversary-historic-photos/) would be modeled by a catenary.
+"""
+ImageFile(:ODEs, imgfile, caption)</code></pre>
 <hr>
 <p>If the chain has a uniform load – like a suspension bridge with a deck – sufficient to make the weight of the chain negligible, then how does the above change? Then the vertical tension comes from <span class="math inline">\(Udx\)</span> and not <span class="math inline">\(w ds\)</span>, so the equation becomes instead:</p>
 <p><span class="math display">\[
@@ -1120,21 +959,14 @@ x''(t) = 0, \quad y''(t) = -g.
 x(t) = x_0 + v_0 \cos(\alpha) t, \quad y(t) = y_0 + v_0\sin(\alpha)t - \frac{1}{2}g \cdot t^2.
 \]</span></p>
 <p>Furthermore, we can solve for <span class="math inline">\(t\)</span> from <span class="math inline">\(x(t)\)</span>, to get an equation describing <span class="math inline">\(y(x)\)</span>. Here are all the steps:</p>
-<div class="cell" data-hold="true" data-execution_count="23">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> x0<span class="op">::</span><span class="dt">real </span>y0<span class="op">::</span><span class="dt">real </span>v0<span class="op">::</span><span class="dt">real </span>alpha<span class="op">::</span><span class="dt">real </span>g<span class="op">::</span><span class="dt">real</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> t x <span class="fu">u</span>()</span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>a1 <span class="op">=</span> <span class="fu">dsolve</span>(<span class="fu">D2</span>(u)(x) <span class="op">~</span> <span class="fl">0</span>, <span class="fu">u</span>(x), ics<span class="op">=</span><span class="fu">Dict</span>(<span class="fu">u</span>(<span class="fl">0</span>) <span class="op">=&gt;</span> x0, <span class="fu">D</span>(u)(<span class="fl">0</span>) <span class="op">=&gt;</span> v0 <span class="op">*</span> <span class="fu">cos</span>(alpha)))</span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>a2 <span class="op">=</span> <span class="fu">dsolve</span>(<span class="fu">D2</span>(u)(x) <span class="op">~</span> <span class="op">-</span>g, <span class="fu">u</span>(x), ics<span class="op">=</span><span class="fu">Dict</span>(<span class="fu">u</span>(<span class="fl">0</span>) <span class="op">=&gt;</span> y0, <span class="fu">D</span>(u)(<span class="fl">0</span>) <span class="op">=&gt;</span> v0 <span class="op">*</span> <span class="fu">sin</span>(alpha)))</span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>ts <span class="op">=</span> <span class="fu">solve</span>(t <span class="op">-</span> <span class="fu">rhs</span>(a1), x)[<span class="fl">1</span>]</span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> <span class="fu">simplify</span>(<span class="fu">rhs</span>(a2)(t <span class="op">=&gt;</span> ts))</span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>sympy.<span class="fu">Poly</span>(y, x).<span class="fu">coeffs</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="24">
-<pre><code>3-element Vector{Sym}:
-          -g/2
- v₀⋅sin(α)
-            y₀</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+@syms x0::real y0::real v0::real alpha::real g::real
+@syms t x u()
+a1 = dsolve(D2(u)(x) ~ 0, u(x), ics=Dict(u(0) =&gt; x0, D(u)(0) =&gt; v0 * cos(alpha)))
+a2 = dsolve(D2(u)(x) ~ -g, u(x), ics=Dict(u(0) =&gt; y0, D(u)(0) =&gt; v0 * sin(alpha)))
+ts = solve(t - rhs(a1), x)[1]
+y = simplify(rhs(a2)(t =&gt; ts))
+sympy.Poly(y, x).coeffs()</code></pre>
 <p>Though <code>y</code> is messy, it can be seen that the answer is a quadratic polynomial in <span class="math inline">\(x\)</span> yielding the familiar parabolic motion for a trajectory. The output shows the coefficients.</p>
 <p>In a resistive medium, there are drag forces at play. If this force is proportional to the velocity, say, with proportion <span class="math inline">\(\gamma\)</span>, then the equations become:</p>
 <p><span class="math display">\[
@@ -1145,48 +977,25 @@ x'(0) &amp;= v_0\cos(\alpha),&amp;\quad y'(0) &amp;= v_0 \sin(\alpha).
 \end{align*}
 \]</span></p>
 <p>We now attempt to solve these.</p>
-<div class="cell" data-execution_count="24">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> alpha<span class="op">::</span><span class="dt">real</span>, γ<span class="op">::</span><span class="dt">postive</span>, t<span class="op">::</span><span class="dt">positive</span>, <span class="fu">v</span>()</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> x_0<span class="op">::</span><span class="dt">real </span>y_0<span class="op">::</span><span class="dt">real </span>v_0<span class="op">::</span><span class="dt">real</span></span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>Dₜ <span class="op">=</span> <span class="fu">Differential</span>(t)</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>eq₁ <span class="op">=</span> <span class="fu">Dₜ</span>(<span class="fu">Dₜ</span>(u))(t) <span class="op">~</span>    <span class="op">-</span> γ <span class="op">*</span> <span class="fu">Dₜ</span>(u)(t)</span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>eq₂ <span class="op">=</span> <span class="fu">Dₜ</span>(<span class="fu">Dₜ</span>(v))(t) <span class="op">~</span> <span class="op">-</span>g <span class="op">-</span> γ <span class="op">*</span> <span class="fu">Dₜ</span>(v)(t)</span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>a₁ <span class="op">=</span> <span class="fu">dsolve</span>(eq₁, ics<span class="op">=</span><span class="fu">Dict</span>(<span class="fu">u</span>(<span class="fl">0</span>) <span class="op">=&gt;</span> x_0, <span class="fu">Dₜ</span>(u)(<span class="fl">0</span>) <span class="op">=&gt;</span> v_0 <span class="op">*</span> <span class="fu">cos</span>(alpha)))</span>
-<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>a₂ <span class="op">=</span> <span class="fu">dsolve</span>(eq₂, ics<span class="op">=</span><span class="fu">Dict</span>(<span class="fu">v</span>(<span class="fl">0</span>) <span class="op">=&gt;</span> y_0, <span class="fu">Dₜ</span>(v)(<span class="fl">0</span>) <span class="op">=&gt;</span> v_0 <span class="op">*</span> <span class="fu">sin</span>(alpha)))</span>
-<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>ts <span class="op">=</span> <span class="fu">solve</span>(x <span class="op">-</span> <span class="fu">rhs</span>(a₁), t)[<span class="fl">1</span>]</span>
-<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>yᵣ <span class="op">=</span> <span class="fu">rhs</span>(a₂)(t <span class="op">=&gt;</span> ts)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="25">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-- \frac{g \log{\left(\frac{v_{0} \cos{\left(\alpha \right)}}{v_{0} \cos{\left(\alpha \right)} - x γ + x_{0} γ} \right)}}{γ^{2}} + \frac{g + v_{0} γ \sin{\left(\alpha \right)} + y_{0} γ^{2}}{γ^{2}} + \frac{\left(- g - v_{0} γ \sin{\left(\alpha \right)}\right) \left(v_{0} \cos{\left(\alpha \right)} - x γ + x_{0} γ\right)}{v_{0} γ^{2} \cos{\left(\alpha \right)}}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>@syms alpha::real, γ::postive, t::positive, v()
+@syms x_0::real y_0::real v_0::real
+Dₜ = Differential(t)
+eq₁ = Dₜ(Dₜ(u))(t) ~    - γ * Dₜ(u)(t)
+eq₂ = Dₜ(Dₜ(v))(t) ~ -g - γ * Dₜ(v)(t)
+
+a₁ = dsolve(eq₁, ics=Dict(u(0) =&gt; x_0, Dₜ(u)(0) =&gt; v_0 * cos(alpha)))
+a₂ = dsolve(eq₂, ics=Dict(v(0) =&gt; y_0, Dₜ(v)(0) =&gt; v_0 * sin(alpha)))
+
+ts = solve(x - rhs(a₁), t)[1]
+yᵣ = rhs(a₂)(t =&gt; ts)</code></pre>
 <p>This gives <span class="math inline">\(y\)</span> as a function of <span class="math inline">\(x\)</span>.</p>
 <p>There are a lot of symbols. Lets simplify by using constants <span class="math inline">\(x_0=y_0=0\)</span>:</p>
-<div class="cell" data-execution_count="25">
-<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>yᵣ₁ <span class="op">=</span> <span class="fu">yᵣ</span>(x_0 <span class="op">=&gt;</span> <span class="fl">0</span>, y_0 <span class="op">=&gt;</span> <span class="fl">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="26">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-- \frac{g \log{\left(\frac{v_{0} \cos{\left(\alpha \right)}}{v_{0} \cos{\left(\alpha \right)} - x γ} \right)}}{γ^{2}} + \frac{g + v_{0} γ \sin{\left(\alpha \right)}}{γ^{2}} + \frac{\left(- g - v_{0} γ \sin{\left(\alpha \right)}\right) \left(v_{0} \cos{\left(\alpha \right)} - x γ\right)}{v_{0} γ^{2} \cos{\left(\alpha \right)}}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>yᵣ₁ = yᵣ(x_0 =&gt; 0, y_0 =&gt; 0)</code></pre>
 <p>What is the trajectory? We see that the <code>log</code> function part will have issues when <span class="math inline">\(-\gamma x + v_0 \cos(\alpha) = 0\)</span>.</p>
 <p>If we fix some parameters, we can plot.</p>
-<div class="cell" data-execution_count="26">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>v₀, γ₀, α <span class="op">=</span> <span class="fl">200</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">2</span>, <span class="cn">pi</span><span class="op">/</span><span class="fl">4</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>soln <span class="op">=</span> <span class="fu">yᵣ₁</span>(v_0<span class="op">=&gt;</span>v₀, γ<span class="op">=&gt;</span>γ₀, alpha<span class="op">=&gt;</span>α, g<span class="op">=&gt;</span><span class="fl">9.8</span>)</span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(soln, <span class="fl">0</span>, v₀ <span class="op">*</span> <span class="fu">cos</span>(α) <span class="op">/</span> γ₀ <span class="op">-</span> <span class="fl">1</span><span class="op">/</span><span class="fl">10</span>, legend<span class="op">=</span><span class="cn">false</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="27">
-<p><img src="odes_files/figure-html/cell-27-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>v₀, γ₀, α = 200, 1/2, pi/4
+soln = yᵣ₁(v_0=&gt;v₀, γ=&gt;γ₀, alpha=&gt;α, g=&gt;9.8)
+plot(soln, 0, v₀ * cos(α) / γ₀ - 1/10, legend=false)</code></pre>
 <p>We can see that the resistance makes the path quite non-symmetric.</p>
 </section>
 </section>
@@ -1194,26 +1003,17 @@ x'(0) &amp;= v_0\cos(\alpha),&amp;\quad y'(0) &amp;= v_0 \sin(\alpha).
 <h2 data-number="48.5" class="anchored" data-anchor-id="visualizing-a-first-order-initial-value-problem"><span class="header-section-number">48.5</span> Visualizing a first-order initial value problem</h2>
 <p>The solution, <span class="math inline">\(y(x)\)</span>, is known through its derivative. A useful tool to visualize the solution to a first-order differential equation is the <a href="http://tinyurl.com/jspzfok">slope field</a> (or direction field) plot, which at different values of <span class="math inline">\((x,y)\)</span>, plots a vector with slope given through <span class="math inline">\(y'(x)\)</span>.The <code>vectorfieldplot</code> of the <code>CalculusWithJulia</code> package can be used to produce these.</p>
 <p>For example, in a previous example we found a solution to <span class="math inline">\(y'(x) = x\cdot y(x)\)</span>, coded as</p>
-<div class="cell" data-execution_count="27">
-<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">F</span>(y, x) <span class="op">=</span> y<span class="op">*</span>x</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="28">
-<pre><code>F (generic function with 1 method)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>F(y, x) = y*x</code></pre>
 <p>Suppose <span class="math inline">\(x_0=1\)</span> and <span class="math inline">\(y_0=1\)</span>. Then a direction field plot is drawn through:</p>
-<div class="cell" data-hold="true" data-execution_count="28">
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> x y</span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>x0, y0 <span class="op">=</span> <span class="fl">1</span>, <span class="fl">1</span></span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(legend<span class="op">=</span><span class="cn">false</span>)</span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="fu">vectorfieldplot!</span>((x,y) <span class="op">-&gt;</span> [<span class="fl">1</span>, <span class="fu">F</span>(y,x)], xlims<span class="op">=</span>(x0, <span class="fl">2</span>), ylims<span class="op">=</span>(y0<span class="op">-</span><span class="fl">5</span>, y0<span class="op">+</span><span class="fl">5</span>))</span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span>  <span class="fu">y0*exp</span>(<span class="op">-</span>x0<span class="op">^</span><span class="fl">2</span><span class="op">/</span><span class="fl">2</span>) <span class="op">*</span> <span class="fu">exp</span>(x<span class="op">^</span><span class="fl">2</span><span class="op">/</span><span class="fl">2</span>)</span>
-<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(f,  linewidth<span class="op">=</span><span class="fl">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="29">
-<p><img src="odes_files/figure-html/cell-29-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+@syms x y
+x0, y0 = 1, 1
+
+plot(legend=false)
+vectorfieldplot!((x,y) -&gt; [1, F(y,x)], xlims=(x0, 2), ylims=(y0-5, y0+5))
+
+f(x) =  y0*exp(-x0^2/2) * exp(x^2/2)
+plot!(f,  linewidth=5)</code></pre>
 <p>In general, if the first-order equation is written as <span class="math inline">\(y'(x) = F(y,x)\)</span>, then we plot a “function” that takes <span class="math inline">\((x,y)\)</span> and returns an <span class="math inline">\(x\)</span> value of <span class="math inline">\(1\)</span> and a <span class="math inline">\(y\)</span> value of <span class="math inline">\(F(y,x)\)</span>, so the slope is <span class="math inline">\(F(y,x)\)</span>.</p>
 <div class="callout-note callout callout-style-default callout-captioned">
 <div class="callout-header d-flex align-content-center">
@@ -1229,20 +1029,16 @@ Note
 </div>
 </div>
 <p>The plots are also useful for illustrating solutions for different initial conditions:</p>
-<div class="cell" data-hold="true" data-execution_count="29">
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="fu">plot</span>(legend<span class="op">=</span><span class="cn">false</span>)</span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>x0, y0 <span class="op">=</span> <span class="fl">1</span>, <span class="fl">1</span></span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="fu">vectorfieldplot!</span>((x,y) <span class="op">-&gt;</span> [<span class="fl">1</span>,<span class="fu">F</span>(y,x)], xlims<span class="op">=</span>(x0, <span class="fl">2</span>), ylims<span class="op">=</span>(y0<span class="op">-</span><span class="fl">5</span>, y0<span class="op">+</span><span class="fl">5</span>))</span>
-<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> y0 <span class="kw">in</span> <span class="op">-</span><span class="fl">4</span><span class="op">:</span><span class="fl">4</span></span>
-<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">f</span>(x) <span class="op">=</span>  <span class="fu">y0*exp</span>(<span class="op">-</span>x0<span class="op">^</span><span class="fl">2</span><span class="op">/</span><span class="fl">2</span>) <span class="op">*</span> <span class="fu">exp</span>(x<span class="op">^</span><span class="fl">2</span><span class="op">/</span><span class="fl">2</span>)</span>
-<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot!</span>(f, x0, <span class="fl">2</span>, linewidth<span class="op">=</span><span class="fl">5</span>)</span>
-<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
-<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>p</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="30">
-<p><img src="odes_files/figure-html/cell-30-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+p = plot(legend=false)
+x0, y0 = 1, 1
+
+vectorfieldplot!((x,y) -&gt; [1,F(y,x)], xlims=(x0, 2), ylims=(y0-5, y0+5))
+for y0 in -4:4
+  f(x) =  y0*exp(-x0^2/2) * exp(x^2/2)
+  plot!(f, x0, 2, linewidth=5)
+end
+p</code></pre>
 <p>Such solutions are called <a href="https://en.wikipedia.org/wiki/Integral_curve">integral curves</a>. These graphs illustrate the fact that the slope field is tangent to the graph of any integral curve.</p>
 </section>
 <section id="questions" class="level2" data-number="48.6">
@@ -1254,93 +1050,20 @@ Note
 u' = \frac{1-x}{u}
 \]</span></p>
 <p>gives</p>
-<div class="cell" data-hold="true" data-execution_count="30">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> x <span class="fu">u</span>()</span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dsolve</span>(<span class="fu">D</span>(u)(x) <span class="op">-</span> (<span class="fl">1</span><span class="op">-</span>x)<span class="op">/</span><span class="fu">u</span>(x))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="31">
-<pre><code>2-element Vector{Sym}:
- Eq(u(x), -sqrt(C1 - x^2 + 2*x))
-  Eq(u(x), sqrt(C1 - x^2 + 2*x))</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+@syms x u()
+dsolve(D(u)(x) - (1-x)/u(x))</code></pre>
 <p>The two answers track positive and negative solutions. For the initial condition, <span class="math inline">\(u(-1)=1\)</span>, we have the second one is appropriate: <span class="math inline">\(u(x) = \sqrt{C_1 - x^2 + 2x}\)</span>. At <span class="math inline">\(-1\)</span> this gives: <span class="math inline">\(1 = \sqrt{C_1-3}\)</span>, so <span class="math inline">\(C_1 = 4\)</span>.</p>
 <p>This value is good for what values of <span class="math inline">\(x\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="31">
-<div class="cell-output cell-output-display" data-execution_count="32">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="12131210379861822535" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_12131210379861822535">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_12131210379861822535_1">
-      <input class="form-check-input" type="radio" name="radio_12131210379861822535" id="radio_12131210379861822535_1" value="1">
-      
-      <span class="label-body px-1">
-        \([-1, 0]\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_12131210379861822535_2">
-      <input class="form-check-input" type="radio" name="radio_12131210379861822535" id="radio_12131210379861822535_2" value="2">
-      
-      <span class="label-body px-1">
-        \([1-\sqrt{5}, 1 + \sqrt{5}]\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_12131210379861822535_3">
-      <input class="form-check-input" type="radio" name="radio_12131210379861822535" id="radio_12131210379861822535_3" value="3">
-      
-      <span class="label-body px-1">
-        \([-1, 4]\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_12131210379861822535_4">
-      <input class="form-check-input" type="radio" name="radio_12131210379861822535" id="radio_12131210379861822535_4" value="4">
-      
-      <span class="label-body px-1">
-        \([-1, \infty)\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="12131210379861822535_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_12131210379861822535"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('12131210379861822535_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_12131210379861822535")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_12131210379861822535")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+"``[-1, \\infty)``",
+"``[-1, 4]``",
+"``[-1, 0]``",
+"``[1-\\sqrt{5}, 1 + \\sqrt{5}]``"]
+answ = 4
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-1" class="level5">
 <h5 class="anchored" data-anchor-id="question-1">Question</h5>
@@ -1349,49 +1072,12 @@ rb.addEventListener("change", function() {
 y'(x) = y(x)^2, \quad y(1) = 1.
 \]</span></p>
 <p>What is <span class="math inline">\(y(3/2)\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="32">
-<div class="cell-output cell-output-display" data-execution_count="33">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="15704343644740372159" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_15704343644740372159">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="15704343644740372159" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="15704343644740372159_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("15704343644740372159").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 2.0) <= 0.001);
-  var msgBox = document.getElementById('15704343644740372159_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_15704343644740372159")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_15704343644740372159")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+@syms x u()
+out = dsolve(D(u)(x) - u(x)^2, u(x), ics=Dict(u(1) =&gt; 1))
+val = N(rhs(out(3/2)))
+numericq(val)</code></pre>
 </section>
 <section id="question-2" class="level5">
 <h5 class="anchored" data-anchor-id="question-2">Question</h5>
@@ -1400,49 +1086,12 @@ document.getElementById("15704343644740372159").addEventListener("change", funct
 y' = 1 + x^2 + y(x)^2 + x^2 y(x)^2, \quad y(0) = 1.
 \]</span></p>
 <p>Use your answer to find <span class="math inline">\(y(1)\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="33">
-<div class="cell-output cell-output-display" data-execution_count="34">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="978362703134138113" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_978362703134138113">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="978362703134138113" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="978362703134138113_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("978362703134138113").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - -1.6386248637145369) <= 0.001);
-  var msgBox = document.getElementById('978362703134138113_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_978362703134138113")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_978362703134138113")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+eqn = D(u)(x) - (1 + x^2 + u(x)^2 + x^2 * u(x)^2)
+out = dsolve(eqn, u(x), ics=Dict(u(0) =&gt; 1))
+val = N(rhs(out)(1).evalf())
+numericq(val)</code></pre>
 </section>
 <section id="question-3" class="level5">
 <h5 class="anchored" data-anchor-id="question-3">Question</h5>
@@ -1452,49 +1101,13 @@ document.getElementById("978362703134138113").addEventListener("change", functio
 y'(x) = k\cdot y(x) \cdot (1 - \frac{y(x)}{M}),
 \]</span></p>
 <p>when <span class="math inline">\(k=1\)</span>, <span class="math inline">\(M=100\)</span>, and <span class="math inline">\(y(0) = 20\)</span>. Find the value of <span class="math inline">\(y(5)\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="34">
-<div class="cell-output cell-output-display" data-execution_count="35">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="2845289971630293174" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_2845289971630293174">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="2845289971630293174" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="2845289971630293174_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("2845289971630293174").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 97.37555469386476455991468766438340038789284601247847344470307065781047878026761) <= 0.001);
-  var msgBox = document.getElementById('2845289971630293174_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_2845289971630293174")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_2845289971630293174")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+k, M = 1, 100
+eqn = D(u)(x) - k * u(x) * (1 - u(x)/M)
+out = dsolve(eqn, u(x), ics=Dict(u(0) =&gt; 20))
+val = N(rhs(out)(5))
+numericq(val)</code></pre>
 </section>
 <section id="question-4" class="level5">
 <h5 class="anchored" data-anchor-id="question-4">Question</h5>
@@ -1503,49 +1116,12 @@ document.getElementById("2845289971630293174").addEventListener("change", functi
 y'(t) = \sin(t) - \frac{y(t)}{t}, \quad y(\pi) = 1
 \]</span></p>
 <p>Find the value of the solution at <span class="math inline">\(t=2\pi\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="35">
-<div class="cell-output cell-output-display" data-execution_count="36">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="12044016289517863685" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_12044016289517863685">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="12044016289517863685" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="12044016289517863685_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("12044016289517863685").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - -1) <= 0);
-  var msgBox = document.getElementById('12044016289517863685_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_12044016289517863685")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_12044016289517863685")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+eqn = D(u)(x) - (sin(x) - u(x)/x)
+out = dsolve(eqn, u(x), ics=Dict(u(PI) =&gt; 1))
+val = N(rhs(out(2PI)))
+numericq(val)</code></pre>
 </section>
 <section id="question-5" class="level5">
 <h5 class="anchored" data-anchor-id="question-5">Question</h5>
@@ -1554,49 +1130,12 @@ document.getElementById("12044016289517863685").addEventListener("change", funct
 \frac{du}{dx} = e^{-x} \cdot u(x), \quad u(0) = 1.
 \]</span></p>
 <p>Find <span class="math inline">\(u(5)\)</span> using <code>SymPy</code>.</p>
-<div class="cell" data-hold="true" data-execution_count="36">
-<div class="cell-output cell-output-display" data-execution_count="37">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="3304143977319280097" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_3304143977319280097">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="3304143977319280097" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="3304143977319280097_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("3304143977319280097").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 2.700027756117370154212487619404962557343246917590398528605527399056158996408393) <= 0.001);
-  var msgBox = document.getElementById('3304143977319280097_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_3304143977319280097")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_3304143977319280097")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+eqn = D(u)(x) - exp(-x)*u(x)
+out = dsolve(eqn, u(x), ics=Dict(u(0) =&gt; 1))
+val = N(rhs(out)(5))
+numericq(val)</code></pre>
 </section>
 <section id="question-6" class="level5">
 <h5 class="anchored" data-anchor-id="question-6">Question</h5>
@@ -1605,153 +1144,28 @@ document.getElementById("3304143977319280097").addEventListener("change", functi
 \frac{r^2 \frac{dc}{dr}}{dr} = 0, \quad c(1)=2, c(10)=1,
 \]</span></p>
 <p>can be solved with <code>SymPy</code>. What is the value of <span class="math inline">\(c(5)\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="37">
-<div class="cell-output cell-output-display" data-execution_count="38">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="11860363307501580382" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_11860363307501580382">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_11860363307501580382_1">
-      <input class="form-check-input" type="radio" name="radio_11860363307501580382" id="radio_11860363307501580382_1" value="1">
-      
-      <span class="label-body px-1">
-        \(9/10\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_11860363307501580382_2">
-      <input class="form-check-input" type="radio" name="radio_11860363307501580382" id="radio_11860363307501580382_2" value="2">
-      
-      <span class="label-body px-1">
-        \(8/9\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_11860363307501580382_3">
-      <input class="form-check-input" type="radio" name="radio_11860363307501580382" id="radio_11860363307501580382_3" value="3">
-      
-      <span class="label-body px-1">
-        \(10/9\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_11860363307501580382_4">
-      <input class="form-check-input" type="radio" name="radio_11860363307501580382" id="radio_11860363307501580382_4" value="4">
-      
-      <span class="label-body px-1">
-        \(3/2\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="11860363307501580382_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_11860363307501580382"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 3;
-    var msgBox = document.getElementById('11860363307501580382_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_11860363307501580382")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_11860363307501580382")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+@syms x u()
+eqn = diff(x^2*D(u)(x), x)
+out = dsolve(eqn, u(x), ics=Dict(u(1)=&gt;2, u(10) =&gt; 1)) |&gt; rhs
+out(5)  # 10/9
+choices = ["``10/9``", "``3/2``", "``9/10``", "``8/9``"]
+answ = 1
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-7" class="level5">
 <h5 class="anchored" data-anchor-id="question-7">Question</h5>
 <p>The example with projectile motion in a medium has a parameter <span class="math inline">\(\gamma\)</span> modeling the effect of air resistance. If <code>y</code> is the answer - as would be the case if the example were copy-and-pasted in - what can be said about <code>limit(y, gamma=&gt;0)</code>?</p>
-<div class="cell" data-hold="true" data-execution_count="38">
-<div class="cell-output cell-output-display" data-execution_count="39">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="15597730217512705658" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_15597730217512705658">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_15597730217512705658_1">
-      <input class="form-check-input" type="radio" name="radio_15597730217512705658" id="radio_15597730217512705658_1" value="1">
-      
-      <span class="label-body px-1">
-        The limit is a quadratic polynomial in <code>x</code>, mirroring the first part of that example.
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_15597730217512705658_2">
-      <input class="form-check-input" type="radio" name="radio_15597730217512705658" id="radio_15597730217512705658_2" value="2">
-      
-      <span class="label-body px-1">
-        The limit does not exist – there is a singularity – as seen by setting <code>gamma=0</code>.
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_15597730217512705658_3">
-      <input class="form-check-input" type="radio" name="radio_15597730217512705658" id="radio_15597730217512705658_3" value="3">
-      
-      <span class="label-body px-1">
-        The limit does not exist, but the limit to <code>oo</code> gives a quadratic polynomial in <code>x</code>, mirroring the first part of that example.
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="15597730217512705658_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_15597730217512705658"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('15597730217512705658_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_15597730217512705658")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_15597730217512705658")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+"The limit is a quadratic polynomial in `x`, mirroring the first part of that example.",
+"The limit does not exist, but the limit to `oo` gives a quadratic polynomial in `x`, mirroring the first part of that example.",
+"The limit does not exist -- there is a singularity -- as seen by setting `gamma=0`."
+]
+answ = 1
+radioq(choices, answ)</code></pre>
 
 
 </section>

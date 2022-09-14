@@ -20,69 +20,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1.6em;
   vertical-align: middle;
 }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-    color: #aaaaaa;
-  }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { color: #008000; } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { color: #008000; font-weight: bold; } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
 
@@ -124,9 +61,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   }
 }</script>
 <script async="" src="https://hypothes.is/embed.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
-<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
@@ -665,166 +599,105 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 </header>
 
+<pre class="{julia}"><code>#| echo: false
+
+import Logging
+Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
+Logging.disable_logging(Logging.Warn)
+
+import SymPy
+function Base.show(io::IO, ::MIME"text/html", x::T) where {T &lt;: SymPy.SymbolicObject}
+    println(io, "&lt;span class=\"math-left-align\" style=\"padding-left: 4px; width:0; float:left;\"&gt; ")
+    println(io, "\\[")
+    println(io, sympy.latex(x))
+    println(io, "\\]")
+    println(io, "&lt;/span&gt;")
+end
+
+# hack to work around issue
+import Markdown
+import CalculusWithJulia
+function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
+    nm = joinpath("..", string(d), f)
+    u = "![$caption]($nm)"
+    Markdown.parse(u)
+end
+
+nothing</code></pre>
 <p>This section will use the following add-on packages:</p>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="bu">CalculusWithJulia</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Plots</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Polynomials</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">RealPolynomialRoots</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="bu">SymPy </span><span class="co"># imported only: some functions, e.g. degree, need qualification</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<pre class="{julia}"><code>import CalculusWithJulia
+using Plots
+using Polynomials
+using RealPolynomialRoots
+import SymPy # imported only: some functions, e.g. degree, need qualification</code></pre>
+<pre class="{julia}"><code>#| echo: false
+#| results: "hidden"
+using CalculusWithJulia.WeaveSupport
+
+const frontmatter = (
+        title = "The Polynomials package",
+        description = "Calculus with Julia: The Polynomials package",
+        tags = ["CalculusWithJulia", "precalc", "the polynomials package"],
+);
+
+nothing</code></pre>
 <hr>
 <p>While <code>SymPy</code> can be used to represent polynomials, there are also native <code>Julia</code> packages available for this and related tasks. These packages include <code>Polynomials</code>, <code>MultivariatePolynomials</code>, and <code>AbstractAlgebra</code>, among many others. (A search on <a href="juliahub.com">juliahub.com</a> found over <span class="math inline">\(50\)</span> packages matching “polynomial”.) We will look at the <code>Polynomials</code> package in the following, as it is straightforward to use and provides the features we are looking at for univariate polynomials.</p>
 <section id="construction" class="level2" data-number="13.1">
 <h2 data-number="13.1" class="anchored" data-anchor-id="construction"><span class="header-section-number">13.1</span> Construction</h2>
 <p>The polynomial expression <span class="math inline">\(p = a_0 + a_1\cdot x + a_2\cdot x^2 + \cdots + a_n\cdot x^n\)</span> can be viewed mathematically as a vector of numbers with respect to some “basis”, which for standard polynomials, as above, is just the set of monomials, <span class="math inline">\(1, x, x^2, \dots, x^n\)</span>. With this viewpoint, the polynomial <span class="math inline">\(p\)</span> can be identified with the vector <code>[a0, a1, a2, ..., an]</code>. The <code>Polynomials</code> package provides a wrapper for such an identification through the <code>Polynomial</code> constructor. We have previously loaded this add-on package.</p>
 <p>To illustrate, the polynomial <span class="math inline">\(p = 3 + 4x + 5x^2\)</span> is constructed with</p>
-<div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="fu">Polynomial</span>([<span class="fl">3</span>,<span class="fl">4</span>,<span class="fl">5</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="5">
-3 + 4∙x + 5∙x<sup>2</sup>
-</div>
-</div>
+<pre class="{julia}"><code>p = Polynomial([3,4,5])</code></pre>
 <p>where the vector <code>[3,4,5]</code> represents the coefficients. The polynomial <span class="math inline">\(q = 3 + 5x^2 + 7x^4\)</span> has some coefficients that are <span class="math inline">\(0\)</span>, these too must be indicated on construction, so we would have:</p>
-<div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>q <span class="op">=</span> <span class="fu">Polynomial</span>([<span class="fl">3</span>,<span class="fl">0</span>,<span class="fl">5</span>,<span class="fl">0</span>,<span class="fl">7</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="6">
-3 + 5∙x<sup>2</sup> + 7∙x<sup>4</sup>
-</div>
-</div>
+<pre class="{julia}"><code>q = Polynomial([3,0,5,0,7])</code></pre>
 <p>The <code>coeffs</code> function undoes <code>Polynomial</code>, returning the coefficients from a <code>Polynomial</code> object.</p>
-<div class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">coeffs</span>(q)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="7">
-<pre><code>5-element Vector{Int64}:
- 3
- 0
- 5
- 0
- 7</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>coeffs(q)</code></pre>
 <p>Once defined, the usual arithmetic operations for polynomials follow:</p>
-<div class="cell" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>p <span class="op">+</span> q</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="8">
-6 + 4∙x + 10∙x<sup>2</sup> + 7∙x<sup>4</sup>
-</div>
-</div>
-<div class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>p<span class="op">*</span>q <span class="op">+</span> p<span class="op">^</span><span class="fl">2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="9">
-18 + 36∙x + 76∙x<sup>2</sup> + 60∙x<sup>3</sup> + 71∙x<sup>4</sup> + 28∙x<sup>5</sup> + 35∙x<sup>6</sup>
-</div>
-</div>
+<pre class="{julia}"><code>p + q</code></pre>
+<pre class="{julia}"><code>p*q + p^2</code></pre>
 <p>A polynomial has several familiar methods, such as <code>degree</code>:</p>
-<div class="cell" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">degree</span>(p), <span class="fu">degree</span>(q)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="10">
-<pre><code>(2, 4)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>degree(p), degree(q)</code></pre>
 <p>The zero polynomial has degree <code>-1</code>, by convention.</p>
 <p>Polynomials may be evaluated using function notation, that is:</p>
-<div class="cell" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">p</span>(<span class="fl">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="11">
-<pre><code>12</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>p(1)</code></pre>
 <p>This blurs the distinction between a polynomial expression – a formal object consisting of an indeterminate, coefficients, and the operations of addition, subtraction, multiplication, and non-negative integer powers – and a polynomial function.</p>
 <p>The polynomial variable, in this case <code>1x</code>, can be returned by <code>variable</code>:</p>
-<div class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> <span class="fu">variable</span>(p)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="12">
-x
-</div>
-</div>
+<pre class="{julia}"><code>x = variable(p)</code></pre>
 <p>This variable is a <code>Polynomial</code> object, so can be manipulated as a polynomial; we can then construct polynomials through expressions like:</p>
-<div class="cell" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>r <span class="op">=</span> (x<span class="op">-</span><span class="fl">2</span>)<span class="op">^</span><span class="fl">3</span> <span class="op">*</span> (x<span class="op">-</span><span class="fl">1</span>) <span class="op">*</span> (x<span class="op">+</span><span class="fl">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="13">
-8 - 12∙x - 2∙x<sup>2</sup> + 11∙x<sup>3</sup> - 6∙x<sup>4</sup> + x<sup>5</sup>
-</div>
-</div>
+<pre class="{julia}"><code>r = (x-2)^3 * (x-1) * (x+1)</code></pre>
 <p>The product is expanded for storage by <code>Polynomials</code>, which may not be desirable for some uses. A new variable can produced by calling <code>variable()</code>; so we could have constructed <code>p</code> by:</p>
-<div class="cell" data-hold="true" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> <span class="fu">variable</span>()</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fl">3</span> <span class="op">+</span> <span class="fl">4</span>x <span class="op">+</span> <span class="fl">5</span>x<span class="op">^</span><span class="fl">2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="14">
-3 + 4∙x + 5∙x<sup>2</sup>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+x = variable()
+3 + 4x + 5x^2</code></pre>
 <p>A polynomial in factored form, as <code>r</code> above is, can be constructed from its roots. Above, <code>r</code> has roots <span class="math inline">\(2\)</span> (twice), <span class="math inline">\(1\)</span>, and <span class="math inline">\(-1\)</span>. Passing these as a vector to <code>fromroots</code> re-produces <code>r</code>:</p>
-<div class="cell" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fromroots</span>([<span class="fl">2</span>,<span class="fl">2</span>,<span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="15">
--4 + 4∙x + 3∙x<sup>2</sup> - 4∙x<sup>3</sup> + x<sup>4</sup>
-</div>
-</div>
+<pre class="{julia}"><code>fromroots([2,2,1,-1])</code></pre>
 <p>The <code>fromroots</code> function is basically the <a href="https://en.wikipedia.org/wiki/Factor_theorem">factor thereom</a> which links the factored form of the polynomial with the roots of the polynomial: <span class="math inline">\((x-k)\)</span> is a factor of <span class="math inline">\(p\)</span> if and only if <span class="math inline">\(k\)</span> is a root of <span class="math inline">\(p\)</span>. By combining a factor of the type <span class="math inline">\((x-k)\)</span> for each specified root, the polynomial can be constructed by multiplying its factors. For example, using <code>prod</code> and a generarator, we would have:</p>
-<div class="cell" data-hold="true" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> <span class="fu">variable</span>()</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">prod</span>(x <span class="op">-</span> k <span class="cf">for</span> k <span class="kw">in</span> [<span class="fl">2</span>,<span class="fl">2</span>,<span class="fl">1</span>,<span class="op">-</span><span class="fl">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="16">
--4 + 4∙x + 3∙x<sup>2</sup> - 4∙x<sup>3</sup> + x<sup>4</sup>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+x = variable()
+prod(x - k for k in [2,2,1,-1])</code></pre>
 <p>The <code>Polynomials</code> package has different ways to represent polynomials, and a factored form can also be used. For example, the <code>fromroots</code> function constructs polynomials from the specified roots and <code>FactoredPolynomial</code> leaves these in a factored form:</p>
-<div class="cell" data-execution_count="16">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fromroots</span>(FactoredPolynomial, [<span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">1</span>, <span class="op">-</span><span class="fl">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="17">
-(x - 2)² * (x + 1) * (x - 1)
-</div>
-</div>
+<pre class="{julia}"><code>fromroots(FactoredPolynomial, [2, 2, 1, -1])</code></pre>
 <p>This form is helpful for some operations, for example polynomial multiplication and positive integer exponentiation, but not others such as addition of polynomials, where such polynomials must first be converted to the standard basis to add and are then converted back into a factored form.</p>
 <hr>
 <p>The indeterminate, or polynomial symbol is a related, but different concept to <code>variable</code>. Polynomials are stored as a collection of coefficients, an implicit basis, <em>and</em> a symbol, in the above this symbol is <code>:x</code>. A polynomial’s symbol is checked to ensure that polynomials with different symbols are not algebraically combined, except for the special case of constant polynomials. The symbol is specified through a second argument on construction:</p>
-<div class="cell" data-execution_count="17">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>s <span class="op">=</span> <span class="fu">Polynomial</span>([<span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">3</span>], <span class="st">"t"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="18">
-1 + 2∙t + 3∙t<sup>2</sup>
-</div>
-</div>
+<pre class="{julia}"><code>s = Polynomial([1,2,3], "t")</code></pre>
 <p>As <code>r</code> uses “<code>x</code>”, and <code>s</code> a “<code>t</code>” the two can not be added, say:</p>
-<div class="cell" data-execution_count="18">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>r <span class="op">+</span> s</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-error">
-<pre><code>LoadError: ArgumentError: Polynomials have different indeterminates</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>r + s</code></pre>
 </section>
 <section id="graphs" class="level2" data-number="13.2">
 <h2 data-number="13.2" class="anchored" data-anchor-id="graphs"><span class="header-section-number">13.2</span> Graphs</h2>
 <p>Polynomial objects have a plot recipe defined – plotting from the <code>Plots</code> package should be as easy as calling <code>plot</code>:</p>
-<div class="cell" data-execution_count="19">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(r, legend<span class="op">=</span><span class="cn">false</span>)  <span class="co"># suppress the legend</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="20">
-<p><img src="polynomials_package_files/figure-html/cell-20-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>plot(r, legend=false)  # suppress the legend</code></pre>
 <p>The choice of domain is heuristically identified; it and can be manually adjusted, as with:</p>
-<div class="cell" data-execution_count="20">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(r, <span class="fl">1.5</span>, <span class="fl">2.5</span>, legend<span class="op">=</span><span class="cn">false</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="21">
-<p><img src="polynomials_package_files/figure-html/cell-21-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>plot(r, 1.5, 2.5, legend=false)</code></pre>
 </section>
 <section id="roots" class="level2" data-number="13.3">
 <h2 data-number="13.3" class="anchored" data-anchor-id="roots"><span class="header-section-number">13.3</span> Roots</h2>
 <p>The default <code>plot</code> recipe checks to ensure the real roots of the polynomial are included in the domain of the plot. To do this, it must identify the roots. This is done <em>numerically</em> by the <code>roots</code> function, as in this example:</p>
-<div class="cell" data-hold="true" data-execution_count="21">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> <span class="fu">variable</span>()</span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> x<span class="op">^</span><span class="fl">5</span> <span class="op">-</span> x <span class="op">-</span> <span class="fl">1</span></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="fu">roots</span>(p)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="22">
-<pre><code>5-element Vector{ComplexF64}:
- -0.7648844336005849 - 0.35247154603172626im
- -0.7648844336005849 + 0.35247154603172626im
- 0.18123244446987605 - 1.0839541013177107im
- 0.18123244446987605 + 1.0839541013177107im
-  1.1673039782614187 + 0.0im</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+x = variable()
+p = x^5 - x - 1
+roots(p)</code></pre>
 <p>A consequence of the fundamental theorem of algebra and the factor theorem is that any fifth degree polynomial with integer coefficients has <span class="math inline">\(5\)</span> roots, where possibly some are complex. For real coefficients, these complex values must come in conjugate pairs, which can be observed from the output. The lone real root is approximately <code>1.1673039782614187</code>. This value being a numeric approximation to the irrational root.</p>
 <div class="callout-note callout callout-style-default callout-captioned">
 <div class="callout-header d-flex align-content-center">
@@ -840,58 +713,25 @@ Note
 </div>
 </div>
 <p>The <code>roots</code> function numerically identifies roots. As such, it is susceptible to floating point issues. For example, the following polynomial has one root with multiplicity <span class="math inline">\(5\)</span>, but <span class="math inline">\(5\)</span> distinct roots are numerically identified:</p>
-<div class="cell" data-hold="true" data-execution_count="22">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> <span class="fu">variable</span>()</span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> (x<span class="op">-</span><span class="fl">1</span>)<span class="op">^</span><span class="fl">5</span></span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="fu">roots</span>(p)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="23">
-<pre><code>5-element Vector{ComplexF64}:
- 0.9990471550471702 + 0.0im
- 0.9997060762685409 - 0.0009060415877147721im
- 0.9997060762685409 + 0.0009060415877147721im
-  1.000770346207878 - 0.0005593476807788428im
-  1.000770346207878 + 0.0005593476807788428im</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+x = variable()
+p = (x-1)^5
+roots(p)</code></pre>
 <p>The <code>Polynomials</code> package has the <code>multroot</code> function to identify roots of polynomials when there are multiplicities expected. This function is not exported, so is called through:</p>
-<div class="cell" data-hold="true" data-execution_count="23">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> <span class="fu">variable</span>()</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> (x<span class="op">-</span><span class="fl">1</span>)<span class="op">^</span><span class="fl">5</span></span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>Polynomials.Multroot.<span class="fu">multroot</span>(p)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="24">
-<pre><code>(values = [1.0], multiplicities = [5], κ = 0.1348399724926484, ϵ = 0.0)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+x = variable()
+p = (x-1)^5
+Polynomials.Multroot.multroot(p)</code></pre>
 <p>Floating point error can also prevent the finding of real roots. For example, this polynomial has <span class="math inline">\(3\)</span> real roots, but <code>roots</code> finds but <span class="math inline">\(1\)</span>, as the two nearby ones are identified as complex:</p>
-<div class="cell" data-hold="true" data-execution_count="24">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> <span class="fu">variable</span>()</span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="op">-</span><span class="fl">1</span> <span class="op">+</span> <span class="fl">254</span>x <span class="op">-</span> <span class="fl">16129</span>x<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> x<span class="op">^</span><span class="fl">9</span></span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="fu">roots</span>(p)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="25">
-<pre><code>9-element Vector{ComplexF64}:
-  -3.5980557124631396 - 1.7316513703738028im
-  -3.5980557124631396 + 1.7316513703738028im
-  -0.8903404519370821 - 3.8909853177372544im
-  -0.8903404519370821 + 3.8909853177372544im
- 0.007874015748031492 - 2.1956827901729616e-10im
- 0.007874015748031492 + 2.1956827901729616e-10im
-    2.486125235439536 - 3.1203279635732852im
-    2.486125235439536 + 3.1203279635732852im
-   3.9887938264253098 + 0.0im</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+x = variable()
+p = -1 + 254x - 16129x^2 + x^9
+roots(p)</code></pre>
 <p>The <code>RealPolynomialRoots</code> package, loaded at the top of this section, can assist in the case of identifying real roots of square-free polynomials (no multiple roots). For example:</p>
-<div class="cell" data-hold="true" data-execution_count="25">
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>ps <span class="op">=</span> <span class="fu">coeffs</span>(<span class="op">-</span><span class="fl">1</span> <span class="op">+</span> <span class="fl">254</span>x <span class="op">-</span> <span class="fl">16129</span>x<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> x<span class="op">^</span><span class="fl">9</span>)</span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>st <span class="op">=</span> <span class="fu">ANewDsc</span>(ps)</span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="fu">refine_roots</span>(st)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="26">
-<pre><code>3-element Vector{BigFloat}:
- 3.988793826425306473642444776805426608547732296366114662895735900147866391704142
- 0.007874015750717324512740983585882312180861223162058608848885542347629765401087064
- 0.007874015745345673150850714181507791446756481278601649150080399302457840208681379</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+ps = coeffs(-1 + 254x - 16129x^2 + x^9)
+st = ANewDsc(ps)
+refine_roots(st)</code></pre>
 </section>
 <section id="fitting-a-polynomial-to-data" class="level2" data-number="13.4">
 <h2 data-number="13.4" class="anchored" data-anchor-id="fitting-a-polynomial-to-data"><span class="header-section-number">13.4</span> Fitting a polynomial to data</h2>
@@ -914,60 +754,40 @@ a\cdot x_2^2 + b\cdot x_2 + c &amp;= y_2\\
 \end{align*}
 \]</span></p>
 <p>Solving this with <code>SymPy</code> is tractable. A comprehension is used below to create the <span class="math inline">\(3\)</span> equations; the <code>zip</code> function is a simple means to iterate over <span class="math inline">\(2\)</span> or more iterables simultaneously:</p>
-<div class="cell" data-execution_count="26">
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>SymPy.<span class="pp">@syms</span> a b c xs[<span class="fl">0</span><span class="op">:</span><span class="fl">2</span>] ys[<span class="fl">0</span><span class="op">:</span><span class="fl">2</span>]</span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>eqs <span class="op">=</span> [a<span class="op">*</span>xi<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> b<span class="op">*</span>xi <span class="op">+</span> c <span class="op">~</span> yi for (xi,yi) <span class="kw">in</span> <span class="fu">zip</span>(xs, ys)]</span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>abc <span class="op">=</span> SymPy.<span class="fu">solve</span>(eqs, [a,b,c])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="27">
-<pre><code>Dict{Any, Any} with 3 entries:
-  c =&gt; (xs₀^2*xs₁*ys₂ - xs₀^2*xs₂*ys₁ - xs₀*xs₁^2*ys₂ + xs₀*xs₂^2*ys₁ + xs₁^2*x…
-  b =&gt; (xs₀^2*ys₁ - xs₀^2*ys₂ - xs₁^2*ys₀ + xs₁^2*ys₂ + xs₂^2*ys₀ - xs₂^2*ys₁)/…
-  a =&gt; (-xs₀*ys₁ + xs₀*ys₂ + xs₁*ys₀ - xs₁*ys₂ - xs₂*ys₀ + xs₂*ys₁)/(xs₀^2*xs₁ …</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>SymPy.@syms a b c xs[0:2] ys[0:2]
+eqs = [a*xi^2 + b*xi + c ~ yi for (xi,yi) in zip(xs, ys)]
+abc = SymPy.solve(eqs, [a,b,c])</code></pre>
 <p>As can be seen, the terms do get quite unwieldy when treated symbolically. Numerically, the <code>fit</code> function from the <code>Polynomials</code> package will return the interpolating polynomial. To compare,</p>
-<div class="cell" data-execution_count="27">
-<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fit</span>(Polynomial, [<span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">3</span>], [<span class="fl">3</span>,<span class="fl">1</span>,<span class="fl">2</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="28">
-8.0 - 6.5∙x + 1.5∙x<sup>2</sup>
-</div>
-</div>
+<pre class="{julia}"><code>fit(Polynomial, [1,2,3], [3,1,2])</code></pre>
 <p>and we can compare that the two give the same answer with, for example:</p>
-<div class="cell" data-execution_count="28">
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>abc[b]((xs <span class="op">.=&gt;</span> [<span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">3</span>])<span class="op">...</span>, (ys <span class="op">.=&gt;</span> [<span class="fl">3</span>,<span class="fl">1</span>,<span class="fl">2</span>])<span class="op">...</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="29">
-<pre><code>-13/2</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>abc[b]((xs .=&gt; [1,2,3])..., (ys .=&gt; [3,1,2])...)</code></pre>
 <p>(Ignore the tricky way of substituting in each value of <code>xs</code> and <code>ys</code> for the symbolic values in <code>x</code> and <code>y</code>.)</p>
 <section id="example-inverse-quadratic-interpolation" class="level5">
 <h5 class="anchored" data-anchor-id="example-inverse-quadratic-interpolation">Example Inverse quadratic interpolation</h5>
 <p>A related problem, that will arise when finding iterative means to solve for zeros of functions, is <em>inverse</em> quadratic interpolation. That is finding <span class="math inline">\(q\)</span> that goes through the points <span class="math inline">\((x_0,y_0), (x_1, y_1), \dots, (x_n, y_n)\)</span> satisfying <span class="math inline">\(q(y_i) = x_i\)</span>. (That is <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> are reversed, as with inverse functions.) For the envisioned task, where the inverse quadratic function intersects the <span class="math inline">\(x\)</span> axis is of interest, which is at the constant term of the polynomial (as it is like the <span class="math inline">\(y\)</span> intercept of typical polynomial). Let’s see what that is in general by replicating the above steps (though now the assumption is the <span class="math inline">\(y\)</span> values are distinct):</p>
-<div class="cell" data-hold="true" data-execution_count="29">
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>SymPy.<span class="pp">@syms</span> a b c xs[<span class="fl">0</span><span class="op">:</span><span class="fl">2</span>] ys[<span class="fl">0</span><span class="op">:</span><span class="fl">2</span>]</span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>eqs <span class="op">=</span> [a<span class="op">*</span>yi<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> b<span class="op">*</span>yi <span class="op">+</span> c <span class="op">~</span> xi for (xi, yi) <span class="kw">in</span> <span class="fu">zip</span>(xs,ys)]</span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>abc <span class="op">=</span> SymPy.<span class="fu">solve</span>(eqs, [a,b,c])</span>
-<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>abc[c]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="30">
-<pre><code>       2                  2          2                  2          2          
-xs₀⋅ys₁ ⋅ys₂ - xs₀⋅ys₁⋅ys₂  - xs₁⋅ys₀ ⋅ys₂ + xs₁⋅ys₀⋅ys₂  + xs₂⋅ys₀ ⋅ys₁ - xs₂
-──────────────────────────────────────────────────────────────────────────────
-               2          2              2          2      2              2   
-            ys₀ ⋅ys₁ - ys₀ ⋅ys₂ - ys₀⋅ys₁  + ys₀⋅ys₂  + ys₁ ⋅ys₂ - ys₁⋅ys₂    
-
-        2
-⋅ys₀⋅ys₁ 
-─────────
-         
-         </code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+SymPy.@syms a b c xs[0:2] ys[0:2]
+eqs = [a*yi^2 + b*yi + c ~ xi for (xi, yi) in zip(xs,ys)]
+abc = SymPy.solve(eqs, [a,b,c])
+abc[c]</code></pre>
 <p>We can graphically see the result for the specific values of <code>xs</code> and <code>ys</code> as follows:</p>
-<div class="cell" data-hold="true" data-execution_count="30">
-<div class="cell-output cell-output-display" data-execution_count="31">
-<p><img src="polynomials_package_files/figure-html/cell-31-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+SymPy.@syms a b c xs[0:2] ys[0:2]
+eqs = [a*yi^2 + b*yi + c ~ xi for (xi, yi) in zip(xs,ys)]
+abc = SymPy.solve(eqs, [a,b,c])
+abc[c]
+
+𝒙s, 𝒚s = [1,2,3], [3,1,2]
+q = fit(Polynomial, 𝒚s,  𝒙s)  # reverse
+# plot
+us = range(-1/4, 4, length=100)
+vs = q.(us)
+plot(vs, us, legend=false)
+scatter!(𝒙s, 𝒚s)
+plot!(zero)
+x0 = abc[c]((xs .=&gt; 𝒙s)..., (ys .=&gt; 𝒚s)...)
+scatter!([SymPy.N(x0)], [0], markershape=:star)</code></pre>
 </section>
 </section>
 <section id="questions" class="level2" data-number="13.5">
@@ -975,262 +795,41 @@ xs₀⋅ys₁ ⋅ys₂ - xs₀⋅ys₁⋅ys₂  - xs₁⋅ys₀ ⋅ys₂ + xs₁
 <section id="question" class="level6">
 <h6 class="anchored" data-anchor-id="question">Question</h6>
 <p>Do the polynomials <span class="math inline">\(p = x^4\)</span> and <span class="math inline">\(q = x^2 - 2\)</span> intersect?</p>
-<div class="cell" data-hold="true" data-execution_count="31">
-<div class="cell-output cell-output-display" data-execution_count="32">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="11107894164984954654" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_11107894164984954654">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_11107894164984954654_1">
-      <input class="form-check-input" type="radio" name="radio_11107894164984954654" id="radio_11107894164984954654_1" value="1">
-      
-      <span class="label-body px-1">
-        Yes
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_11107894164984954654_2">
-      <input class="form-check-input" type="radio" name="radio_11107894164984954654" id="radio_11107894164984954654_2" value="2">
-      
-      <span class="label-body px-1">
-        No
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="11107894164984954654_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_11107894164984954654"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('11107894164984954654_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_11107894164984954654")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_11107894164984954654")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+x = variable()
+p,q = x^4, x^2 - 2
+st = ANewDsc(coeffs(p-q))
+yesnoq(length(st) &gt; 0)</code></pre>
 </section>
 <section id="question-1" class="level6">
 <h6 class="anchored" data-anchor-id="question-1">Question</h6>
 <p>Do the polynomials <span class="math inline">\(p = x^4-4\)</span> and <span class="math inline">\(q = x^2 - 2\)</span> intersect?</p>
-<div class="cell" data-hold="true" data-execution_count="32">
-<div class="cell-output cell-output-display" data-execution_count="33">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="13273842954607962831" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_13273842954607962831">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_13273842954607962831_1">
-      <input class="form-check-input" type="radio" name="radio_13273842954607962831" id="radio_13273842954607962831_1" value="1">
-      
-      <span class="label-body px-1">
-        Yes
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_13273842954607962831_2">
-      <input class="form-check-input" type="radio" name="radio_13273842954607962831" id="radio_13273842954607962831_2" value="2">
-      
-      <span class="label-body px-1">
-        No
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="13273842954607962831_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_13273842954607962831"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('13273842954607962831_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_13273842954607962831")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_13273842954607962831")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+x = variable()
+p,q = x^4-4, x^2 - 2
+st = ANewDsc(coeffs(p-q))
+yesnoq(length(st) &gt; 0)</code></pre>
 </section>
 <section id="question-2" class="level6">
 <h6 class="anchored" data-anchor-id="question-2">Question</h6>
 <p>How many real roots does <span class="math inline">\(p = 1 + x + x^2 + x^3 + x^4 + x^5\)</span> have?</p>
-<div class="cell" data-hold="true" data-execution_count="33">
-<div class="cell-output cell-output-display" data-execution_count="34">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="3097102188725879492" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_3097102188725879492">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="3097102188725879492" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="3097102188725879492_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("3097102188725879492").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 1) <= 0);
-  var msgBox = document.getElementById('3097102188725879492_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_3097102188725879492")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_3097102188725879492")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+x = variable()
+p = 1 + x + x^2 + x^3 + x^4 + x^5
+st = (ANewDsc∘coeffs)(p)
+numericq(length(st))</code></pre>
 </section>
 <section id="question-3" class="level6">
 <h6 class="anchored" data-anchor-id="question-3">Question</h6>
 <p>Mathematically we say the <span class="math inline">\(0\)</span> polynomial has no degree. What convention does <code>Polynomials</code> use? (Look at <code>degree(zero(Polynomial))</code>.)</p>
-<div class="cell" data-hold="true" data-execution_count="34">
-<div class="cell-output cell-output-display" data-execution_count="35">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="13221460668259474549" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_13221460668259474549">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_13221460668259474549_1">
-      <input class="form-check-input" type="radio" name="radio_13221460668259474549" id="radio_13221460668259474549_1" value="1">
-      
-      <span class="label-body px-1">
-        <code>nothing</code>
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_13221460668259474549_2">
-      <input class="form-check-input" type="radio" name="radio_13221460668259474549" id="radio_13221460668259474549_2" value="2">
-      
-      <span class="label-body px-1">
-        <code>-1</code>
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_13221460668259474549_3">
-      <input class="form-check-input" type="radio" name="radio_13221460668259474549" id="radio_13221460668259474549_3" value="3">
-      
-      <span class="label-body px-1">
-        <code>0</code>
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_13221460668259474549_4">
-      <input class="form-check-input" type="radio" name="radio_13221460668259474549" id="radio_13221460668259474549_4" value="4">
-      
-      <span class="label-body px-1">
-        <code>Inf</code>
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_13221460668259474549_5">
-      <input class="form-check-input" type="radio" name="radio_13221460668259474549" id="radio_13221460668259474549_5" value="5">
-      
-      <span class="label-body px-1">
-        <code>-Inf</code>
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="13221460668259474549_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_13221460668259474549"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('13221460668259474549_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_13221460668259474549")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_13221460668259474549")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = ["`nothing`", "`-1`", "`0`", "`Inf`", "`-Inf`"]
+answ = 2
+radioq(choices, answ, keep_order=true)</code></pre>
 </section>
 <section id="question-4" class="level6">
 <h6 class="anchored" data-anchor-id="question-4">Question</h6>
@@ -1248,128 +847,22 @@ a_5 &amp;= a_1 - \frac{3}{2}.
 </ul>
 <p>The polynomial <code>q</code>, a <span class="math inline">\(5\)</span>th-degree polynomial, is a good approximation of for the <a href="http://www.coranac.com/2009/07/sines/">sine</a> function.</p>
 <p>Make graphs of both <code>q</code> and <code>sin</code>. Over which interval is the approximation (visually) a good one?</p>
-<div class="cell" data-hold="true" data-execution_count="35">
-<div class="cell-output cell-output-display" data-execution_count="36">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="6870542118335902765" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_6870542118335902765">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_6870542118335902765_1">
-      <input class="form-check-input" type="radio" name="radio_6870542118335902765" id="radio_6870542118335902765_1" value="1">
-      
-      <span class="label-body px-1">
-        \([0,1]\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_6870542118335902765_2">
-      <input class="form-check-input" type="radio" name="radio_6870542118335902765" id="radio_6870542118335902765_2" value="2">
-      
-      <span class="label-body px-1">
-        \([0,\pi]\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_6870542118335902765_3">
-      <input class="form-check-input" type="radio" name="radio_6870542118335902765" id="radio_6870542118335902765_3" value="3">
-      
-      <span class="label-body px-1">
-        \([0,2\pi]\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="6870542118335902765_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_6870542118335902765"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('6870542118335902765_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_6870542118335902765")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_6870542118335902765")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = ["``[0,1]``",
+"``[0,\\pi]``",
+"``[0,2\\pi]``"]
+radioq(choices, 1, keep_order=true)</code></pre>
 <p>(This <a href="https://www.nullhardware.com/blog/fixed-point-sine-and-cosine-for-embedded-systems/">blog post</a> shows how this approximation is valuable under some specific circumstances.)</p>
 </section>
 <section id="question-5" class="level6">
 <h6 class="anchored" data-anchor-id="question-5">Question</h6>
 <p>The polynomial</p>
-<div class="cell" data-execution_count="36">
-<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fromroots</span>([<span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">3</span>,<span class="fl">3</span>,<span class="fl">5</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="37">
--90 + 213∙x - 184∙x<sup>2</sup> + 74∙x<sup>3</sup> - 14∙x<sup>4</sup> + x<sup>5</sup>
-</div>
-</div>
+<pre class="{julia}"><code>fromroots([1,2,3,3,5])</code></pre>
 <p>has <span class="math inline">\(5\)</span> sign changes and <span class="math inline">\(5\)</span> real roots. For <code>x = variable()</code> use <code>div(p, x-3)</code> to find the result of dividing <span class="math inline">\(p\)</span> by <span class="math inline">\(x-3\)</span>. How many sign changes are there in the new polynomial?</p>
-<div class="cell" data-hold="true" data-execution_count="37">
-<div class="cell-output cell-output-display" data-execution_count="38">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="2612679302849254518" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_2612679302849254518">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="2612679302849254518" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="2612679302849254518_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("2612679302849254518").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 4) <= 0);
-  var msgBox = document.getElementById('2612679302849254518_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_2612679302849254518")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_2612679302849254518")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+numericq(4)</code></pre>
 </section>
 <section id="question-6" class="level6">
 <h6 class="anchored" data-anchor-id="question-6">Question</h6>
@@ -1381,371 +874,48 @@ l_i(x) = \prod_{0 \leq j \leq n; j \ne i} \frac{x-x_j}{x_i - x_j} =
 \]</span></p>
 <p>That is <span class="math inline">\(l_i(x)\)</span> is a product of terms like <span class="math inline">\((x-x_j)/(x_i-x_j)\)</span> <em>except</em> when <span class="math inline">\(j=i\)</span>.</p>
 <p>What is is the value of <span class="math inline">\(l_0(x_0)\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="38">
-<div class="cell-output cell-output-display" data-execution_count="39">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="1819341343999449822" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_1819341343999449822">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="1819341343999449822" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="1819341343999449822_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("1819341343999449822").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 1) <= 0);
-  var msgBox = document.getElementById('1819341343999449822_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_1819341343999449822")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_1819341343999449822")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+numericq(1)</code></pre>
 <p>Why?</p>
-<div class="cell" data-hold="true" data-execution_count="39">
-<div class="cell-output cell-output-display" data-execution_count="40">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="921419591371894814" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_921419591371894814">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_921419591371894814_1">
-      <input class="form-check-input" type="radio" name="radio_921419591371894814" id="radio_921419591371894814_1" value="1">
-      
-      <span class="label-body px-1">
-        All terms like \((x-x_j)/(x_0 - x_j)\) will be \(1\) when \(x=x_0\) and these are all the terms in the product defining \(l_0\).
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_921419591371894814_2">
-      <input class="form-check-input" type="radio" name="radio_921419591371894814" id="radio_921419591371894814_2" value="2">
-      
-      <span class="label-body px-1">
-        The term \((x_0-x_0)\) will be \(0\), so the product will be zero
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="921419591371894814_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_921419591371894814"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('921419591371894814_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_921419591371894814")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_921419591371894814")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = ["""
+All terms like ``(x-x_j)/(x_0 - x_j)`` will be ``1`` when ``x=x_0`` and these are all the terms in the product defining ``l_0``.
+""",
+    "The term ``(x_0-x_0)`` will be ``0``, so the product will be zero"
+    ]
+radioq(choices, 1)</code></pre>
 <p>What is the value of <span class="math inline">\(l_i(x_i)\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="40">
-<div class="cell-output cell-output-display" data-execution_count="41">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="17481398115534421862" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_17481398115534421862">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="17481398115534421862" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="17481398115534421862_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("17481398115534421862").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 1) <= 0);
-  var msgBox = document.getElementById('17481398115534421862_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_17481398115534421862")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_17481398115534421862")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+numericq(1)</code></pre>
 <p>What is the value of <span class="math inline">\(l_0(x_1)\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="41">
-<div class="cell-output cell-output-display" data-execution_count="42">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="14252027972193829673" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_14252027972193829673">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="14252027972193829673" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="14252027972193829673_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("14252027972193829673").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 0) <= 0);
-  var msgBox = document.getElementById('14252027972193829673_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_14252027972193829673")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_14252027972193829673")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+numericq(0)</code></pre>
 <p>Why?</p>
-<div class="cell" data-hold="true" data-execution_count="42">
-<div class="cell-output cell-output-display" data-execution_count="43">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="11572818610723721661" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_11572818610723721661">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_11572818610723721661_1">
-      <input class="form-check-input" type="radio" name="radio_11572818610723721661" id="radio_11572818610723721661_1" value="1">
-      
-      <span class="label-body px-1">
-        The term \((x-x_1)/(x_0-x_1)\) is omitted from the product, so the answer is non-zero.
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_11572818610723721661_2">
-      <input class="form-check-input" type="radio" name="radio_11572818610723721661" id="radio_11572818610723721661_2" value="2">
-      
-      <span class="label-body px-1">
-        The term like \((x-x_1)/(x_0 - x_1)\) will be \(0\) when \(x=x_1\) and so the product will be \(0\).
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="11572818610723721661_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_11572818610723721661"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('11572818610723721661_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_11572818610723721661")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_11572818610723721661")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = ["""
+The term like ``(x-x_1)/(x_0 - x_1)`` will be ``0`` when ``x=x_1`` and so the product will be ``0``.
+""",
+    "The term ``(x-x_1)/(x_0-x_1)`` is omitted from the product, so the answer is non-zero."
+    ]
+radioq(choices, 1)</code></pre>
 <p>What is the value of <span class="math inline">\(l_i(x_j)\)</span> <em>if</em> <span class="math inline">\(i \ne j\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="43">
-<div class="cell-output cell-output-display" data-execution_count="44">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="1421286864405334636" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_1421286864405334636">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="1421286864405334636" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="1421286864405334636_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("1421286864405334636").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 0) <= 0);
-  var msgBox = document.getElementById('1421286864405334636_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_1421286864405334636")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_1421286864405334636")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+numericq(0)</code></pre>
 <p>Suppose the <span class="math inline">\(x_0, x_1, \dots, x_n\)</span> are the <span class="math inline">\(x\)</span> coordinates of <span class="math inline">\(n\)</span> distinct points <span class="math inline">\((x_0,y_0)\)</span>, <span class="math inline">\((x_1, y_1), \dots, (x_n,y_n).\)</span> Form the polynomial with the above basis and coefficients being the <span class="math inline">\(y\)</span> values. That is consider:</p>
 <p><span class="math display">\[
 p(x) = \sum_{i=0}^n y_i l_i(x) = y_0l_0(x) + y_1l_1(x) + \dots + y_nl_n(x)
 \]</span></p>
 <p>What is the value of <span class="math inline">\(p(x_j)\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="44">
-<div class="cell-output cell-output-display" data-execution_count="45">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="5528911935288369011" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_5528911935288369011">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_5528911935288369011_1">
-      <input class="form-check-input" type="radio" name="radio_5528911935288369011" id="radio_5528911935288369011_1" value="1">
-      
-      <span class="label-body px-1">
-        \(0\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_5528911935288369011_2">
-      <input class="form-check-input" type="radio" name="radio_5528911935288369011" id="radio_5528911935288369011_2" value="2">
-      
-      <span class="label-body px-1">
-        \(y_j\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_5528911935288369011_3">
-      <input class="form-check-input" type="radio" name="radio_5528911935288369011" id="radio_5528911935288369011_3" value="3">
-      
-      <span class="label-body px-1">
-        \(1\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="5528911935288369011_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_5528911935288369011"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('5528911935288369011_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_5528911935288369011")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_5528911935288369011")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = ["``0``", "``1``", "``y_j``"]
+radioq(choices, 3)</code></pre>
 <p>This last answer is why <span class="math inline">\(p\)</span> is called an <em>interpolating</em> polynomial and this question shows an alternative way to identify interpolating polynomials from solving a system of linear equations.</p>
 </section>
 <section id="question-7" class="level6">
@@ -1759,73 +929,19 @@ T_4(x) &amp;= 2xT_3(x) - T_2(x) = 2x(4x^3-3x) - (2x^2-1) = 8x^4 - 8x^2 + 1
 \end{align*}
 \]</span></p>
 <p>With these definitions what is the polynomial associated to the coefficients <span class="math inline">\([0,1,2,3]\)</span> with this basis?</p>
-<div class="cell" data-hold="true" data-execution_count="45">
-<div class="cell-output cell-output-display" data-execution_count="46">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="11901214579964946635" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_11901214579964946635">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_11901214579964946635_1">
-      <input class="form-check-input" type="radio" name="radio_11901214579964946635" id="radio_11901214579964946635_1" value="1">
-      
-      <span class="label-body px-1">
-        It is \(0\cdot 1 + 1 \cdot x + 2 \cdots x^2 + 3\cdot x^3 = x + 2x^2 + 3x^3\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_11901214579964946635_2">
-      <input class="form-check-input" type="radio" name="radio_11901214579964946635" id="radio_11901214579964946635_2" value="2">
-      
-      <span class="label-body px-1">
-        It is \(0\cdot T_1(x) + 1\cdot T_1(x) + 2\cdot T_2(x) + 3\cdot T_3(x) = -2 - 8\cdot x + 4\cdot x^2 + 12\cdot x^3\)`
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_11901214579964946635_3">
-      <input class="form-check-input" type="radio" name="radio_11901214579964946635" id="radio_11901214579964946635_3" value="3">
-      
-      <span class="label-body px-1">
-        It is \(0\cdot T_1(x) + 1\cdot T_1(x) + 2\cdot T_2(x) + 3\cdot T_3(x) = 0\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="11901214579964946635_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_11901214579964946635"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('11901214579964946635_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_11901214579964946635")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_11901214579964946635")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+        raw"""
+        It is ``0\cdot 1 + 1 \cdot x + 2 \cdots x^2 + 3\cdot x^3 = x + 2x^2 + 3x^3``
+        """,
+        raw"""
+It is ``0\cdot T_1(x) + 1\cdot T_1(x) + 2\cdot T_2(x) + 3\cdot T_3(x) = 0``
+""",
+        raw"""
+It is ``0\cdot T_1(x) + 1\cdot T_1(x) + 2\cdot T_2(x) + 3\cdot T_3(x) = -2 - 8\cdot x + 4\cdot x^2 + 12\cdot x^3```
+"""]
+radioq(choices, 3)</code></pre>
 <div class="callout-note callout callout-style-default callout-captioned">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">

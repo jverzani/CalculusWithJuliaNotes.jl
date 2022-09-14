@@ -20,69 +20,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1.6em;
   vertical-align: middle;
 }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-    color: #aaaaaa;
-  }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { color: #008000; } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { color: #008000; font-weight: bold; } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
 
@@ -124,9 +61,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   }
 }</script>
 <script async="" src="https://hypothes.is/embed.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
-<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
@@ -668,9 +602,45 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 </header>
 
+<pre class="{julia}"><code>#| echo: false
+
+import Logging
+Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
+Logging.disable_logging(Logging.Warn)
+
+import SymPy
+function Base.show(io::IO, ::MIME"text/html", x::T) where {T &lt;: SymPy.SymbolicObject}
+    println(io, "&lt;span class=\"math-left-align\" style=\"padding-left: 4px; width:0; float:left;\"&gt; ")
+    println(io, "\\[")
+    println(io, sympy.latex(x))
+    println(io, "\\]")
+    println(io, "&lt;/span&gt;")
+end
+
+# hack to work around issue
+import Markdown
+import CalculusWithJulia
+function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
+    nm = joinpath("..", string(d), f)
+    u = "![$caption]($nm)"
+    Markdown.parse(u)
+end
+
+nothing</code></pre>
 <p>In this section we will use these add-on packages:</p>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">CalculusWithJulia</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Plots</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<pre class="{julia}"><code>using CalculusWithJulia
+using Plots</code></pre>
+<pre class="{julia}"><code>#| echo: false
+#| results: "hidden"
+using CalculusWithJulia.WeaveSupport
+
+const frontmatter = (
+        title = "The Inverse of a Function",
+        description = "Calculus with Julia: The Inverse of a Function",
+        tags = ["CalculusWithJulia", "precalc", "the inverse of a function"],
+);
+
+nothing</code></pre>
 <hr>
 <p>A (univariate) mathematical function relates or associates values of <span class="math inline">\(x\)</span> to values <span class="math inline">\(y\)</span> using the notation <span class="math inline">\(y=f(x)\)</span>. A key point is a given <span class="math inline">\(x\)</span> is associated with just one <span class="math inline">\(y\)</span> value, though a given <span class="math inline">\(y\)</span> value may be associated with several different <span class="math inline">\(x\)</span> values. (Graphically, this is the vertical line test.)</p>
 <p>We may conceptualize such a relation in many ways: through an algebraic rule; through the graph of <span class="math inline">\(f;\)</span> through a description of what <span class="math inline">\(f\)</span> does; or through a table of paired values, say. For the moment, let’s consider a function as rule that takes in a value of <span class="math inline">\(x\)</span> and outputs a value <span class="math inline">\(y\)</span>. If a rule is given defining the function, the computation of <span class="math inline">\(y\)</span> is straightforward. A different question is not so easy: for a given value <span class="math inline">\(y\)</span> what value - or <em>values</em> - of <span class="math inline">\(x\)</span> (if any) produce an output of <span class="math inline">\(y\)</span>? That is, what <span class="math inline">\(x\)</span> value(s) satisfy <span class="math inline">\(f(x)=y\)</span>?</p>
@@ -678,14 +648,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>Why is this useful? When available, it can help us solve equations. If we can write our equation as <span class="math inline">\(f(x) = y\)</span>, then we can “solve” for <span class="math inline">\(x\)</span> through <span class="math inline">\(x = g(y)\)</span>, where <span class="math inline">\(g\)</span> is this inverse function.</p>
 <p>Let’s explore when we can “solve” for an inverse function.</p>
 <p>Consider the graph of the function <span class="math inline">\(f(x) = 2^x\)</span>:</p>
-<div class="cell" data-hold="true" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> <span class="fl">2</span><span class="op">^</span>x</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(f, <span class="fl">0</span>, <span class="fl">4</span>, legend<span class="op">=</span><span class="cn">false</span>)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>([<span class="fl">2</span>,<span class="fl">2</span>,<span class="fl">0</span>], [<span class="fl">0</span>,<span class="fu">f</span>(<span class="fl">2</span>),<span class="fu">f</span>(<span class="fl">2</span>)])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="5">
-<p><img src="inversefunctions_files/figure-html/cell-5-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+f(x) = 2^x
+plot(f, 0, 4, legend=false)
+plot!([2,2,0], [0,f(2),f(2)])</code></pre>
 <p>The graph of a function is a representation of points <span class="math inline">\((x,f(x))\)</span>, so to <em>find</em> <span class="math inline">\(f(c)\)</span> from the graph, we begin on the <span class="math inline">\(x\)</span> axis at <span class="math inline">\(c\)</span>, move vertically to the graph (the point <span class="math inline">\((c, f(c))\)</span>), and then move horizontally to the <span class="math inline">\(y\)</span> axis, intersecting it at <span class="math inline">\(f(c)\)</span>. The figure shows this for <span class="math inline">\(c=2\)</span>, from which we can read that <span class="math inline">\(f(c)\)</span> is about <span class="math inline">\(4\)</span>. This is how an <span class="math inline">\(x\)</span> is associated to a single <span class="math inline">\(y\)</span>.</p>
 <p>If we were to <em>reverse</em> the direction, starting at <span class="math inline">\(f(c)\)</span> on the <span class="math inline">\(y\)</span> axis and then moving horizontally to the graph, and then vertically to the <span class="math inline">\(x\)</span>-axis we end up at a value <span class="math inline">\(c\)</span> with the correct <span class="math inline">\(f(c)\)</span>. This operation will form a function <strong>if</strong> the initial movement horizontally is guaranteed to find <em>no more than one</em> value on the graph. That is, to have an inverse function, there can not be two <span class="math inline">\(x\)</span> values corresponding to a given <span class="math inline">\(y\)</span> value. This observation is often visualized through the “horizontal line test” - the graph of a function with an inverse function can only intersect a horizontal line at most in one place.</p>
 <p>More formally, a function is called <em>one-to-one</em> <em>if</em> for any two <span class="math inline">\(a \neq b\)</span>, it must be that <span class="math inline">\(f(a) \neq f(b)\)</span>. Many functions are one-to-one, many are not. Familiar one-to-one functions are linear functions (<span class="math inline">\(f(x)=a \cdot x + b\)</span> with <span class="math inline">\(a\neq 0\)</span>), odd powers of <span class="math inline">\(x\)</span> (<span class="math inline">\(f(x)=x^{2k+1}\)</span>), and functions of the form <span class="math inline">\(f(x)=x^{1/n}\)</span> for <span class="math inline">\(x \geq 0\)</span>. In contrast, all <em>even</em> functions are <em>not</em> one-to-one, as <span class="math inline">\(f(x) = f(-x)\)</span> for any nonzero <span class="math inline">\(x\)</span> in the domain of <span class="math inline">\(f\)</span>.</p>
@@ -779,14 +745,10 @@ x &amp;= \sqrt{(1-y)/y}, \quad 0 \leq y \leq 1.
 <section id="formal-properties-of-the-inverse-function" class="level2" data-number="10.3">
 <h2 data-number="10.3" class="anchored" data-anchor-id="formal-properties-of-the-inverse-function"><span class="header-section-number">10.3</span> Formal properties of the inverse function</h2>
 <p>Consider again the graph of a monotonic function, in this case <span class="math inline">\(f(x) = x^2 + 2, x \geq 0\)</span>:</p>
-<div class="cell" data-hold="true" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> x<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> <span class="fl">2</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(f, <span class="fl">0</span>, <span class="fl">4</span>, legend<span class="op">=</span><span class="cn">false</span>)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>([<span class="fl">2</span>,<span class="fl">2</span>,<span class="fl">0</span>], [<span class="fl">0</span>,<span class="fu">f</span>(<span class="fl">2</span>),<span class="fu">f</span>(<span class="fl">2</span>)])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="6">
-<p><img src="inversefunctions_files/figure-html/cell-6-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+f(x) = x^2 + 2
+plot(f, 0, 4, legend=false)
+plot!([2,2,0], [0,f(2),f(2)])</code></pre>
 <p>The graph is shown over the interval <span class="math inline">\((0,4)\)</span>, but the <em>domain</em> of <span class="math inline">\(f(x)\)</span> is all <span class="math inline">\(x \geq 0\)</span>. The <em>range</em> of <span class="math inline">\(f(x)\)</span> is clearly <span class="math inline">\(2 \leq x \leq \infty\)</span>.</p>
 <p>The lines layered on the plot show how to associate an <span class="math inline">\(x\)</span> value to a <span class="math inline">\(y\)</span> value or vice versa (as <span class="math inline">\(f(x)\)</span> is one-to-one). The domain then of the inverse function is all the <span class="math inline">\(y\)</span> values for which a corresponding <span class="math inline">\(x\)</span> value exists: this is clearly all values bigger or equal to <span class="math inline">\(2\)</span>. The <em>range</em> of the inverse function can be seen to be all the images for the values of <span class="math inline">\(y\)</span>, which would be all <span class="math inline">\(x \geq 0\)</span>. This gives the relationship:</p>
 <blockquote class="blockquote">
@@ -809,31 +771,23 @@ x &amp;= \sqrt{(1-y)/y}, \quad 0 \leq y \leq 1.
 <p>If <span class="math inline">\((x,y)\)</span> is a point on the graph of <span class="math inline">\(f(x)\)</span>, then <span class="math inline">\((y,x)\)</span> will be a point on the graph of <span class="math inline">\(f^{-1}(x)\)</span>.</p>
 </blockquote>
 <p>Let’s see this in action. Take the function <span class="math inline">\(2^x\)</span>. We can plot it by generating points to plot as follows:</p>
-<div class="cell" data-hold="true" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> <span class="fl">2</span><span class="op">^</span>x</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> <span class="fu">range</span>(<span class="fl">0</span>, <span class="fl">2</span>, length<span class="op">=</span><span class="fl">50</span>)</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>ys <span class="op">=</span> <span class="fu">f</span>.(xs)</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(xs, ys, color<span class="op">=:</span>blue, label<span class="op">=</span><span class="st">"f"</span>)</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(ys, xs, color<span class="op">=:</span>red, label<span class="op">=</span><span class="st">"f⁻¹"</span>) <span class="co"># the inverse</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="7">
-<p><img src="inversefunctions_files/figure-html/cell-7-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+f(x) = 2^x
+xs = range(0, 2, length=50)
+ys = f.(xs)
+plot(xs, ys, color=:blue, label="f")
+plot!(ys, xs, color=:red, label="f⁻¹") # the inverse</code></pre>
 <p>By flipping around the <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> values in the <code>plot!</code> command, we produce the graph of the inverse function - when viewed as a function of <span class="math inline">\(x\)</span>. We can see that the domain of the inverse function (in red) is clearly different from that of the function (in blue).</p>
 <p>The inverse function graph can be viewed as a symmetry of the graph of the function. Flipping the graph for <span class="math inline">\(f(x)\)</span> around the line <span class="math inline">\(y=x\)</span> will produce the graph of the inverse function: Here we see for the graph of <span class="math inline">\(f(x) = x^{1/3}\)</span> and its inverse function:</p>
-<div class="cell" data-hold="true" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> <span class="fu">cbrt</span>(x)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> <span class="fu">range</span>(<span class="op">-</span><span class="fl">2</span>, <span class="fl">2</span>, length<span class="op">=</span><span class="fl">150</span>)</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>ys <span class="op">=</span> <span class="fu">f</span>.(xs)</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(xs, ys, color<span class="op">=:</span>blue, aspect_ratio<span class="op">=:</span>equal, legend<span class="op">=</span><span class="cn">false</span>)</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(ys, xs, color<span class="op">=:</span>red)</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(identity, color<span class="op">=:</span>green, linestyle<span class="op">=:</span>dash)</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>x, y <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="fl">2</span>, <span class="fu">f</span>(<span class="fl">1</span><span class="op">/</span><span class="fl">2</span>)</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>([x,y], [y,x], color<span class="op">=:</span>green, linestyle<span class="op">=:</span>dot)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="8">
-<p><img src="inversefunctions_files/figure-html/cell-8-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+f(x) = cbrt(x)
+xs = range(-2, 2, length=150)
+ys = f.(xs)
+plot(xs, ys, color=:blue, aspect_ratio=:equal, legend=false)
+plot!(ys, xs, color=:red)
+plot!(identity, color=:green, linestyle=:dash)
+x, y = 1/2, f(1/2)
+plot!([x,y], [y,x], color=:green, linestyle=:dot)</code></pre>
 <p>We drew a line connecting <span class="math inline">\((1/2, f(1/2))\)</span> to <span class="math inline">\((f(1/2),1/2)\)</span>. We can see that it crosses the line <span class="math inline">\(y=x\)</span> perpendicularly, indicating that points are symmetric about this line. (The plotting argument <code>aspect_ratio=:equal</code> ensures that the <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> axes are on the same scale, so that this type of line will look perpendicular.)</p>
 <p>One consequence of this symmetry, is that if <span class="math inline">\(f\)</span> is strictly increasing, then so is its inverse.</p>
 <p>!!!note In the above we used <code>cbrt(x)</code> and not <code>x^(1/3)</code>. The latter usage assumes that <span class="math inline">\(x \geq 0\)</span> as it isn’t guaranteed that for all real exponents the answer will be a real number. The <code>cbrt</code> function knows there will always be a real answer and provides it.</p>
@@ -842,21 +796,17 @@ x &amp;= \sqrt{(1-y)/y}, \quad 0 \leq y \leq 1.
 <p>The slope of <span class="math inline">\(f(x) = 9/5 \cdot x + 32\)</span> is clearly <span class="math inline">\(9/5\)</span> and the slope of the inverse function <span class="math inline">\(f^{-1}(x) = 5/9 \cdot (x-32)\)</span> is clearly <span class="math inline">\(5/9\)</span> - or the reciprocal. This makes sense, as the slope is the rise over the run, and by flipping the <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> values we merely flip over the rise and the run.</p>
 <p>Now consider the graph of the <em>tangent line</em> to a function. This concept will be better defined later, for now, it is a line “tangent” to the graph of <span class="math inline">\(f(x)\)</span> at a point <span class="math inline">\(x=c\)</span>.</p>
 <p>For concreteness, we consider <span class="math inline">\(f(x) = \sqrt{x}\)</span> at <span class="math inline">\(c=2\)</span>. The tangent line will have slope <span class="math inline">\(1/(2\sqrt{2})\)</span> and will go through the point <span class="math inline">\((2, f(2)\)</span>. We graph the function, its tangent line, and their inverses:</p>
-<div class="cell" data-hold="true" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> <span class="fu">sqrt</span>(x)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>c <span class="op">=</span> <span class="fl">2</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tl</span>(x) <span class="op">=</span> <span class="fu">f</span>(c) <span class="op">+</span> <span class="fl">1</span><span class="op">/</span>(<span class="fl">2</span> <span class="op">*</span> <span class="fu">sqrt</span>(<span class="fl">2</span>)) <span class="op">*</span> (x <span class="op">-</span> c)</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> <span class="fu">range</span>(<span class="fl">0</span>, <span class="fl">3</span>, length<span class="op">=</span><span class="fl">150</span>)</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>ys <span class="op">=</span> <span class="fu">f</span>.(xs)</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>zs <span class="op">=</span> <span class="fu">tl</span>.(xs)</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(xs, ys,  color<span class="op">=:</span>blue, legend<span class="op">=</span><span class="cn">false</span>)</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(xs, zs, color<span class="op">=:</span>blue) <span class="co"># the tangent line</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(ys, xs, color<span class="op">=:</span>red)  <span class="co"># the inverse function</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(zs, xs, color<span class="op">=:</span>red)  <span class="co"># inverse of tangent line</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="9">
-<p><img src="inversefunctions_files/figure-html/cell-9-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+f(x) = sqrt(x)
+c = 2
+tl(x) = f(c) + 1/(2 * sqrt(2)) * (x - c)
+xs = range(0, 3, length=150)
+ys = f.(xs)
+zs = tl.(xs)
+plot(xs, ys,  color=:blue, legend=false)
+plot!(xs, zs, color=:blue) # the tangent line
+plot!(ys, xs, color=:red)  # the inverse function
+plot!(zs, xs, color=:red)  # inverse of tangent line</code></pre>
 <p>What do we see? In blue, we can see the familiar square root graph along with a “tangent” line through the point <span class="math inline">\((2, f(2))\)</span>. The red graph of <span class="math inline">\(f^{-1}(x) = x^2, x \geq 0\)</span> is seen and, perhaps surprisingly, a tangent line. This is at the point <span class="math inline">\((f(2), 2)\)</span>. We know the slope of this tangent line is the reciprocal of the slope of the red tangent line. This gives this informal observation:</p>
 <blockquote class="blockquote">
 <p>If the graph of <span class="math inline">\(f(x)\)</span> has a tangent line at <span class="math inline">\((c, f(c))\)</span> with slope <span class="math inline">\(m\)</span>, then the graph of <span class="math inline">\(f^{-1}(x)\)</span> will have a tangent line at <span class="math inline">\((f(c), c)\)</span> with slope <span class="math inline">\(1/m\)</span>.</p>
@@ -870,188 +820,34 @@ x &amp;= \sqrt{(1-y)/y}, \quad 0 \leq y \leq 1.
 <section id="question" class="level6">
 <h6 class="anchored" data-anchor-id="question">Question</h6>
 <p>Is it possible that a function have two different inverses?</p>
-<div class="cell" data-hold="true" data-execution_count="9">
-<div class="cell-output cell-output-display" data-execution_count="10">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="15977519311457943818" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_15977519311457943818">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_15977519311457943818_1">
-      <input class="form-check-input" type="radio" name="radio_15977519311457943818" id="radio_15977519311457943818_1" value="1">
-      
-      <span class="label-body px-1">
-        Yes, the function \(f(x) = x^2, x \geq 0\) will have a different inverse than the same function \(f(x) = x^2,  x \leq 0\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_15977519311457943818_2">
-      <input class="form-check-input" type="radio" name="radio_15977519311457943818" id="radio_15977519311457943818_2" value="2">
-      
-      <span class="label-body px-1">
-        No, for all \(x\) in the domain an an inverse, the value of any inverse will be the same, hence all inverse functions would be identical.
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="15977519311457943818_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_15977519311457943818"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('15977519311457943818_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_15977519311457943818")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_15977519311457943818")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [L"No, for all $x$ in the domain an an inverse, the value of any inverse will be the same, hence all inverse functions would be identical.",
+L"Yes, the function $f(x) = x^2, x \geq 0$ will have a different inverse than the same function $f(x) = x^2,  x \leq 0$"]
+answ = 1
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-1" class="level6">
 <h6 class="anchored" data-anchor-id="question-1">Question</h6>
 <p>A function takes a value <span class="math inline">\(x\)</span> adds <span class="math inline">\(1\)</span>, divides by <span class="math inline">\(2\)</span>, and then subtracts <span class="math inline">\(1\)</span>. Is the function “one-to-one”?</p>
-<div class="cell" data-hold="true" data-execution_count="10">
-<div class="cell-output cell-output-display" data-execution_count="11">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="11164950102783296671" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_11164950102783296671">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_11164950102783296671_1">
-      <input class="form-check-input" type="radio" name="radio_11164950102783296671" id="radio_11164950102783296671_1" value="1">
-      
-      <span class="label-body px-1">
-        Yes, the function is the linear function \(f(x)=(x+1)/2 + 1\) and so is monotonic.
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_11164950102783296671_2">
-      <input class="form-check-input" type="radio" name="radio_11164950102783296671" id="radio_11164950102783296671_2" value="2">
-      
-      <span class="label-body px-1">
-        No, the function is \(1\) then \(2\) then \(1\), but not "one-to-one"
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="11164950102783296671_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_11164950102783296671"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('11164950102783296671_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_11164950102783296671")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_11164950102783296671")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [L"Yes, the function is the linear function $f(x)=(x+1)/2 + 1$ and so is monotonic.",
+L"No, the function is $1$ then $2$ then $1$, but not \"one-to-one\""
+]
+answ = 1
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-2" class="level6">
 <h6 class="anchored" data-anchor-id="question-2">Question</h6>
 <p>Is the function <span class="math inline">\(f(x) = x^5 - x - 1\)</span> one-to-one?</p>
-<div class="cell" data-hold="true" data-execution_count="11">
-<div class="cell-output cell-output-display" data-execution_count="12">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="6943674235421600812" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_6943674235421600812">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_6943674235421600812_1">
-      <input class="form-check-input" type="radio" name="radio_6943674235421600812" id="radio_6943674235421600812_1" value="1">
-      
-      <span class="label-body px-1">
-        Yes, a graph over \((-100, 100)\) will show this.
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_6943674235421600812_2">
-      <input class="form-check-input" type="radio" name="radio_6943674235421600812" id="radio_6943674235421600812_2" value="2">
-      
-      <span class="label-body px-1">
-        No, a graph over \((-2,2)\) will show this.
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="6943674235421600812_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_6943674235421600812"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('6943674235421600812_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_6943674235421600812")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_6943674235421600812")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices=[L"Yes, a graph over $(-100, 100)$ will show this.",
+L"No, a graph over $(-2,2)$ will show this."
+]
+answ = 2
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-3" class="level6">
 <h6 class="anchored" data-anchor-id="question-3">Question</h6>
@@ -1065,511 +861,78 @@ rb.addEventListener("change", function() {
 5  |   4
 6  |   5</code></pre>
 <p>Is the function one-to-one?</p>
-<div class="cell" data-hold="true" data-execution_count="12">
-<div class="cell-output cell-output-display" data-execution_count="13">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="8714507244548460911" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_8714507244548460911">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_8714507244548460911_1">
-      <input class="form-check-input" type="radio" name="radio_8714507244548460911" id="radio_8714507244548460911_1" value="1">
-      
-      <span class="label-body px-1">
-        Yes
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_8714507244548460911_2">
-      <input class="form-check-input" type="radio" name="radio_8714507244548460911" id="radio_8714507244548460911_2" value="2">
-      
-      <span class="label-body px-1">
-        No
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="8714507244548460911_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_8714507244548460911"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('8714507244548460911_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_8714507244548460911")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_8714507244548460911")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+yesnoq(false)</code></pre>
 </section>
 <section id="question-4" class="level6">
 <h6 class="anchored" data-anchor-id="question-4">Question</h6>
 <p>A function is defined by its graph.</p>
-<div class="cell" data-hold="true" data-execution_count="13">
-<div class="cell-output cell-output-display" data-execution_count="14">
-<p><img src="inversefunctions_files/figure-html/cell-14-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+f(x) = x - sin(x)
+plot(f, 0, 6pi)</code></pre>
 <p>Over the domain shown, is the function one-to-one?</p>
-<div class="cell" data-hold="true" data-execution_count="14">
-<div class="cell-output cell-output-display" data-execution_count="15">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="18160252330779963659" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_18160252330779963659">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_18160252330779963659_1">
-      <input class="form-check-input" type="radio" name="radio_18160252330779963659" id="radio_18160252330779963659_1" value="1">
-      
-      <span class="label-body px-1">
-        Yes
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_18160252330779963659_2">
-      <input class="form-check-input" type="radio" name="radio_18160252330779963659" id="radio_18160252330779963659_2" value="2">
-      
-      <span class="label-body px-1">
-        No
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="18160252330779963659_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_18160252330779963659"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('18160252330779963659_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_18160252330779963659")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_18160252330779963659")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+yesnoq(true)</code></pre>
 </section>
 <section id="question-5" class="level6">
 <h6 class="anchored" data-anchor-id="question-5">Question</h6>
 <p>Suppose <span class="math inline">\(f(x) = x^{-1}\)</span>.</p>
 <p>What is <span class="math inline">\(g(x) = (f(x))^{-1}\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="15">
-<div class="cell-output cell-output-display" data-execution_count="16">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="17966872429368768489" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_17966872429368768489">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_17966872429368768489_1">
-      <input class="form-check-input" type="radio" name="radio_17966872429368768489" id="radio_17966872429368768489_1" value="1">
-      
-      <span class="label-body px-1">
-        \(g(x) = x^{-1}\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_17966872429368768489_2">
-      <input class="form-check-input" type="radio" name="radio_17966872429368768489" id="radio_17966872429368768489_2" value="2">
-      
-      <span class="label-body px-1">
-        \(g(x) = x\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="17966872429368768489_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_17966872429368768489"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('17966872429368768489_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_17966872429368768489")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_17966872429368768489")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = ["``g(x) = x``", "``g(x) = x^{-1}``"]
+answ = 1
+radioq(choices, answ)</code></pre>
 <p>What is <span class="math inline">\(g(x) = f^{-1}(x)\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="16">
-<div class="cell-output cell-output-display" data-execution_count="17">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="9619762337937452173" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_9619762337937452173">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_9619762337937452173_1">
-      <input class="form-check-input" type="radio" name="radio_9619762337937452173" id="radio_9619762337937452173_1" value="1">
-      
-      <span class="label-body px-1">
-        \(g(x) = x^{-1}\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_9619762337937452173_2">
-      <input class="form-check-input" type="radio" name="radio_9619762337937452173" id="radio_9619762337937452173_2" value="2">
-      
-      <span class="label-body px-1">
-        \(g(x) = x\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="9619762337937452173_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_9619762337937452173"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('9619762337937452173_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_9619762337937452173")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_9619762337937452173")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = ["``g(x) = x``", "``g(x) = x^{-1}``"]
+answ = 2
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-6" class="level6">
 <h6 class="anchored" data-anchor-id="question-6">Question</h6>
 <p>A function, <span class="math inline">\(f\)</span>, is given by its graph:</p>
-<div class="cell" data-execution_count="17">
-<div class="cell-output cell-output-display" data-execution_count="18">
-<p><img src="inversefunctions_files/figure-html/cell-18-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| echo: false
+k(x) = sin(pi/4 * x)
+plot(k, -2, 2)</code></pre>
 <p>What is the value of <span class="math inline">\(f(1)\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="18">
-<div class="cell-output cell-output-display" data-execution_count="19">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="12524246736737754710" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_12524246736737754710">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="12524246736737754710" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="12524246736737754710_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("12524246736737754710").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 0.7071067811865475) <= 0.2);
-  var msgBox = document.getElementById('12524246736737754710_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_12524246736737754710")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_12524246736737754710")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+val = k(1)
+numericq(val, 0.2)</code></pre>
 <p>What is the value of <span class="math inline">\(f^{-1}(1)\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="19">
-<div class="cell-output cell-output-display" data-execution_count="20">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="6458251356317934076" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_6458251356317934076">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="6458251356317934076" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="6458251356317934076_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("6458251356317934076").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 2) <= 0.2);
-  var msgBox = document.getElementById('6458251356317934076_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_6458251356317934076")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_6458251356317934076")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+val = 2
+numericq(val, 0.2)</code></pre>
 <p>What is the value of <span class="math inline">\((f(1))^{-1}\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="20">
-<div class="cell-output cell-output-display" data-execution_count="21">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="13068199929428331733" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_13068199929428331733">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="13068199929428331733" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="13068199929428331733_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("13068199929428331733").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 1.4142135623730951) <= 0.2);
-  var msgBox = document.getElementById('13068199929428331733_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_13068199929428331733")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_13068199929428331733")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+val = 1/k(1)
+numericq(val, 0.2)</code></pre>
 <p>What is the value of <span class="math inline">\(f^{-1}(1/2)\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="21">
-<div class="cell-output cell-output-display" data-execution_count="22">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="3192331579562245623" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_3192331579562245623">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="3192331579562245623" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="3192331579562245623_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("3192331579562245623").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 0.6666666666666666) <= 0.2);
-  var msgBox = document.getElementById('3192331579562245623_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_3192331579562245623")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_3192331579562245623")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+val = 2/3
+numericq(val, 0.2)</code></pre>
 </section>
 <section id="question-7" class="level6">
 <h6 class="anchored" data-anchor-id="question-7">Question</h6>
 <p>A function is described as follows: for <span class="math inline">\(x &gt; 0\)</span> it takes the square root, adds <span class="math inline">\(1\)</span> and divides by <span class="math inline">\(2\)</span>.</p>
 <p>What is the inverse of this function?</p>
-<div class="cell" data-hold="true" data-execution_count="22">
-<div class="cell-output cell-output-display" data-execution_count="23">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="8141522719816088064" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_8141522719816088064">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_8141522719816088064_1">
-      <input class="form-check-input" type="radio" name="radio_8141522719816088064" id="radio_8141522719816088064_1" value="1">
-      
-      <span class="label-body px-1">
-        The function that divides by \(2\), adds \(1\), and then takes the square root of the value.
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_8141522719816088064_2">
-      <input class="form-check-input" type="radio" name="radio_8141522719816088064" id="radio_8141522719816088064_2" value="2">
-      
-      <span class="label-body px-1">
-        The function that takes square of the value, then subtracts \(1\), and finally multiplies by \(2\).
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_8141522719816088064_3">
-      <input class="form-check-input" type="radio" name="radio_8141522719816088064" id="radio_8141522719816088064_3" value="3">
-      
-      <span class="label-body px-1">
-        The function that multiplies by \(2\), subtracts \(1\) and then squares the value.
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="8141522719816088064_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_8141522719816088064"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 3;
-    var msgBox = document.getElementById('8141522719816088064_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_8141522719816088064")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_8141522719816088064")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices=[
+L"The function that multiplies by $2$, subtracts $1$ and then squares the value.",
+L"The function that divides by $2$, adds $1$, and then takes the square root of the value.",
+L"The function that takes square of the value, then subtracts $1$, and finally multiplies by $2$."
+]
+answ = 1
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-8" class="level6">
 <h6 class="anchored" data-anchor-id="question-8">Question</h6>
@@ -1582,596 +945,98 @@ rb.addEventListener("change", function() {
 4  |  8
 5  |  13</code></pre>
 <p>What is <span class="math inline">\(f(3)\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="23">
-<div class="cell-output cell-output-display" data-execution_count="24">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="16965747041859648287" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_16965747041859648287">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="16965747041859648287" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="16965747041859648287_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("16965747041859648287").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 5) <= 0);
-  var msgBox = document.getElementById('16965747041859648287_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_16965747041859648287")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_16965747041859648287")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+numericq(5)</code></pre>
 <p>What is <span class="math inline">\(f^{-1}(3)\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="24">
-<div class="cell-output cell-output-display" data-execution_count="25">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="7956455918416527789" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_7956455918416527789">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="7956455918416527789" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="7956455918416527789_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("7956455918416527789").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 2) <= 0);
-  var msgBox = document.getElementById('7956455918416527789_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_7956455918416527789")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_7956455918416527789")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+numericq(2)</code></pre>
 <p>What is <span class="math inline">\(f(5)^{-1}\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="25">
-<div class="cell-output cell-output-display" data-execution_count="26">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="15946966260416250595" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_15946966260416250595">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="15946966260416250595" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="15946966260416250595_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("15946966260416250595").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 0.07692307692307693) <= 0.001);
-  var msgBox = document.getElementById('15946966260416250595_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_15946966260416250595")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_15946966260416250595")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+numericq(1/13)</code></pre>
 <p>What is <span class="math inline">\(f^{-1}(5)\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="26">
-<div class="cell-output cell-output-display" data-execution_count="27">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="18277754654724247599" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_18277754654724247599">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="18277754654724247599" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="18277754654724247599_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("18277754654724247599").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 3) <= 0);
-  var msgBox = document.getElementById('18277754654724247599_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_18277754654724247599")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_18277754654724247599")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+numericq(3)</code></pre>
 </section>
 <section id="question-9" class="level6">
 <h6 class="anchored" data-anchor-id="question-9">Question</h6>
 <p>Find the inverse function of <span class="math inline">\(f(x) = (x^3 + 4)/5\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="27">
-<div class="cell-output cell-output-display" data-execution_count="28">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="15172701403385293844" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_15172701403385293844">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_15172701403385293844_1">
-      <input class="form-check-input" type="radio" name="radio_15172701403385293844" id="radio_15172701403385293844_1" value="1">
-      
-      <span class="label-body px-1">
-        \(f^{-1}(x) = (5y-4)^3\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_15172701403385293844_2">
-      <input class="form-check-input" type="radio" name="radio_15172701403385293844" id="radio_15172701403385293844_2" value="2">
-      
-      <span class="label-body px-1">
-        \(f^{-1}(x) = (5y-4)^{1/3}\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_15172701403385293844_3">
-      <input class="form-check-input" type="radio" name="radio_15172701403385293844" id="radio_15172701403385293844_3" value="3">
-      
-      <span class="label-body px-1">
-        \(f^{-1}(x) = 5/(x^3 + 4)\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="15172701403385293844_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_15172701403385293844"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('15172701403385293844_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_15172701403385293844")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_15172701403385293844")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+"``f^{-1}(x) = (5y-4)^{1/3}``",
+"``f^{-1}(x) = (5y-4)^3``",
+"``f^{-1}(x) = 5/(x^3 + 4)``"
+]
+answ = 1
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-10" class="level6">
 <h6 class="anchored" data-anchor-id="question-10">Question</h6>
 <p>Find the inverse function of <span class="math inline">\(f(x) = x^\pi + e, x \geq 0\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="28">
-<div class="cell-output cell-output-display" data-execution_count="29">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="2904095836552006418" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_2904095836552006418">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_2904095836552006418_1">
-      <input class="form-check-input" type="radio" name="radio_2904095836552006418" id="radio_2904095836552006418_1" value="1">
-      
-      <span class="label-body px-1">
-        \(f^{-1}(x) = (x-\pi)^{e}\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_2904095836552006418_2">
-      <input class="form-check-input" type="radio" name="radio_2904095836552006418" id="radio_2904095836552006418_2" value="2">
-      
-      <span class="label-body px-1">
-        \(f^{-1}(x) = (x-e)^{1/\pi}\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_2904095836552006418_3">
-      <input class="form-check-input" type="radio" name="radio_2904095836552006418" id="radio_2904095836552006418_3" value="3">
-      
-      <span class="label-body px-1">
-        \(f^{-1}(x) = (x-e)^{\pi}\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="2904095836552006418_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_2904095836552006418"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('2904095836552006418_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_2904095836552006418")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_2904095836552006418")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+raw"``f^{-1}(x) = (x-e)^{1/\pi}``",
+raw"``f^{-1}(x) = (x-\pi)^{e}``",
+raw"``f^{-1}(x) = (x-e)^{\pi}``"
+]
+answ = 1
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-11" class="level6">
 <h6 class="anchored" data-anchor-id="question-11">Question</h6>
 <p>What is the <em>domain</em> of the inverse function for <span class="math inline">\(f(x) = x^2 + 7, x \geq 0\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="29">
-<div class="cell-output cell-output-display" data-execution_count="30">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="7569573532093425998" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_7569573532093425998">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_7569573532093425998_1">
-      <input class="form-check-input" type="radio" name="radio_7569573532093425998" id="radio_7569573532093425998_1" value="1">
-      
-      <span class="label-body px-1">
-        \((-\infty, \infty)\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_7569573532093425998_2">
-      <input class="form-check-input" type="radio" name="radio_7569573532093425998" id="radio_7569573532093425998_2" value="2">
-      
-      <span class="label-body px-1">
-        \([7, \infty)\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_7569573532093425998_3">
-      <input class="form-check-input" type="radio" name="radio_7569573532093425998" id="radio_7569573532093425998_3" value="3">
-      
-      <span class="label-body px-1">
-        \([0, \infty)\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="7569573532093425998_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_7569573532093425998"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('7569573532093425998_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_7569573532093425998")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_7569573532093425998")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+raw"``[7, \infty)``",
+raw"``(-\infty, \infty)``",
+raw"``[0, \infty)``"]
+answ = 1
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-12" class="level6">
 <h6 class="anchored" data-anchor-id="question-12">Question</h6>
 <p>What is the <em>range</em> of the inverse function for <span class="math inline">\(f(x) = x^2 + 7, x \geq 0\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="30">
-<div class="cell-output cell-output-display" data-execution_count="31">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="298485083630630339" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_298485083630630339">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_298485083630630339_1">
-      <input class="form-check-input" type="radio" name="radio_298485083630630339" id="radio_298485083630630339_1" value="1">
-      
-      <span class="label-body px-1">
-        \([0, \infty)\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_298485083630630339_2">
-      <input class="form-check-input" type="radio" name="radio_298485083630630339" id="radio_298485083630630339_2" value="2">
-      
-      <span class="label-body px-1">
-        \([7, \infty)\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_298485083630630339_3">
-      <input class="form-check-input" type="radio" name="radio_298485083630630339" id="radio_298485083630630339_3" value="3">
-      
-      <span class="label-body px-1">
-        \((-\infty, \infty)\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="298485083630630339_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_298485083630630339"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('298485083630630339_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_298485083630630339")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_298485083630630339")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+raw"``[7, \infty)``",
+raw"``(-\infty, \infty)``",
+raw"``[0, \infty)``"]
+answ = 3
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-13" class="level6">
 <h6 class="anchored" data-anchor-id="question-13">Question</h6>
 <p>From the plot, are blue and red inverse functions?</p>
-<div class="cell" data-hold="true" data-execution_count="31">
-<div class="cell-output cell-output-display" data-execution_count="32">
-<p><img src="inversefunctions_files/figure-html/cell-32-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
-<div class="cell" data-hold="true" data-execution_count="32">
-<div class="cell-output cell-output-display" data-execution_count="33">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="13916936834668694" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_13916936834668694">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_13916936834668694_1">
-      <input class="form-check-input" type="radio" name="radio_13916936834668694" id="radio_13916936834668694_1" value="1">
-      
-      <span class="label-body px-1">
-        Yes
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_13916936834668694_2">
-      <input class="form-check-input" type="radio" name="radio_13916936834668694" id="radio_13916936834668694_2" value="2">
-      
-      <span class="label-body px-1">
-        No
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="13916936834668694_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_13916936834668694"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('13916936834668694_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_13916936834668694")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_13916936834668694")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+f(x) = x^3
+xs = range(0, 2, length=100)
+ys = f.(xs)
+plot(xs, ys, color=:blue, legend=false)
+plot!(ys, xs, color=:red)
+plot!(x-&gt;x, linestyle=:dash)</code></pre>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+yesnoq(true)</code></pre>
 <p>From the plot, are blue and red inverse functions?</p>
-<div class="cell" data-hold="true" data-execution_count="33">
-<div class="cell-output cell-output-display" data-execution_count="34">
-<p><img src="inversefunctions_files/figure-html/cell-34-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
-<div class="cell" data-hold="true" data-execution_count="34">
-<div class="cell-output cell-output-display" data-execution_count="35">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="6812133908703880109" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_6812133908703880109">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_6812133908703880109_1">
-      <input class="form-check-input" type="radio" name="radio_6812133908703880109" id="radio_6812133908703880109_1" value="1">
-      
-      <span class="label-body px-1">
-        Yes
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_6812133908703880109_2">
-      <input class="form-check-input" type="radio" name="radio_6812133908703880109" id="radio_6812133908703880109_2" value="2">
-      
-      <span class="label-body px-1">
-        No
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="6812133908703880109_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_6812133908703880109"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('6812133908703880109_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_6812133908703880109")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_6812133908703880109")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+f(x) = x^3 - x - 1
+xs = range(-2,2, length=100)
+ys = f.(xs)
+plot(xs, ys, color=:blue, legend=false)
+plot!(-xs, -ys, color=:red)
+plot!(x-&gt;x, linestyle=:dash)</code></pre>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+yesnoq(false)</code></pre>
 </section>
 <section id="question-14" class="level6">
 <h6 class="anchored" data-anchor-id="question-14">Question</h6>
@@ -2183,386 +1048,51 @@ rb.addEventListener("change", function() {
 <li>and <span class="math inline">\(f_4(x) = x + a/c\)</span> is a translation.</li>
 </ul>
 <p>For <span class="math inline">\(x=10\)</span>, what is <span class="math inline">\(f(10)\)</span>?</p>
-<div class="cell" data-execution_count="35">
-<div class="cell-output cell-output-display" data-execution_count="36">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="2744039318360328171" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_2744039318360328171">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="2744039318360328171" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="2744039318360328171_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("2744039318360328171").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 0.34285714285714286) <= 0.001);
-  var msgBox = document.getElementById('2744039318360328171_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_2744039318360328171")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_2744039318360328171")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| echo: false
+𝒂,𝒃,𝒄,𝒅 = 1,2,3,5
+f1(x) = x + 𝒅/𝒄; f2(x) = 1/x; f3(x) = (𝒃*𝒄-𝒂*𝒅)/𝒄^2 * x; f4(x)= x + 𝒂/𝒄
+𝒇(x;a=𝒂,b=𝒃,c=𝒄,d=𝒅) = (a*x+b) / (c*x + d)
+numericq(𝒇(10))</code></pre>
 <p>For <span class="math inline">\(x=10\)</span>, what is <span class="math inline">\(f_4(f_3(f_2(f_1(10))))\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="36">
-<div class="cell-output cell-output-display" data-execution_count="37">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="15134073390181169171" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_15134073390181169171">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="15134073390181169171" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="15134073390181169171_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("15134073390181169171").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 0.34285714285714286) <= 0.001);
-  var msgBox = document.getElementById('15134073390181169171_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_15134073390181169171")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_15134073390181169171")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+numericq(f4(f3(f2(f1(10)))))</code></pre>
 <p>The last two answers should be the same, why?</p>
-<div class="cell" data-hold="true" data-execution_count="37">
-<div class="cell-output cell-output-display" data-execution_count="38">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="11393311480488880940" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_11393311480488880940">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_11393311480488880940_1">
-      <input class="form-check-input" type="radio" name="radio_11393311480488880940" id="radio_11393311480488880940_1" value="1">
-      
-      <span class="label-body px-1">
-        As \(f_4(f_3(f_2(f)_1(x))))=(f_4 \circ f_3 \circ f_2 \circ f_1)(x)\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_11393311480488880940_2">
-      <input class="form-check-input" type="radio" name="radio_11393311480488880940" id="radio_11393311480488880940_2" value="2">
-      
-      <span class="label-body px-1">
-        As \(f_4(f_3(f_2(f_1(x))))=(f_1 \circ f_2 \circ f_3 \circ f_4)(x)\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_11393311480488880940_3">
-      <input class="form-check-input" type="radio" name="radio_11393311480488880940" id="radio_11393311480488880940_3" value="3">
-      
-      <span class="label-body px-1">
-        As the latter is more complicated than the former.
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="11393311480488880940_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_11393311480488880940"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('11393311480488880940_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_11393311480488880940")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_11393311480488880940")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+    L"As $f_4(f_3(f_2(f)_1(x))))=(f_4 \circ f_3 \circ f_2 \circ f_1)(x)$",
+    L"As $f_4(f_3(f_2(f_1(x))))=(f_1 \circ f_2 \circ f_3 \circ f_4)(x)$",
+    "As the latter is more complicated than the former."
+]
+answ=1
+radioq(choices, answ)</code></pre>
 <p>Let <span class="math inline">\(g_1\)</span>, <span class="math inline">\(g_2\)</span>, <span class="math inline">\(g_3\)</span>, and <span class="math inline">\(g_4\)</span> denote the inverse functions. Clearly, <span class="math inline">\(g_1(x) = x- d/c\)</span> and <span class="math inline">\(g+4(x) = x - a/c\)</span>, as the inverse of adding a constant is subtracting the constant.</p>
 <p>What is <span class="math inline">\(g_2(x)=f_2^{-1}(x)\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="38">
-<div class="cell-output cell-output-display" data-execution_count="39">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="10202733184318400627" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_10202733184318400627">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_10202733184318400627_1">
-      <input class="form-check-input" type="radio" name="radio_10202733184318400627" id="radio_10202733184318400627_1" value="1">
-      
-      <span class="label-body px-1">
-        \(g_2(x) = x -1\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_10202733184318400627_2">
-      <input class="form-check-input" type="radio" name="radio_10202733184318400627" id="radio_10202733184318400627_2" value="2">
-      
-      <span class="label-body px-1">
-        \(g_2(x) = x\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_10202733184318400627_3">
-      <input class="form-check-input" type="radio" name="radio_10202733184318400627" id="radio_10202733184318400627_3" value="3">
-      
-      <span class="label-body px-1">
-        \(g_2(x) = x^{-1}\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="10202733184318400627_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_10202733184318400627"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 3;
-    var msgBox = document.getElementById('10202733184318400627_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_10202733184318400627")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_10202733184318400627")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = ["``g_2(x) = x^{-1}``", "``g_2(x) = x``", "``g_2(x) = x -1``"]
+answ = 1
+radioq(choices, answ)</code></pre>
 <p>What is <span class="math inline">\(g_3(x)=f_3^{-1}(x)\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="39">
-<div class="cell-output cell-output-display" data-execution_count="40">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="16467878953782843878" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_16467878953782843878">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_16467878953782843878_1">
-      <input class="form-check-input" type="radio" name="radio_16467878953782843878" id="radio_16467878953782843878_1" value="1">
-      
-      <span class="label-body px-1">
-        \((b\cdot c-a\cdot d)/c^2 \cdot  x\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_16467878953782843878_2">
-      <input class="form-check-input" type="radio" name="radio_16467878953782843878" id="radio_16467878953782843878_2" value="2">
-      
-      <span class="label-body px-1">
-        \(c^2/(b\cdot c - a\cdot d) \cdot  x\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_16467878953782843878_3">
-      <input class="form-check-input" type="radio" name="radio_16467878953782843878" id="radio_16467878953782843878_3" value="3">
-      
-      <span class="label-body px-1">
-        \(c^2 x\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="16467878953782843878_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_16467878953782843878"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('16467878953782843878_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_16467878953782843878")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_16467878953782843878")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+    raw"``c^2/(b\cdot c - a\cdot d) \cdot  x``",
+    raw"``(b\cdot c-a\cdot d)/c^2 \cdot  x``",
+    raw"``c^2 x``"]
+answ = 1
+radioq(choices, answ)</code></pre>
 <p>Given these, what is the value of <span class="math inline">\(g_4(g_3(g_2(g_1(f_4(f_3(f_2(f_1(10))))))))\)</span>?</p>
-<div class="cell" data-execution_count="40">
-<div class="cell-output cell-output-display" data-execution_count="41">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="11881191518387674486" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_11881191518387674486">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="11881191518387674486" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="11881191518387674486_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("11881191518387674486").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - -7.131894484412468) <= 0.001);
-  var msgBox = document.getElementById('11881191518387674486_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_11881191518387674486")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_11881191518387674486")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| echo: false
+g1(x) = x - 𝒅/𝒄; g2(x) = 1/x; g3(x) = 1/((𝒃*𝒄-𝒂*𝒅)/𝒄^2) *x; g4(x)= x - 𝒂/𝒄
+val1 = g4(g3(g2(g1(f4(f3(f2(f1(10))))))))
+numericq(val1)</code></pre>
 <p>What about the value of <span class="math inline">\(g_1(g_2(g_3(g_4(f_4(f_3(f_2(f_1(10))))))))\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="41">
-<div class="cell-output cell-output-display" data-execution_count="42">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="6739666354846507651" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_6739666354846507651">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="6739666354846507651" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="6739666354846507651_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("6739666354846507651").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 9.999999999999973) <= 0.001);
-  var msgBox = document.getElementById('6739666354846507651_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_6739666354846507651")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_6739666354846507651")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+val = g1(g2(g3(g4(f4(f3(f2(f1(10))))))))
+numericq(val)</code></pre>
 
 
 </section>

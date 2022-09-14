@@ -20,69 +20,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1.6em;
   vertical-align: middle;
 }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-    color: #aaaaaa;
-  }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { color: #008000; } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { color: #008000; font-weight: bold; } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
 
@@ -124,9 +61,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   }
 }</script>
 <script async="" src="https://hypothes.is/embed.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
-<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
@@ -665,22 +599,76 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 </header>
 
+<pre class="{julia}"><code>#| echo: false
+
+import Logging
+Logging.disable_logging(Logging.Info) # or e.g. Logging.Info
+Logging.disable_logging(Logging.Warn)
+
+import SymPy
+function Base.show(io::IO, ::MIME"text/html", x::T) where {T &lt;: SymPy.SymbolicObject}
+    println(io, "&lt;span class=\"math-left-align\" style=\"padding-left: 4px; width:0; float:left;\"&gt; ")
+    println(io, "\\[")
+    println(io, sympy.latex(x))
+    println(io, "\\]")
+    println(io, "&lt;/span&gt;")
+end
+
+# hack to work around issue
+import Markdown
+import CalculusWithJulia
+function CalculusWithJulia.WeaveSupport.ImageFile(d::Symbol, f::AbstractString, caption; kwargs...)
+    nm = joinpath("..", string(d), f)
+    u = "![$caption]($nm)"
+    Markdown.parse(u)
+end
+
+nothing</code></pre>
 <p>This section uses these add-on packages:</p>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">CalculusWithJulia</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Plots</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">SymPy</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Roots</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">QuadGK</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<pre class="{julia}"><code>using CalculusWithJulia
+using Plots
+using SymPy
+using Roots
+using QuadGK</code></pre>
+<pre class="{julia}"><code>#| echo: false
+#| results: "hidden"
+using CalculusWithJulia.WeaveSupport
+
+frontmatter = (
+        title = "Polar Coordinates and Curves",
+        description = "Calculus with Julia: Polar Coordinates and Curves",
+        tags = ["CalculusWithJulia", "differentiable_vector_calculus", "polar coordinates and curves"],
+);
+using LaTeXStrings
+
+nothing</code></pre>
 <hr>
 <p>The description of the <span class="math inline">\(x\)</span>-<span class="math inline">\(y\)</span> plane via Cartesian coordinates is not the only possible way, though one that is most familiar. Here we discuss a different means. Instead of talking about over and up from an origin, we focus on a direction and a distance from the origin.</p>
 <section id="definition-of-polar-coordinates" class="level2" data-number="52.1">
 <h2 data-number="52.1" class="anchored" data-anchor-id="definition-of-polar-coordinates"><span class="header-section-number">52.1</span> Definition of polar coordinates</h2>
 <p>Polar coordinates parameterize the plane though an angle <span class="math inline">\(\theta\)</span> made from the positive ray of the <span class="math inline">\(x\)</span> axis and a radius <span class="math inline">\(r\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="4">
-<div class="cell-output cell-output-display" data-execution_count="5">
-<p><img src="polar_coordinates_files/figure-html/cell-5-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+theta = pi/6
+rr = 1
+
+p = plot(xticks=nothing, yticks=nothing, border=:none, aspect_ratio=:equal, xlim=(-.1,1), ylim=(-.1,3/4))
+plot!([0,rr*cos(theta)], [0, rr*sin(theta)], legend=false, color=:blue, linewidth=2)
+scatter!([rr*cos(theta)],[rr*sin(theta)], markersize=3, color=:blue)
+arrow!([0,0], [0,3/4], color=:black)
+arrow!([0,0], [1,0], color=:black)
+ts = range(0, theta, length=50)
+rr = 1/6
+plot!(rr*cos.(ts), rr*sin.(ts), color=:black)
+plot!([cos(theta),cos(theta)],[0, sin(theta)], linestyle=:dash, color=:gray)
+plot!([0,cos(theta)],[sin(theta), sin(theta)], linestyle=:dash, color=:gray)
+annotate!([
+        (1/5*cos(theta/2), 1/5*sin(theta/2), L"\theta"),
+        (1/2*cos(theta*1.2), 1/2*sin(theta*1.2), L"r"),
+        (cos(theta), sin(theta)+.05, L"(x,y)"),
+        (cos(theta),-.05, L"x"),
+        (-.05, sin(theta),L"y")
+        ])</code></pre>
 <p>To recover the Cartesian coordinates from the pair <span class="math inline">\((r,\theta)\)</span>, we have these formulas from <a href="http://en.wikipedia.org/wiki/Polar_coordinate_system#Converting_between_polar_and_Cartesian_coordinates">right</a> triangle geometry:</p>
 <p><span class="math display">\[
 x = r \cos(\theta),~ y = r \sin(\theta).
@@ -692,26 +680,21 @@ r = \sqrt{x^2 + y^2},~ \theta=\tan^{-1}(y/x).
 \]</span></p>
 <p>For the other two quadrants, the signs of <span class="math inline">\(y\)</span> and <span class="math inline">\(x\)</span> must be considered. This is done with the function <code>atan</code> when two arguments are used.</p>
 <p>For example, <span class="math inline">\((-3, 4)\)</span> would have polar coordinates:</p>
-<div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>x,y <span class="op">=</span> <span class="op">-</span><span class="fl">3</span>, <span class="fl">4</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>rad, theta <span class="op">=</span> <span class="fu">sqrt</span>(x<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> y<span class="op">^</span><span class="fl">2</span>), <span class="fu">atan</span>(y, x)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="6">
-<pre><code>(5.0, 2.214297435588181)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>x,y = -3, 4
+rad, theta = sqrt(x^2 + y^2), atan(y, x)</code></pre>
 <p>And reversing</p>
-<div class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rad*cos</span>(theta), <span class="fu">rad*sin</span>(theta)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="7">
-<pre><code>(-2.999999999999999, 4.000000000000001)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>rad*cos(theta), rad*sin(theta)</code></pre>
 <p>This figure illustrates:</p>
-<div class="cell" data-hold="true" data-execution_count="7">
-<div class="cell-output cell-output-display" data-execution_count="8">
-<p><img src="polar_coordinates_files/figure-html/cell-8-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+
+p = plot([-5,5], [0,0],  color=:blue, legend=false)
+plot!([0,0],  [-5,5], color=:blue)
+plot!([-3,0], [4,0])
+scatter!([-3], [4])
+title!("(-3,4) Cartesian or (5, 2.21...) polar")
+
+p</code></pre>
 <p>The case where <span class="math inline">\(r &lt; 0\)</span> is handled by going <span class="math inline">\(180\)</span> degrees in the opposite direction, in other words the point <span class="math inline">\((r, \theta)\)</span> can be described as well by <span class="math inline">\((-r,\theta+\pi)\)</span>.</p>
 </section>
 <section id="parameterizing-curves-using-polar-coordinates" class="level2" data-number="52.2">
@@ -726,45 +709,37 @@ r(\theta) = r_0 \cos(\theta - \gamma)  + \sqrt{R^2 - r_0^2\sin^2(\theta - \gamma
 <section id="examples" class="level4">
 <h4 class="anchored" data-anchor-id="examples">Examples</h4>
 <p>The <code>Plots.jl</code> package provides a means to visualize polar plots through <code>plot(thetas, rs, proj=:polar)</code>. For example, to plot a circe with <span class="math inline">\(r_0=1/2\)</span> and <span class="math inline">\(\gamma=\pi/6\)</span> we would have:</p>
-<div class="cell" data-hold="true" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>R, r0, gamma <span class="op">=</span> <span class="fl">1</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">2</span>, <span class="cn">pi</span><span class="op">/</span><span class="fl">6</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">r</span>(theta) <span class="op">=</span> r0 <span class="op">*</span> <span class="fu">cos</span>(theta<span class="op">-</span>gamma) <span class="op">+</span> <span class="fu">sqrt</span>(R<span class="op">^</span><span class="fl">2</span> <span class="op">-</span> r0<span class="op">^</span><span class="fl">2</span><span class="fu">*sin</span>(theta<span class="op">-</span>gamma)<span class="op">^</span><span class="fl">2</span>)</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>ts <span class="op">=</span> <span class="fu">range</span>(<span class="fl">0</span>, <span class="fl">2</span>pi, length<span class="op">=</span><span class="fl">100</span>)</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>rs <span class="op">=</span> <span class="fu">r</span>.(ts)</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(ts, rs, proj<span class="op">=:</span>polar, legend<span class="op">=</span><span class="cn">false</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="9">
-<p><img src="polar_coordinates_files/figure-html/cell-9-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+R, r0, gamma = 1, 1/2, pi/6
+r(theta) = r0 * cos(theta-gamma) + sqrt(R^2 - r0^2*sin(theta-gamma)^2)
+ts = range(0, 2pi, length=100)
+rs = r.(ts)
+plot(ts, rs, proj=:polar, legend=false)</code></pre>
 <p>To avoid having to create values for <span class="math inline">\(\theta\)</span> and values for <span class="math inline">\(r\)</span>, the <code>CalculusWithJulia</code> package provides a helper function, <code>plot_polar</code>. To distinguish it from other functions provided by <code>Plots</code>, the calling pattern is different. It specifies an interval to plot over by <code>a..b</code> and puts that first (this notation for closed intervals is from <code>IntervalSets</code>), followed by <code>r</code>. Other keyword arguments are passed onto a <code>plot</code> call.</p>
 <p>We will use this in the following, as the graphs are a bit more familiar and the calling pattern similar to how we have plotted functions.</p>
 <p>As <code>Plots</code> will make a parametric plot when called as <code>plot(function, function, a,b)</code>, the above function creates two such functions using the relationship <span class="math inline">\(x=r\cos(\theta)\)</span> and <span class="math inline">\(y=r\sin(\theta)\)</span>.</p>
 <p>Using <code>plot_polar</code>, we can plot circles with the following. We have to be a bit careful for the general circle, as when the center is farther away from the origin that the radius (<span class="math inline">\(R\)</span>), then not all angles will be acceptable and there are two functions needed to describe the radius, as this comes from a quadratic equation and both the “plus” and “minus” terms are used.</p>
-<div class="cell" data-hold="true" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>R<span class="op">=</span><span class="fl">4</span>; <span class="fu">r</span>(t) <span class="op">=</span> R;</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">plot_general_circle!</span>(r0, gamma, R)</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># law of cosines has if gamma=0, |theta| &lt;= asin(R/r0)</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># R^2 = a^2 + r^2 - 2a*r*cos(theta); solve for a</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">r</span>(t) <span class="op">=</span> r0 <span class="op">*</span> <span class="fu">cos</span>(t <span class="op">-</span> gamma) <span class="op">+</span> <span class="fu">sqrt</span>(R<span class="op">^</span><span class="fl">2</span> <span class="op">-</span> r0<span class="op">^</span><span class="fl">2</span><span class="fu">*sin</span>(t<span class="op">-</span>gamma)<span class="op">^</span><span class="fl">2</span>)</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">l</span>(t) <span class="op">=</span> r0 <span class="op">*</span> <span class="fu">cos</span>(t <span class="op">-</span> gamma) <span class="op">-</span> <span class="fu">sqrt</span>(R<span class="op">^</span><span class="fl">2</span> <span class="op">-</span> r0<span class="op">^</span><span class="fl">2</span><span class="fu">*sin</span>(t<span class="op">-</span>gamma)<span class="op">^</span><span class="fl">2</span>)</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> R <span class="op">&lt;</span> r0</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>        theta <span class="op">=</span> <span class="fu">asin</span>(R<span class="op">/</span>r0)<span class="op">-</span><span class="fl">1e-6</span>                 <span class="co"># avoid round off issues</span></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>        <span class="fu">plot_polar!</span>((gamma<span class="op">-</span>theta)<span class="op">..</span>(gamma<span class="op">+</span>theta), r)</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>        <span class="fu">plot_polar!</span>((gamma<span class="op">-</span>theta)<span class="op">..</span>(gamma<span class="op">+</span>theta), l)</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span></span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">plot_polar!</span>(<span class="fl">0</span><span class="op">..</span><span class="fl">2</span>pi, r)</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_polar</span>(<span class="fl">0</span><span class="op">..</span><span class="fl">2</span>pi, r, aspect_ratio<span class="op">=:</span>equal, legend<span class="op">=</span><span class="cn">false</span>)</span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_general_circle!</span>(<span class="fl">2</span>, <span class="fl">0</span>, <span class="fl">2</span>)</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_general_circle!</span>(<span class="fl">3</span>, <span class="fl">0</span>, <span class="fl">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="10">
-<p><img src="polar_coordinates_files/figure-html/cell-10-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+R=4; r(t) = R;
+
+function plot_general_circle!(r0, gamma, R)
+    # law of cosines has if gamma=0, |theta| &lt;= asin(R/r0)
+    # R^2 = a^2 + r^2 - 2a*r*cos(theta); solve for a
+    r(t) = r0 * cos(t - gamma) + sqrt(R^2 - r0^2*sin(t-gamma)^2)
+    l(t) = r0 * cos(t - gamma) - sqrt(R^2 - r0^2*sin(t-gamma)^2)
+
+    if R &lt; r0
+        theta = asin(R/r0)-1e-6                 # avoid round off issues
+        plot_polar!((gamma-theta)..(gamma+theta), r)
+        plot_polar!((gamma-theta)..(gamma+theta), l)
+    else
+        plot_polar!(0..2pi, r)
+    end
+end
+
+plot_polar(0..2pi, r, aspect_ratio=:equal, legend=false)
+plot_general_circle!(2, 0, 2)
+plot_general_circle!(3, 0, 1)</code></pre>
 <p>There are many interesting examples of curves described by polar coordinates. An interesting <a href="http://www-history.mcs.st-and.ac.uk/Curves/Curves.html">compilation</a> of famous curves is found at the MacTutor History of Mathematics archive, many of which have formulas in polar coordinates.</p>
 <section id="example" class="level5">
 <h5 class="anchored" data-anchor-id="example">Example</h5>
@@ -772,14 +747,10 @@ r(\theta) = r_0 \cos(\theta - \gamma)  + \sqrt{R^2 - r_0^2\sin^2(\theta - \gamma
 <p><span class="math display">\[
 r(\theta) = a \sin(k\theta)
 \]</span></p>
-<div class="cell" data-hold="true" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>a, k <span class="op">=</span> <span class="fl">4</span>, <span class="fl">5</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">r</span>(theta) <span class="op">=</span> a <span class="op">*</span> <span class="fu">sin</span>(k <span class="op">*</span> theta)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_polar</span>(<span class="fl">0</span><span class="op">..</span><span class="cn">pi</span>, r)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="11">
-<p><img src="polar_coordinates_files/figure-html/cell-11-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+a, k = 4, 5
+r(theta) = a * sin(k * theta)
+plot_polar(0..pi, r)</code></pre>
 <p>This graph has radius <span class="math inline">\(0\)</span> whenever <span class="math inline">\(\sin(k\theta) = 0\)</span> or <span class="math inline">\(k\theta =n\pi\)</span>. Solving means that it is <span class="math inline">\(0\)</span> at integer multiples of <span class="math inline">\(\pi/k\)</span>. In the above, with <span class="math inline">\(k=5\)</span>, there will <span class="math inline">\(5\)</span> zeroes in <span class="math inline">\([0,\pi]\)</span>. The entire curve is traced out over this interval, the values from <span class="math inline">\(\pi\)</span> to <span class="math inline">\(2\pi\)</span> yield negative value of <span class="math inline">\(r\)</span>, so are related to values within <span class="math inline">\(0\)</span> to <span class="math inline">\(\pi\)</span> via the relation <span class="math inline">\((r,\pi +\theta) = (-r, \theta)\)</span>.</p>
 </section>
 <section id="example-1" class="level5">
@@ -788,36 +759,16 @@ r(\theta) = a \sin(k\theta)
 <p><span class="math display">\[
 r(\theta) = -b \cos(\theta) + 4a \cos(\theta) \sin(2\theta)
 \]</span></p>
-<div class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>𝒂, 𝒃 <span class="op">=</span> <span class="fl">4</span>, <span class="fl">2</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">𝒓</span>(theta) <span class="op">=</span> <span class="op">-</span>𝒃 <span class="op">*</span> <span class="fu">cos</span>(theta) <span class="op">+</span> <span class="fl">4</span>𝒂 <span class="op">*</span> <span class="fu">cos</span>(theta) <span class="op">*</span> <span class="fu">sin</span>(<span class="fl">2</span>theta)</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_polar</span>(<span class="fl">0</span><span class="op">..</span><span class="fl">2</span>pi, 𝒓)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="12">
-<p><img src="polar_coordinates_files/figure-html/cell-12-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>𝒂, 𝒃 = 4, 2
+𝒓(theta) = -𝒃 * cos(theta) + 4𝒂 * cos(theta) * sin(2theta)
+plot_polar(0..2pi, 𝒓)</code></pre>
 <p>The folium has radial part <span class="math inline">\(0\)</span> when <span class="math inline">\(\cos(\theta) = 0\)</span> or <span class="math inline">\(\sin(2\theta) = b/4a\)</span>. This could be used to find out what values correspond to which loop. For our choice of <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> this gives <span class="math inline">\(\pi/2\)</span>, <span class="math inline">\(3\pi/2\)</span> or, as <span class="math inline">\(b/4a = 1/8\)</span>, when <span class="math inline">\(\sin(2\theta) = 1/8\)</span> which happens at <span class="math inline">\(a_0=\sin^{-1}(1/8)/2=0.0626...\)</span> and <span class="math inline">\(\pi/2 - a_0\)</span>, <span class="math inline">\(\pi+a_0\)</span> and <span class="math inline">\(3\pi/2 - a_0\)</span>. The first folium can be plotted with:</p>
-<div class="cell" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>𝒂<span class="fl">0</span> <span class="op">=</span> (<span class="fl">1</span><span class="op">/</span><span class="fl">2</span>) <span class="op">*</span> <span class="fu">asin</span>(<span class="fl">1</span><span class="op">/</span><span class="fl">8</span>)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_polar</span>(𝒂<span class="fl">0</span><span class="op">..</span>(<span class="cn">pi</span><span class="op">/</span><span class="fl">2</span><span class="op">-</span>𝒂<span class="fl">0</span>), 𝒓)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="13">
-<p><img src="polar_coordinates_files/figure-html/cell-13-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>𝒂0 = (1/2) * asin(1/8)
+plot_polar(𝒂0..(pi/2-𝒂0), 𝒓)</code></pre>
 <p>The second - which is too small to appear in the initial plot without zooming in - with</p>
-<div class="cell" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_polar</span>((<span class="cn">pi</span><span class="op">/</span><span class="fl">2</span> <span class="op">-</span> 𝒂<span class="fl">0</span>)<span class="op">..</span>(<span class="cn">pi</span><span class="op">/</span><span class="fl">2</span>), 𝒓)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="14">
-<p><img src="polar_coordinates_files/figure-html/cell-14-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>plot_polar((pi/2 - 𝒂0)..(pi/2), 𝒓)</code></pre>
 <p>The third with</p>
-<div class="cell" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_polar</span>((<span class="cn">pi</span><span class="op">/</span><span class="fl">2</span>)<span class="op">..</span>(<span class="cn">pi</span> <span class="op">+</span> 𝒂<span class="fl">0</span>), 𝒓)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="15">
-<p><img src="polar_coordinates_files/figure-html/cell-15-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>plot_polar((pi/2)..(pi + 𝒂0), 𝒓)</code></pre>
 <p>The plot repeats from there, so the initial plot could have been made over <span class="math inline">\([0, \pi + a_0]\)</span>.</p>
 </section>
 <section id="example-2" class="level5">
@@ -826,46 +777,49 @@ r(\theta) = -b \cos(\theta) + 4a \cos(\theta) \sin(2\theta)
 <p><span class="math display">\[
 r(\theta) = b + 2a\cos(\theta)
 \]</span></p>
-<div class="cell" data-hold="true" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>a,b <span class="op">=</span> <span class="fl">4</span>, <span class="fl">2</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">r</span>(theta) <span class="op">=</span> b <span class="op">+</span> <span class="fl">2</span><span class="fu">a*cos</span>(theta)</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_polar</span>(<span class="fl">0</span><span class="op">..</span><span class="fl">2</span>pi, r)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="16">
-<p><img src="polar_coordinates_files/figure-html/cell-16-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+a,b = 4, 2
+r(theta) = b + 2a*cos(theta)
+plot_polar(0..2pi, r)</code></pre>
 </section>
 <section id="example-3" class="level5">
 <h5 class="anchored" data-anchor-id="example-3">Example</h5>
 <p>Some curves require a longer parameterization, such as this where we plot over <span class="math inline">\([0, 8\pi]\)</span> so that the cosine term can range over an entire half period:</p>
-<div class="cell" data-hold="true" data-execution_count="16">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">r</span>(theta) <span class="op">=</span> <span class="fu">sqrt</span>(<span class="fu">abs</span>(<span class="fu">cos</span>(theta<span class="op">/</span><span class="fl">8</span>)))</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_polar</span>(<span class="fl">0</span><span class="op">..</span><span class="fl">8</span>pi, r)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="17">
-<p><img src="polar_coordinates_files/figure-html/cell-17-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+r(theta) = sqrt(abs(cos(theta/8)))
+plot_polar(0..8pi, r)</code></pre>
 </section>
 </section>
 </section>
 <section id="area-of-polar-graphs" class="level2" data-number="52.3">
 <h2 data-number="52.3" class="anchored" data-anchor-id="area-of-polar-graphs"><span class="header-section-number">52.3</span> Area of polar graphs</h2>
 <p>Consider the <a href="http://www-history.mcs.st-and.ac.uk/Curves/Cardioid.html">cardioid</a> described by <span class="math inline">\(r(\theta) = 2(1 + \cos(\theta))\)</span>:</p>
-<div class="cell" data-hold="true" data-execution_count="17">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">r</span>(theta) <span class="op">=</span> <span class="fl">2</span>(<span class="fl">1</span> <span class="op">+</span> <span class="fu">cos</span>(theta))</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_polar</span>(<span class="fl">0</span><span class="op">..</span><span class="fl">2</span>pi, r)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="18">
-<p><img src="polar_coordinates_files/figure-html/cell-18-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+r(theta) = 2(1 + cos(theta))
+plot_polar(0..2pi, r)</code></pre>
 <p>How much area is contained in the graph?</p>
 <p>In some cases it might be possible to translate back into Cartesian coordinates and compute from there. In practice, this is not usually the best solution.</p>
 <p>The area can be approximated by wedges (not rectangles). For example, here we see that the area over a given angle is well approximated by the wedge for each of the sectors:</p>
-<div class="cell" data-hold="true" data-execution_count="18">
-<div class="cell-output cell-output-display" data-execution_count="19">
-<p><img src="polar_coordinates_files/figure-html/cell-19-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+r(theta) = 1/(1 + (1/3)cos(theta))
+p = plot_polar(0..pi/2, r,  legend=false, linewidth=3, aspect_ratio=:equal)
+t0, t1, t2, t3 = collect(range(pi/12, pi/2 - pi/12, length=4))
+
+for s in (t0,t1,t2,t3)
+  plot!(p, [0, r(s)*cos(s)], [0, r(s)*sin(s)], linewidth=3)
+end
+
+for (s0,s1) in ((t0,t1), (t1, t2), (t2,t3))
+    s = (s0 + s1)/2
+    plot!(p, [0, ])
+    plot!(p, [0,r(s)*cos(s)], [0, r(s)*sin(s)])
+    ts = range(s0, s1, length=25)
+    xs, ys = r(s)*cos.(ts), r(s)*sin.(ts)
+    plot!(p, xs, ys)
+    plot!(p, [0,xs[1]],[0,ys[1]])
+end
+p</code></pre>
 <p>As well, see this part of a <a href="http://en.wikipedia.org/wiki/Polar_coordinate_system#Integral_calculus_.28area.29">Wikipedia</a> page for a figure.</p>
 <p>Imagine we have <span class="math inline">\(a &lt; b\)</span> and a partition <span class="math inline">\(a=t_0 &lt; t_1 &lt; \cdots &lt; t_n = b\)</span>. Let <span class="math inline">\(\phi_i = (1/2)(t_{i-1} + t_{i})\)</span> be the midpoint. Then the wedge of radius <span class="math inline">\(r(\phi_i)\)</span> with angle between <span class="math inline">\(t_{i-1}\)</span> and <span class="math inline">\(t_i\)</span> will have area <span class="math inline">\(\pi r(\phi_i)^2 (t_i-t_{i-1}) / (2\pi) = (1/2) r(\phi_i)(t_i-t_{i-1})\)</span>, the ratio <span class="math inline">\((t_i-t_{i-1}) / (2\pi)\)</span> being the angle to the total angle of a circle. Summing the area of these wedges over the partition gives a Riemann sum approximation for the integral <span class="math inline">\((1/2)\int_a^b r(\theta)^2 d\theta\)</span>. This limit of this sum defines the area in polar coordinates.</p>
 <blockquote class="blockquote">
@@ -873,92 +827,43 @@ r(\theta) = b + 2a\cos(\theta)
 <p><span class="math inline">\(A = \frac{1}{2}\int_a^b r(\theta)^2 d\theta.\)</span></p>
 </blockquote>
 <p>So the area of the cardioid, which is parameterized over <span class="math inline">\([0, 2\pi]\)</span> is found by</p>
-<div class="cell" data-hold="true" data-execution_count="19">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">r</span>(theta) <span class="op">=</span> <span class="fl">2</span>(<span class="fl">1</span> <span class="op">+</span> <span class="fu">cos</span>(theta))</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> theta</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>(<span class="fl">1</span><span class="op">//</span><span class="fl">2</span>) <span class="op">*</span> <span class="fu">integrate</span>(<span class="fu">r</span>(theta)<span class="op">^</span><span class="fl">2</span>, (theta, <span class="fl">0</span>, <span class="fl">2</span>PI))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="20">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-6 \pi
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+r(theta) = 2(1 + cos(theta))
+@syms theta
+(1//2) * integrate(r(theta)^2, (theta, 0, 2PI))</code></pre>
 <section id="example-4" class="level5">
 <h5 class="anchored" data-anchor-id="example-4">Example</h5>
 <p>The folium has general formula <span class="math inline">\(r(\theta) = -b \cos(\theta) +4a\cos(\theta)\sin(\theta)^2\)</span>. When <span class="math inline">\(a=1\)</span> and <span class="math inline">\(b=1\)</span> a leaf of the folium is traced out between <span class="math inline">\(\pi/6\)</span> and <span class="math inline">\(\pi/2\)</span>. What is the area of that leaf?</p>
 <p>An antiderivative exists for arbitrary <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>:</p>
-<div class="cell" data-execution_count="20">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> 𝐚 𝐛 𝐭heta</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">𝐫</span>(theta) <span class="op">=</span> <span class="fu">-𝐛*cos</span>(theta) <span class="op">+</span> <span class="fl">4</span><span class="fu">𝐚*cos</span>(theta)<span class="fu">*sin</span>(theta)<span class="op">^</span><span class="fl">2</span></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate</span>(<span class="fu">𝐫</span>(𝐭heta)<span class="op">^</span><span class="fl">2</span>, 𝐭heta) <span class="op">/</span> <span class="fl">2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="21">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-\frac{𝐚^{2} 𝐭heta \sin^{6}{\left(𝐭heta \right)}}{2} + \frac{3 𝐚^{2} 𝐭heta \sin^{4}{\left(𝐭heta \right)} \cos^{2}{\left(𝐭heta \right)}}{2} + \frac{3 𝐚^{2} 𝐭heta \sin^{2}{\left(𝐭heta \right)} \cos^{4}{\left(𝐭heta \right)}}{2} + \frac{𝐚^{2} 𝐭heta \cos^{6}{\left(𝐭heta \right)}}{2} + \frac{𝐚^{2} \sin^{5}{\left(𝐭heta \right)} \cos{\left(𝐭heta \right)}}{2} - \frac{4 𝐚^{2} \sin^{3}{\left(𝐭heta \right)} \cos^{3}{\left(𝐭heta \right)}}{3} - \frac{𝐚^{2} \sin{\left(𝐭heta \right)} \cos^{5}{\left(𝐭heta \right)}}{2} - \frac{𝐚 𝐛 𝐭heta \sin^{4}{\left(𝐭heta \right)}}{2} - 𝐚 𝐛 𝐭heta \sin^{2}{\left(𝐭heta \right)} \cos^{2}{\left(𝐭heta \right)} - \frac{𝐚 𝐛 𝐭heta \cos^{4}{\left(𝐭heta \right)}}{2} - \frac{𝐚 𝐛 \sin^{3}{\left(𝐭heta \right)} \cos{\left(𝐭heta \right)}}{2} + \frac{𝐚 𝐛 \sin{\left(𝐭heta \right)} \cos^{3}{\left(𝐭heta \right)}}{2} + \frac{𝐛^{2} 𝐭heta \sin^{2}{\left(𝐭heta \right)}}{4} + \frac{𝐛^{2} 𝐭heta \cos^{2}{\left(𝐭heta \right)}}{4} + \frac{𝐛^{2} \sin{\left(𝐭heta \right)} \cos{\left(𝐭heta \right)}}{4}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>@syms 𝐚 𝐛 𝐭heta
+𝐫(theta) = -𝐛*cos(theta) + 4𝐚*cos(theta)*sin(theta)^2
+integrate(𝐫(𝐭heta)^2, 𝐭heta) / 2</code></pre>
 <p>For our specific values, the answer can be computed with:</p>
-<div class="cell" data-execution_count="21">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>ex <span class="op">=</span> <span class="fu">integrate</span>(<span class="fu">𝐫</span>(𝐭heta)<span class="op">^</span><span class="fl">2</span>, (𝐭heta, PI<span class="op">/</span><span class="fl">6</span>, PI<span class="op">/</span><span class="fl">2</span>)) <span class="op">/</span> <span class="fl">2</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ex</span>(𝐚 <span class="op">=&gt;</span> <span class="fl">1</span>, 𝐛<span class="op">=&gt;</span><span class="fl">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="22">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-\frac{\pi}{12}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>ex = integrate(𝐫(𝐭heta)^2, (𝐭heta, PI/6, PI/2)) / 2
+ex(𝐚 =&gt; 1, 𝐛=&gt;1)</code></pre>
 <section id="example-5" class="level6">
 <h6 class="anchored" data-anchor-id="example-5">Example</h6>
 <p>Pascal’s <a href="http://www-history.mcs.st-and.ac.uk/Curves/Limacon.html">limacon</a> is like the cardioid, but contains an extra loop. When <span class="math inline">\(a=1\)</span> and <span class="math inline">\(b=1\)</span> we have this graph.</p>
-<div class="cell" data-hold="true" data-execution_count="22">
-<div class="cell-output cell-output-display" data-execution_count="23">
-<p><img src="polar_coordinates_files/figure-html/cell-23-output-1.svg" class="img-fluid"></p>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+a,b = 1,1
+r(theta) = b + 2a*cos(theta)
+p = plot(t-&gt;r(t)*cos(t), t-&gt;r(t)*sin(t), 0, pi/2 + pi/6,  legend=false, color=:blue)
+plot!(p, t-&gt;r(t)*cos(t), t-&gt;r(t)*sin(t), 3pi/2 - pi/6, pi/2 + pi/6, color=:orange)
+plot!(p, t-&gt;r(t)*cos(t), t-&gt;r(t)*sin(t), 3pi/2 - pi/6, 2pi, color=:blue)
+
+p</code></pre>
 <p>What is the area contained in the outer loop, that is not in the inner loop?</p>
 <p>To answer, we need to find out what range of values in <span class="math inline">\([0, 2\pi]\)</span> the inner and outer loops are traced. This will be when <span class="math inline">\(r(\theta) = 0\)</span>, which for the choice of <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> solves <span class="math inline">\(1 + 2\cos(\theta) = 0\)</span>, or <span class="math inline">\(\cos(\theta) = -1/2\)</span>. This is <span class="math inline">\(\pi/2 + \pi/6\)</span> and <span class="math inline">\(3\pi/2 - \pi/6\)</span>. The inner loop is traversed between those values and has area:</p>
-<div class="cell" data-execution_count="23">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> 𝖺 𝖻 𝗍heta</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">𝗋</span>(theta) <span class="op">=</span>  𝖻 <span class="op">+</span> <span class="fl">2</span><span class="fu">𝖺*cos</span>(𝗍heta)</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>𝖾x <span class="op">=</span> <span class="fu">integrate</span>(<span class="fu">𝗋</span>(𝗍heta)<span class="op">^</span><span class="fl">2</span> <span class="op">/</span> <span class="fl">2</span>, (𝗍heta, PI<span class="op">/</span><span class="fl">2</span> <span class="op">+</span> PI<span class="op">/</span><span class="fl">6</span>, <span class="fl">3</span>PI<span class="op">/</span><span class="fl">2</span> <span class="op">-</span> PI<span class="op">/</span><span class="fl">6</span>))</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>𝗂nner <span class="op">=</span> <span class="fu">𝖾x</span>(𝖺<span class="op">=&gt;</span><span class="fl">1</span>, 𝖻<span class="op">=&gt;</span><span class="fl">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="24">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-\pi - \frac{3 \sqrt{3}}{2}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>@syms 𝖺 𝖻 𝗍heta
+𝗋(theta) =  𝖻 + 2𝖺*cos(𝗍heta)
+𝖾x = integrate(𝗋(𝗍heta)^2 / 2, (𝗍heta, PI/2 + PI/6, 3PI/2 - PI/6))
+𝗂nner = 𝖾x(𝖺=&gt;1, 𝖻=&gt;1)</code></pre>
 <p>The outer area (including the inner loop) is the integral from <span class="math inline">\(0\)</span> to <span class="math inline">\(\pi/2 + \pi/6\)</span> plus that from <span class="math inline">\(3\pi/2 - \pi/6\)</span> to <span class="math inline">\(2\pi\)</span>. These areas are equal, so we double the first:</p>
-<div class="cell" data-execution_count="24">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>𝖾x1 <span class="op">=</span> <span class="fl">2</span> <span class="op">*</span> <span class="fu">integrate</span>(<span class="fu">𝗋</span>(𝗍heta)<span class="op">^</span><span class="fl">2</span> <span class="op">/</span> <span class="fl">2</span>, (𝗍heta, <span class="fl">0</span>, PI<span class="op">/</span><span class="fl">2</span> <span class="op">+</span> PI<span class="op">/</span><span class="fl">6</span>))</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>𝗈uter <span class="op">=</span> <span class="fu">𝖾x1</span>(𝖺<span class="op">=&gt;</span><span class="fl">1</span>, 𝖻<span class="op">=&gt;</span><span class="fl">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="25">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-\frac{3 \sqrt{3}}{2} + 2 \pi
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>𝖾x1 = 2 * integrate(𝗋(𝗍heta)^2 / 2, (𝗍heta, 0, PI/2 + PI/6))
+𝗈uter = 𝖾x1(𝖺=&gt;1, 𝖻=&gt;1)</code></pre>
 <p>The answer is the difference:</p>
-<div class="cell" data-execution_count="25">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>𝗈uter <span class="op">-</span> 𝗂nner</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="26">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-\pi + 3 \sqrt{3}
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>𝗈uter - 𝗂nner</code></pre>
 </section>
 </section>
 </section>
@@ -993,13 +898,9 @@ d_i
 <h5 class="anchored" data-anchor-id="example-6">Example</h5>
 <p>A cardioid is described by <span class="math inline">\(r(\theta) = 2(1 + \cos(\theta))\)</span>. What is the arc length from <span class="math inline">\(0\)</span> to <span class="math inline">\(2\pi\)</span>?</p>
 <p>The integrand is integrable with antiderivative <span class="math inline">\(4\sqrt{2\cos(\theta) + 2} \cdot \tan(\theta/2)\)</span>, but <code>SymPy</code> isn’t able to find the integral. Instead we give a numeric answer:</p>
-<div class="cell" data-hold="true" data-execution_count="26">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">r</span>(theta) <span class="op">=</span> <span class="fl">2</span><span class="fu">*</span>(<span class="fl">1</span> <span class="op">+</span> <span class="fu">cos</span>(theta))</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">quadgk</span>(t <span class="op">-&gt;</span> <span class="fu">sqrt</span>(r<span class="op">'</span>(t)<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> <span class="fu">r</span>(t)<span class="op">^</span><span class="fl">2</span>), <span class="fl">0</span>, <span class="fl">2</span>pi)[<span class="fl">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="27">
-<pre><code>16.0</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+r(theta) = 2*(1 + cos(theta))
+quadgk(t -&gt; sqrt(r'(t)^2 + r(t)^2), 0, 2pi)[1]</code></pre>
 </section>
 <section id="example-7" class="level5">
 <h5 class="anchored" data-anchor-id="example-7">Example</h5>
@@ -1008,20 +909,12 @@ d_i
 r(\theta) = a e^{\theta \cot(b)}
 \]</span></p>
 <p>With <span class="math inline">\(a=1\)</span> and <span class="math inline">\(b=\pi/4\)</span>, find the arc length traced out from <span class="math inline">\(\theta=0\)</span> to <span class="math inline">\(\theta=1\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="27">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>a, b <span class="op">=</span> <span class="fl">1</span>, PI<span class="op">/</span><span class="fl">4</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> θ</span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="fu">r</span>(theta) <span class="op">=</span> a <span class="op">*</span> <span class="fu">exp</span>(theta <span class="op">*</span> <span class="fu">cot</span>(b))</span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>ds <span class="op">=</span> <span class="fu">sqrt</span>(<span class="fu">diff</span>(<span class="fu">r</span>(θ), θ)<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> <span class="fu">r</span>(θ)<span class="op">^</span><span class="fl">2</span>)</span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate</span>(ds, (θ, <span class="fl">0</span>, <span class="fl">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="28">
-<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
-\[
-- \sqrt{2} + \sqrt{2} e
-\]
-</span>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+a, b = 1, PI/4
+@syms θ
+r(theta) = a * exp(theta * cot(b))
+ds = sqrt(diff(r(θ), θ)^2 + r(θ)^2)
+integrate(ds, (θ, 0, 1))</code></pre>
 </section>
 <section id="example-8" class="level5">
 <h5 class="anchored" data-anchor-id="example-8">Example</h5>
@@ -1036,19 +929,16 @@ r(\theta) = a + b \theta
 \int_0^{n\cdot 2\pi} \sqrt{r(\theta)^2 + r'(\theta)^2} d\theta = 3700
 \]</span></p>
 <p>Numerically then we have:</p>
-<div class="cell" data-hold="true" data-execution_count="28">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>dinner <span class="op">=</span> <span class="fl">1</span> <span class="op">+</span> <span class="fl">5</span><span class="op">/</span><span class="fl">8</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>douter <span class="op">=</span> <span class="fl">5</span> <span class="op">+</span> <span class="fl">1</span><span class="op">/</span><span class="fl">4</span></span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="fu">r</span>(b,t) <span class="op">=</span> dinner<span class="op">/</span><span class="fl">2</span> <span class="op">+</span> b<span class="op">*</span>t</span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="fu">rp</span>(b,t) <span class="op">=</span> b</span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="fu">integrand</span>(b,t) <span class="op">=</span> <span class="fu">sqrt</span>((<span class="fu">r</span>(b,t))<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> <span class="fu">rp</span>(b,t)<span class="op">^</span><span class="fl">2</span>)  <span class="co"># sqrt(r^2 + r'^2)</span></span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a><span class="fu">n</span>(b) <span class="op">=</span> (douter <span class="op">-</span> dinner)<span class="op">/</span><span class="fl">2</span><span class="op">/</span>(<span class="fl">2</span><span class="op">*</span><span class="cn">pi</span><span class="op">*</span>b)</span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> <span class="fu">find_zero</span>(b <span class="op">-&gt;</span> <span class="fu">quadgk</span>(<span class="fu">t-&gt;integrand</span>(b,t), <span class="fl">0</span>, <span class="fu">n</span>(b)<span class="op">*</span><span class="fl">2</span><span class="op">*</span><span class="cn">pi</span>)[<span class="fl">1</span>] <span class="op">-</span> <span class="fl">3700</span>, (<span class="fl">1</span><span class="op">/</span><span class="fl">100000</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">100</span>))</span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>b, b<span class="op">*</span><span class="fl">25.4</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="29">
-<pre><code>(0.0008419553488281331, 0.02138566586023458)</code></pre>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+
+dinner = 1 + 5/8
+douter = 5 + 1/4
+r(b,t) = dinner/2 + b*t
+rp(b,t) = b
+integrand(b,t) = sqrt((r(b,t))^2 + rp(b,t)^2)  # sqrt(r^2 + r'^2)
+n(b) = (douter - dinner)/2/(2*pi*b)
+b = find_zero(b -&gt; quadgk(t-&gt;integrand(b,t), 0, n(b)*2*pi)[1] - 3700, (1/100000, 1/100))
+b, b*25.4</code></pre>
 <p>The value <code>b</code> gives a value in inches, the latter in millimeters.</p>
 </section>
 </section>
@@ -1057,393 +947,52 @@ r(\theta) = a + b \theta
 <section id="question" class="level6">
 <h6 class="anchored" data-anchor-id="question">Question</h6>
 <p>Let <span class="math inline">\(r=3\)</span> and <span class="math inline">\(\theta=\pi/8\)</span>. In Cartesian coordinates what is <span class="math inline">\(x\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="29">
-<div class="cell-output cell-output-display" data-execution_count="30">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="3901159905495130715" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_3901159905495130715">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="3901159905495130715" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="3901159905495130715_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("3901159905495130715").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 2.77163859753386) <= 0.001);
-  var msgBox = document.getElementById('3901159905495130715_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_3901159905495130715")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_3901159905495130715")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+x,y = 3 * [cos(pi/8), sin(pi/8)]
+numericq(x)</code></pre>
 <p>What is <span class="math inline">\(y\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="30">
-<div class="cell-output cell-output-display" data-execution_count="31">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="8843895982613300105" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_8843895982613300105">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="8843895982613300105" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="8843895982613300105_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("8843895982613300105").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 1.1480502970952693) <= 0.001);
-  var msgBox = document.getElementById('8843895982613300105_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_8843895982613300105")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_8843895982613300105")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+numericq(y)</code></pre>
 </section>
 <section id="question-1" class="level6">
 <h6 class="anchored" data-anchor-id="question-1">Question</h6>
 <p>A point in Cartesian coordinates is given by <span class="math inline">\((-12, -5)\)</span>. In has a polar coordinate representation with an angle <span class="math inline">\(\theta\)</span> in <span class="math inline">\([0,2\pi]\)</span> and <span class="math inline">\(r &gt; 0\)</span>. What is <span class="math inline">\(r\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="31">
-<div class="cell-output cell-output-display" data-execution_count="32">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="17785494409103951206" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_17785494409103951206">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="17785494409103951206" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="17785494409103951206_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("17785494409103951206").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 13.0) <= 0.001);
-  var msgBox = document.getElementById('17785494409103951206_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_17785494409103951206")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_17785494409103951206")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+x,y = -12, -5
+r1, theta1 = sqrt(x^2 + y^2), atan(y,x)
+numericq(r1)</code></pre>
 <p>What is <span class="math inline">\(\theta\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="32">
-<div class="cell-output cell-output-display" data-execution_count="33">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="11746042466986566388" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_11746042466986566388">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="11746042466986566388" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="11746042466986566388_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("11746042466986566388").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - -2.746801533890032) <= 0.001);
-  var msgBox = document.getElementById('11746042466986566388_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_11746042466986566388")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_11746042466986566388")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+x,y = -12, -5
+r1, theta1 = sqrt(x^2 + y^2), atan(y,x)
+numericq(theta1)</code></pre>
 </section>
 <section id="question-2" class="level6">
 <h6 class="anchored" data-anchor-id="question-2">Question</h6>
 <p>Does <span class="math inline">\(r(\theta) = a \sec(\theta - \gamma)\)</span> describe a line for <span class="math inline">\(0\)</span> when <span class="math inline">\(a=3\)</span> and <span class="math inline">\(\gamma=\pi/4\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="33">
-<div class="cell-output cell-output-display" data-execution_count="34">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="10843990251757110441" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_10843990251757110441">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_10843990251757110441_1">
-      <input class="form-check-input" type="radio" name="radio_10843990251757110441" id="radio_10843990251757110441_1" value="1">
-      
-      <span class="label-body px-1">
-        Yes
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_10843990251757110441_2">
-      <input class="form-check-input" type="radio" name="radio_10843990251757110441" id="radio_10843990251757110441_2" value="2">
-      
-      <span class="label-body px-1">
-        No
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="10843990251757110441_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_10843990251757110441"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('10843990251757110441_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_10843990251757110441")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_10843990251757110441")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+yesnoq("yes")</code></pre>
 <p>If yes, what is the <span class="math inline">\(y\)</span> intercept</p>
-<div class="cell" data-hold="true" data-execution_count="34">
-<div class="cell-output cell-output-display" data-execution_count="35">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="13523144975216994884" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_13523144975216994884">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="13523144975216994884" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="13523144975216994884_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("13523144975216994884").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 4.242640687119285) <= 0.001);
-  var msgBox = document.getElementById('13523144975216994884_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_13523144975216994884")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_13523144975216994884")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+r(theta) = 3 * sec(theta -pi/4)
+val = r(pi/2)
+numericq(val)</code></pre>
 <p>What is slope of the line?</p>
-<div class="cell" data-hold="true" data-execution_count="35">
-<div class="cell-output cell-output-display" data-execution_count="36">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="6075341881537305979" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_6075341881537305979">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="6075341881537305979" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="6075341881537305979_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("6075341881537305979").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - -1.0) <= 0.001);
-  var msgBox = document.getElementById('6075341881537305979_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_6075341881537305979")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_6075341881537305979")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+r(theta) = 3 * sec(theta -pi/4)
+val = (r(pi/2)*sin(pi/2) - r(pi/4)*sin(pi/4)) / (r(pi/2)*cos(pi/2) - r(pi/4)*cos(pi/4))
+numericq(val)</code></pre>
 <p>Does this seem likely: the slope is <span class="math inline">\(-1/\tan(\gamma)\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="36">
-<div class="cell-output cell-output-display" data-execution_count="37">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="14407314027308193376" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_14407314027308193376">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_14407314027308193376_1">
-      <input class="form-check-input" type="radio" name="radio_14407314027308193376" id="radio_14407314027308193376_1" value="1">
-      
-      <span class="label-body px-1">
-        Yes
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_14407314027308193376_2">
-      <input class="form-check-input" type="radio" name="radio_14407314027308193376" id="radio_14407314027308193376_2" value="2">
-      
-      <span class="label-body px-1">
-        No
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="14407314027308193376_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_14407314027308193376"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('14407314027308193376_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_14407314027308193376")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_14407314027308193376")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+yesnoq("yes")</code></pre>
 </section>
 <section id="question-3" class="level6">
 <h6 class="anchored" data-anchor-id="question-3">Question</h6>
@@ -1457,49 +1006,14 @@ rb.addEventListener("change", function() {
 \frac{dx}{d\theta} = \frac{d}{d\theta}(2\sin(\theta) \cdot \cos(\theta)).
 \]</span></p>
 <p>Numerically, what is the slope of the tangent line when <span class="math inline">\(\theta = \pi/4\)</span>?</p>
-<div class="cell" data-hold="true" data-execution_count="37">
-<div class="cell-output cell-output-display" data-execution_count="38">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="17691775856619739412" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_17691775856619739412">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="17691775856619739412" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="17691775856619739412_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("17691775856619739412").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - -4.503599627370496e15) <= 0.001);
-  var msgBox = document.getElementById('17691775856619739412_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_17691775856619739412")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_17691775856619739412")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+r(theta) = 2cos(theta)
+g(theta) = r(theta)*cos(theta)
+f(theta) = r(theta)*sin(theta)
+c = pi/4
+val = D(g)(c) / D(f)(c)
+numericq(val)</code></pre>
 </section>
 <section id="question-4" class="level6">
 <h6 class="anchored" data-anchor-id="question-4">Question</h6>
@@ -1509,475 +1023,81 @@ r(\theta) = \frac{ke}{1 + e\cos(\theta)}
 \]</span></p>
 <p>has a familiar form. The value of <span class="math inline">\(k\)</span> is just a scale factor, but different values of <span class="math inline">\(e\)</span> yield different shapes.</p>
 <p>When <span class="math inline">\(0 &lt; e &lt; 1\)</span> what is the shape of the curve? (Answer by making a plot and guessing.)</p>
-<div class="cell" data-hold="true" data-execution_count="38">
-<div class="cell-output cell-output-display" data-execution_count="39">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="15305821891850918631" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_15305821891850918631">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_15305821891850918631_1">
-      <input class="form-check-input" type="radio" name="radio_15305821891850918631" id="radio_15305821891850918631_1" value="1">
-      
-      <span class="label-body px-1">
-        an ellipse
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_15305821891850918631_2">
-      <input class="form-check-input" type="radio" name="radio_15305821891850918631" id="radio_15305821891850918631_2" value="2">
-      
-      <span class="label-body px-1">
-        a parabola
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_15305821891850918631_3">
-      <input class="form-check-input" type="radio" name="radio_15305821891850918631" id="radio_15305821891850918631_3" value="3">
-      
-      <span class="label-body px-1">
-        a hyperbola
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_15305821891850918631_4">
-      <input class="form-check-input" type="radio" name="radio_15305821891850918631" id="radio_15305821891850918631_4" value="4">
-      
-      <span class="label-body px-1">
-        a circle
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_15305821891850918631_5">
-      <input class="form-check-input" type="radio" name="radio_15305821891850918631" id="radio_15305821891850918631_5" value="5">
-      
-      <span class="label-body px-1">
-        a line
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="15305821891850918631_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_15305821891850918631"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('15305821891850918631_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_15305821891850918631")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_15305821891850918631")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+"an ellipse",
+"a parabola",
+"a hyperbola",
+"a circle",
+"a line"
+]
+answ = 1
+radioq(choices, answ, keep_order=true)</code></pre>
 <p>When <span class="math inline">\(e = 1\)</span> what is the shape of the curve?</p>
-<div class="cell" data-hold="true" data-execution_count="39">
-<div class="cell-output cell-output-display" data-execution_count="40">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="4889550608116787709" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_4889550608116787709">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_4889550608116787709_1">
-      <input class="form-check-input" type="radio" name="radio_4889550608116787709" id="radio_4889550608116787709_1" value="1">
-      
-      <span class="label-body px-1">
-        an ellipse
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_4889550608116787709_2">
-      <input class="form-check-input" type="radio" name="radio_4889550608116787709" id="radio_4889550608116787709_2" value="2">
-      
-      <span class="label-body px-1">
-        a parabola
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_4889550608116787709_3">
-      <input class="form-check-input" type="radio" name="radio_4889550608116787709" id="radio_4889550608116787709_3" value="3">
-      
-      <span class="label-body px-1">
-        a hyperbola
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_4889550608116787709_4">
-      <input class="form-check-input" type="radio" name="radio_4889550608116787709" id="radio_4889550608116787709_4" value="4">
-      
-      <span class="label-body px-1">
-        a circle
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_4889550608116787709_5">
-      <input class="form-check-input" type="radio" name="radio_4889550608116787709" id="radio_4889550608116787709_5" value="5">
-      
-      <span class="label-body px-1">
-        a line
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="4889550608116787709_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_4889550608116787709"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('4889550608116787709_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_4889550608116787709")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_4889550608116787709")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+"an ellipse",
+"a parabola",
+"a hyperbola",
+"a circle",
+"a line"
+]
+answ = 2
+radioq(choices, answ, keep_order=true)</code></pre>
 <p>When <span class="math inline">\(1 &lt; e\)</span> what is the shape of the curve?</p>
-<div class="cell" data-hold="true" data-execution_count="40">
-<div class="cell-output cell-output-display" data-execution_count="41">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="4405504644223991781" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_4405504644223991781">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_4405504644223991781_1">
-      <input class="form-check-input" type="radio" name="radio_4405504644223991781" id="radio_4405504644223991781_1" value="1">
-      
-      <span class="label-body px-1">
-        an ellipse
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_4405504644223991781_2">
-      <input class="form-check-input" type="radio" name="radio_4405504644223991781" id="radio_4405504644223991781_2" value="2">
-      
-      <span class="label-body px-1">
-        a parabola
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_4405504644223991781_3">
-      <input class="form-check-input" type="radio" name="radio_4405504644223991781" id="radio_4405504644223991781_3" value="3">
-      
-      <span class="label-body px-1">
-        a hyperbola
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_4405504644223991781_4">
-      <input class="form-check-input" type="radio" name="radio_4405504644223991781" id="radio_4405504644223991781_4" value="4">
-      
-      <span class="label-body px-1">
-        a circle
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_4405504644223991781_5">
-      <input class="form-check-input" type="radio" name="radio_4405504644223991781" id="radio_4405504644223991781_5" value="5">
-      
-      <span class="label-body px-1">
-        a line
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="4405504644223991781_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_4405504644223991781"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 3;
-    var msgBox = document.getElementById('4405504644223991781_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_4405504644223991781")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_4405504644223991781")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+"an ellipse",
+"a parabola",
+"a hyperbola",
+"a circle",
+"a line"
+]
+answ = 3
+radioq(choices, answ, keep_order=true)</code></pre>
 </section>
 <section id="question-5" class="level6">
 <h6 class="anchored" data-anchor-id="question-5">Question</h6>
 <p>Find the area of a lobe of the <a href="http://www-history.mcs.st-and.ac.uk/Curves/Lemniscate.html">lemniscate</a> curve traced out by <span class="math inline">\(r(\theta) = \sqrt{\cos(2\theta)}\)</span> between <span class="math inline">\(-\pi/4\)</span> and <span class="math inline">\(\pi/4\)</span>. What is the answer?</p>
-<div class="cell" data-hold="true" data-execution_count="41">
-<div class="cell-output cell-output-display" data-execution_count="42">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="5666150137639286110" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_5666150137639286110">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_5666150137639286110_1">
-      <input class="form-check-input" type="radio" name="radio_5666150137639286110" id="radio_5666150137639286110_1" value="1">
-      
-      <span class="label-body px-1">
-        \(1/2\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_5666150137639286110_2">
-      <input class="form-check-input" type="radio" name="radio_5666150137639286110" id="radio_5666150137639286110_2" value="2">
-      
-      <span class="label-body px-1">
-        \(1\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_5666150137639286110_3">
-      <input class="form-check-input" type="radio" name="radio_5666150137639286110" id="radio_5666150137639286110_3" value="3">
-      
-      <span class="label-body px-1">
-        \(\pi/2\)
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="5666150137639286110_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_5666150137639286110"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('5666150137639286110_message');
-      if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_5666150137639286110")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_5666150137639286110")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-})});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+choices = [
+"``1/2``",
+"``\\pi/2``",
+"``1``"
+]
+answ=1
+radioq(choices, answ)</code></pre>
 </section>
 <section id="question-6" class="level6">
 <h6 class="anchored" data-anchor-id="question-6">Question</h6>
 <p>Find the area of a lobe of the <a href="http://www-history.mcs.st-and.ac.uk/Curves/Eight.html">eight</a> curve traced out by <span class="math inline">\(r(\theta) = \cos(2\theta)\sec(\theta)^4\)</span> from <span class="math inline">\(-\pi/4\)</span> to <span class="math inline">\(\pi/4\)</span>. Do this numerically.</p>
-<div class="cell" data-hold="true" data-execution_count="42">
-<div class="cell-output cell-output-display" data-execution_count="43">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="17329406517287963670" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_17329406517287963670">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="17329406517287963670" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="17329406517287963670_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("17329406517287963670").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 0.6666666666666666) <= 0.001);
-  var msgBox = document.getElementById('17329406517287963670_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_17329406517287963670")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_17329406517287963670")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+r(theta) = sqrt(cos(2theta) * sec(theta)^4)
+val, _ = quadgk(t -&gt; r(t)^2/2, -pi/4, pi/4)
+numericq(val)</code></pre>
 </section>
 <section id="question-7" class="level6">
 <h6 class="anchored" data-anchor-id="question-7">Question</h6>
 <p>Find the arc length of a lobe of the <a href="http://www-history.mcs.st-and.ac.uk/Curves/Lemniscate.html">lemniscate</a> curve traced out by <span class="math inline">\(r(\theta) = \sqrt{\cos(2\theta)}\)</span> between <span class="math inline">\(-\pi/4\)</span> and <span class="math inline">\(\pi/4\)</span>. What is the answer (numerically)?</p>
-<div class="cell" data-hold="true" data-execution_count="43">
-<div class="cell-output cell-output-display" data-execution_count="44">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="3398691118212401574" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_3398691118212401574">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="3398691118212401574" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="3398691118212401574_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("3398691118212401574").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 2.622057529756253) <= 0.001);
-  var msgBox = document.getElementById('3398691118212401574_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_3398691118212401574")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_3398691118212401574")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+r(theta) = sqrt(cos(2theta))
+val, _ = quadgk(t -&gt; sqrt(D(r)(t)^2 + r(t)^2), -pi/4, pi/4)
+numericq(val)</code></pre>
 </section>
 <section id="question-8" class="level6">
 <h6 class="anchored" data-anchor-id="question-8">Question</h6>
 <p>Find the arc length of a lobe of the <a href="http://www-history.mcs.st-and.ac.uk/Curves/Eight.html">eight</a> curve traced out by <span class="math inline">\(r(\theta) = \cos(2\theta)\sec(\theta)^4\)</span> from <span class="math inline">\(-\pi/4\)</span> to <span class="math inline">\(\pi/4\)</span>. Do this numerically.</p>
-<div class="cell" data-hold="true" data-execution_count="44">
-<div class="cell-output cell-output-display" data-execution_count="45">
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="4455761554516074903" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_4455761554516074903">
-        <div style="padding-top: 5px">
-    <br>
-<div class="input-group">
-    <input id="4455761554516074903" type="number" class="form-control" placeholder="Numeric answer">
-</div>
-
-    
-        </div>
-      </div>
-      <div id="4455761554516074903_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.getElementById("4455761554516074903").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 3.048611692422249) <= 0.001);
-  var msgBox = document.getElementById('4455761554516074903_message');
-    if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_4455761554516074903")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_4455761554516074903")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-  }
-
-});
-
-</script>
-</div>
-</div>
+<pre class="{julia}"><code>#| hold: true
+#| echo: false
+r(theta) = sqrt(cos(2theta) * sec(theta)^4)
+val, _ = quadgk(t -&gt; sqrt(D(r)(t)^2 + r(t)^2), -pi/4, pi/4)
+numericq(val)</code></pre>
 
 
 </section>
