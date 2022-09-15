@@ -1,13 +1,15 @@
 ## TODO
 
-* download links to Pluto .jl files (if we have .jmd, but we might deprecate...)
-* PlotlyLight
+
 * mermaid, ojs?
 
+CAN'T DO * set up quarto to generate on CI. (Tried, but can't get through to the finish before a CI timeout...; Must use quarto publish command locally...)
+DONE * PlotlyLight
 DONE * clean up edit link
 DONE * remove pinned header
 DONE * clean up directory
 DONE (?) * JSXGraph files
+WON'T DO * download links to Pluto .jl files (if we have .jmd, but we might deprecate...) For *now* .jmd is derprecated; though we keep the files around ....
 
 # CalculusWithJulia via quarto
 
@@ -73,11 +75,12 @@ Then one should:
 ---
 Eventually, if this workflow seems to be settled:
 
-* deprecate .jmd files
+* move to not use CalculusWithJulia.WeaveSupport
 * deprecate need to make "pluto friendly"
+* take advantage of mermaid, ojs, bibliography, ...
+
+DONE * deprecate .jmd files
 DONE? * do something with JSXGraph
 DONE * figure out why PlotlyLight doesn't work XXX hacky!
-* move to not use CalculusWithJulia.WeaveSupport
 DONE * use an include file not the "hack" in jmd2qmd
-* modify sympy's show method
-* take advantage of mermaid, ojs, bibliography, ...
+DONE * modify sympy's show method
