@@ -75,10 +75,12 @@ Then one should:
 ---
 Eventually, if this workflow seems to be settled:
 
-* move to not use CalculusWithJulia.WeaveSupport
-* deprecate need to make "pluto friendly"
+	* deprecate need to make "pluto friendly"
 * take advantage of mermaid, ojs, bibliography, ...
 
+DONE * move to not use CalculusWithJulia.WeaveSupport
+DONE * remove frontmatter
+DONE * fig_size -> _common_code
 DONE * deprecate .jmd files
 DONE? * do something with JSXGraph
 DONE * figure out why PlotlyLight doesn't work XXX hacky!
