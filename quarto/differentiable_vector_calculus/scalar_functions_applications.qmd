@@ -597,6 +597,60 @@ To find $\partial{z}/\partial{x}$ and $\partial{z}/\partial{y}$ we have:
 ∂x, ∂y
 ```
 
+##### Example
+
+The `find_zero` function has been used to solve for $f(x, p) = 0$ where $p$ is a parameter. Mathematically, this equation defines $x^*(p)$ satisfying $f(x^*(p), p)=0,$ that is $x^*$ is implicitly a function of $p$. What is the derivative (gradient) of $x^*$?
+
+Assume for now that $p$ is a scalar quantity, so $f(x,p)$ is a scalar function of two variables. Then we can differentiate in $p$ to see:
+
+$$
+\frac{d}{dp}f(x^*(p), p) =
+\frac{\partial}{\partial x}f(x^*(p),p) \frac{d}{dp}x^*(p) +
+\frac{\partial}{\partial p}f(x^*(p),p) \frac{d}{dp}p = 0
+$$
+
+As the partial in $x$ of $f$ is a scalar quantity, we can divide to get:
+
+$$
+\frac{d}{dp}x^*(p) = -\frac{\frac{\partial}{\partial p}f(x^*(p),p)}{\frac{\partial}{\partial x}f(x^*(p),p)}
+$$
+
+For example, consider the equation $f(x, p) = \cos(x) - px$ for $p > 0$. This will always have a unique solution  in $(0, \pi/2)$ which can be found, as follows with $p=2$:
+
+```{julia}
+f(x, p) = cos(x) - p*x
+p = 2
+xᵅ = find_zero(f, (0, pi/2), p)
+```
+
+The derivative could be found directly through automatic differentiation by `ForwardDiff.derivative`, though it takes a bit of an adjustment to our function call to get the types to flow through. Rather than make that adjustment,  we use the above to find the derivative for a given $p$, for example, again with $p=2$:
+
+```{julia}
+p = 2
+xᵅ =  find_zero(f, (0, pi/2), p)
+fₓ = ForwardDiff.derivative(x -> f(x,p), xᵅ)
+fₚ = ForwardDiff.derivative(p -> f(xᵅ, p), p)
+- fₚ / fₓ
+```
+
+The negative sign makes sense: as $p$ gets bigger, the line $y=px$ gets steeper and intersects the cosine graph earlier, hence $x^*$ is decreasing.
+
+A plot can easily be made by wrapping the above in a function:
+
+```{julia}
+function find_zero_derivative(f, x₀, p)
+    xᵅ =  find_zero(f, x₀, p)
+    fₓ = ForwardDiff.derivative(x -> f(x,p), xᵅ)
+    fₚ = ForwardDiff.derivative(p -> f(xᵅ, p), p)
+    - fₚ / fₓ
+end
+F(p) = find_zero_derivative(f, (0, pi/2), p)
+plot(F, 0.01, 5)  # p > 0
+```
+
+This problem does not have a readily expressed value for $x^*$, but when $p \approx 0$ we should get similar behavior to the intersection of $y=px$ and $y=\pi/2 - x$ for $x^*$, or $x^* \approx \pi/(2(1-p))$ which has derivative of $-\pi/2$ at $p=0$, matching the above graph. For *large* $p$, the problem looks like the intersection of the line $y=1$ with $y=px$ or $x^* \approx 1/p$ which has derivative that goes to $0$ as $p$ goes to infinity, again matching this graph.
+
+
 ## Optimization
 
 

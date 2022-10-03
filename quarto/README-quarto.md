@@ -1,15 +1,3 @@
-## TODO
-
-
-* mermaid, ojs?
-
-CAN'T DO * set up quarto to generate on CI. (Tried, but can't get through to the finish before a CI timeout...; Must use quarto publish command locally...)
-DONE * PlotlyLight
-DONE * clean up edit link
-DONE * remove pinned header
-DONE * clean up directory
-DONE (?) * JSXGraph files
-WON'T DO * download links to Pluto .jl files (if we have .jmd, but we might deprecate...) For *now* .jmd is derprecated; though we keep the files around ....
 
 # CalculusWithJulia via quarto
 
@@ -43,6 +31,12 @@ This can be done with this commandline call: julia adjust_plotly.jl
 
 was solved with (https://waylonwalker.com/til/git-checkout-worktree/)
 > git worktree remove f5611730
+
+```
+quarto render; julia adjust_plotly.jl
+quarto publish gh-pages --no-render
+```
+
 
 
 # ------
@@ -86,3 +80,18 @@ DONE? * do something with JSXGraph
 DONE * figure out why PlotlyLight doesn't work XXX hacky!
 DONE * use an include file not the "hack" in jmd2qmd
 DONE * modify sympy's show method
+
+
+## TODO
+
+
+* use pandoc references(?)
+* mermaid, ojs?
+
+CAN'T DO * set up quarto to generate on CI. (Tried, but can't get through to the finish before a CI timeout...; Must use quarto publish command locally...)
+DONE * PlotlyLight
+DONE * clean up edit link
+DONE * remove pinned header
+DONE * clean up directory
+DONE (?) * JSXGraph files
+WON'T DO * download links to Pluto .jl files (if we have .jmd, but we might deprecate...) For *now* .jmd is derprecated; though we keep the files around ....
