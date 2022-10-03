@@ -317,20 +317,34 @@ We see from the graph that it is clearly between $0$ and $2$, so all we need is 
 find_zero(𝒉, (0, 2))
 ```
 
-#### Using parameterized functions (`f(x,p)`) with `find_zero`
+##### Example: Inverse functions
 
+If $f(x)$ is *monotonic* and *continuous* over an interval $[a,b]$ then it has an *inverse function*. That is for any $y$ between $f(a)$ and $f(b)$ we can find an $x$ satisfying $y = f(x)$ with $a \leq x \leq b$. This is due, of course, to both the intermediate value theorem (which guarantees an $x$) and monotonicity (which guarantees just one $x$).
 
-Geometry will tell us that $\cos(x) = x/p$ for *one* $x$ in $[0, \pi/2]$ whenever $p>0$. We could set up finding this value for a given $p$ by making $p$ part of the function definition, but as an illustration of passing parameters, we leave `p` as a parameter (in this case, as a second value with default of $1$):
-
+To see how we can *numerically* find an inverse function using `find_zero`, we have this function:
 
 ```{julia}
-#| hold: true
-f(x, p=1) = cos(x) - x/p
-I = (0, pi/2)
-find_zero(f, I), find_zero(f, I, p=2)
+function inverse_function(f, a, b, args...; kwargs...)
+    fa, fb = f(a), f(b)
+    m, M = fa < fb ? (fa, fb) : (fb, fa)
+    y -> begin
+        @assert m ≤ y ≤ M
+        find_zero(x ->f(x) - y, (a,b), args...; kwargs...)
+    end
+end
 ```
 
-The second number is the solution when `p=2`.
+The check on `fa < fb` is due to the possibility that $f$ is increasing (in which case `fa < fb`) or decreasing (in which case `fa > fb`).
+
+To see this used, we consider the monotonic function $f(x) = x - \sin(x)$ over $[0, 5\pi]$. To graph, we have:
+
+```{julia}
+f(x) = x - sin(x)
+a, b = 0, 5pi
+plot(inverse_function(f, a, b), f(a), f(b); aspect_ratio=:equal)
+```
+
+(We plot over the range $[f(a), f(b)]$ here, as we can guess $f(x)$ is *increasing*.)
 
 
 ##### Example
@@ -514,6 +528,29 @@ sign(fᵢ(prevfloat(x0))), sign(fᵢ(nextfloat(x0)))
 
 So, the "bisection method" applied here finds a point where the function crosses $0$, either by continuity or by jumping over the $0$.  (A `jump` discontinuity at $x=c$ is defined by the left and right limits of $f$ at $c$ existing but being unequal. The algorithm can find $c$ when this type of function jumps over $0$.)
 
+
+#### Using parameterized functions (`f(x,p)`) with `find_zero`
+
+
+Geometry will tell us that $\cos(x) = x/p$ for *one* $x$ in $[0, \pi/2]$ whenever $p>0$. We could set up finding this value for a given $p$ by making $p$ part of the function definition, but as an illustration of passing parameters, we leave `p` as a parameter (in this case, as a second value with default of $1$):
+
+
+```{julia}
+#| hold: true
+f(x, p=1) = cos(x) - x/p
+I = (0, pi/2)
+find_zero(f, I), find_zero(f, I, p=2)
+```
+
+The second number is the solution when `p=2`.
+
+The above used a *keyword* argument, but a positional argument allows for broadcasting:
+
+```{julia}
+find_zero.(f, Ref(I), 1:5) # solutions for p=1,2,3,4,5
+```
+
+(The use of `Ref` above prevents broadcasting over the specified bracketing interval.)
 
 ### The `find_zeros` function
 
