@@ -761,7 +761,7 @@ Note
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">BenchmarkTools</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@btime</span> <span class="fu">solve</span>(<span class="fu">NonlinearProblem</span><span class="dt">{false}</span>(f, <span class="pp">@SVector</span>[<span class="fl">1.0</span>]), <span class="fu">NewtonRaphson</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>  365.816 ns (0 allocations: 0 bytes)</code></pre>
+<pre><code>  157.072 ns (0 allocations: 0 bytes)</code></pre>
 </div>
 <div class="cell-output cell-output-display" data-execution_count="8">
 <pre><code>u: 1-element SVector{1, Float64} with indices SOneTo(1):
@@ -776,7 +776,7 @@ Note
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">gp</span>(x) <span class="op">=</span> ForwardDiff.<span class="fu">derivative</span>(g, x)</span>
 <span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@btime</span> <span class="fu">solve</span>(Roots.<span class="fu">ZeroProblem</span>((g, gp), <span class="fl">1.0</span>), Roots.<span class="fu">Newton</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>  411.330 ns (0 allocations: 0 bytes)</code></pre>
+<pre><code>  197.610 ns (0 allocations: 0 bytes)</code></pre>
 </div>
 <div class="cell-output cell-output-display" data-execution_count="9">
 <pre><code>1.1673039782614187</code></pre>
@@ -903,31 +903,9 @@ Note
 </div>
 </div>
 <p>The extra step is to specify a “<code>NonlinearSystem</code>.” It is a system, as in practice one or more equations can be considered. The <code>NonlinearSystem</code>constructor handles the details where the equation, the variable, and the parameter are specified. Below this is done using vectors with just one element:</p>
-<div class="cell" data-execution_count="18">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>ns <span class="op">=</span> <span class="fu">NonlinearSystem</span>([eq], [x], [α], name<span class="op">=:</span>ns)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="19">
-<div class="ansi-escaped-output">
-<pre><span class="ansi-bold">Model ns with 1 </span><span class="ansi-bold">equations</span>
-<span class="ansi-bold">States (1):</span>
-  x
-<span class="ansi-bold">Parameters (1):</span>
-  α</pre>
-</div>
-</div>
-</div>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>ns <span class="op">=</span> <span class="fu">NonlinearSystem</span>([eq], [x], [α], name<span class="op">=:</span>ns);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>The <code>name</code> argument is special. The name of the object (<code>ns</code>) is assigned through <code>=</code>, but the system must also know this same name. However, the name on the left is not known when the name on the right is needed, so it is up to the user to keep them synchronized. The <code>@named</code> macro handles this behind the scenes by simply rewriting the syntax of the assignment:</p>
-<div class="cell" data-execution_count="19">
-<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@named</span> ns <span class="op">=</span> <span class="fu">NonlinearSystem</span>([eq], [x], [α])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="20">
-<div class="ansi-escaped-output">
-<pre><span class="ansi-bold">Model ns with 1 </span><span class="ansi-bold">equations</span>
-<span class="ansi-bold">States (1):</span>
-  x
-<span class="ansi-bold">Parameters (1):</span>
-  α</pre>
-</div>
-</div>
-</div>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@named</span> ns <span class="op">=</span> <span class="fu">NonlinearSystem</span>([eq], [x], [α]);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>With the system defined, we can pass this to <code>NonlinearProblem</code>, as was done with a function. The parameter is specified here, and in this case is <code>α =&gt; 1.0</code>. The initial guess is <code>[1.0]</code>:</p>
 <div class="cell" data-execution_count="20">
 <div class="sourceCode cell-code" id="cb36"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>prob <span class="op">=</span> <span class="fu">NonlinearProblem</span>(ns, [<span class="fl">1.0</span>], [α <span class="op">=&gt;</span> <span class="fl">1.0</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1050,7 +1028,7 @@ Note
     |g(x)|                 = 0.00e+00 ≤ 1.0e-08
 
  * Work counters
-    Seconds run:   1  (vs limit Inf)
+    Seconds run:   0  (vs limit Inf)
     Iterations:    1
     f(x) calls:    2
     ∇f(x) calls:   2
@@ -1071,18 +1049,7 @@ Note
 </div>
 </div>
 <p>The above should be self explanatory. To put into a form to pass to <code>solve</code> we define a “system” by specifying our objective function, the variables, and the parameters.</p>
-<div class="cell" data-execution_count="31">
-<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@named</span> sys <span class="op">=</span> <span class="fu">OptimizationSystem</span>(Area, [x], [P])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="32">
-<div class="ansi-escaped-output">
-<pre><span class="ansi-bold">Model sys</span>
-<span class="ansi-bold">States (1):</span>
-  x
-<span class="ansi-bold">Parameters (1):</span>
-  P</pre>
-</div>
-</div>
-</div>
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@named</span> sys <span class="op">=</span> <span class="fu">OptimizationSystem</span>(Area, [x], [P]);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>(This step is different, as before an <code>OptimizationFunction</code> was defined; we use <code>@named</code>, as above, to ensure the system has the same name as the identifier, <code>sys</code>.)</p>
 <p>This system is passed to <code>OptimizationProblem</code> along with a specification of the initial condition (<span class="math inline">\(x=4\)</span>) and the perimeter (<span class="math inline">\(P=25\)</span>). A vector of pairs is used below:</p>
 <div class="cell" data-execution_count="32">
@@ -1116,7 +1083,7 @@ u0: 1-element Vector{Float64}:
 <span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@variables</span> x</span>
 <span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> Area<span class="op">/</span>x  <span class="co"># from A = xy</span></span>
 <span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> <span class="fl">2</span>x <span class="op">+</span> <span class="fl">2</span>y</span>
-<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@named</span> sys <span class="op">=</span> <span class="fu">OptimizationSystem</span>(P, [x], [Area])</span>
+<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a><span class="pp">@named</span> sys <span class="op">=</span> <span class="fu">OptimizationSystem</span>(P, [x], [Area]);</span>
 <span id="cb60-6"><a href="#cb60-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb60-7"><a href="#cb60-7" aria-hidden="true" tabindex="-1"></a>u0 <span class="op">=</span> [x <span class="op">=&gt;</span> <span class="fl">4.0</span>]</span>
 <span id="cb60-8"><a href="#cb60-8" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> [Area <span class="op">=&gt;</span> <span class="fl">25.0</span>]</span>
@@ -1270,14 +1237,12 @@ u0: 2-element Vector{Float64}:
 <hr>
 <p>As well, suppose we wanted to parameterize our function and then differentiate.</p>
 <p>Consider <span class="math inline">\(d/dp \int_0^\pi \sin(px) dx\)</span>. We can do this integral directly to get</p>
-<p><span class="math display">\[
-\begin{align*}
+<p><span class="math display">\[\begin{align*}
 \frac{d}{dp} \int_0^\pi \sin(px)dx
 &amp;= \frac{d}{dp}\left( \frac{-1}{p} \cos(px)\Big\rvert_0^\pi\right)\\
 &amp;= \frac{d}{dp}\left( -\frac{\cos(p\cdot\pi)-1}{p}\right)\\
 &amp;= \frac{\cos(p\cdot \pi) - 1)}{p^2} + \frac{\pi\cdot\sin(p\cdot\pi)}{p}
-\end{align*}
-\]</span></p>
+\end{align*}\]</span></p>
 <p>Using <code>Integrals</code> with <code>QuadGK</code> we have:</p>
 <div class="cell" data-execution_count="50">
 <div class="sourceCode cell-code" id="cb89"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb89-1"><a href="#cb89-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x, p) <span class="op">=</span> <span class="fu">sin</span>(p<span class="op">*</span>x)</span>

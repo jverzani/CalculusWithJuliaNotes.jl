@@ -651,9 +651,15 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </header>
 
 <p>This section uses these add-on packages:</p>
+<div class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">OrdinaryDiffEq</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Plots</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">ModelingToolkit</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-error">
+<pre><code>LoadError: ArgumentError: Package OrdinaryDiffEq not found in current path.
+- Run `import Pkg; Pkg.add("OrdinaryDiffEq")` to install the OrdinaryDiffEq package.</code></pre>
+</div>
+</div>
 <hr>
 <p>The <a href="https://github.com/SciML/DifferentialEquations.jl"><code>DifferentialEquations</code></a> suite of packages contains solvers for a wide range of various differential equations. This section just briefly touches touch on ordinary differential equations (ODEs), and so relies only on <code>OrdinaryDiffEq</code> part of the suite. For more detail on this type and many others covered by the suite of packages, there are many other resources, including the <a href="https://diffeq.sciml.ai/stable/">documentation</a> and accompanying <a href="https://github.com/SciML/SciMLTutorials.jl">tutorials</a>.</p>
 <section id="sir-model" class="level2" data-number="51.1">
@@ -683,18 +689,16 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 \frac{di}{dt} = b   \cdot s(t)   \cdot i(t) - k   \cdot i(t)
 \]</span></p>
 <p>The author’s apply this model to flu statistics from Hong Kong where:</p>
-<p><span class="math display">\[
-\begin{align*}
+<p><span class="math display">\[\begin{align*}
 S(0) &amp;= 7,900,000\\
 I(0) &amp;= 10\\
 R(0) &amp;= 0\\
-\end{align*}
-\]</span></p>
+\end{align*}\]</span></p>
 <p>In <code>Julia</code> we define these, <code>N</code> to model the total population, and <code>u0</code> to be the proportions.</p>
 <div class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>S0, I0, R0 <span class="op">=</span> <span class="fl">7_900_000</span>, <span class="fl">10</span>, <span class="fl">0</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>N <span class="op">=</span> S0 <span class="op">+</span> I0 <span class="op">+</span> R0</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>u0 <span class="op">=</span> [S0, I0, R0]<span class="op">/</span>N       <span class="co"># initial proportions</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>S0, I0, R0 <span class="op">=</span> <span class="fl">7_900_000</span>, <span class="fl">10</span>, <span class="fl">0</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>N <span class="op">=</span> S0 <span class="op">+</span> I0 <span class="op">+</span> R0</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>u0 <span class="op">=</span> [S0, I0, R0]<span class="op">/</span>N       <span class="co"># initial proportions</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="7">
 <pre><code>3-element Vector{Float64}:
  0.9999987341788175
@@ -706,17 +710,17 @@ R(0) &amp;= 0\\
 <p>Okay, the mathematical modeling is done; now we try to solve for the unknown functions using <code>DifferentialEquations</code>.</p>
 <p>To warm up, if <span class="math inline">\(b=0\)</span> then <span class="math inline">\(i'(t) = -k \cdot i(t)\)</span> describes the infected. (There is no circulation of people in this case.) The solution would be achieved through:</p>
 <div class="cell" data-hold="true" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="fl">3</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(u,p,t) <span class="op">=</span> <span class="op">-</span>k <span class="op">*</span> u  <span class="co"># solving  u′(t) = - k u(t)</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>time_span <span class="op">=</span> (<span class="fl">0.0</span>, <span class="fl">20.0</span>)</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>prob <span class="op">=</span> <span class="fu">ODEProblem</span>(f, I0<span class="op">/</span>N, time_span)</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>sol <span class="op">=</span> <span class="fu">solve</span>(prob, <span class="fu">Tsit5</span>(), reltol<span class="op">=</span><span class="fl">1e-8</span>, abstol<span class="op">=</span><span class="fl">1e-8</span>)</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sol)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="8">
-<p><img src="differential_equations_files/figure-html/cell-8-output-1.svg" class="img-fluid"></p>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="fl">3</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(u,p,t) <span class="op">=</span> <span class="op">-</span>k <span class="op">*</span> u  <span class="co"># solving  u′(t) = - k u(t)</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>time_span <span class="op">=</span> (<span class="fl">0.0</span>, <span class="fl">20.0</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>prob <span class="op">=</span> <span class="fu">ODEProblem</span>(f, I0<span class="op">/</span>N, time_span)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>sol <span class="op">=</span> <span class="fu">solve</span>(prob, <span class="fu">Tsit5</span>(), reltol<span class="op">=</span><span class="fl">1e-8</span>, abstol<span class="op">=</span><span class="fl">1e-8</span>)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sol)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-error">
+<pre><code>LoadError: UndefVarError: ODEProblem not defined</code></pre>
 </div>
 </div>
 <p>The <code>sol</code> object is a set of numbers with a convenient <code>plot</code> method. As may have been expected, this graph shows exponential decay.</p>
@@ -728,26 +732,24 @@ R(0) &amp;= 0\\
 <p>The problem we set up needs an initial value (the <span class="math inline">\(u0\)</span>) and a time span to solve over. Here we want time to model real time, so use floating point values.</p>
 <p>The plot shows steady decay, as there is no mixing of infected with others.</p>
 <p>Adding in the interaction requires a bit more work. We now have what is known as a <em>system</em> of equations:</p>
-<p><span class="math display">\[
-\begin{align*}
+<p><span class="math display">\[\begin{align*}
 \frac{ds}{dt} &amp;= -b   \cdot s(t)  \cdot  i(t)\\
 \frac{di}{dt} &amp;= b  \cdot  s(t)  \cdot  i(t) - k  \cdot  i(t)\\
 \frac{dr}{dt} &amp;= k  \cdot  i(t)\\
-\end{align*}
-\]</span></p>
+\end{align*}\]</span></p>
 <p>Systems of equations can be solved in a similar manner as a single ordinary differential equation, though adjustments are made to accommodate the multiple functions.</p>
 <p>We use a style that updates values in place, and note that <code>u</code> now holds <span class="math inline">\(3\)</span> different functions at once:</p>
 <div class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">sir!</span>(du, u, p, t)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    k, b <span class="op">=</span> p</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    s, i, r <span class="op">=</span> u[<span class="fl">1</span>], u[<span class="fl">2</span>], u[<span class="fl">3</span>]</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    ds <span class="op">=</span> <span class="op">-</span>b <span class="op">*</span> s <span class="op">*</span> i</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    di <span class="op">=</span>  b <span class="op">*</span> s <span class="op">*</span> i <span class="op">-</span> k <span class="op">*</span> i</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    dr <span class="op">=</span>              k <span class="op">*</span> i</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    du[<span class="fl">1</span>], du[<span class="fl">2</span>], du[<span class="fl">3</span>] <span class="op">=</span> ds, di, dr</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">sir!</span>(du, u, p, t)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    k, b <span class="op">=</span> p</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    s, i, r <span class="op">=</span> u[<span class="fl">1</span>], u[<span class="fl">2</span>], u[<span class="fl">3</span>]</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    ds <span class="op">=</span> <span class="op">-</span>b <span class="op">*</span> s <span class="op">*</span> i</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    di <span class="op">=</span>  b <span class="op">*</span> s <span class="op">*</span> i <span class="op">-</span> k <span class="op">*</span> i</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    dr <span class="op">=</span>              k <span class="op">*</span> i</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    du[<span class="fl">1</span>], du[<span class="fl">2</span>], du[<span class="fl">3</span>] <span class="op">=</span> ds, di, dr</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="9">
 <pre><code>sir! (generic function with 1 method)</code></pre>
 </div>
@@ -768,76 +770,76 @@ Mutation not re-binding
 </div>
 <p>With the update function defined, the problem is setup and a solution found with in the same manner:</p>
 <div class="cell" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> (k<span class="op">=</span><span class="fl">1</span><span class="op">/</span><span class="fl">3</span>, b<span class="op">=</span><span class="fl">1</span><span class="op">/</span><span class="fl">2</span>)        <span class="co"># parameters</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>time_span <span class="op">=</span> (<span class="fl">0.0</span>, <span class="fl">150.0</span>)  <span class="co"># time span to solve over, 5 months</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>prob <span class="op">=</span> <span class="fu">ODEProblem</span>(sir!, u0, time_span, p)</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>sol <span class="op">=</span> <span class="fu">solve</span>(prob, <span class="fu">Tsit5</span>())</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sol)</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(x <span class="op">-&gt;</span> <span class="fl">0.5</span>, linewidth<span class="op">=</span><span class="fl">2</span>) <span class="co"># mark 50% line</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="10">
-<p><img src="differential_equations_files/figure-html/cell-10-output-1.svg" class="img-fluid"></p>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> (k<span class="op">=</span><span class="fl">1</span><span class="op">/</span><span class="fl">3</span>, b<span class="op">=</span><span class="fl">1</span><span class="op">/</span><span class="fl">2</span>)        <span class="co"># parameters</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>time_span <span class="op">=</span> (<span class="fl">0.0</span>, <span class="fl">150.0</span>)  <span class="co"># time span to solve over, 5 months</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>prob <span class="op">=</span> <span class="fu">ODEProblem</span>(sir!, u0, time_span, p)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>sol <span class="op">=</span> <span class="fu">solve</span>(prob, <span class="fu">Tsit5</span>())</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sol)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(x <span class="op">-&gt;</span> <span class="fl">0.5</span>, linewidth<span class="op">=</span><span class="fl">2</span>) <span class="co"># mark 50% line</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-error">
+<pre><code>LoadError: UndefVarError: ODEProblem not defined</code></pre>
 </div>
 </div>
 <p>The lower graph shows the number of infected at each day over the five-month period displayed. The peak is around 6-7% of the population at any one time. However, over time the recovered part of the population reaches over 50%, meaning more than half the population is modeled as getting sick.</p>
 <p>Now we change the parameter <span class="math inline">\(b\)</span> and observe the difference. We passed in a value <code>p</code> holding our two parameters, so we just need to change that and run the model again:</p>
 <div class="cell" data-hold="true" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> (k<span class="op">=</span><span class="fl">1</span><span class="op">/</span><span class="fl">2</span>, b<span class="op">=</span><span class="fl">2</span>) <span class="co"># change b from 1/2 to 2 -- more daily contact</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>prob <span class="op">=</span> <span class="fu">ODEProblem</span>(sir!, u0, time_span, p)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>sol <span class="op">=</span> <span class="fu">solve</span>(prob, <span class="fu">Tsit5</span>())</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sol)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="11">
-<p><img src="differential_equations_files/figure-html/cell-11-output-1.svg" class="img-fluid"></p>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> (k<span class="op">=</span><span class="fl">1</span><span class="op">/</span><span class="fl">2</span>, b<span class="op">=</span><span class="fl">2</span>) <span class="co"># change b from 1/2 to 2 -- more daily contact</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>prob <span class="op">=</span> <span class="fu">ODEProblem</span>(sir!, u0, time_span, p)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>sol <span class="op">=</span> <span class="fu">solve</span>(prob, <span class="fu">Tsit5</span>())</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sol)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-error">
+<pre><code>LoadError: UndefVarError: ODEProblem not defined</code></pre>
 </div>
 </div>
 <p>The graphs are somewhat similar, but the steady state is reached much more quickly and nearly everyone became infected.</p>
 <p>What about if <span class="math inline">\(k\)</span> were bigger?</p>
 <div class="cell" data-hold="true" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> (k<span class="op">=</span><span class="fl">2</span><span class="op">/</span><span class="fl">3</span>, b<span class="op">=</span><span class="fl">1</span><span class="op">/</span><span class="fl">2</span>)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>prob <span class="op">=</span> <span class="fu">ODEProblem</span>(sir!, u0, time_span, p)</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>sol <span class="op">=</span> <span class="fu">solve</span>(prob, <span class="fu">Tsit5</span>())</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sol)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="12">
-<p><img src="differential_equations_files/figure-html/cell-12-output-1.svg" class="img-fluid"></p>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> (k<span class="op">=</span><span class="fl">2</span><span class="op">/</span><span class="fl">3</span>, b<span class="op">=</span><span class="fl">1</span><span class="op">/</span><span class="fl">2</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>prob <span class="op">=</span> <span class="fu">ODEProblem</span>(sir!, u0, time_span, p)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>sol <span class="op">=</span> <span class="fu">solve</span>(prob, <span class="fu">Tsit5</span>())</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sol)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-error">
+<pre><code>LoadError: UndefVarError: ODEProblem not defined</code></pre>
 </div>
 </div>
 <p>The graphs show that under these conditions the infections never take off; we have <span class="math inline">\(i' = (b\cdot s-k)i = k\cdot((b/k) s - 1) i\)</span> which is always negative, since <code>(b/k)s &lt; 1</code>, so infections will only decay.</p>
 <p>The solution object is indexed by time, then has the <code>s</code>, <code>i</code>, <code>r</code> estimates. We use this structure below to return the estimated proportion of recovered individuals at the end of the time span.</p>
 <div class="cell" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">recovered</span>(k,b)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    prob <span class="op">=</span> <span class="fu">ODEProblem</span>(sir!, u0, time_span, (k,b));</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    sol <span class="op">=</span> <span class="fu">solve</span>(prob, <span class="fu">Tsit5</span>());</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    s,i,r <span class="op">=</span> <span class="fu">last</span>(sol)</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    r</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">recovered</span>(k,b)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    prob <span class="op">=</span> <span class="fu">ODEProblem</span>(sir!, u0, time_span, (k,b));</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    sol <span class="op">=</span> <span class="fu">solve</span>(prob, <span class="fu">Tsit5</span>());</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    s,i,r <span class="op">=</span> <span class="fu">last</span>(sol)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    r</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="13">
 <pre><code>recovered (generic function with 1 method)</code></pre>
 </div>
 </div>
 <p>This function makes it easy to see the impact of changing the parameters. For example, fixing <span class="math inline">\(k=1/3\)</span> we have:</p>
 <div class="cell" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(b) <span class="op">=</span> <span class="fu">recovered</span>(<span class="fl">1</span><span class="op">/</span><span class="fl">3</span>, b)</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(f, <span class="fl">0</span>, <span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="14">
-<p><img src="differential_equations_files/figure-html/cell-14-output-1.svg" class="img-fluid"></p>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(b) <span class="op">=</span> <span class="fu">recovered</span>(<span class="fl">1</span><span class="op">/</span><span class="fl">3</span>, b)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(f, <span class="fl">0</span>, <span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-error">
+<pre><code>LoadError: UndefVarError: plot not defined</code></pre>
 </div>
 </div>
 <p>This very clearly shows the sharp dependence on the value of <span class="math inline">\(b\)</span>; below some level, the proportion of people who are ever infected (the recovered cohort) remains near <span class="math inline">\(0\)</span>; above that level it can climb quickly towards <span class="math inline">\(1\)</span>.</p>
 <p>The function <code>recovered</code> is of two variables returning a single value. In subsequent sections we will see a few <span class="math inline">\(3\)</span>-dimensional plots that are common for such functions, here we skip ahead and show how to visualize multiple function plots at once using “<code>z</code>” values in a graph.</p>
 <div class="cell" data-hold="true" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>k, ks <span class="op">=</span> <span class="fl">0.1</span>, <span class="fl">0.2</span><span class="op">:</span><span class="fl">0.1</span><span class="op">:</span><span class="fl">0.9</span>  <span class="co"># first `k` and then the rest</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>bs <span class="op">=</span> <span class="fu">range</span>(<span class="fl">0</span>, <span class="fl">2</span>, length<span class="op">=</span><span class="fl">100</span>)</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>zs <span class="op">=</span> <span class="fu">recovered</span>.(k, bs)    <span class="co"># find values for fixed k, each of bs</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="fu">plot</span>(bs, <span class="fu">k*one</span>.(bs), zs, legend<span class="op">=</span><span class="cn">false</span>)  <span class="co"># k*one.(ks) is [k,k,...,k]</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k <span class="kw">in</span> ks</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot!</span>(p, bs, <span class="fu">k*one</span>.(bs), <span class="fu">recovered</span>.(k, bs))</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>p</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="15">
-<p><img src="differential_equations_files/figure-html/cell-15-output-1.svg" class="img-fluid"></p>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>k, ks <span class="op">=</span> <span class="fl">0.1</span>, <span class="fl">0.2</span><span class="op">:</span><span class="fl">0.1</span><span class="op">:</span><span class="fl">0.9</span>  <span class="co"># first `k` and then the rest</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>bs <span class="op">=</span> <span class="fu">range</span>(<span class="fl">0</span>, <span class="fl">2</span>, length<span class="op">=</span><span class="fl">100</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>zs <span class="op">=</span> <span class="fu">recovered</span>.(k, bs)    <span class="co"># find values for fixed k, each of bs</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="fu">plot</span>(bs, <span class="fu">k*one</span>.(bs), zs, legend<span class="op">=</span><span class="cn">false</span>)  <span class="co"># k*one.(ks) is [k,k,...,k]</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k <span class="kw">in</span> ks</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot!</span>(p, bs, <span class="fu">k*one</span>.(bs), <span class="fu">recovered</span>.(k, bs))</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>p</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-error">
+<pre><code>LoadError: UndefVarError: ODEProblem not defined</code></pre>
 </div>
 </div>
 <p>The 3-dimensional graph with <code>plotly</code> can have its viewing angle adjusted with the mouse. When looking down on the <span class="math inline">\(x-y\)</span> plane, which code <code>b</code> and <code>k</code>, we can see the rapid growth along a line related to <span class="math inline">\(b/k\)</span>.</p>
@@ -853,27 +855,25 @@ Mutation not re-binding
 <h2 data-number="51.2" class="anchored" data-anchor-id="trajectory-with-drag"><span class="header-section-number">51.2</span> Trajectory with drag</h2>
 <p>We now solve numerically the problem of a trajectory with a drag force from air resistance.</p>
 <p>The general model is:</p>
-<p><span class="math display">\[
-\begin{align*}
+<p><span class="math display">\[\begin{align*}
 x''(t) &amp;= - W(t,x(t), x'(t), y(t), y'(t)) \cdot x'(t)\\
 y''(t) &amp;= -g - W(t,x(t), x'(t), y(t), y'(t)) \cdot y'(t)\\
-\end{align*}
-\]</span></p>
+\end{align*}\]</span></p>
 <p>with initial conditions: <span class="math inline">\(x(0) = y(0) = 0\)</span> and <span class="math inline">\(x'(0) = v_0 \cos(\theta), y'(0) = v_0 \sin(\theta)\)</span>.</p>
 <p>This is turned into an ODE by a standard trick. Here we define our function for updating a step. As can be seen the vector <code>u</code> contains both <span class="math inline">\(\langle x,y \rangle\)</span> and <span class="math inline">\(\langle x',y' \rangle\)</span></p>
 <div class="cell" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">xy!</span>(du, u, p, t)</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    g, γ <span class="op">=</span> p.g, p.k</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    x, y <span class="op">=</span> u[<span class="fl">1</span>], u[<span class="fl">2</span>]</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    x′, y′ <span class="op">=</span> u[<span class="fl">3</span>], u[<span class="fl">4</span>]  <span class="co"># unicode \prime[tab]</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    W <span class="op">=</span> γ</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    du[<span class="fl">1</span>] <span class="op">=</span> x′</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    du[<span class="fl">2</span>] <span class="op">=</span> y′</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    du[<span class="fl">3</span>] <span class="op">=</span>  <span class="fl">0</span> <span class="op">-</span> W <span class="op">*</span> x′</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    du[<span class="fl">4</span>] <span class="op">=</span> <span class="op">-</span>g <span class="op">-</span> W <span class="op">*</span> y′</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">xy!</span>(du, u, p, t)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>    g, γ <span class="op">=</span> p.g, p.k</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    x, y <span class="op">=</span> u[<span class="fl">1</span>], u[<span class="fl">2</span>]</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>    x′, y′ <span class="op">=</span> u[<span class="fl">3</span>], u[<span class="fl">4</span>]  <span class="co"># unicode \prime[tab]</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    W <span class="op">=</span> γ</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>    du[<span class="fl">1</span>] <span class="op">=</span> x′</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    du[<span class="fl">2</span>] <span class="op">=</span> y′</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>    du[<span class="fl">3</span>] <span class="op">=</span>  <span class="fl">0</span> <span class="op">-</span> W <span class="op">*</span> x′</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>    du[<span class="fl">4</span>] <span class="op">=</span> <span class="op">-</span>g <span class="op">-</span> W <span class="op">*</span> y′</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="16">
 <pre><code>xy! (generic function with 1 method)</code></pre>
 </div>
@@ -894,11 +894,11 @@ A second-order ODE is a coupled first-order ODE
 </div>
 <p>The initial conditions are specified through:</p>
 <div class="cell" data-execution_count="16">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>θ <span class="op">=</span> <span class="cn">pi</span><span class="op">/</span><span class="fl">4</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>v₀ <span class="op">=</span> <span class="fl">200</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>xy₀ <span class="op">=</span> [<span class="fl">0.0</span>, <span class="fl">0.0</span>]</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>vxy₀ <span class="op">=</span> v₀ <span class="op">*</span> [<span class="fu">cos</span>(θ), <span class="fu">sin</span>(θ)]</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>INITIAL <span class="op">=</span> <span class="fu">vcat</span>(xy₀, vxy₀)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>θ <span class="op">=</span> <span class="cn">pi</span><span class="op">/</span><span class="fl">4</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>v₀ <span class="op">=</span> <span class="fl">200</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>xy₀ <span class="op">=</span> [<span class="fl">0.0</span>, <span class="fl">0.0</span>]</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>vxy₀ <span class="op">=</span> v₀ <span class="op">*</span> [<span class="fu">cos</span>(θ), <span class="fu">sin</span>(θ)]</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>INITIAL <span class="op">=</span> <span class="fu">vcat</span>(xy₀, vxy₀)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="17">
 <pre><code>4-element Vector{Float64}:
    0.0
@@ -909,88 +909,81 @@ A second-order ODE is a coupled first-order ODE
 </div>
 <p>The time span can be computed using an <em>upper</em> bound of no drag, for which the classic physics formulas give (when <span class="math inline">\(y_0=0\)</span>) <span class="math inline">\((0, 2v_{y0}/g)\)</span></p>
 <div class="cell" data-execution_count="17">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> <span class="fl">9.8</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>TSPAN <span class="op">=</span> (<span class="fl">0</span>, <span class="fl">2</span><span class="op">*</span>vxy₀[<span class="fl">2</span>] <span class="op">/</span> g)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> <span class="fl">9.8</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>TSPAN <span class="op">=</span> (<span class="fl">0</span>, <span class="fl">2</span><span class="op">*</span>vxy₀[<span class="fl">2</span>] <span class="op">/</span> g)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="18">
 <pre><code>(0, 28.8615012729203)</code></pre>
 </div>
 </div>
 <p>This allows us to define an <code>ODEProblem</code>:</p>
 <div class="cell" data-execution_count="18">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>trajectory_problem <span class="op">=</span> <span class="fu">ODEProblem</span>(xy!, INITIAL, TSPAN)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="19">
-<div class="ansi-escaped-output">
-<pre><span class="ansi-cyan-fg">ODEProblem</span> with uType <span class="ansi-cyan-fg">Vector{Float64}</span> and tType <span class="ansi-cyan-fg">Float64</span>. In-place: <span class="ansi-cyan-fg">true</span>
-timespan: (0.0, 28.8615012729203)
-u0: 4-element Vector{Float64}:
-   0.0
-   0.0
- 141.4213562373095
- 141.42135623730948</pre>
-</div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>trajectory_problem <span class="op">=</span> <span class="fu">ODEProblem</span>(xy!, INITIAL, TSPAN)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-error">
+<pre><code>LoadError: UndefVarError: ODEProblem not defined</code></pre>
 </div>
 </div>
 <p>When <span class="math inline">\(\gamma = 0\)</span> there should be no drag and we expect to see a parabola:</p>
 <div class="cell" data-hold="true" data-execution_count="19">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>ps <span class="op">=</span> (g<span class="op">=</span><span class="fl">9.8</span>, k<span class="op">=</span><span class="fl">0</span>)</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>SOL <span class="op">=</span> <span class="fu">solve</span>(trajectory_problem, <span class="fu">Tsit5</span>(); p <span class="op">=</span> ps)</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(t <span class="op">-&gt;</span> <span class="fu">SOL</span>(t)[<span class="fl">1</span>], t <span class="op">-&gt;</span> <span class="fu">SOL</span>(t)[<span class="fl">2</span>], TSPAN<span class="op">...</span>; legend<span class="op">=</span><span class="cn">false</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="20">
-<p><img src="differential_equations_files/figure-html/cell-20-output-1.svg" class="img-fluid"></p>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>ps <span class="op">=</span> (g<span class="op">=</span><span class="fl">9.8</span>, k<span class="op">=</span><span class="fl">0</span>)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>SOL <span class="op">=</span> <span class="fu">solve</span>(trajectory_problem, <span class="fu">Tsit5</span>(); p <span class="op">=</span> ps)</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(t <span class="op">-&gt;</span> <span class="fu">SOL</span>(t)[<span class="fl">1</span>], t <span class="op">-&gt;</span> <span class="fu">SOL</span>(t)[<span class="fl">2</span>], TSPAN<span class="op">...</span>; legend<span class="op">=</span><span class="cn">false</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-error">
+<pre><code>LoadError: UndefVarError: Tsit5 not defined</code></pre>
 </div>
 </div>
 <p>The plot is a parametric plot of the <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> parts of the solution over the time span. We can see the expected parabolic shape.</p>
 <p>On a <em>windy</em> day, the value of <span class="math inline">\(k\)</span> would be positive. Repeating the above with <span class="math inline">\(k=1/4\)</span> gives:</p>
 <div class="cell" data-hold="true" data-execution_count="20">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>ps <span class="op">=</span> (g<span class="op">=</span><span class="fl">9.8</span>, k<span class="op">=</span><span class="fl">1</span><span class="op">/</span><span class="fl">4</span>)</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>SOL <span class="op">=</span> <span class="fu">solve</span>(trajectory_problem, <span class="fu">Tsit5</span>(); p <span class="op">=</span> ps)</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(t <span class="op">-&gt;</span> <span class="fu">SOL</span>(t)[<span class="fl">1</span>], t <span class="op">-&gt;</span> <span class="fu">SOL</span>(t)[<span class="fl">2</span>], TSPAN<span class="op">...</span>; legend<span class="op">=</span><span class="cn">false</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="21">
-<p><img src="differential_equations_files/figure-html/cell-21-output-1.svg" class="img-fluid"></p>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>ps <span class="op">=</span> (g<span class="op">=</span><span class="fl">9.8</span>, k<span class="op">=</span><span class="fl">1</span><span class="op">/</span><span class="fl">4</span>)</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>SOL <span class="op">=</span> <span class="fu">solve</span>(trajectory_problem, <span class="fu">Tsit5</span>(); p <span class="op">=</span> ps)</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(t <span class="op">-&gt;</span> <span class="fu">SOL</span>(t)[<span class="fl">1</span>], t <span class="op">-&gt;</span> <span class="fu">SOL</span>(t)[<span class="fl">2</span>], TSPAN<span class="op">...</span>; legend<span class="op">=</span><span class="cn">false</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-error">
+<pre><code>LoadError: UndefVarError: Tsit5 not defined</code></pre>
 </div>
 </div>
 <p>We see that the <span class="math inline">\(y\)</span> values have gone negative. The <code>DifferentialEquations</code> package can adjust for that with a <em>callback</em> which terminates the problem once <span class="math inline">\(y\)</span> has gone negative. This can be implemented as follows:</p>
 <div class="cell" data-hold="true" data-execution_count="21">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">condition</span>(u,t,integrator) <span class="op">=</span> u[<span class="fl">2</span>] <span class="co"># called when `u[2]` is negative</span></span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">affect!</span>(integrator) <span class="op">=</span> <span class="fu">terminate!</span>(integrator) <span class="co"># stop the process</span></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>cb <span class="op">=</span> <span class="fu">ContinuousCallback</span>(condition, affect!)</span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>ps <span class="op">=</span> (g<span class="op">=</span><span class="fl">9.8</span>, k <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="fl">4</span>)</span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>SOL <span class="op">=</span> <span class="fu">solve</span>(trajectory_problem, <span class="fu">Tsit5</span>(); p <span class="op">=</span> ps, callback<span class="op">=</span>cb)</span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(t <span class="op">-&gt;</span> <span class="fu">SOL</span>(t)[<span class="fl">1</span>], t <span class="op">-&gt;</span> <span class="fu">SOL</span>(t)[<span class="fl">2</span>], TSPAN<span class="op">...</span>; legend<span class="op">=</span><span class="cn">false</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="22">
-<p><img src="differential_equations_files/figure-html/cell-22-output-1.svg" class="img-fluid"></p>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">condition</span>(u,t,integrator) <span class="op">=</span> u[<span class="fl">2</span>] <span class="co"># called when `u[2]` is negative</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">affect!</span>(integrator) <span class="op">=</span> <span class="fu">terminate!</span>(integrator) <span class="co"># stop the process</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>cb <span class="op">=</span> <span class="fu">ContinuousCallback</span>(condition, affect!)</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>ps <span class="op">=</span> (g<span class="op">=</span><span class="fl">9.8</span>, k <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="fl">4</span>)</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>SOL <span class="op">=</span> <span class="fu">solve</span>(trajectory_problem, <span class="fu">Tsit5</span>(); p <span class="op">=</span> ps, callback<span class="op">=</span>cb)</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(t <span class="op">-&gt;</span> <span class="fu">SOL</span>(t)[<span class="fl">1</span>], t <span class="op">-&gt;</span> <span class="fu">SOL</span>(t)[<span class="fl">2</span>], TSPAN<span class="op">...</span>; legend<span class="op">=</span><span class="cn">false</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-error">
+<pre><code>LoadError: UndefVarError: ContinuousCallback not defined</code></pre>
 </div>
 </div>
 <p>Finally, we note that the <code>ModelingToolkit</code> package provides symbolic-numeric computing. This allows the equations to be set up symbolically, as in <code>SymPy</code> before being passed off to <code>DifferentialEquations</code> to solve numerically. The above example with no wind resistance could be translated into the following:</p>
 <div class="cell" data-hold="true" data-execution_count="22">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@parameters</span> t γ g</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@variables</span> <span class="fu">x</span>(t) <span class="fu">y</span>(t)</span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>D <span class="op">=</span> <span class="fu">Differential</span>(t)</span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>eqs <span class="op">=</span> [<span class="fu">D</span>(<span class="fu">D</span>(x)) <span class="op">~</span> <span class="op">-</span>γ <span class="op">*</span> <span class="fu">D</span>(x),</span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>       <span class="fu">D</span>(<span class="fu">D</span>(y)) <span class="op">~</span> <span class="op">-</span>g <span class="op">-</span> γ <span class="op">*</span> <span class="fu">D</span>(y)]</span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@named</span> sys <span class="op">=</span> <span class="fu">ODESystem</span>(eqs)</span>
-<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>sys <span class="op">=</span> <span class="fu">ode_order_lowering</span>(sys) <span class="co"># turn 2nd order into 1st</span></span>
-<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>u0 <span class="op">=</span> [<span class="fu">D</span>(x) <span class="op">=&gt;</span> vxy₀[<span class="fl">1</span>],</span>
-<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">D</span>(y) <span class="op">=&gt;</span> vxy₀[<span class="fl">2</span>],</span>
-<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>      x <span class="op">=&gt;</span> <span class="fl">0.0</span>,</span>
-<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>      y <span class="op">=&gt;</span> <span class="fl">0.0</span>]</span>
-<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>p  <span class="op">=</span> [γ <span class="op">=&gt;</span> <span class="fl">0.0</span>,</span>
-<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>      g <span class="op">=&gt;</span> <span class="fl">9.8</span>]</span>
-<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>prob <span class="op">=</span> <span class="fu">ODEProblem</span>(sys, u0, TSPAN, p, jac<span class="op">=</span><span class="cn">true</span>)</span>
-<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>sol <span class="op">=</span> <span class="fu">solve</span>(prob,<span class="fu">Tsit5</span>())</span>
-<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(t <span class="op">-&gt;</span> <span class="fu">sol</span>(t)[<span class="fl">3</span>], t <span class="op">-&gt;</span> <span class="fu">sol</span>(t)[<span class="fl">4</span>], TSPAN<span class="op">...</span>, legend<span class="op">=</span><span class="cn">false</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="23">
-<p><img src="differential_equations_files/figure-html/cell-23-output-1.svg" class="img-fluid"></p>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@parameters</span> t γ g</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@variables</span> <span class="fu">x</span>(t) <span class="fu">y</span>(t)</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>D <span class="op">=</span> <span class="fu">Differential</span>(t)</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>eqs <span class="op">=</span> [<span class="fu">D</span>(<span class="fu">D</span>(x)) <span class="op">~</span> <span class="op">-</span>γ <span class="op">*</span> <span class="fu">D</span>(x),</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>       <span class="fu">D</span>(<span class="fu">D</span>(y)) <span class="op">~</span> <span class="op">-</span>g <span class="op">-</span> γ <span class="op">*</span> <span class="fu">D</span>(y)]</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a><span class="pp">@named</span> sys <span class="op">=</span> <span class="fu">ODESystem</span>(eqs)</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>sys <span class="op">=</span> <span class="fu">ode_order_lowering</span>(sys) <span class="co"># turn 2nd order into 1st</span></span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>u0 <span class="op">=</span> [<span class="fu">D</span>(x) <span class="op">=&gt;</span> vxy₀[<span class="fl">1</span>],</span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">D</span>(y) <span class="op">=&gt;</span> vxy₀[<span class="fl">2</span>],</span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>      x <span class="op">=&gt;</span> <span class="fl">0.0</span>,</span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>      y <span class="op">=&gt;</span> <span class="fl">0.0</span>]</span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>p  <span class="op">=</span> [γ <span class="op">=&gt;</span> <span class="fl">0.0</span>,</span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>      g <span class="op">=&gt;</span> <span class="fl">9.8</span>]</span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a>prob <span class="op">=</span> <span class="fu">ODEProblem</span>(sys, u0, TSPAN, p, jac<span class="op">=</span><span class="cn">true</span>)</span>
+<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a>sol <span class="op">=</span> <span class="fu">solve</span>(prob,<span class="fu">Tsit5</span>())</span>
+<span id="cb35-21"><a href="#cb35-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-22"><a href="#cb35-22" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(t <span class="op">-&gt;</span> <span class="fu">sol</span>(t)[<span class="fl">3</span>], t <span class="op">-&gt;</span> <span class="fu">sol</span>(t)[<span class="fl">4</span>], TSPAN<span class="op">...</span>, legend<span class="op">=</span><span class="cn">false</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-error">
+<pre><code>LoadError: LoadError: UndefVarError: @parameters not defined
+in expression starting at In[23]:1</code></pre>
 </div>
 </div>
 <p>The toolkit will automatically generate fast functions and can perform transformations (such as is done by <code>ode_order_lowering</code>) before passing along to the numeric solves.</p>
