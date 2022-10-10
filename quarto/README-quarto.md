@@ -84,7 +84,7 @@ DONE * modify sympy's show method
 
 ## TODO
 
-
+* ImageFile -> ![]() as much as possible
 * use pandoc references(?)
 * mermaid, ojs?
 
