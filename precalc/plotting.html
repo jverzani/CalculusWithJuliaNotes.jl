@@ -1071,6 +1071,80 @@ Warning
 <li><code>scatter(..., marker=:square)</code>: change the marker (uses a symbol, not a string to specify)</li>
 </ul>
 <p>Of course, zero, one, or more of these can be used on any given call to <code>plot</code>, <code>plot!</code>, <code>scatter</code> or <code>scatter!</code>.</p>
+<section id="example-bresenhams-algorithm" class="level4">
+<h4 class="anchored" data-anchor-id="example-bresenhams-algorithm">Example: Bresenham’s algorithm</h4>
+<p>In plotting a primitive, like a line, some mapping of the mathematical object to a collection of pixels must be made. For the case of a line <a href="https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm">Bresenhams’s line algorithm</a> can be used.</p>
+<p>In the simplest case, let’s assume a few things:</p>
+<ul>
+<li>we have a line with slope <span class="math inline">\(-1 &lt; m &lt; 0\)</span>.</li>
+<li>the pixels have integer coordinates (e.g., the pixel <span class="math inline">\((1, -1)\)</span> would cover the region <span class="math inline">\([1,2] \times [-1, -2]\)</span> when lit.)</li>
+<li>we start at point <span class="math inline">\((x_0, y_0)\)</span>, <span class="math inline">\(f(x_0) = y_0\)</span>, with integer coordinates and end a point <span class="math inline">\((x_1, y_1)\)</span>, also with integer coordinates. The pixel <span class="math inline">\((x_0,y_0)\)</span> is lit.</li>
+</ul>
+<p>With these assumptions, we have an initial decision to make:</p>
+<blockquote class="blockquote">
+<p>moving to the right, is the pixel <span class="math inline">\((x_0+1, y_0)\)</span> or <span class="math inline">\((x_0 + 1, y_0 - 1)\)</span> lit?</p>
+</blockquote>
+<p>We re-express our equation <span class="math inline">\(y=f(x)= mx+b\)</span> in general form <span class="math inline">\(f(x,y) = 0 = Ax + By + C\)</span>. Using the other point on the line <span class="math inline">\(A=-(y_1-y_0)\)</span>, <span class="math inline">\(B=(x_1-x_0)\)</span>, and <span class="math inline">\(C = -x_1y_0 + x_0 y_1\)</span>. In particular, by assumption both <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span> are positive.</p>
+<p>With this, we have <span class="math inline">\(f(x_0,y_0) = 0\)</span>. But moreover, any point with <span class="math inline">\(y&gt;y_0\)</span> will have <span class="math inline">\(f(x_0,y)&gt;0\)</span> and if <span class="math inline">\(y &lt; y_0\)</span> the opposite. That is this equation divides the plane into two pieces depending on whether <span class="math inline">\(f\)</span> is positive, the line is the dividing boundary.</p>
+<p>For the algorithm, we start at <span class="math inline">\((x_0, y_0)\)</span> and ask if the pixel <span class="math inline">\((x_0 + 1, y_0)\)</span> or <span class="math inline">\((x_0 + 1, y_0 - 1)\)</span> will be lit, then we continue to the right.</p>
+<p>To check, we ask if <span class="math inline">\(f(x_0 + 1, y_0 - 1/2)\)</span> is positive. If so, then the actual line is below this value so the pixel below is chosen. Otherwise, the pixel above is chosen.</p>
+<p>This last check can be done a bit more efficiently, but for now let’s see it in action:</p>
+<div class="cell" data-execution_count="34">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> <span class="fu">-</span>(<span class="fl">1</span><span class="op">/</span><span class="fl">3</span>) <span class="op">*</span> x <span class="op">+</span> <span class="fl">1</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>x₀, x₁ <span class="op">=</span> <span class="fl">0</span>, <span class="fl">14</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>y₀, y₁ <span class="op">=</span> <span class="fu">f</span>(x₀), <span class="fu">f</span>(x₁)</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>A,B,C <span class="op">=</span> <span class="fu">-</span>(y₁ <span class="op">-</span> y₀), (x₁<span class="op">-</span>x₀), <span class="op">-</span>x₁<span class="op">*</span>y₀ <span class="op">+</span> x₀<span class="op">*</span>y₁</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x,y) <span class="op">=</span> A<span class="op">*</span>x <span class="op">+</span> B<span class="op">*</span>y <span class="op">+</span> C</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> [(x₀, y₀)]</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="op">∈</span> <span class="fl">1</span><span class="op">:</span>(x₁ <span class="op">-</span> <span class="fl">1</span>)</span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>    xᵢ, yᵢ <span class="op">=</span> xs[<span class="kw">end</span>]</span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>    xᵢ₊₁ <span class="op">=</span> xᵢ <span class="op">+</span> <span class="fl">1</span></span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>    Δ <span class="op">=</span> <span class="fu">f</span>(xᵢ<span class="op">+</span><span class="fl">1</span>, yᵢ<span class="op">-</span><span class="fl">1</span><span class="op">/</span><span class="fl">2</span>) <span class="op">&gt;</span> <span class="fl">0</span> ? <span class="fl">1</span> <span class="op">:</span> <span class="fl">0</span></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>    yᵢ₊₁ <span class="op">=</span> yᵢ <span class="op">-</span> Δ</span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">push!</span>(xs, (xᵢ₊₁, yᵢ₊₁))</span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a>xs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="34">
+<pre><code>14-element Vector{Tuple{Int64, Float64}}:
+ (0, 1.0)
+ (1, 1.0)
+ (2, 0.0)
+ (3, 0.0)
+ (4, 0.0)
+ (5, -1.0)
+ (6, -1.0)
+ (7, -1.0)
+ (8, -2.0)
+ (9, -2.0)
+ (10, -2.0)
+ (11, -3.0)
+ (12, -3.0)
+ (13, -3.0)</code></pre>
+</div>
+</div>
+<p>We can visualize with the following:</p>
+<div class="cell" data-execution_count="35">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="fu">plot</span>(f, x₀, x₁; legend<span class="op">=</span><span class="cn">false</span>, aspect_ratio<span class="op">=:</span>equal,</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>         xticks<span class="op">=</span><span class="fl">0</span><span class="op">:</span>x₁,  yticks <span class="op">=</span> (<span class="fu">floor</span>(<span class="dt">Int</span>, <span class="fu">f</span>(x₁))<span class="op">-</span><span class="fl">1</span>)<span class="op">:</span>(<span class="fl">1</span> <span class="op">+</span> <span class="fu">ceil</span>(<span class="dt">Int</span>, <span class="fu">f</span>(x₀))))</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>col <span class="op">=</span> <span class="fu">RGBA</span>(<span class="fl">.64</span>,<span class="fl">.64</span>,<span class="fl">.64</span>, <span class="fl">0.25</span>)</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> xy <span class="op">∈</span> xs</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>    x, y <span class="op">=</span> xy</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scatter!</span>([x], [y]; markersize<span class="op">=</span><span class="fl">5</span>)</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scatter!</span>([x<span class="op">+</span><span class="fl">1</span>], [y <span class="op">-</span> <span class="fl">1</span><span class="op">/</span><span class="fl">2</span>], markersize<span class="op">=</span><span class="fl">5</span>, markershape<span class="op">=:</span>star7)</span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot!</span>(<span class="fu">Shape</span>(x <span class="op">.+</span> [<span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">0</span>], y <span class="op">.+</span> [<span class="fl">0</span>, <span class="fl">0</span>, <span class="op">-</span><span class="fl">1</span>, <span class="op">-</span><span class="fl">1</span>]), color<span class="op">=</span>col)</span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>p</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="35">
+<p><img src="plotting_files/figure-html/cell-36-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>We see a number of additional arguments used: different marker sizes and shapes and a transparent color. As well, the <code>Shape</code> primitive is used to represent a pixel.</p>
+<p>Of course, generalizations for positive slope and slope with magnitude greater than <span class="math inline">\(1\)</span> are needed. As well, this basic algorithm could be optimized, especially if it is part of a lower-level drawing primitive. But this illustrates the considerations involved.</p>
+</section>
 </section>
 <section id="graphs-of-parametric-equations" class="level2" data-number="8.5">
 <h2 data-number="8.5" class="anchored" data-anchor-id="graphs-of-parametric-equations"><span class="header-section-number">8.5</span> Graphs of parametric equations</h2>
@@ -1079,57 +1153,57 @@ Warning
 <section id="example" class="level5">
 <h5 class="anchored" data-anchor-id="example">Example</h5>
 <p>The most “famous” parametric graph is one that is likely already familiar, as it follows the parametrization of points on the unit circle by the angle made between the <span class="math inline">\(x\)</span> axis and the ray from the origin through the point. (If not familiar, this will soon be discussed in these notes.)</p>
-<div class="cell" data-execution_count="34">
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">𝒇</span>(x) <span class="op">=</span> <span class="fu">cos</span>(x); <span class="fu">𝒈</span>(x) <span class="op">=</span> <span class="fu">sin</span>(x)</span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>𝒕s <span class="op">=</span> <span class="fu">range</span>(<span class="fl">0</span>, <span class="fl">2</span>pi, length<span class="op">=</span><span class="fl">100</span>)</span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">𝒇</span>.(𝒕s), <span class="fu">𝒈</span>.(𝒕s), aspect_ratio<span class="op">=:</span>equal)   <span class="co"># make equal axes</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="34">
-<p><img src="plotting_files/figure-html/cell-35-output-1.svg" class="img-fluid"></p>
+<div class="cell" data-execution_count="36">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">𝒇</span>(x) <span class="op">=</span> <span class="fu">cos</span>(x); <span class="fu">𝒈</span>(x) <span class="op">=</span> <span class="fu">sin</span>(x)</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>𝒕s <span class="op">=</span> <span class="fu">range</span>(<span class="fl">0</span>, <span class="fl">2</span>pi, length<span class="op">=</span><span class="fl">100</span>)</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">𝒇</span>.(𝒕s), <span class="fu">𝒈</span>.(𝒕s), aspect_ratio<span class="op">=:</span>equal)   <span class="co"># make equal axes</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="36">
+<p><img src="plotting_files/figure-html/cell-37-output-1.svg" class="img-fluid"></p>
 </div>
 </div>
 <p>Any point <span class="math inline">\((a,b)\)</span> on this graph is represented by <span class="math inline">\((\cos(t), \sin(t))\)</span> for some value of <span class="math inline">\(t\)</span>, and in fact multiple values of <span class="math inline">\(t\)</span>, since <span class="math inline">\(t + 2k\pi\)</span> will produce the same <span class="math inline">\((a,b)\)</span> value as <span class="math inline">\(t\)</span> will.</p>
 <p>Making the parametric plot is similar to creating a plot using lower level commands. There a sequence of values is generated to approximate the <span class="math inline">\(x\)</span> values in the graph (<code>xs</code>), a set of commands to create the corresponding function values (e.g., <code>f.(xs)</code>), and some instruction on how to represent the values, in this case with lines connecting the points (the default for <code>plot</code> for two sets of numbers).</p>
 <p>In this next plot, the angle values are chosen to be the familiar ones, so the mechanics of the graph can be emphasized. Only the upper half is plotted:</p>
-<div class="cell" data-hold="true" data-execution_count="35">
-<div class="cell-output cell-output-display" data-execution_count="35">
+<div class="cell" data-hold="true" data-execution_count="37">
+<div class="cell-output cell-output-display" data-execution_count="37">
 
-<div class="data-frame"><p>9 rows × 3 columns</p><table class="data-frame table table-sm table-striped"><thead><tr><th></th><th>θ</th><th>x</th><th>y</th></tr><tr><th></th><th title="Sym">Sym</th><th title="Sym">Sym</th><th title="Sym">Sym</th></tr></thead><tbody><tr><th>1</th><td>0</td><td>1</td><td>0</td></tr><tr><th>2</th><td>pi/6</td><td>sqrt(3)/2</td><td>1/2</td></tr><tr><th>3</th><td>pi/4</td><td>sqrt(2)/2</td><td>sqrt(2)/2</td></tr><tr><th>4</th><td>pi/3</td><td>1/2</td><td>sqrt(3)/2</td></tr><tr><th>5</th><td>pi/2</td><td>0</td><td>1</td></tr><tr><th>6</th><td>2*pi/3</td><td>-1/2</td><td>sqrt(3)/2</td></tr><tr><th>7</th><td>3*pi/4</td><td>-sqrt(2)/2</td><td>sqrt(2)/2</td></tr><tr><th>8</th><td>5*pi/6</td><td>-sqrt(3)/2</td><td>1/2</td></tr><tr><th>9</th><td>pi</td><td>-1</td><td>0</td></tr></tbody></table></div>
+<div><div style="float: left;"><span>9×3 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;"><table class="data-frame table table-sm table-striped" style="margin-bottom: 6px;"><thead><tr class="header"><th class="rowNumber" style="font-weight: bold; text-align: right;">Row</th><th style="text-align: left;">θ</th><th style="text-align: left;">x</th><th style="text-align: left;">y</th></tr><tr class="subheader headerLastRow"><th class="rowNumber" style="font-weight: bold; text-align: right;"></th><th title="Sym" style="text-align: left;">Sym</th><th title="Sym" style="text-align: left;">Sym</th><th title="Sym" style="text-align: left;">Sym</th></tr></thead><tbody><tr><td class="rowNumber" style="font-weight: bold; text-align: right;">1</td><td style="text-align: right;">0</td><td style="text-align: right;">1</td><td style="text-align: right;">0</td></tr><tr><td class="rowNumber" style="font-weight: bold; text-align: right;">2</td><td style="text-align: right;">pi/6</td><td style="text-align: right;">sqrt(3)/2</td><td style="text-align: right;">1/2</td></tr><tr><td class="rowNumber" style="font-weight: bold; text-align: right;">3</td><td style="text-align: right;">pi/4</td><td style="text-align: right;">sqrt(2)/2</td><td style="text-align: right;">sqrt(2)/2</td></tr><tr><td class="rowNumber" style="font-weight: bold; text-align: right;">4</td><td style="text-align: right;">pi/3</td><td style="text-align: right;">1/2</td><td style="text-align: right;">sqrt(3)/2</td></tr><tr><td class="rowNumber" style="font-weight: bold; text-align: right;">5</td><td style="text-align: right;">pi/2</td><td style="text-align: right;">0</td><td style="text-align: right;">1</td></tr><tr><td class="rowNumber" style="font-weight: bold; text-align: right;">6</td><td style="text-align: right;">2*pi/3</td><td style="text-align: right;">-1/2</td><td style="text-align: right;">sqrt(3)/2</td></tr><tr><td class="rowNumber" style="font-weight: bold; text-align: right;">7</td><td style="text-align: right;">3*pi/4</td><td style="text-align: right;">-sqrt(2)/2</td><td style="text-align: right;">sqrt(2)/2</td></tr><tr><td class="rowNumber" style="font-weight: bold; text-align: right;">8</td><td style="text-align: right;">5*pi/6</td><td style="text-align: right;">-sqrt(3)/2</td><td style="text-align: right;">1/2</td></tr><tr><td class="rowNumber" style="font-weight: bold; text-align: right;">9</td><td style="text-align: right;">pi</td><td style="text-align: right;">-1</td><td style="text-align: right;">0</td></tr></tbody></table></div>
 </div>
 </div>
-<div class="cell" data-hold="true" data-execution_count="36">
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>θs <span class="op">=</span>[<span class="fl">0</span>, <span class="cn">pi</span><span class="op">/</span><span class="fl">6</span>, <span class="cn">pi</span><span class="op">/</span><span class="fl">4</span>, <span class="cn">pi</span><span class="op">/</span><span class="fl">3</span>, <span class="cn">pi</span><span class="op">/</span><span class="fl">2</span>, <span class="fl">2</span>pi<span class="op">/</span><span class="fl">3</span>, <span class="fl">3</span>pi<span class="op">/</span><span class="fl">4</span>, <span class="fl">5</span>pi<span class="op">/</span><span class="fl">6</span>, <span class="cn">pi</span>]</span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">𝒇</span>.(θs), <span class="fu">𝒈</span>.(θs), legend<span class="op">=</span><span class="cn">false</span>, aspect_ratio<span class="op">=:</span>equal)</span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(<span class="fu">𝒇</span>.(θs), <span class="fu">𝒈</span>.(θs))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="36">
-<p><img src="plotting_files/figure-html/cell-37-output-1.svg" class="img-fluid"></p>
+<div class="cell" data-hold="true" data-execution_count="38">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>θs <span class="op">=</span>[<span class="fl">0</span>, <span class="cn">pi</span><span class="op">/</span><span class="fl">6</span>, <span class="cn">pi</span><span class="op">/</span><span class="fl">4</span>, <span class="cn">pi</span><span class="op">/</span><span class="fl">3</span>, <span class="cn">pi</span><span class="op">/</span><span class="fl">2</span>, <span class="fl">2</span>pi<span class="op">/</span><span class="fl">3</span>, <span class="fl">3</span>pi<span class="op">/</span><span class="fl">4</span>, <span class="fl">5</span>pi<span class="op">/</span><span class="fl">6</span>, <span class="cn">pi</span>]</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">𝒇</span>.(θs), <span class="fu">𝒈</span>.(θs), legend<span class="op">=</span><span class="cn">false</span>, aspect_ratio<span class="op">=:</span>equal)</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(<span class="fu">𝒇</span>.(θs), <span class="fu">𝒈</span>.(θs))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="38">
+<p><img src="plotting_files/figure-html/cell-39-output-1.svg" class="img-fluid"></p>
 </div>
 </div>
 <hr>
 <p>As with the plot of a univariate function, there is a convenience interface for these plots - just pass the two functions in:</p>
-<div class="cell" data-execution_count="37">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(𝒇, 𝒈, <span class="fl">0</span>, <span class="fl">2</span>pi, aspect_ratio<span class="op">=:</span>equal)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="37">
-<p><img src="plotting_files/figure-html/cell-38-output-1.svg" class="img-fluid"></p>
+<div class="cell" data-execution_count="39">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(𝒇, 𝒈, <span class="fl">0</span>, <span class="fl">2</span>pi, aspect_ratio<span class="op">=:</span>equal)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="39">
+<p><img src="plotting_files/figure-html/cell-40-output-1.svg" class="img-fluid"></p>
 </div>
 </div>
 </section>
 <section id="example-1" class="level5">
 <h5 class="anchored" data-anchor-id="example-1">Example</h5>
 <p>Looking at growth. Comparing <span class="math inline">\(x^2\)</span> with <span class="math inline">\(x^3\)</span> can run into issues, as the scale gets big:</p>
-<div class="cell" data-execution_count="38">
-<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">x²</span>(x) <span class="op">=</span> x<span class="op">^</span><span class="fl">2</span></span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="fu">x³</span>(x) <span class="op">=</span> x<span class="op">^</span><span class="fl">3</span></span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x², <span class="fl">0</span>, <span class="fl">25</span>)</span>
-<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(x³, <span class="fl">0</span>, <span class="fl">25</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="38">
-<p><img src="plotting_files/figure-html/cell-39-output-1.svg" class="img-fluid"></p>
+<div class="cell" data-execution_count="40">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">x²</span>(x) <span class="op">=</span> x<span class="op">^</span><span class="fl">2</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="fu">x³</span>(x) <span class="op">=</span> x<span class="op">^</span><span class="fl">3</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x², <span class="fl">0</span>, <span class="fl">25</span>)</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(x³, <span class="fl">0</span>, <span class="fl">25</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="40">
+<p><img src="plotting_files/figure-html/cell-41-output-1.svg" class="img-fluid"></p>
 </div>
 </div>
 <p>In the above, <code>x³</code> is already <span class="math inline">\(25\)</span> times larger on the scale of <span class="math inline">\([0,25]\)</span> and this only gets worse if the viewing window were to get larger. However, the parametric graph is quite different:</p>
-<div class="cell" data-execution_count="39">
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x², x³, <span class="fl">0</span>, <span class="fl">25</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="39">
-<p><img src="plotting_files/figure-html/cell-40-output-1.svg" class="img-fluid"></p>
+<div class="cell" data-execution_count="41">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x², x³, <span class="fl">0</span>, <span class="fl">25</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="41">
+<p><img src="plotting_files/figure-html/cell-42-output-1.svg" class="img-fluid"></p>
 </div>
 </div>
 <p>In this graph, as <span class="math inline">\(x^3/x^2 = x\)</span>, as <span class="math inline">\(x\)</span> gets large, the ratio stays reasonable.</p>
@@ -1138,12 +1212,12 @@ Warning
 <h5 class="anchored" data-anchor-id="example-2">Example</h5>
 <p>Parametric plots are useful to compare the ratio of values near a point. In the above example, we see how this is helpful for large <code>x</code>. This example shows it is convenient for a fixed <code>x</code>, in this case <code>x=0</code>.</p>
 <p>Plot <span class="math inline">\(f(x) = x^3\)</span> and <span class="math inline">\(g(x) = x - \sin(x)\)</span> around <span class="math inline">\(x=0\)</span>:</p>
-<div class="cell" data-hold="true" data-execution_count="40">
-<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> x<span class="op">^</span><span class="fl">3</span></span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="fu">g</span>(x) <span class="op">=</span> x <span class="op">-</span> <span class="fu">sin</span>(x)</span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(f, g, <span class="op">-</span><span class="cn">pi</span><span class="op">/</span><span class="fl">2</span>, <span class="cn">pi</span><span class="op">/</span><span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="40">
-<p><img src="plotting_files/figure-html/cell-41-output-1.svg" class="img-fluid"></p>
+<div class="cell" data-hold="true" data-execution_count="42">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> x<span class="op">^</span><span class="fl">3</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="fu">g</span>(x) <span class="op">=</span> x <span class="op">-</span> <span class="fu">sin</span>(x)</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(f, g, <span class="op">-</span><span class="cn">pi</span><span class="op">/</span><span class="fl">2</span>, <span class="cn">pi</span><span class="op">/</span><span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="42">
+<p><img src="plotting_files/figure-html/cell-43-output-1.svg" class="img-fluid"></p>
 </div>
 </div>
 <p>This graph is <em>nearly</em> a straight line. At the point <span class="math inline">\((0,0)=(g(0), g(0))\)</span>, we see that both functions are behaving in a similar manner, though the slope is not <span class="math inline">\(1\)</span>, so they do not increase at exactly the same rate.</p>
@@ -1165,14 +1239,14 @@ Warning
 <h5 class="anchored" data-anchor-id="example-spirograph">Example: Spirograph</h5>
 <p>Parametric plots can describe a richer set of curves than can plots of functions. Plots of functions must pass the “vertical-line test”, as there can be at most one <span class="math inline">\(y\)</span> value for a given <span class="math inline">\(x\)</span> value. This is not so for parametric plots, as the circle example above shows. Plotting sines and cosines this way is the basis for the once popular <a href="http://en.wikipedia.org/wiki/Spirograph#Mathematical_basis">Spirograph</a> toy. The curves drawn there are parametric plots where the functions come from rolling a smaller disc either around the outside or inside of a larger disc.</p>
 <p>Here is an example using a parameterization provided on the Wikipedia page where <span class="math inline">\(R\)</span> is the radius of the larger disc, <span class="math inline">\(r\)</span> the radius of the smaller disc and <span class="math inline">\(\rho &lt; r\)</span> indicating the position of the pencil within the smaller disc.</p>
-<div class="cell" data-hold="true" data-execution_count="41">
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>R, r, rho <span class="op">=</span> <span class="fl">1</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">4</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">4</span></span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(t) <span class="op">=</span> (R<span class="op">-</span>r) <span class="op">*</span> <span class="fu">cos</span>(t) <span class="op">+</span> rho <span class="op">*</span> <span class="fu">cos</span>((R<span class="op">-</span>r)<span class="op">/</span>r <span class="op">*</span> t)</span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="fu">g</span>(t) <span class="op">=</span> (R<span class="op">-</span>r) <span class="op">*</span> <span class="fu">sin</span>(t) <span class="op">-</span> rho <span class="op">*</span> <span class="fu">sin</span>((R<span class="op">-</span>r)<span class="op">/</span>r <span class="op">*</span> t)</span>
-<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(f, g, <span class="fl">0</span>, <span class="fu">max</span>((R<span class="op">-</span>r)<span class="op">/</span>r, r<span class="op">/</span>(R<span class="op">-</span>r))<span class="op">*</span><span class="fl">2</span>pi)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="41">
-<p><img src="plotting_files/figure-html/cell-42-output-1.svg" class="img-fluid"></p>
+<div class="cell" data-hold="true" data-execution_count="43">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>R, r, rho <span class="op">=</span> <span class="fl">1</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">4</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">4</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(t) <span class="op">=</span> (R<span class="op">-</span>r) <span class="op">*</span> <span class="fu">cos</span>(t) <span class="op">+</span> rho <span class="op">*</span> <span class="fu">cos</span>((R<span class="op">-</span>r)<span class="op">/</span>r <span class="op">*</span> t)</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a><span class="fu">g</span>(t) <span class="op">=</span> (R<span class="op">-</span>r) <span class="op">*</span> <span class="fu">sin</span>(t) <span class="op">-</span> rho <span class="op">*</span> <span class="fu">sin</span>((R<span class="op">-</span>r)<span class="op">/</span>r <span class="op">*</span> t)</span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(f, g, <span class="fl">0</span>, <span class="fu">max</span>((R<span class="op">-</span>r)<span class="op">/</span>r, r<span class="op">/</span>(R<span class="op">-</span>r))<span class="op">*</span><span class="fl">2</span>pi)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="43">
+<p><img src="plotting_files/figure-html/cell-44-output-1.svg" class="img-fluid"></p>
 </div>
 </div>
 <p>In the above, one can fix <span class="math inline">\(R=1\)</span>. Then different values for <code>r</code> and <code>rho</code> will produce different graphs. These graphs will be periodic if <span class="math inline">\((R-r)/r\)</span> is a rational. (Nothing about these equations requires <span class="math inline">\(\rho &lt; r\)</span>.)</p>
@@ -1183,25 +1257,25 @@ Warning
 <section id="question" class="level6">
 <h6 class="anchored" data-anchor-id="question">Question</h6>
 <p>Plot the function <span class="math inline">\(f(x) = x^3 - x\)</span>. When is the function positive?</p>
-<div class="cell" data-hold="true" data-execution_count="42">
-<div class="cell-output cell-output-display" data-execution_count="42">
+<div class="cell" data-hold="true" data-execution_count="44">
+<div class="cell-output cell-output-display" data-execution_count="44">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "we8HhD4X"
+var ID = "6gwCnBXv"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="we8HhD4X" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="6gwCnBXv" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_we8HhD4X">
+      <div class="form" id="controls_6gwCnBXv">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_we8HhD4X_1">
-      <input class="form-check-input" type="radio" name="radio_we8HhD4X" id="radio_we8HhD4X_1" value="1">
+    <label class="form-check-label" for="radio_6gwCnBXv_1">
+      <input class="form-check-input" type="radio" name="radio_6gwCnBXv" id="radio_6gwCnBXv_1" value="1">
       
       <span class="label-body px-1">
         <code>(-Inf, -1)</code> and <code>(0,1)</code>
@@ -1209,20 +1283,20 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_we8HhD4X_2">
-      <input class="form-check-input" type="radio" name="radio_we8HhD4X" id="radio_we8HhD4X_2" value="2">
+    <label class="form-check-label" for="radio_6gwCnBXv_2">
+      <input class="form-check-input" type="radio" name="radio_6gwCnBXv" id="radio_6gwCnBXv_2" value="2">
       
       <span class="label-body px-1">
-        <code>(-1, 0)</code> and <code>(1, Inf)</code>
+        <code>(-Inf, -0.577)</code> and <code>(0.577, Inf)</code>
       </span>
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_we8HhD4X_3">
-      <input class="form-check-input" type="radio" name="radio_we8HhD4X" id="radio_we8HhD4X_3" value="3">
+    <label class="form-check-label" for="radio_6gwCnBXv_3">
+      <input class="form-check-input" type="radio" name="radio_6gwCnBXv" id="radio_6gwCnBXv_3" value="3">
       
       <span class="label-body px-1">
-        <code>(-Inf, -0.577)</code> and <code>(0.577, Inf)</code>
+        <code>(-1, 0)</code> and <code>(1, Inf)</code>
       </span>
     </label>
 </div>
@@ -1230,26 +1304,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="we8HhD4X_message" style="padding-bottom: 15px"></div>
+      <div id="6gwCnBXv_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_we8HhD4X"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_6gwCnBXv"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('we8HhD4X_message');
+    var correct = rb.value == 3;
+    var msgBox = document.getElementById('6gwCnBXv_message');
     
-    quizquestions_scorecard["we8HhD4X"]["attempts"] += 1;
+    quizquestions_scorecard["6gwCnBXv"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_we8HhD4X")
+    var explanation = document.getElementById("explanation_6gwCnBXv")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["we8HhD4X"]["correct"] = true;
+      quizquestions_scorecard["6gwCnBXv"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1257,11 +1331,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_we8HhD4X")
+    var explanation = document.getElementById("explanation_6gwCnBXv")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["we8HhD4X"]["correct"] = false;
+      quizquestions_scorecard["6gwCnBXv"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1277,49 +1351,49 @@ rb.addEventListener("change", function() {
 <section id="question-1" class="level6">
 <h6 class="anchored" data-anchor-id="question-1">Question</h6>
 <p>Plot the function <span class="math inline">\(f(x) = 3x^4 + 8x^3 - 18x^2\)</span>. Where (what <span class="math inline">\(x\)</span> value) is the smallest value? (That is, for which input <span class="math inline">\(x\)</span> is the output <span class="math inline">\(f(x)\)</span> as small as possible.</p>
-<div class="cell" data-hold="true" data-execution_count="43">
-<div class="cell-output cell-output-display" data-execution_count="43">
+<div class="cell" data-hold="true" data-execution_count="45">
+<div class="cell-output cell-output-display" data-execution_count="45">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "JJxrlT7e"
+var ID = "AnlmpPWP"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="JJxrlT7e" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="AnlmpPWP" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_JJxrlT7e">
+      <div class="form" id="controls_AnlmpPWP">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="JJxrlT7e" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="AnlmpPWP" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="JJxrlT7e_message" style="padding-bottom: 15px"></div>
+      <div id="AnlmpPWP_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("JJxrlT7e").addEventListener("change", function() {
+document.getElementById("AnlmpPWP").addEventListener("change", function() {
   var correct = (Math.abs(this.value - -3) <= 0.25);
-  var msgBox = document.getElementById('JJxrlT7e_message');
+  var msgBox = document.getElementById('AnlmpPWP_message');
   
-    quizquestions_scorecard["JJxrlT7e"]["attempts"] += 1;
+    quizquestions_scorecard["AnlmpPWP"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_JJxrlT7e")
+    var explanation = document.getElementById("explanation_AnlmpPWP")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["JJxrlT7e"]["correct"] = true;
+      quizquestions_scorecard["AnlmpPWP"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1327,11 +1401,11 @@ document.getElementById("JJxrlT7e").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_JJxrlT7e")
+    var explanation = document.getElementById("explanation_AnlmpPWP")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["JJxrlT7e"]["correct"] = false;
+      quizquestions_scorecard["AnlmpPWP"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1347,25 +1421,34 @@ document.getElementById("JJxrlT7e").addEventListener("change", function() {
 <section id="question-2" class="level6">
 <h6 class="anchored" data-anchor-id="question-2">Question</h6>
 <p>Plot the function <span class="math inline">\(f(x) = 3x^4 + 8x^3 - 18x^2\)</span>. When is the function increasing?</p>
-<div class="cell" data-hold="true" data-execution_count="44">
-<div class="cell-output cell-output-display" data-execution_count="44">
+<div class="cell" data-hold="true" data-execution_count="46">
+<div class="cell-output cell-output-display" data-execution_count="46">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "s4pQBpPl"
+var ID = "wFNHhZg5"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="s4pQBpPl" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="wFNHhZg5" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_s4pQBpPl">
+      <div class="form" id="controls_wFNHhZg5">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_s4pQBpPl_1">
-      <input class="form-check-input" type="radio" name="radio_s4pQBpPl" id="radio_s4pQBpPl_1" value="1">
+    <label class="form-check-label" for="radio_wFNHhZg5_1">
+      <input class="form-check-input" type="radio" name="radio_wFNHhZg5" id="radio_wFNHhZg5_1" value="1">
+      
+      <span class="label-body px-1">
+        <code>(-Inf, -3)</code> and <code>(0, 1)</code>
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_wFNHhZg5_2">
+      <input class="form-check-input" type="radio" name="radio_wFNHhZg5" id="radio_wFNHhZg5_2" value="2">
       
       <span class="label-body px-1">
         <code>(-Inf, -4.1)</code> and <code>(1.455, Inf)</code>
@@ -1373,20 +1456,11 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_s4pQBpPl_2">
-      <input class="form-check-input" type="radio" name="radio_s4pQBpPl" id="radio_s4pQBpPl_2" value="2">
+    <label class="form-check-label" for="radio_wFNHhZg5_3">
+      <input class="form-check-input" type="radio" name="radio_wFNHhZg5" id="radio_wFNHhZg5_3" value="3">
       
       <span class="label-body px-1">
         <code>(-3, 0)</code> and <code>(1, Inf)</code>
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_s4pQBpPl_3">
-      <input class="form-check-input" type="radio" name="radio_s4pQBpPl" id="radio_s4pQBpPl_3" value="3">
-      
-      <span class="label-body px-1">
-        <code>(-Inf, -3)</code> and <code>(0, 1)</code>
       </span>
     </label>
 </div>
@@ -1394,26 +1468,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="s4pQBpPl_message" style="padding-bottom: 15px"></div>
+      <div id="wFNHhZg5_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_s4pQBpPl"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_wFNHhZg5"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('s4pQBpPl_message');
+    var correct = rb.value == 3;
+    var msgBox = document.getElementById('wFNHhZg5_message');
     
-    quizquestions_scorecard["s4pQBpPl"]["attempts"] += 1;
+    quizquestions_scorecard["wFNHhZg5"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_s4pQBpPl")
+    var explanation = document.getElementById("explanation_wFNHhZg5")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["s4pQBpPl"]["correct"] = true;
+      quizquestions_scorecard["wFNHhZg5"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1421,11 +1495,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_s4pQBpPl")
+    var explanation = document.getElementById("explanation_wFNHhZg5")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["s4pQBpPl"]["correct"] = false;
+      quizquestions_scorecard["wFNHhZg5"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1441,49 +1515,49 @@ rb.addEventListener("change", function() {
 <section id="question-3" class="level6">
 <h6 class="anchored" data-anchor-id="question-3">Question</h6>
 <p>Graphing both <code>f</code> and the line <span class="math inline">\(y=0\)</span> helps focus on the <em>zeros</em> of <code>f</code>. When <code>f(x)=log(x)-2</code>, plot <code>f</code> and the line <span class="math inline">\(y=0\)</span>. Identify the lone zero.</p>
-<div class="cell" data-hold="true" data-execution_count="45">
-<div class="cell-output cell-output-display" data-execution_count="45">
+<div class="cell" data-hold="true" data-execution_count="47">
+<div class="cell-output cell-output-display" data-execution_count="47">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "cfUsG5Lg"
+var ID = "AVxQDxwz"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="cfUsG5Lg" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="AVxQDxwz" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_cfUsG5Lg">
+      <div class="form" id="controls_AVxQDxwz">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="cfUsG5Lg" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="AVxQDxwz" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="cfUsG5Lg_message" style="padding-bottom: 15px"></div>
+      <div id="AVxQDxwz_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("cfUsG5Lg").addEventListener("change", function() {
+document.getElementById("AVxQDxwz").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 7.38905609893065) <= 0.5);
-  var msgBox = document.getElementById('cfUsG5Lg_message');
+  var msgBox = document.getElementById('AVxQDxwz_message');
   
-    quizquestions_scorecard["cfUsG5Lg"]["attempts"] += 1;
+    quizquestions_scorecard["AVxQDxwz"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_cfUsG5Lg")
+    var explanation = document.getElementById("explanation_AVxQDxwz")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["cfUsG5Lg"]["correct"] = true;
+      quizquestions_scorecard["AVxQDxwz"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1491,11 +1565,11 @@ document.getElementById("cfUsG5Lg").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_cfUsG5Lg")
+    var explanation = document.getElementById("explanation_AVxQDxwz")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["cfUsG5Lg"]["correct"] = false;
+      quizquestions_scorecard["AVxQDxwz"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1511,49 +1585,49 @@ document.getElementById("cfUsG5Lg").addEventListener("change", function() {
 <section id="question-4" class="level6">
 <h6 class="anchored" data-anchor-id="question-4">Question</h6>
 <p>Plot the function <span class="math inline">\(f(x) = x^3 - x\)</span> over <span class="math inline">\([-2,2]\)</span>. How many zeros are there?</p>
-<div class="cell" data-hold="true" data-execution_count="46">
-<div class="cell-output cell-output-display" data-execution_count="46">
+<div class="cell" data-hold="true" data-execution_count="48">
+<div class="cell-output cell-output-display" data-execution_count="48">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "ovcmMoWT"
+var ID = "3YbCtI0U"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="ovcmMoWT" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="3YbCtI0U" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_ovcmMoWT">
+      <div class="form" id="controls_3YbCtI0U">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="ovcmMoWT" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="3YbCtI0U" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="ovcmMoWT_message" style="padding-bottom: 15px"></div>
+      <div id="3YbCtI0U_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("ovcmMoWT").addEventListener("change", function() {
+document.getElementById("3YbCtI0U").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 3) <= 1.0e-16);
-  var msgBox = document.getElementById('ovcmMoWT_message');
+  var msgBox = document.getElementById('3YbCtI0U_message');
   
-    quizquestions_scorecard["ovcmMoWT"]["attempts"] += 1;
+    quizquestions_scorecard["3YbCtI0U"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_ovcmMoWT")
+    var explanation = document.getElementById("explanation_3YbCtI0U")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["ovcmMoWT"]["correct"] = true;
+      quizquestions_scorecard["3YbCtI0U"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1561,11 +1635,11 @@ document.getElementById("ovcmMoWT").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_ovcmMoWT")
+    var explanation = document.getElementById("explanation_3YbCtI0U")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["ovcmMoWT"]["correct"] = false;
+      quizquestions_scorecard["3YbCtI0U"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1582,49 +1656,49 @@ document.getElementById("ovcmMoWT").addEventListener("change", function() {
 <h6 class="anchored" data-anchor-id="question-5">Question</h6>
 <p>The function <span class="math inline">\(f(x) = (x^3 - 2x) / (2x^2 -10)\)</span> is a rational function with issues when <span class="math inline">\(2x^2 = 10\)</span>, or <span class="math inline">\(x = -\sqrt{5}\)</span> or <span class="math inline">\(\sqrt{5}\)</span>.</p>
 <p>Plot this function from <span class="math inline">\(-5\)</span> to <span class="math inline">\(5\)</span>. How many times does it cross the <span class="math inline">\(x\)</span> axis?</p>
-<div class="cell" data-hold="true" data-execution_count="47">
-<div class="cell-output cell-output-display" data-execution_count="47">
+<div class="cell" data-hold="true" data-execution_count="49">
+<div class="cell-output cell-output-display" data-execution_count="49">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "sE7kYBiM"
+var ID = "TU1iUT3o"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="sE7kYBiM" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="TU1iUT3o" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_sE7kYBiM">
+      <div class="form" id="controls_TU1iUT3o">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="sE7kYBiM" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="TU1iUT3o" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="sE7kYBiM_message" style="padding-bottom: 15px"></div>
+      <div id="TU1iUT3o_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("sE7kYBiM").addEventListener("change", function() {
+document.getElementById("TU1iUT3o").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 3) <= 0.2);
-  var msgBox = document.getElementById('sE7kYBiM_message');
+  var msgBox = document.getElementById('TU1iUT3o_message');
   
-    quizquestions_scorecard["sE7kYBiM"]["attempts"] += 1;
+    quizquestions_scorecard["TU1iUT3o"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_sE7kYBiM")
+    var explanation = document.getElementById("explanation_TU1iUT3o")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["sE7kYBiM"]["correct"] = true;
+      quizquestions_scorecard["TU1iUT3o"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1632,11 +1706,11 @@ document.getElementById("sE7kYBiM").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_sE7kYBiM")
+    var explanation = document.getElementById("explanation_TU1iUT3o")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["sE7kYBiM"]["correct"] = false;
+      quizquestions_scorecard["TU1iUT3o"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1652,25 +1726,25 @@ document.getElementById("sE7kYBiM").addEventListener("change", function() {
 <section id="question-6" class="level6">
 <h6 class="anchored" data-anchor-id="question-6">Question</h6>
 <p>A trash collection plan charges a flat rate of 35 dollars a month for the first 10 bags of trash and is 4 dollars a bag thereafter. Which function will model this:</p>
-<div class="cell" data-hold="true" data-execution_count="48">
-<div class="cell-output cell-output-display" data-execution_count="48">
+<div class="cell" data-hold="true" data-execution_count="50">
+<div class="cell-output cell-output-display" data-execution_count="50">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "zlbN7t20"
+var ID = "cqsEz4sJ"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="zlbN7t20" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="cqsEz4sJ" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_zlbN7t20">
+      <div class="form" id="controls_cqsEz4sJ">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_zlbN7t20_1">
-      <input class="form-check-input" type="radio" name="radio_zlbN7t20" id="radio_zlbN7t20_1" value="1">
+    <label class="form-check-label" for="radio_cqsEz4sJ_1">
+      <input class="form-check-input" type="radio" name="radio_cqsEz4sJ" id="radio_cqsEz4sJ_1" value="1">
       
       <span class="label-body px-1">
         <code>f(x) = x &lt;= 10   ? 35.0 : 35.0 +  4.0 * (x-10)</code>
@@ -1678,8 +1752,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_zlbN7t20_2">
-      <input class="form-check-input" type="radio" name="radio_zlbN7t20" id="radio_zlbN7t20_2" value="2">
+    <label class="form-check-label" for="radio_cqsEz4sJ_2">
+      <input class="form-check-input" type="radio" name="radio_cqsEz4sJ" id="radio_cqsEz4sJ_2" value="2">
       
       <span class="label-body px-1">
         <code>f(x) = x &lt;= 4    ? 35.0 : 35.0 + 10.0 * (x-4)</code>
@@ -1687,8 +1761,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_zlbN7t20_3">
-      <input class="form-check-input" type="radio" name="radio_zlbN7t20" id="radio_zlbN7t20_3" value="3">
+    <label class="form-check-label" for="radio_cqsEz4sJ_3">
+      <input class="form-check-input" type="radio" name="radio_cqsEz4sJ" id="radio_cqsEz4sJ_3" value="3">
       
       <span class="label-body px-1">
         <code>f(x) = x &lt;= 35.0 ? 10.0 : 10.0 + 35.0 * (x-4)</code>
@@ -1699,26 +1773,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="zlbN7t20_message" style="padding-bottom: 15px"></div>
+      <div id="cqsEz4sJ_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_zlbN7t20"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_cqsEz4sJ"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 1;
-    var msgBox = document.getElementById('zlbN7t20_message');
+    var msgBox = document.getElementById('cqsEz4sJ_message');
     
-    quizquestions_scorecard["zlbN7t20"]["attempts"] += 1;
+    quizquestions_scorecard["cqsEz4sJ"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_zlbN7t20")
+    var explanation = document.getElementById("explanation_cqsEz4sJ")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["zlbN7t20"]["correct"] = true;
+      quizquestions_scorecard["cqsEz4sJ"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1726,11 +1800,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_zlbN7t20")
+    var explanation = document.getElementById("explanation_cqsEz4sJ")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["zlbN7t20"]["correct"] = false;
+      quizquestions_scorecard["cqsEz4sJ"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1743,49 +1817,49 @@ rb.addEventListener("change", function() {
 </div>
 </div>
 <p>Make a plot of the model. Graphically estimate how many bags of trash will cost 55 dollars.</p>
-<div class="cell" data-hold="true" data-execution_count="49">
-<div class="cell-output cell-output-display" data-execution_count="49">
+<div class="cell" data-hold="true" data-execution_count="51">
+<div class="cell-output cell-output-display" data-execution_count="51">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "eOYb8wR8"
+var ID = "vnOhd81g"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="eOYb8wR8" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="vnOhd81g" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_eOYb8wR8">
+      <div class="form" id="controls_vnOhd81g">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="eOYb8wR8" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="vnOhd81g" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="eOYb8wR8_message" style="padding-bottom: 15px"></div>
+      <div id="vnOhd81g_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("eOYb8wR8").addEventListener("change", function() {
+document.getElementById("vnOhd81g").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 15) <= 0.5);
-  var msgBox = document.getElementById('eOYb8wR8_message');
+  var msgBox = document.getElementById('vnOhd81g_message');
   
-    quizquestions_scorecard["eOYb8wR8"]["attempts"] += 1;
+    quizquestions_scorecard["vnOhd81g"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_eOYb8wR8")
+    var explanation = document.getElementById("explanation_vnOhd81g")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["eOYb8wR8"]["correct"] = true;
+      quizquestions_scorecard["vnOhd81g"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1793,11 +1867,11 @@ document.getElementById("eOYb8wR8").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_eOYb8wR8")
+    var explanation = document.getElementById("explanation_vnOhd81g")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["eOYb8wR8"]["correct"] = false;
+      quizquestions_scorecard["vnOhd81g"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1813,49 +1887,49 @@ document.getElementById("eOYb8wR8").addEventListener("change", function() {
 <section id="question-7" class="level6">
 <h6 class="anchored" data-anchor-id="question-7">Question</h6>
 <p>Plot the functions <span class="math inline">\(f(x) = \cos(x)\)</span> and <span class="math inline">\(g(x) = x\)</span>. Estimate the <span class="math inline">\(x\)</span> value of where the two graphs intersect.</p>
-<div class="cell" data-hold="true" data-execution_count="50">
-<div class="cell-output cell-output-display" data-execution_count="50">
+<div class="cell" data-hold="true" data-execution_count="52">
+<div class="cell-output cell-output-display" data-execution_count="52">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "1K3ydBa4"
+var ID = "47VWVTgY"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="1K3ydBa4" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="47VWVTgY" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_1K3ydBa4">
+      <div class="form" id="controls_47VWVTgY">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="1K3ydBa4" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="47VWVTgY" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="1K3ydBa4_message" style="padding-bottom: 15px"></div>
+      <div id="47VWVTgY_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("1K3ydBa4").addEventListener("change", function() {
+document.getElementById("47VWVTgY").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 0.7390851332151607) <= 0.25);
-  var msgBox = document.getElementById('1K3ydBa4_message');
+  var msgBox = document.getElementById('47VWVTgY_message');
   
-    quizquestions_scorecard["1K3ydBa4"]["attempts"] += 1;
+    quizquestions_scorecard["47VWVTgY"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_1K3ydBa4")
+    var explanation = document.getElementById("explanation_47VWVTgY")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["1K3ydBa4"]["correct"] = true;
+      quizquestions_scorecard["47VWVTgY"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1863,11 +1937,11 @@ document.getElementById("1K3ydBa4").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_1K3ydBa4")
+    var explanation = document.getElementById("explanation_47VWVTgY")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["1K3ydBa4"]["correct"] = false;
+      quizquestions_scorecard["47VWVTgY"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1884,38 +1958,29 @@ document.getElementById("1K3ydBa4").addEventListener("change", function() {
 <h6 class="anchored" data-anchor-id="question-8">Question</h6>
 <p>The fact that only a finite number of points are used in a graph can introduce artifacts. An example can appear when plotting <a href="http://en.wikipedia.org/wiki/Aliasing#Sampling_sinusoidal_functions">sinusoidal</a> functions. An example is the graph of <code>f(x) = sin(500*pi*x)</code> over <code>[0,1]</code>.</p>
 <p>Make its graph using 250 evenly spaced points, as follows:</p>
-<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> <span class="fu">range</span>(<span class="fl">0</span>, <span class="fl">1</span>, length<span class="op">=</span><span class="fl">250</span>)</span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> <span class="fu">sin</span>(<span class="fl">500</span><span class="op">*</span><span class="cn">pi</span><span class="op">*</span>x)</span>
-<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(xs, <span class="fu">f</span>.(xs))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> <span class="fu">range</span>(<span class="fl">0</span>, <span class="fl">1</span>, length<span class="op">=</span><span class="fl">250</span>)</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> <span class="fu">sin</span>(<span class="fl">500</span><span class="op">*</span><span class="cn">pi</span><span class="op">*</span>x)</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(xs, <span class="fu">f</span>.(xs))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>What is seen?</p>
-<div class="cell" data-hold="true" data-execution_count="52">
-<div class="cell-output cell-output-display" data-execution_count="51">
+<div class="cell" data-hold="true" data-execution_count="54">
+<div class="cell-output cell-output-display" data-execution_count="53">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "TwJpTanR"
+var ID = "IkN27cLF"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="TwJpTanR" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="IkN27cLF" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_TwJpTanR">
+      <div class="form" id="controls_IkN27cLF">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_TwJpTanR_1">
-      <input class="form-check-input" type="radio" name="radio_TwJpTanR" id="radio_TwJpTanR_1" value="1">
-      
-      <span class="label-body px-1">
-        It oscillates wildly, as the period is \(T=2\pi/(500 \pi)\) so there are 250 oscillations.
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_TwJpTanR_2">
-      <input class="form-check-input" type="radio" name="radio_TwJpTanR" id="radio_TwJpTanR_2" value="2">
+    <label class="form-check-label" for="radio_IkN27cLF_1">
+      <input class="form-check-input" type="radio" name="radio_IkN27cLF" id="radio_IkN27cLF_1" value="1">
       
       <span class="label-body px-1">
         Oddly, it looks exactly like the graph of \(f(x) = \sin(2\pi x)\).
@@ -1923,11 +1988,20 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_TwJpTanR_3">
-      <input class="form-check-input" type="radio" name="radio_TwJpTanR" id="radio_TwJpTanR_3" value="3">
+    <label class="form-check-label" for="radio_IkN27cLF_2">
+      <input class="form-check-input" type="radio" name="radio_IkN27cLF" id="radio_IkN27cLF_2" value="2">
       
       <span class="label-body px-1">
         It should oscillate evenly, but instead doesn't oscillate very much near 0 and 1
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_IkN27cLF_3">
+      <input class="form-check-input" type="radio" name="radio_IkN27cLF" id="radio_IkN27cLF_3" value="3">
+      
+      <span class="label-body px-1">
+        It oscillates wildly, as the period is \(T=2\pi/(500 \pi)\) so there are 250 oscillations.
       </span>
     </label>
 </div>
@@ -1935,26 +2009,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="TwJpTanR_message" style="padding-bottom: 15px"></div>
+      <div id="IkN27cLF_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_TwJpTanR"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_IkN27cLF"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('TwJpTanR_message');
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('IkN27cLF_message');
     
-    quizquestions_scorecard["TwJpTanR"]["attempts"] += 1;
+    quizquestions_scorecard["IkN27cLF"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_TwJpTanR")
+    var explanation = document.getElementById("explanation_IkN27cLF")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["TwJpTanR"]["correct"] = true;
+      quizquestions_scorecard["IkN27cLF"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1962,11 +2036,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_TwJpTanR")
+    var explanation = document.getElementById("explanation_IkN27cLF")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["TwJpTanR"]["correct"] = false;
+      quizquestions_scorecard["IkN27cLF"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1979,25 +2053,25 @@ rb.addEventListener("change", function() {
 </div>
 </div>
 <p>The algorithm to plot a function works to avoid aliasing issues. Does the graph generated by <code>plot(f, 0, 1)</code> look the same, as the one above?</p>
-<div class="cell" data-hold="true" data-execution_count="53">
-<div class="cell-output cell-output-display" data-execution_count="52">
+<div class="cell" data-hold="true" data-execution_count="55">
+<div class="cell-output cell-output-display" data-execution_count="54">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "RFIpYwqm"
+var ID = "oQxlUJG6"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="RFIpYwqm" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="oQxlUJG6" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_RFIpYwqm">
+      <div class="form" id="controls_oQxlUJG6">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_RFIpYwqm_1">
-      <input class="form-check-input" type="radio" name="radio_RFIpYwqm" id="radio_RFIpYwqm_1" value="1">
+    <label class="form-check-label" for="radio_oQxlUJG6_1">
+      <input class="form-check-input" type="radio" name="radio_oQxlUJG6" id="radio_oQxlUJG6_1" value="1">
       
       <span class="label-body px-1">
         No, the graph shows clearly all 250 periods.
@@ -2005,20 +2079,20 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_RFIpYwqm_2">
-      <input class="form-check-input" type="radio" name="radio_RFIpYwqm" id="radio_RFIpYwqm_2" value="2">
+    <label class="form-check-label" for="radio_oQxlUJG6_2">
+      <input class="form-check-input" type="radio" name="radio_oQxlUJG6" id="radio_oQxlUJG6_2" value="2">
       
       <span class="label-body px-1">
-        No, but is still looks pretty bad, as fitting 250 periods into a too small number of pixels is a problem.
+        Yes
       </span>
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_RFIpYwqm_3">
-      <input class="form-check-input" type="radio" name="radio_RFIpYwqm" id="radio_RFIpYwqm_3" value="3">
+    <label class="form-check-label" for="radio_oQxlUJG6_3">
+      <input class="form-check-input" type="radio" name="radio_oQxlUJG6" id="radio_oQxlUJG6_3" value="3">
       
       <span class="label-body px-1">
-        Yes
+        No, but is still looks pretty bad, as fitting 250 periods into a too small number of pixels is a problem.
       </span>
     </label>
 </div>
@@ -2026,26 +2100,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="RFIpYwqm_message" style="padding-bottom: 15px"></div>
+      <div id="oQxlUJG6_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_RFIpYwqm"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_oQxlUJG6"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('RFIpYwqm_message');
+    var correct = rb.value == 3;
+    var msgBox = document.getElementById('oQxlUJG6_message');
     
-    quizquestions_scorecard["RFIpYwqm"]["attempts"] += 1;
+    quizquestions_scorecard["oQxlUJG6"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_RFIpYwqm")
+    var explanation = document.getElementById("explanation_oQxlUJG6")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["RFIpYwqm"]["correct"] = true;
+      quizquestions_scorecard["oQxlUJG6"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2053,11 +2127,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_RFIpYwqm")
+    var explanation = document.getElementById("explanation_oQxlUJG6")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["RFIpYwqm"]["correct"] = false;
+      quizquestions_scorecard["oQxlUJG6"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2073,48 +2147,39 @@ rb.addEventListener("change", function() {
 <section id="question-9" class="level6">
 <h6 class="anchored" data-anchor-id="question-9">Question</h6>
 <p>Make this parametric plot for the specific values of the parameters <code>k</code> and <code>l</code>. What shape best describes it?</p>
-<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>R, r, rho <span class="op">=</span> <span class="fl">1</span>, <span class="fl">3</span><span class="op">/</span><span class="fl">4</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">4</span></span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(t) <span class="op">=</span> (R<span class="op">-</span>r) <span class="op">*</span> <span class="fu">cos</span>(t) <span class="op">+</span> rho <span class="op">*</span> <span class="fu">cos</span>((R<span class="op">-</span>r)<span class="op">/</span>r <span class="op">*</span> t)</span>
-<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="fu">g</span>(t) <span class="op">=</span> (R<span class="op">-</span>r) <span class="op">*</span> <span class="fu">sin</span>(t) <span class="op">-</span> rho <span class="op">*</span> <span class="fu">sin</span>((R<span class="op">-</span>r)<span class="op">/</span>r <span class="op">*</span> t)</span>
-<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(f, g, <span class="fl">0</span>, <span class="fu">max</span>((R<span class="op">-</span>r)<span class="op">/</span>r, r<span class="op">/</span>(R<span class="op">-</span>r))<span class="op">*</span><span class="fl">2</span>pi, aspect_ratio<span class="op">=:</span>equal)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell" data-hold="true" data-execution_count="55">
-<div class="cell-output cell-output-display" data-execution_count="53">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>R, r, rho <span class="op">=</span> <span class="fl">1</span>, <span class="fl">3</span><span class="op">/</span><span class="fl">4</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">4</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(t) <span class="op">=</span> (R<span class="op">-</span>r) <span class="op">*</span> <span class="fu">cos</span>(t) <span class="op">+</span> rho <span class="op">*</span> <span class="fu">cos</span>((R<span class="op">-</span>r)<span class="op">/</span>r <span class="op">*</span> t)</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a><span class="fu">g</span>(t) <span class="op">=</span> (R<span class="op">-</span>r) <span class="op">*</span> <span class="fu">sin</span>(t) <span class="op">-</span> rho <span class="op">*</span> <span class="fu">sin</span>((R<span class="op">-</span>r)<span class="op">/</span>r <span class="op">*</span> t)</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(f, g, <span class="fl">0</span>, <span class="fu">max</span>((R<span class="op">-</span>r)<span class="op">/</span>r, r<span class="op">/</span>(R<span class="op">-</span>r))<span class="op">*</span><span class="fl">2</span>pi, aspect_ratio<span class="op">=:</span>equal)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-hold="true" data-execution_count="57">
+<div class="cell-output cell-output-display" data-execution_count="55">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "22XjT44q"
+var ID = "MZMMrGYn"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="22XjT44q" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="MZMMrGYn" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_22XjT44q">
+      <div class="form" id="controls_MZMMrGYn">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_22XjT44q_1">
-      <input class="form-check-input" type="radio" name="radio_22XjT44q" id="radio_22XjT44q_1" value="1">
+    <label class="form-check-label" for="radio_MZMMrGYn_1">
+      <input class="form-check-input" type="radio" name="radio_MZMMrGYn" id="radio_MZMMrGYn_1" value="1">
       
       <span class="label-body px-1">
-        An ellipse
+        Four petals, like a flower
       </span>
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_22XjT44q_2">
-      <input class="form-check-input" type="radio" name="radio_22XjT44q" id="radio_22XjT44q_2" value="2">
-      
-      <span class="label-body px-1">
-        Four sharp points, like a star
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_22XjT44q_3">
-      <input class="form-check-input" type="radio" name="radio_22XjT44q" id="radio_22XjT44q_3" value="3">
+    <label class="form-check-label" for="radio_MZMMrGYn_2">
+      <input class="form-check-input" type="radio" name="radio_MZMMrGYn" id="radio_MZMMrGYn_2" value="2">
       
       <span class="label-body px-1">
         A straight line
@@ -2122,11 +2187,20 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_22XjT44q_4">
-      <input class="form-check-input" type="radio" name="radio_22XjT44q" id="radio_22XjT44q_4" value="4">
+    <label class="form-check-label" for="radio_MZMMrGYn_3">
+      <input class="form-check-input" type="radio" name="radio_MZMMrGYn" id="radio_MZMMrGYn_3" value="3">
       
       <span class="label-body px-1">
-        Four petals, like a flower
+        An ellipse
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_MZMMrGYn_4">
+      <input class="form-check-input" type="radio" name="radio_MZMMrGYn" id="radio_MZMMrGYn_4" value="4">
+      
+      <span class="label-body px-1">
+        Four sharp points, like a star
       </span>
     </label>
 </div>
@@ -2134,26 +2208,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="22XjT44q_message" style="padding-bottom: 15px"></div>
+      <div id="MZMMrGYn_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_22XjT44q"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_MZMMrGYn"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
-    var correct = rb.value == 4;
-    var msgBox = document.getElementById('22XjT44q_message');
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('MZMMrGYn_message');
     
-    quizquestions_scorecard["22XjT44q"]["attempts"] += 1;
+    quizquestions_scorecard["MZMMrGYn"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_22XjT44q")
+    var explanation = document.getElementById("explanation_MZMMrGYn")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["22XjT44q"]["correct"] = true;
+      quizquestions_scorecard["MZMMrGYn"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2161,11 +2235,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_22XjT44q")
+    var explanation = document.getElementById("explanation_MZMMrGYn")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["22XjT44q"]["correct"] = false;
+      quizquestions_scorecard["MZMMrGYn"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2181,258 +2255,38 @@ rb.addEventListener("change", function() {
 <section id="question-10" class="level6">
 <h6 class="anchored" data-anchor-id="question-10">Question</h6>
 <p>For these next questions, we use this function:</p>
-<div class="cell" data-execution_count="56">
-<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">spirograph</span>(R, r, rho)</span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">f</span>(t) <span class="op">=</span> (R<span class="op">-</span>r) <span class="op">*</span> <span class="fu">cos</span>(t) <span class="op">+</span> rho <span class="op">*</span> <span class="fu">cos</span>((R<span class="op">-</span>r)<span class="op">/</span>r <span class="op">*</span> t)</span>
-<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">g</span>(t) <span class="op">=</span> (R<span class="op">-</span>r) <span class="op">*</span> <span class="fu">sin</span>(t) <span class="op">-</span> rho <span class="op">*</span> <span class="fu">sin</span>((R<span class="op">-</span>r)<span class="op">/</span>r <span class="op">*</span> t)</span>
-<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(f, g, <span class="fl">0</span>, <span class="fu">max</span>((R<span class="op">-</span>r)<span class="op">/</span>r, r<span class="op">/</span>(R<span class="op">-</span>r))<span class="op">*</span><span class="fl">2</span>pi, aspect_ratio<span class="op">=:</span>equal)</span>
-<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="54">
+<div class="cell" data-execution_count="58">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">spirograph</span>(R, r, rho)</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">f</span>(t) <span class="op">=</span> (R<span class="op">-</span>r) <span class="op">*</span> <span class="fu">cos</span>(t) <span class="op">+</span> rho <span class="op">*</span> <span class="fu">cos</span>((R<span class="op">-</span>r)<span class="op">/</span>r <span class="op">*</span> t)</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">g</span>(t) <span class="op">=</span> (R<span class="op">-</span>r) <span class="op">*</span> <span class="fu">sin</span>(t) <span class="op">-</span> rho <span class="op">*</span> <span class="fu">sin</span>((R<span class="op">-</span>r)<span class="op">/</span>r <span class="op">*</span> t)</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(f, g, <span class="fl">0</span>, <span class="fu">max</span>((R<span class="op">-</span>r)<span class="op">/</span>r, r<span class="op">/</span>(R<span class="op">-</span>r))<span class="op">*</span><span class="fl">2</span>pi, aspect_ratio<span class="op">=:</span>equal)</span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="56">
 <pre><code>spirograph (generic function with 1 method)</code></pre>
 </div>
 </div>
 <p>Make this plot for the following specific values of the parameters <code>R</code>, <code>r</code>, and <code>rho</code>. What shape best describes it?</p>
-<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>R, r, rho <span class="op">=</span> <span class="fl">1</span>, <span class="fl">3</span><span class="op">/</span><span class="fl">4</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">4</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell" data-hold="true" data-execution_count="58">
-<div class="cell-output cell-output-display" data-execution_count="55">
-<script>
-if (typeof quizquestions_scorecard === 'undefined') {
-   quizquestions_scorecard = {};
-}
-var ID = "2FUOWBSa"
-if (typeof quizquestions_scorecard[ID] === 'undefined') {
-      quizquestions_scorecard[ID] = {attempts: 0, correct: false};
-}
-</script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="2FUOWBSa" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_2FUOWBSa">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_2FUOWBSa_1">
-      <input class="form-check-input" type="radio" name="radio_2FUOWBSa" id="radio_2FUOWBSa_1" value="1">
-      
-      <span class="label-body px-1">
-        Four sharp points, like a star
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_2FUOWBSa_2">
-      <input class="form-check-input" type="radio" name="radio_2FUOWBSa" id="radio_2FUOWBSa_2" value="2">
-      
-      <span class="label-body px-1">
-        Four petals, like a flower
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_2FUOWBSa_3">
-      <input class="form-check-input" type="radio" name="radio_2FUOWBSa" id="radio_2FUOWBSa_3" value="3">
-      
-      <span class="label-body px-1">
-        An ellipse
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_2FUOWBSa_4">
-      <input class="form-check-input" type="radio" name="radio_2FUOWBSa" id="radio_2FUOWBSa_4" value="4">
-      
-      <span class="label-body px-1">
-        A straight line
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_2FUOWBSa_5">
-      <input class="form-check-input" type="radio" name="radio_2FUOWBSa" id="radio_2FUOWBSa_5" value="5">
-      
-      <span class="label-body px-1">
-        None of the above
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="2FUOWBSa_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_2FUOWBSa"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('2FUOWBSa_message');
-    
-    quizquestions_scorecard["2FUOWBSa"]["attempts"] += 1;
-
-  if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_2FUOWBSa")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-      quizquestions_scorecard["2FUOWBSa"]["correct"] = true;
-  if (typeof score_summary !== 'undefined') {
-     score_summary()
-  }
-
-
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_2FUOWBSa")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-      quizquestions_scorecard["2FUOWBSa"]["correct"] = false;
-  if (typeof score_summary !== 'undefined') {
-     score_summary()
-  }
-
-  }
-
-})});
-
-</script>
-</div>
-</div>
-<p>Make this plot for the following specific values of the parameters <code>R</code>, <code>r</code>, and <code>rho</code>. What shape best describes it?</p>
-<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>R, r, rho <span class="op">=</span> <span class="fl">1</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">4</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>R, r, rho <span class="op">=</span> <span class="fl">1</span>, <span class="fl">3</span><span class="op">/</span><span class="fl">4</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">4</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell" data-hold="true" data-execution_count="60">
-<div class="cell-output cell-output-display" data-execution_count="56">
-<script>
-if (typeof quizquestions_scorecard === 'undefined') {
-   quizquestions_scorecard = {};
-}
-var ID = "LBNFlCxt"
-if (typeof quizquestions_scorecard[ID] === 'undefined') {
-      quizquestions_scorecard[ID] = {attempts: 0, correct: false};
-}
-</script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="LBNFlCxt" data-controltype="">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_LBNFlCxt">
-        <div style="padding-top: 5px">
-    <div class="form-check">
-    <label class="form-check-label" for="radio_LBNFlCxt_1">
-      <input class="form-check-input" type="radio" name="radio_LBNFlCxt" id="radio_LBNFlCxt_1" value="1">
-      
-      <span class="label-body px-1">
-        Four sharp points, like a star
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_LBNFlCxt_2">
-      <input class="form-check-input" type="radio" name="radio_LBNFlCxt" id="radio_LBNFlCxt_2" value="2">
-      
-      <span class="label-body px-1">
-        Four petals, like a flower
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_LBNFlCxt_3">
-      <input class="form-check-input" type="radio" name="radio_LBNFlCxt" id="radio_LBNFlCxt_3" value="3">
-      
-      <span class="label-body px-1">
-        An ellipse
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_LBNFlCxt_4">
-      <input class="form-check-input" type="radio" name="radio_LBNFlCxt" id="radio_LBNFlCxt_4" value="4">
-      
-      <span class="label-body px-1">
-        A straight line
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_LBNFlCxt_5">
-      <input class="form-check-input" type="radio" name="radio_LBNFlCxt" id="radio_LBNFlCxt_5" value="5">
-      
-      <span class="label-body px-1">
-        None of the above
-      </span>
-    </label>
-</div>
-
-    
-        </div>
-      </div>
-      <div id="LBNFlCxt_message" style="padding-bottom: 15px"></div>
-    </div>
-  </div>
-</form>
-
-<script text="text/javascript">
-document.querySelectorAll('input[name="radio_LBNFlCxt"]').forEach(function(rb) {
-rb.addEventListener("change", function() {
-    var correct = rb.value == 3;
-    var msgBox = document.getElementById('LBNFlCxt_message');
-    
-    quizquestions_scorecard["LBNFlCxt"]["attempts"] += 1;
-
-  if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_LBNFlCxt")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-      quizquestions_scorecard["LBNFlCxt"]["correct"] = true;
-  if (typeof score_summary !== 'undefined') {
-     score_summary()
-  }
-
-
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_LBNFlCxt")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-      quizquestions_scorecard["LBNFlCxt"]["correct"] = false;
-  if (typeof score_summary !== 'undefined') {
-     score_summary()
-  }
-
-  }
-
-})});
-
-</script>
-</div>
-</div>
-<p>Make this plot for the specific values of the parameters <code>R</code>, <code>r</code>, and <code>rho</code>. What shape best describes it?</p>
-<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>R, r, rho <span class="op">=</span> <span class="fl">1</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">4</span>, <span class="fl">1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell" data-hold="true" data-execution_count="62">
 <div class="cell-output cell-output-display" data-execution_count="57">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "zzJhtP0C"
+var ID = "4onhRkDP"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="zzJhtP0C" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="4onhRkDP" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_zzJhtP0C">
+      <div class="form" id="controls_4onhRkDP">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_zzJhtP0C_1">
-      <input class="form-check-input" type="radio" name="radio_zzJhtP0C" id="radio_zzJhtP0C_1" value="1">
+    <label class="form-check-label" for="radio_4onhRkDP_1">
+      <input class="form-check-input" type="radio" name="radio_4onhRkDP" id="radio_4onhRkDP_1" value="1">
       
       <span class="label-body px-1">
         Four sharp points, like a star
@@ -2440,8 +2294,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_zzJhtP0C_2">
-      <input class="form-check-input" type="radio" name="radio_zzJhtP0C" id="radio_zzJhtP0C_2" value="2">
+    <label class="form-check-label" for="radio_4onhRkDP_2">
+      <input class="form-check-input" type="radio" name="radio_4onhRkDP" id="radio_4onhRkDP_2" value="2">
       
       <span class="label-body px-1">
         Four petals, like a flower
@@ -2449,17 +2303,17 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_zzJhtP0C_3">
-      <input class="form-check-input" type="radio" name="radio_zzJhtP0C" id="radio_zzJhtP0C_3" value="3">
+    <label class="form-check-label" for="radio_4onhRkDP_3">
+      <input class="form-check-input" type="radio" name="radio_4onhRkDP" id="radio_4onhRkDP_3" value="3">
       
       <span class="label-body px-1">
-        A circle
+        An ellipse
       </span>
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_zzJhtP0C_4">
-      <input class="form-check-input" type="radio" name="radio_zzJhtP0C" id="radio_zzJhtP0C_4" value="4">
+    <label class="form-check-label" for="radio_4onhRkDP_4">
+      <input class="form-check-input" type="radio" name="radio_4onhRkDP" id="radio_4onhRkDP_4" value="4">
       
       <span class="label-body px-1">
         A straight line
@@ -2467,8 +2321,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_zzJhtP0C_5">
-      <input class="form-check-input" type="radio" name="radio_zzJhtP0C" id="radio_zzJhtP0C_5" value="5">
+    <label class="form-check-label" for="radio_4onhRkDP_5">
+      <input class="form-check-input" type="radio" name="radio_4onhRkDP" id="radio_4onhRkDP_5" value="5">
       
       <span class="label-body px-1">
         None of the above
@@ -2479,26 +2333,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="zzJhtP0C_message" style="padding-bottom: 15px"></div>
+      <div id="4onhRkDP_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_zzJhtP0C"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_4onhRkDP"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('zzJhtP0C_message');
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('4onhRkDP_message');
     
-    quizquestions_scorecard["zzJhtP0C"]["attempts"] += 1;
+    quizquestions_scorecard["4onhRkDP"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_zzJhtP0C")
+    var explanation = document.getElementById("explanation_4onhRkDP")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["zzJhtP0C"]["correct"] = true;
+      quizquestions_scorecard["4onhRkDP"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2506,11 +2360,121 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_zzJhtP0C")
+    var explanation = document.getElementById("explanation_4onhRkDP")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["zzJhtP0C"]["correct"] = false;
+      quizquestions_scorecard["4onhRkDP"]["correct"] = false;
+  if (typeof score_summary !== 'undefined') {
+     score_summary()
+  }
+
+  }
+
+})});
+
+</script>
+</div>
+</div>
+<p>Make this plot for the following specific values of the parameters <code>R</code>, <code>r</code>, and <code>rho</code>. What shape best describes it?</p>
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>R, r, rho <span class="op">=</span> <span class="fl">1</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">4</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-hold="true" data-execution_count="62">
+<div class="cell-output cell-output-display" data-execution_count="58">
+<script>
+if (typeof quizquestions_scorecard === 'undefined') {
+   quizquestions_scorecard = {};
+}
+var ID = "mmNzVaHF"
+if (typeof quizquestions_scorecard[ID] === 'undefined') {
+      quizquestions_scorecard[ID] = {attempts: 0, correct: false};
+}
+</script>
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="mmNzVaHF" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_mmNzVaHF">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_mmNzVaHF_1">
+      <input class="form-check-input" type="radio" name="radio_mmNzVaHF" id="radio_mmNzVaHF_1" value="1">
+      
+      <span class="label-body px-1">
+        Four sharp points, like a star
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_mmNzVaHF_2">
+      <input class="form-check-input" type="radio" name="radio_mmNzVaHF" id="radio_mmNzVaHF_2" value="2">
+      
+      <span class="label-body px-1">
+        Four petals, like a flower
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_mmNzVaHF_3">
+      <input class="form-check-input" type="radio" name="radio_mmNzVaHF" id="radio_mmNzVaHF_3" value="3">
+      
+      <span class="label-body px-1">
+        An ellipse
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_mmNzVaHF_4">
+      <input class="form-check-input" type="radio" name="radio_mmNzVaHF" id="radio_mmNzVaHF_4" value="4">
+      
+      <span class="label-body px-1">
+        A straight line
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_mmNzVaHF_5">
+      <input class="form-check-input" type="radio" name="radio_mmNzVaHF" id="radio_mmNzVaHF_5" value="5">
+      
+      <span class="label-body px-1">
+        None of the above
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="mmNzVaHF_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_mmNzVaHF"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 3;
+    var msgBox = document.getElementById('mmNzVaHF_message');
+    
+    quizquestions_scorecard["mmNzVaHF"]["attempts"] += 1;
+
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_mmNzVaHF")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      quizquestions_scorecard["mmNzVaHF"]["correct"] = true;
+  if (typeof score_summary !== 'undefined') {
+     score_summary()
+  }
+
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_mmNzVaHF")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      quizquestions_scorecard["mmNzVaHF"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2523,26 +2487,26 @@ rb.addEventListener("change", function() {
 </div>
 </div>
 <p>Make this plot for the specific values of the parameters <code>R</code>, <code>r</code>, and <code>rho</code>. What shape best describes it?</p>
-<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>R, r, rho <span class="op">=</span> <span class="fl">1</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">8</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">4</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>R, r, rho <span class="op">=</span> <span class="fl">1</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">4</span>, <span class="fl">1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell" data-hold="true" data-execution_count="64">
-<div class="cell-output cell-output-display" data-execution_count="58">
+<div class="cell-output cell-output-display" data-execution_count="59">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "GHzAjHlQ"
+var ID = "H0c6W3zG"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="GHzAjHlQ" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="H0c6W3zG" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_GHzAjHlQ">
+      <div class="form" id="controls_H0c6W3zG">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_GHzAjHlQ_1">
-      <input class="form-check-input" type="radio" name="radio_GHzAjHlQ" id="radio_GHzAjHlQ_1" value="1">
+    <label class="form-check-label" for="radio_H0c6W3zG_1">
+      <input class="form-check-input" type="radio" name="radio_H0c6W3zG" id="radio_H0c6W3zG_1" value="1">
       
       <span class="label-body px-1">
         Four sharp points, like a star
@@ -2550,8 +2514,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_GHzAjHlQ_2">
-      <input class="form-check-input" type="radio" name="radio_GHzAjHlQ" id="radio_GHzAjHlQ_2" value="2">
+    <label class="form-check-label" for="radio_H0c6W3zG_2">
+      <input class="form-check-input" type="radio" name="radio_H0c6W3zG" id="radio_H0c6W3zG_2" value="2">
       
       <span class="label-body px-1">
         Four petals, like a flower
@@ -2559,8 +2523,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_GHzAjHlQ_3">
-      <input class="form-check-input" type="radio" name="radio_GHzAjHlQ" id="radio_GHzAjHlQ_3" value="3">
+    <label class="form-check-label" for="radio_H0c6W3zG_3">
+      <input class="form-check-input" type="radio" name="radio_H0c6W3zG" id="radio_H0c6W3zG_3" value="3">
       
       <span class="label-body px-1">
         A circle
@@ -2568,8 +2532,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_GHzAjHlQ_4">
-      <input class="form-check-input" type="radio" name="radio_GHzAjHlQ" id="radio_GHzAjHlQ_4" value="4">
+    <label class="form-check-label" for="radio_H0c6W3zG_4">
+      <input class="form-check-input" type="radio" name="radio_H0c6W3zG" id="radio_H0c6W3zG_4" value="4">
       
       <span class="label-body px-1">
         A straight line
@@ -2577,8 +2541,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_GHzAjHlQ_5">
-      <input class="form-check-input" type="radio" name="radio_GHzAjHlQ" id="radio_GHzAjHlQ_5" value="5">
+    <label class="form-check-label" for="radio_H0c6W3zG_5">
+      <input class="form-check-input" type="radio" name="radio_H0c6W3zG" id="radio_H0c6W3zG_5" value="5">
       
       <span class="label-body px-1">
         None of the above
@@ -2589,26 +2553,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="GHzAjHlQ_message" style="padding-bottom: 15px"></div>
+      <div id="H0c6W3zG_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_GHzAjHlQ"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_H0c6W3zG"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
-    var correct = rb.value == 5;
-    var msgBox = document.getElementById('GHzAjHlQ_message');
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('H0c6W3zG_message');
     
-    quizquestions_scorecard["GHzAjHlQ"]["attempts"] += 1;
+    quizquestions_scorecard["H0c6W3zG"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_GHzAjHlQ")
+    var explanation = document.getElementById("explanation_H0c6W3zG")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["GHzAjHlQ"]["correct"] = true;
+      quizquestions_scorecard["H0c6W3zG"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2616,11 +2580,121 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_GHzAjHlQ")
+    var explanation = document.getElementById("explanation_H0c6W3zG")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["GHzAjHlQ"]["correct"] = false;
+      quizquestions_scorecard["H0c6W3zG"]["correct"] = false;
+  if (typeof score_summary !== 'undefined') {
+     score_summary()
+  }
+
+  }
+
+})});
+
+</script>
+</div>
+</div>
+<p>Make this plot for the specific values of the parameters <code>R</code>, <code>r</code>, and <code>rho</code>. What shape best describes it?</p>
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>R, r, rho <span class="op">=</span> <span class="fl">1</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">8</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">4</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-hold="true" data-execution_count="66">
+<div class="cell-output cell-output-display" data-execution_count="60">
+<script>
+if (typeof quizquestions_scorecard === 'undefined') {
+   quizquestions_scorecard = {};
+}
+var ID = "Uv9gr2mI"
+if (typeof quizquestions_scorecard[ID] === 'undefined') {
+      quizquestions_scorecard[ID] = {attempts: 0, correct: false};
+}
+</script>
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="Uv9gr2mI" data-controltype="">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_Uv9gr2mI">
+        <div style="padding-top: 5px">
+    <div class="form-check">
+    <label class="form-check-label" for="radio_Uv9gr2mI_1">
+      <input class="form-check-input" type="radio" name="radio_Uv9gr2mI" id="radio_Uv9gr2mI_1" value="1">
+      
+      <span class="label-body px-1">
+        Four sharp points, like a star
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_Uv9gr2mI_2">
+      <input class="form-check-input" type="radio" name="radio_Uv9gr2mI" id="radio_Uv9gr2mI_2" value="2">
+      
+      <span class="label-body px-1">
+        Four petals, like a flower
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_Uv9gr2mI_3">
+      <input class="form-check-input" type="radio" name="radio_Uv9gr2mI" id="radio_Uv9gr2mI_3" value="3">
+      
+      <span class="label-body px-1">
+        A circle
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_Uv9gr2mI_4">
+      <input class="form-check-input" type="radio" name="radio_Uv9gr2mI" id="radio_Uv9gr2mI_4" value="4">
+      
+      <span class="label-body px-1">
+        A straight line
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_Uv9gr2mI_5">
+      <input class="form-check-input" type="radio" name="radio_Uv9gr2mI" id="radio_Uv9gr2mI_5" value="5">
+      
+      <span class="label-body px-1">
+        None of the above
+      </span>
+    </label>
+</div>
+
+    
+        </div>
+      </div>
+      <div id="Uv9gr2mI_message" style="padding-bottom: 15px"></div>
+    </div>
+  </div>
+</form>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_Uv9gr2mI"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 5;
+    var msgBox = document.getElementById('Uv9gr2mI_message');
+    
+    quizquestions_scorecard["Uv9gr2mI"]["attempts"] += 1;
+
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
+    var explanation = document.getElementById("explanation_Uv9gr2mI")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      quizquestions_scorecard["Uv9gr2mI"]["correct"] = true;
+  if (typeof score_summary !== 'undefined') {
+     score_summary()
+  }
+
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
+    var explanation = document.getElementById("explanation_Uv9gr2mI")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      quizquestions_scorecard["Uv9gr2mI"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
