@@ -1093,3 +1093,39 @@ choices = [
 answ=1
 radioq(choices, answ)
 ```
+
+
+
+##### Question
+
+(From [stackoverflow](https://discourse.julialang.org/t/the-speed-of-light-is-an-integer-why-should-we-care/40108/).)
+
+Since 1983, the speed of light is defined to be exactly equal to 299,792,458 meters per second. This can be used to find the value of the Planck [length](https://en.wikipedia.org/wiki/Planck_units#Planck_length) using the formula
+
+$$
+l_p = \sqrt{\frac{\hbar\cdot G}{c^3}}
+$$
+
+Attempting to compute this, we have:
+
+```{julia}
+c = 299_792_458;  # the speed of light
+G = 6.67430e-11;  # Gravitational constant
+h = 6.62607015e-34;  # Planck's contant
+h_bar = h / (2*pi);
+planck_length = sqrt(h_bar * G / c^3)
+```
+
+That all seems great, but the Wikipedia article says this value is around $10^{-35}$ **not** $10^{-32}$. What is a possible answer?
+
+```{julia}
+#| echo: false
+choices = ["The Wikipedia article must be incorrect.",
+           "The difference is very *small*. It must be due to rounding errors",
+           "`Julia` computes this value incorrectly"
+           ]
+explanation = raw"""
+Yes, this is computed incorrectly. The value `c^3` *overflows* as the actual value is around $10^{25}$, but the computed value is only around $10^{18}$. With `c` defined as above, it will be parsed as an integer, which by default (on most machines) will be stored with $64$ bits. Operations with 64-bit integers that mathematically produce values bigger than about $10^{18}$ will be incorrectly computed, as `Julia` uses a silent means to handle the [overflow](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/#Overflow-behavior). (This allows integer computations to be faster.) The suggested approach is to use floating point values to define such values. Floating point can store integer values accurately up to values of $2^{53}$ (about $10^{15}$) and gracefully for larger values, such as $c^3$ in this problem. With `c` defined by `c = 299792458.0` the computed value for the Planck length is `1.6162550244237053e-35`, in agreement with the Wikipedia value.
+"""
+buttonq(choices, 3; explanation=explanation)
+```
