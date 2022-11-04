@@ -1,6 +1,14 @@
 
 # CalculusWithJulia via quarto
 
+Short cut. Run first command until happy, then run second to publish
+
+```
+quarto render
+julia adjust_plotly.jl; quarto publish gh-pages --no-render
+```
+
+
 To compile the pages through quarto
 
 
