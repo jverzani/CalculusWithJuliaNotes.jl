@@ -457,7 +457,7 @@ mxb(0)
 So the `b` is found from the currently stored value. This fact can be exploited. we can write template-like functions, such as `f(x)=m*x+b` and reuse them just by updating the parameters separately.
 
 
-How `Julia` resolves what a variable refers to is described in detail in the manual page [Scope of Variables](https://docs.julialang.org/en/v1/manual/variables-and-scoping/). In this case, the function definition finds variables in the context of where the function was defined, the main workspace. As seen, this context can be modified after the function definition and prior to the function call. It is only when `b` is needed, that the context is consulted, so the most recent binding is retrieved.  Contexts (more formally known as environments) allow the user to repurpose variable names without there being name collision. For example, we typically use `x` as a function argument, and different contexts allow this `x` to refer to different values.
+How `Julia` resolves what a variable refers to is described in detail in the manual page [Scope of Variables](https://docs.julialang.org/en/v1/manual/variables-and-scoping/). In this case, the function definition finds variables in the context of where the function was defined, the main workspace, and not where it is called. As seen, this context can be modified after the function definition and prior to the function call. It is only when `b` is needed, that the context is consulted, so the most recent binding is retrieved.  Contexts allow the user to repurpose variable names without there being name collision. For example, we typically use `x` as a function argument, and different contexts allow this `x` to refer to different values.
 
 
 Mostly this works as expected, but at times it can be complicated to reason about. In our example, definitions of the parameters can be forgotten, or the same variable name may have been used for some other purpose. The potential issue is with the parameters, the value for `x` is straightforward, as it is passed into the function. However, we can also pass the parameters, such as $m$ and $b$, as arguments.  For parameters, one suggestion is to use [keyword](https://docs.julialang.org/en/v1/manual/functions/#Keyword-Arguments) arguments. These allow the specification of parameters, but also give a default value. This can make usage explicit, yet still convenient. For example, here is an alternate way of defining a line with parameters `m` and `b`:
@@ -564,6 +564,23 @@ methods(log, (Number,))
 
 (The arguments have *type annotations* such as `x::Float64` or `x::BigFloat`. `Julia` uses these to help resolve which method should be called for a given set of arguments. This allows for different operations depending on the variable type. For example, in this case, the `log` function for `Float64` values uses a fast algorithm, whereas for `BigFloat` values an algorithm that can handle multiple precision is used.)
 
+##### Example
+
+A common usage of multiple dispatch is, as is done with `log` above, to restrict the type of an argument and define a method for just this type. Types in `Julia` can be abstract or concrete. This distinction is important when construction *composite types* (which we are not doing here), but otherwise not so important. In the following example, we use the abstract types `Integer`, `Real`, and `Complex` to define methods for a function we call `twotox`:
+
+```{julia}
+function twotox(x::Integer)
+    (2//1)^x
+end
+twotox(x::Real) = (2.0)^x
+twotox(x::Complex) = (2.0 + 0.0im)^x
+```
+
+This is for illustration purposes -- the latter two are actually already done through `Julia`'s *promotion* mechanism -- but we see that `twotox` will return a rational number when `x` is an integer unlike `Julia` which, when `x` is non-negative will return an integer and will otherwise will error or return a float (when `x` is a numeric literal, like `2^(-3)`).
+
+The key to reading the above is the type annotation acts like a gatekeeper allowing in only variables of that type.
+
+For example, the number `2` is parsed as a 64-bit integer (typically) and has concrete type `Int64` which is a subtype of `Integer`. So `twotox(2)` will use the first definition, and return a rational number. Whereas, the number `2.0` is parsed as a floating point number with concrete type `Float64` which is a subtype of `Real`, not `Integer`, so `twotox(2.0)` will use the second method defined above.
 
 ##### Example: An application of composition and multiple dispatch
 
@@ -612,15 +629,6 @@ plot(Area, 0, 10)
 From the graph, we can see that that width for maximum area is $w=5$ and so $h=5$ as well.
 
 
-## Function application
-
-
-The typical calling pattern for a function simply follows *mathematical* notation, that is `f(x)` calls the function `f` with the argument `x`. There are times – especially with function composition – that an alternative *piping* syntax is desirable. `Julia` provides the *infix* operation `|>` for piping, defining it by `|>(x, f) = f(x)`. This allows composition to work left to right, instead of right to left. For example, these two calls produce the same answer:
-
-
-```{julia}
-exp(sin(log(3))), 3 |> log |> sin |> exp
-```
 
 ## Other types of functions
 
@@ -798,6 +806,30 @@ end
 
 The name of the file to open appears, how the file is to be opened (`w` means write, `r` would mean read), and then a function with argument `io` which writes two lines to `io`.
 
+## Function application
+
+
+The typical calling pattern for a function simply follows *mathematical* notation, that is `f(x)` calls the function `f` with the argument `x`. There are times – especially with function composition – that an alternative *piping* syntax is desirable. `Julia` provides the *infix* operation `|>` for piping, defining it by `|>(x, f) = f(x)`. This allows composition to work left to right, instead of right to left. For example, these two calls produce the same answer:
+
+
+```{julia}
+exp(sin(log(3))), 3 |> log |> sin |> exp
+```
+
+While convenient, piping works most naturally with functions of a single variable. When more than one variable is needed for a function, say `max`, then things get a bit cumbersome. Using anonymous functions or "fixing" arguments is then useful. For example, here is one way to implement `clamp(x, lo, hi)` which returns `x` when `lo < x < hi` and otherwise `lo` or `hi`, depending:
+
+```{julia}
+x, lo, hi = -10, -5, 5 # clampl(x, lo, hi) is -5
+x |> x -> max(x, lo) |> x -> min(x, hi)
+```
+
+Or
+
+```{julia}
+x |> Base.Fix2(max, lo) |> Base.Fix2(min, hi)
+```
+
+For heavy use of chaining through function application there are various packages to simplify the notation (e.g. `Chain.jl`, `Pipe.jl`, `DataPipes.jl`, among many others).
 
 ## Questions
 

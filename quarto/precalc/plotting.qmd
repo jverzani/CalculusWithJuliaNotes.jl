@@ -486,6 +486,72 @@ For plotting points with `scatter`, or `scatter!` the markers can be adjusted vi
 
 Of course, zero, one, or more of these can be used on any given call to `plot`, `plot!`, `scatter` or `scatter!`.
 
+#### Example: Bresenham's algorithm
+
+
+In plotting a primitive, like a line, some mapping of the mathematical object to a collection of pixels must be made. For the case of a line [Bresenhams's line algorithm](https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm) can be used.
+
+In the simplest case, let's assume a few things:
+
+* we have a line with slope $-1 < m < 0$.
+* the pixels have integer coordinates (e.g., the pixel $(1, -1)$ would cover the region $[1,2] \times [-1, -2]$ when lit.)
+* we start at point $(x_0, y_0)$, $f(x_0) = y_0$, with integer coordinates and end a point $(x_1, y_1)$, also with integer coordinates. The pixel $(x_0,y_0)$ is lit.
+
+With these assumptions, we have an initial decision to make:
+
+> moving to the right, is the pixel $(x_0+1, y_0)$ or $(x_0 + 1, y_0 - 1)$ lit?
+
+We re-express our equation $y=f(x)= mx+b$ in general form $f(x,y) = 0 = Ax + By + C$. Using the other point on the line $A=-(y_1-y_0)$, $B=(x_1-x_0)$, and $C = -x_1y_0  + x_0 y_1$. In particular, by assumption both $A$ and $B$ are positive.
+
+
+With this, we have $f(x_0,y_0) = 0$. But moreover, any point with $y>y_0$ will have $f(x_0,y)>0$ and if $y < y_0$ the opposite. That is this equation divides the plane into two pieces depending on whether $f$ is positive, the line is the dividing boundary.
+
+For the algorithm, we start at $(x_0, y_0)$ and ask if the pixel $(x_0 + 1, y_0)$ or $(x_0 + 1, y_0 - 1)$ will be lit, then we continue to the right.
+
+To check, we ask if $f(x_0 + 1, y_0 - 1/2)$ is positive. If so, then the actual line is below this value so the pixel below is chosen. Otherwise, the pixel above is chosen.
+
+This last check can be done a bit more efficiently, but for now let's see it in action:
+
+```{julia}
+f(x) = -(1/3) * x + 1
+x₀, x₁ = 0, 14
+y₀, y₁ = f(x₀), f(x₁)
+
+A,B,C = -(y₁ - y₀), (x₁-x₀), -x₁*y₀ + x₀*y₁
+
+f(x,y) = A*x + B*y + C
+
+xs = [(x₀, y₀)]
+for i ∈ 1:(x₁ - 1)
+    xᵢ, yᵢ = xs[end]
+    xᵢ₊₁ = xᵢ + 1
+    Δ = f(xᵢ+1, yᵢ-1/2) > 0 ? 1 : 0
+    yᵢ₊₁ = yᵢ - Δ
+    push!(xs, (xᵢ₊₁, yᵢ₊₁))
+end
+
+xs
+```
+
+We can visualize with the following:
+
+```{julia}
+p = plot(f, x₀, x₁; legend=false, aspect_ratio=:equal,
+         xticks=0:x₁,  yticks = (floor(Int, f(x₁))-1):(1 + ceil(Int, f(x₀))))
+col = RGBA(.64,.64,.64, 0.25)
+for xy ∈ xs
+    x, y = xy
+    scatter!([x], [y]; markersize=5)
+    scatter!([x+1], [y - 1/2], markersize=5, markershape=:star7)
+    plot!(Shape(x .+ [0, 1, 1, 0], y .+ [0, 0, -1, -1]), color=col)
+end
+p
+```
+
+We see a number of additional arguments used: different marker sizes and shapes and a transparent color. As well, the `Shape` primitive is used to represent a pixel.
+
+Of course, generalizations for positive slope and slope with magnitude greater than $1$ are needed. As well, this basic algorithm could be optimized, especially if it is part of a lower-level drawing primitive. But this illustrates the considerations involved.
+
 
 ## Graphs of parametric equations
 
