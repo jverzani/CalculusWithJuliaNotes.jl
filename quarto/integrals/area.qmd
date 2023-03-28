@@ -608,26 +608,23 @@ This value is about $10^{-5}$ off from the actual answer of $1/3$.
 We should expect that larger values of $n$ will produce better approximate values, as long as numeric issues don't get involved.
 
 
-Before continuing, we define a function to compute the Riemann sum for us with an extra argument to specifying one of four methods for computing $c_i$:
+Before continuing, we define a function to compute  Riemann sums for us with an extra argument to specifying one of four methods for computing $c_i$:
 
 
 ```{julia}
 #| eval: false
-function riemann(f::Function, a::Real, b::Real, n::Int; method="right")
-    if method == "right"
-        meth = f -> (lr -> begin l,r = lr; f(r) * (r-l) end)
-    elseif method == "left"
-        meth = f -> (lr -> begin l,r = lr; f(l) * (r-l) end)
-    elseif method == "trapezoid"
-        meth = f -> (lr -> begin l,r = lr; (1/2) * (f(l) + f(r)) * (r-l) end)
-    elseif method == "simpsons"
-        meth = f -> (lr -> begin l,r=lr; (1/6) * (f(l) + 4*(f((l+r)/2)) + f(r)) * (r-l) end)
-    end
-
-    xs = range(a, b, n+1)
-    pairs = zip(xs[begin:end-1], xs[begin+1:end]) # (x₀,x₁), …, (xₙ₋₁,xₙ)
-    sum(meth(f), pairs)
-
+riemann(f, a, b, n; method="right") = riemann(f, range(a,b,n+1); method=method)
+function riemann(f, xs; method="right")
+    Ms = (left = (f,a,b) -> f(a),
+          right= (f,a,b) -> f(b),
+          trapezoid = (f,a,b) -> (f(a) + f(b))/2,
+          simpsons  = (f,a,b) -> (c = a/2 + b/2; (1/6) * (f(a) + 4*f(c) + f(b))),
+          )
+    _riemann(Ms[Symbol(method)], f, xs)
+end
+function _riemann(M, f, xs)
+    xs′ = zip(Iterators.drop(xs, 1), Iterators.rest(xs, 1))
+    sum(M(f, a, b) * (b-a) for (a,b) ∈ xs′)
 end
 ```
 
