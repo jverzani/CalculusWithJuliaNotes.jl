@@ -92,6 +92,12 @@ DONE * modify sympy's show method
 
 ## TODO
 
+* Old and new astronomy; : Proctor, Richard Anthony, 1837-1888 : Free Download, Borrow, and Streaming : Internet Archive
+
+
+https://archive.org/details/oldnewastronomy00procuoft
+https://ia800908.us.archive.org/16/items/oldnewastronomy00procuoft/oldnewastronomy00procuoft.pdf has interesting epicycle figures on p 186/886. Could add these in.
+
 * ImageFile -> ![]() as much as possible
 * use pandoc references(?)
 * mermaid, ojs?
@@ -103,3 +109,19 @@ DONE * remove pinned header
 DONE * clean up directory
 DONE (?) * JSXGraph files
 WON'T DO * download links to Pluto .jl files (if we have .jmd, but we might deprecate...) For *now* .jmd is derprecated; though we keep the files around ....
+
+## Cone, general
+# https://discourse.julialang.org/t/general-plotting-code-for-cone-in-3d-with-glmakie-or-plots/92104/3
+
+basecurve(u) = [cos(u), sin(u) + sin(u/2), 0]
+Vertex = [0, 3/4, 3]
+function Cone(u, t)
+	x, y, z = basecurve(u)
+	t * ([x,y,z] - Vertex) + Vertex
+end
+
+us = range(0, 2pi, length=50)
+ts = range(0, 1, length=50)
+
+xyzs = Cone.(us, ts')
+surface(CalculusWithJulia.unzip(xyzs))
