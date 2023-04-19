@@ -6,7 +6,7 @@
 # which seems to make it all work. The line number 83 might change.
 
 f = "_book/alternatives/plotly_plotting.html"
-lineno = 83
+lineno = 88
 
 str = """
 
