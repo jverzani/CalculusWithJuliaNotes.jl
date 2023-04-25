@@ -47,7 +47,7 @@ function IVT_graph(n)
     plt = plot(f, a, b, legend=false, size=fig_size)
     plot!(plt, [0,x,x], [f(x),f(x),0], color=:orange, linewidth=3)
 
-    plot
+    plt
 
 end
 
@@ -83,7 +83,7 @@ The basic proof starts with a set of points in $[a,b]$: $C = \{x \text{ in } [a,
 Suppose we have a continuous function $f(x)$ on $[a,b]$ with $f(a) < 0$ and $f(b) > 0$. Then as $f(a) < 0 < f(b)$, the intermediate value theorem guarantees the existence of a $c$ in $[a,b]$ with $f(c) = 0$. This was a special case of the intermediate value theorem proved by Bolzano first. Such $c$ are called *zeros* of the function $f$.
 
 
-We use this fact when a building a "sign chart" of a polynomial function. Between any two consecutive real zeros the polynomial can not change sign. (Why?) So a "test point" can be used to determine the sign of the function over an entire interval.
+We use this fact when building a "sign chart" of a polynomial function. Between any two consecutive real zeros the polynomial can not change sign. (Why?) So a "test point" can be used to determine the sign of the function over an entire interval.
 
 
 Here, we use the Bolzano theorem to give an algorithm - the *bisection method* - to locate the value $c$ under the assumption $f$ is continous on $[a,b]$ and changes sign between $a$ and $b$.
@@ -149,7 +149,7 @@ We can narrow down where a zero is in $[a,b]$ by following this recipe:
 
   * Pick a midpoint of the interval, for concreteness $c = (a+b)/2$.
   * If $f(c) = 0$ we are done, having found a zero in $[a,b]$.
-  * Otherwise if must be that either $f(a)\cdot f(c) < 0$ or $f(c) \cdot f(b) < 0$. If $f(a) \cdot f(c) < 0$, then let $b=c$ and repeat the above. Otherwise, let $a=c$ and repeat the above.
+  * Otherwise it must be that either $f(a)\cdot f(c) < 0$ or $f(c) \cdot f(b) < 0$. If $f(a) \cdot f(c) < 0$, then let $b=c$ and repeat the above. Otherwise, let $a=c$ and repeat the above.
 
 
 At each step the bracketing interval is narrowed – indeed split in half as defined – or a zero is found.
@@ -206,7 +206,7 @@ This value of $c$ is a floating-point approximation to $\pi$, but is not *quite*
 sin(c)
 ```
 
-(Even `pi` itself is not a "zero" due to floating point issues.)
+(Even `1pi` itself is not a "zero" due to floating point issues.)
 
 
 ### The `find_zero` function.
@@ -244,7 +244,7 @@ c₀ = find_zero(p, (-2, -1))
 (c₀, p(c₀))
 ```
 
-We see, as before, that $p(c)$ is not quite $0$. But it can be easily checked that `p` is negative at the previous floating point number, while `p` is seen to be positive at the returned value:
+We see, as before, that $p(c)$ is not quite $0$. But it can be easily checked that `p` is positive at the next floating point number, while `p` is seen to be negative at the returned value:
 
 
 ```{julia}
@@ -468,7 +468,7 @@ Note that the function is infinite at `b`:
 d(b)
 ```
 
-From the graph,  we can see the zero is around `b`. As `y(b)` is `-Inf` we can use the bracket `(b/2,b)`
+From the graph,  we can see the zero is around `b`. As `d(b)` is `-Inf` we can use the bracket `(b/2,b)`
 
 
 ```{julia}
@@ -532,7 +532,7 @@ So, the "bisection method" applied here finds a point where the function crosses
 #### Using parameterized functions (`f(x,p)`) with `find_zero`
 
 
-Geometry will tell us that $\cos(x) = x/p$ for *one* $x$ in $[0, \pi/2]$ whenever $p>0$. We could set up finding this value for a given $p$ by making $p$ part of the function definition, but as an illustration of passing parameters, we leave `p` as a parameter (in this case, as a second value with default of $1$):
+Geometry will tell us that $\cos(x) - x/p$ for *one* $x$ in $[0, \pi/2]$ whenever $p>0$. We could set up finding this value for a given $p$ by making $p$ part of the function definition, but as an illustration of passing parameters, we leave `p` as a parameter (in this case, as a second value with default of $1$):
 
 
 ```{julia}
@@ -612,7 +612,7 @@ f₁.(zs)
 The `find_zero` function in the `Roots` package is an interface to one of several methods. For now we focus on the *bracketing* methods, later we will see others. Bracketing methods, among others,  include `Roots.Bisection()`, the basic bisection method though with a different sense of "middle" than $(a+b)/2$ and used by default above; `Roots.A42()`, which will typically converge much faster than simple bisection; `Roots.Brent()` for the classic method of Brent, and `FalsePosition()` for a family of *regula falsi* methods. These can all be used by specifying the method in a call to `find_zero`.
 
 
-Alternatively, `Roots` implements the `CommonSolve` interface popularized by its use in the `DifferentialEquations.jl` ecosystem, a wildly successful area for `Julia`. The basic setup is two steps: setup a "problem," solve the problem.
+Alternatively, `Roots` implements the `CommonSolve` interface popularized by its use in the `DifferentialEquations.jl` ecosystem, a wildly successful area for `Julia`. The basic setup is two steps: setup a "problem", solve the problem.
 
 
 To set up a problem, we call `ZeroProblem` with the function and an initial interval, as in:
@@ -833,7 +833,7 @@ The second largest root is:
 #| hold: true
 #| echo: false
 val = find_zero(airyai, (-5,  -4));
-numericq(val, 1e-8)
+numericq(val, 1e-3)
 ```
 
 ###### Question
@@ -842,7 +842,7 @@ numericq(val, 1e-8)
 (From [Strang](http://ocw.mit.edu/ans7870/resources/Strang/Edited/Calculus/Calculus.pdf), p. 37)
 
 
-Certainly $x^3$ equals $3^x$ at $x=3$. Find the largest value for which $x^3 = 3x$.
+Certainly $x^3$ equals $3^x$ at $x=3$. Find the largest value for which $x^3 = 3^x$.
 
 
 ```{julia}
@@ -874,7 +874,7 @@ choices=[
 "``b \\approx 2.5``",
 "``b \\approx 2.7``",
 "``b \\approx 2.9``"]
-answ = 3
+answ = 4
 radioq(choices, answ)
 ```
 
@@ -1107,7 +1107,7 @@ answ = 3
 radioq(choices, answ)
 ```
 
-##### Question
+###### Question
 
 
 The zeros of the equation $\cos(x) \cdot \cosh(x) = 1$ are related to vibrations of rods. Using `find_zeros`, what is the largest zero in the interval $[0, 6\pi]$?
@@ -1120,7 +1120,7 @@ val = maximum(find_zeros(x -> cos(x) * cosh(x) - 1, (0, 6pi)))
 numericq(val)
 ```
 
-##### Question
+###### Question
 
 
 A parametric equation is specified by a parameterization $(f(t), g(t)), a \leq t \leq b$. The parameterization will be continuous if and only if each function is continuous.
