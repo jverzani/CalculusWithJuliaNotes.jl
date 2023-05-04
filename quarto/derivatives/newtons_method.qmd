@@ -547,7 +547,7 @@ We could find the derivative by hand, but use the automatic one instead:
 
 ```{julia}
 alpha = nm(k, k', 2)
-alpha, f(alpha)
+alpha, k(alpha)
 ```
 
 ### Functions in the Roots package
@@ -827,7 +827,7 @@ second derivative is very big. In this illustration, we have an
 initial guess of $x_0=8/9$. As the tangent line is fairly flat, the
 next approximation is far away, $x_1 = 1.313\dots$. As this guess is
 is much bigger than $1$, the ratio $f(x)/f'(x) \approx
-x^{20}/(20x^{19}) = x/20$, so $x_i - x_{i-1} \approx (19/20)x_i$
+x^{20}/(20x^{19}) = x/20$, so $x_i - f(x_i)/f'(x_i) \approx (19/20)x_i$
 yielding slow, linear convergence until $f''(x_i)$ is moderate. For
 this function, starting at $x_0=8/9$ takes 11 steps, at $x_0=7/8$
 takes 13 steps, at $x_0=3/4$ takes ``55`` steps, and at $x_0=1/2$ it takes
@@ -851,14 +851,14 @@ ImageFile(imgfile, caption)
 ###### Example
 
 
-Suppose $\alpha$ is a simple zero for $f(x)$.  (The value $\alpha$ is a zero of multiplicity $k$ if $f(x) = (x-\alpha)^kg(x)$ where $g(\alpha)$ is not zero. A simple zero has multiplicity $1$. If $f'(\alpha) \neq 0$ and the second derivative exists, then a zero $\alpha$ will be simple.)  Around $\alpha$, quadratic convergence should apply. However, consider the function $g(x) = f(x)^k$ for some integer $k \geq 2$. Then $\alpha$ is still a zero, but the derivative of $g$ at $\alpha$ is zero, so the tangent line is basically flat. This will slow the convergence up. We can see that the update step $g'(x)/g(x)$ becomes $(1/k) f'(x)/f(x)$, so an extra factor is introduced.
+Suppose $\alpha$ is a simple zero for $f(x)$.  (The value $\alpha$ is a zero of multiplicity $k$ if $f(x) = (x-\alpha)^kg(x)$ where $g(\alpha)$ is not zero. A simple zero has multiplicity $1$. If $f'(\alpha) \neq 0$ and the second derivative exists, then a zero $\alpha$ will be simple.)  Around $\alpha$, quadratic convergence should apply. However, consider the function $g(x) = f(x)^k$ for some integer $k \geq 2$. Then $\alpha$ is still a zero, but the derivative of $g$ at $\alpha$ is zero, so the tangent line is basically flat. This will slow the convergence up. We can see that the update step $g(x)/g'(x)$ becomes $(1/k) f(x)/f'(x)$, so an extra factor is introduced.
 
 
 The calculation that produces the quadratic convergence now becomes:
 
 
 $$
-x_{i+1} - \alpha = (x_i - \alpha) - \frac{1}{k}(x_i-\alpha + \frac{f''(\xi)}{2f'(x_i)}(x_i-\alpha)^2) =
+x_{i+1} - \alpha = (x_i - \alpha) - \frac{1}{k}(x_i-\alpha - \frac{f''(\xi)}{2f'(x_i)}(x_i-\alpha)^2) =
 \frac{k-1}{k} (x_i-\alpha) + \frac{f''(\xi)}{2kf'(x_i)}(x_i-\alpha)^2.
 $$
 
@@ -976,7 +976,7 @@ answ = 1
 radioq(choices, answ)
 ```
 
-This question can be used to give a proof for the previous two questions, which can be answered by considering the graphs alone. Combined, they say that if a function is  increasing and concave up and $\alpha$ is a zero, then if $x_0 < \alpha$ it will be $x_1 > \alpha$, and for any $x_i > \alpha$, $\alpha <= x_{i+1} <= x_\alpha$, so the sequence in Newton's method is decreasing and bounded below; conditions for which it is guaranteed mathematically there will be convergence.
+This question can be used to give a proof for the previous two questions, which can be answered by considering the graphs alone. Combined, they say that if a function is  increasing and concave up and $\alpha$ is a zero, then if $x_0 < \alpha$ it will be $x_1 > \alpha$, and for any $x_i > \alpha$, $\alpha \le x_{i+1} \le x_i$, so the sequence in Newton's method is decreasing and bounded below; conditions for which it is guaranteed mathematically there will be convergence.
 
 
 ###### Question
@@ -1116,7 +1116,7 @@ When $x_0 = 1.0$ the following values are true for $f$:
 ff(x) = x^5 - x - 1
 α = find_zero(ff, 1)
 function error_terms(x)
-    (e₀=x-α, f₀′= f'(x), f̄₀′′=f''(α), ē₁ = 1/2*f''(α)/f'(x)*(x-α)^2)
+    (e₀=x-α, f₀′= ff'(x), f̄₀′′=ff''(α), ē₁ = 1/2*ff''(α)/ff'(x)*(x-α)^2)
 end
 error_terms(1.0)
 ```
@@ -1133,7 +1133,7 @@ Does the magnitude of the error increase or decrease in the first step?
 radioq(["Appears to increase", "It decreases"],2,keep_order=true)
 ```
 
-If $x_0$ is set near $0.40$ what happens?
+If $x_0$ is set near $0.50$ what happens?
 
 
 ```{julia}
@@ -1142,13 +1142,13 @@ If $x_0$ is set near $0.40$ what happens?
 radioq(nm_choices, 3, keep_order=true)
 ```
 
-When $x_0 = 0.4$ the following values are true for $f$:
+When $x_0 = 0.5$ the following values are true for $f$:
 
 
 ```{julia}
 #| hold: true
 #| echo: false
-error_terms(0.4)
+error_terms(0.5)
 ```
 
 Where the values `f̄₀′′` and `ē₁` are worst-case estimates when $\xi$ is between $x_0$ and the zero.
@@ -1169,7 +1169,7 @@ If $x_0$ is set near $0.75$ what happens?
 ```{julia}
 #| hold: true
 #| echo: false
-radioq(nm_choices, 3, keep_order=true)
+radioq(nm_choices, 2, keep_order=true)
 ```
 
 ###### Question
@@ -1247,7 +1247,7 @@ radioq(choices, answ, keep_order=true)
 ###### Question
 
 
-Will Newton's method converge to a zero for $f(x) = \sqrt{(1 - x^2)^2}$?
+Will Newton's method converge to a zero for $f(x) = \sqrt{(1 - x^2)^2}$ starting at $1.0$?
 
 
 ```{julia}
@@ -1473,7 +1473,7 @@ Let's define the above approximations for a given `f`:
 ```{julia}
 q₀ = 0.8
 fq(x) = 1/x - q₀
-secant_approx(x0,x1) = (fq(x1) - f(x0)) / (x1 - x0)
+secant_approx(x0,x1) = (fq(x1) - fq(x0)) / (x1 - x0)
 diffq_approx(x0, h) = secant_approx(x0, x0+h)
 steff_approx(x0) = diffq_approx(x0, fq(x0))
 ```
@@ -1484,9 +1484,9 @@ Then using the difference quotient would look like:
 ```{julia}
 #| hold: true
 Δ = 1e-6
-x1 = 42/17 - 32/17 * q₀
-x1 = x1 - fq(x1) / diffq_approx(x1, Δ)   # |x1 - xstar| = 0.06511395862036995
-x1 = x1 - fq(x1) / diffq_approx(x1, Δ)   # |x1 - xstar| = 0.003391809999860218; etc
+x1 = 48/17 - 32/17 * q₀
+x1 = x1 - fq(x1) / diffq_approx(x1, Δ)   # |x1 - xstar| = 0.003660953777242959
+x1 = x1 - fq(x1) / diffq_approx(x1, Δ)   # |x1 - xstar| = 1.0719137523373945e-5; etc
 ```
 
 The Steffensen method would look like:
@@ -1494,9 +1494,9 @@ The Steffensen method would look like:
 
 ```{julia}
 #| hold: true
-x1 = 42/17 - 32/17 * q₀
-x1 = x1 - fq(x1) / steff_approx(x1)   # |x1 - xstar| = 0.011117056291670258
-x1 = x1 - fq(x1) / steff_approx(x1)   # |x1 - xstar| = 3.502579696146313e-5; etc.
+x1 = 48/17 - 32/17 * q₀
+x1 = x1 - fq(x1) / steff_approx(x1)   # |x1 - xstar| = 0.0014382105783488086
+x1 = x1 - fq(x1) / steff_approx(x1)   # |x1 - xstar| = 5.944935954627084e-7; etc.
 ```
 
 And the secant method like:
@@ -1505,10 +1505,10 @@ And the secant method like:
 ```{julia}
 #| hold: true
 Δ = 1e-6
-x1 = 42/17 - 32/17 * q₀
+x1 = 48/17 - 32/17 * q₀
 x0 = x1 - Δ # we need two initial values
-x0, x1 = x1, x1 - fq(x1) / secant_approx(x0, x1)   # |x1 - xstar| = 8.222358365284066e-6
-x0, x1 = x1, x1 - fq(x1) / secant_approx(x0, x1)   # |x1 - xstar| = 1.8766323799379592e-6; etc.
+x0, x1 = x1, x1 - fq(x1) / secant_approx(x0, x1)   # |x1 - xstar| = 0.00366084553494872
+x0, x1 = x1, x1 - fq(x1) / secant_approx(x0, x1)   # |x1 - xstar| = 0.00019811634659716582; etc.
 ```
 
 Repeat each of the above algorithms until `abs(x1 - 1.25)` is `0` (which will happen for this problem, though not in general). Record the steps.
