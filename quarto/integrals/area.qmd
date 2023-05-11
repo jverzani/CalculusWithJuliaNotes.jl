@@ -52,7 +52,7 @@ plot(f, -1, 1)
 plot!(zero)
 ```
 
-And this area can be broken into a sum of the area of square and the area of a rectangle, or $1 + 1/2$:
+And this area can be broken into a sum of the area of square and the area of a triangle, or $1 + 1/2$:
 
 
 ```{julia}
@@ -230,7 +230,7 @@ For Archimedes' problem - finding the area under $f(x)=x^2$ between $0$ and $1$ 
 
 \begin{align*}
 S_n &= f(c_1) \cdot (x_1 - x_0) + f(c_2) \cdot (x_2 - x_1) + \cdots + f(c_n) \cdot (x_n - x_{n-1})\\
-&= (x_1)^2 \cdot \frac{1}{n} + (x_2)^2 \cdot \frac{1}{n} + \cdot + (x_n)^2 \cdot \frac{1}{n}\\
+&= (x_1)^2 \cdot \frac{1}{n} + (x_2)^2 \cdot \frac{1}{n} + \cdots + (x_n)^2 \cdot \frac{1}{n}\\
 &= 1^2 \cdot \frac{1}{n^3}  + 2^2 \cdot \frac{1}{n^3} + \cdots + n^2 \cdot \frac{1}{n^3}\\
 &= \frac{1}{n^3} \cdot (1^2 + 2^2 + \cdots + n^2) \\
 &= \frac{1}{n^3} \cdot \frac{n\cdot(n-1)\cdot(2n+1)}{6}.
@@ -282,7 +282,7 @@ The choice of the $c_i$ will give different answers for the approximation, thoug
   * If the function is continuous on the closed subinterval $[x_{i-1}, x_i]$, then it will take on its minimum and maximum values. By the extreme value theorem, we could take $c_i$ to correspond to either the maximum or the minimum. These choices give  the "upper Riemann-sums" and "lower Riemann-sums".
 
 
-The choice of partition can also give different answers. A common choice is to break the interval into $n+1$ equal-sized pieces. With $\Delta = (b-a)/n$, these pieces become the arithmetic sequence $a = a + 0 \cdot \Delta < a + 1 \cdot \Delta < a + 2 \cdot \Delta < \cdots a + n \cdots < \Delta = b$ with $x_i = a + i (b-a)/n$. (The `range(a, b, length=n+1)` command will compute these.) An alternate choice made below for one problem is to use a geometric progression:
+The choice of partition can also give different answers. A common choice is to break the interval into $n+1$ equal-sized pieces. With $\Delta = (b-a)/n$, these pieces become the arithmetic sequence $a = a + 0 \cdot \Delta < a + 1 \cdot \Delta < a + 2 \cdot \Delta < \cdots < a + n \cdot  \Delta = b$ with $x_i = a + i (b-a)/n$. (The `range(a, b, length=n+1)` command will compute these.) An alternate choice made below for one problem is to use a geometric progression:
 
 
 $$
@@ -353,7 +353,7 @@ Scaling the $y$ axis by a constant can be done before or after computing the are
 
 
 
-Let $a=x_0 < x_1 < \cdots < x_n=b$ be any partition. Then we have $S_n= cf(c_1)(x_1-x_0) + \cdots + cf(c_n)(x_n-x_0)$ $=$ $c\cdot\left[ f(c_1)(x_1 - x_0) + \cdots + f(c_n)(x_n - x_0)\right]$. The "limit" of the left side is $\int_a^b c f(x) dx$. The "limit" of the right side is $c \cdot \int_a^b f(x)$. We call this a "sketch" as a formal proof would show that for any $\epsilon$ we could choose a $\delta$ so that any partition with norm $\delta$ will yield a sum less than $\epsilon$. Here, then our "any" partition would be one for which the $\delta$ on the left hand side applies. The computation shows that the same $\delta$ would apply for the right hand side when $\epsilon$ is the same.
+Let $a=x_0 < x_1 < \cdots < x_n=b$ be any partition. Then we have $S_n= cf(c_1)(x_1-x_0) + \cdots + cf(c_n)(x_n-x_{n-1})$ $=$ $c\cdot\left[ f(c_1)(x_1 - x_0) + \cdots + f(c_n)(x_n - x_{n-1})\right]$. The "limit" of the left side is $\int_a^b c f(x) dx$. The "limit" of the right side is $c \cdot \int_a^b f(x)$. We call this a "sketch" as a formal proof would show that for any $\epsilon$ we could choose a $\delta$ so that any partition with norm $\delta$ will yield a sum less than $\epsilon$. Here, then our "any" partition would be one for which the $\delta$ on the left hand side applies. The computation shows that the same $\delta$ would apply for the right hand side when $\epsilon$ is the same.
 
 
 The area is invariant under shifts left or right.
@@ -398,7 +398,7 @@ The scaling operation $g(x) = f(cx)$ has the following:
 The scaling operation shifts $a$ to $ca$ and $b$ to $cb$ so the limits of integration make sense. However, the area stretches by $c$ in the $x$ direction, so must contract by $c$ in the $y$ direction to stay in balance. Hence the factor of $1/c$.
 
 
-Combining two operations above, the operation $g(x) = \frac{1}{h}f(\frac{x-c}{h})$ will leave the area between $a$ and $b$ under $g$ the same as the area under $g$ between $(a-c)/h$ and $(b-c)/h$.
+Combining two operations above, the operation $g(x) = \frac{1}{h}f(\frac{x-c}{h})$ will leave the area between $a$ and $b$ under $g$ the same as the area under $f$ between $(a-c)/h$ and $(b-c)/h$.
 
 
 ---
@@ -624,7 +624,7 @@ function riemann(f, xs; method="right")
     _riemann(Ms[Symbol(method)], f, xs)
 end
 function _riemann(M, f, xs)
-    xs′ = zip(Iterators.drop(xs, 1), Iterators.rest(xs, 1))
+    xs′ = zip(xs[1:end-1], xs[2:end])
     sum(M(f, a, b) * (b-a) for (a,b) ∈ xs′)
 end
 ```
@@ -715,7 +715,7 @@ An immediate consequence would be $\int_{-\pi}^\pi \sin(x) = 0$, as would $\int_
 Numerically estimate the definite integral $\int_0^e x\log(x) dx$. (We redefine the function to be $0$ at $0$, so it is continuous.)
 
 
-We have to be a bit careful with the Riemann sum, as the left Riemann sum will have an issue at $0=x_0$ (`0*log(0)` returns `NaN` which will poison any subsequent arithmetic operations, so the value returned will be `NaN` and not an approximate answer). We could define our function with a check:
+We have to be a bit careful with the Riemann sum, as the left Riemann sum will have an issue at $0=x_0$ (`0*log(0)`) returns `NaN` which will poison any subsequent arithmetic operations, so the value returned will be `NaN` and not an approximate answer. We could define our function with a check:
 
 
 ```{julia}
@@ -767,8 +767,8 @@ We have the well-known triangle [inequality](http://en.wikipedia.org/wiki/Triang
 \begin{multline*}
 \lvert f(c_1)(x_1-x_0) + f(c_2)(x_2-x_1) + \cdots + f(c_n) (x_n-x_1) \rvert\\
 \leq
-\lvert f(c_1)(x_1-x_0) \rvert + \lvert f(c_2)(x_2-x_1)\rvert + \cdots +\lvert f(c_n) (x_n-x_1) \rvert \\
-= \lvert f(c_1)\rvert (x_1-x_0) + \lvert f(c_2)\rvert (x_2-x_1)+ \cdots +\lvert f(c_n) \rvert(x_n-x_1).
+\lvert f(c_1)(x_1-x_0) \rvert + \lvert f(c_2)(x_2-x_1)\rvert + \cdots +\lvert f(c_n) (x_n-x_{n-1}) \rvert \\
+= \lvert f(c_1)\rvert (x_1-x_0) + \lvert f(c_2)\rvert (x_2-x_1)+ \cdots +\lvert f(c_n) \rvert(x_n-x_{n-1}).
 \end{multline*}
 
 This suggests that the following inequality holds for integrals:
@@ -798,10 +798,10 @@ The Riemann sum above is actually extremely inefficient. To see how much, we can
 \begin{align*}
 \text{error} &\leq
 \left[
-f(x_1) \cdot (x_{1} - x_0)  + f(x_2) \cdot  (x_{2} - x_1) + \cdots + f(x_{n-1})(x_{n-1} - x_n) + f(x_n) \cdot (x_n - x_{n-1})\right]\\
+f(x_1) \cdot (x_{1} - x_0)  + f(x_2) \cdot  (x_{2} - x_1) + \cdots + f(x_{n-1})(x_{n-1} - x_{n-2}) + f(x_n) \cdot (x_n - x_{n-1})\right]\\
 &-
-\left[f(x_0) \cdot (x_{1} - x_0)  + f(x_1) \cdot  (x_{2} - x_1) + \cdots + f(x_{n-1})(x_{n-1} - x_n)\right] \\
-&= \frac{b-a}{n} \cdot (\left[f(x_1) + f(x_2) + \cdots f(x_n)\right] - \left[f(x_0) + \cdots f(x_{n-1})\right]) \\
+\left[f(x_0) \cdot (x_{1} - x_0)  + f(x_1) \cdot  (x_{2} - x_1) + \cdots + f(x_{n-1})(x_n - x_{n-1})\right] \\
+&= \frac{b-a}{n} \cdot (\left[f(x_1) + f(x_2) + \cdots + f(x_n)\right] - \left[f(x_0) + \cdots + f(x_{n-1})\right]) \\
 &= \frac{b-a}{n} \cdot (f(b) - f(a)).
 \end{align*}
 
@@ -1163,7 +1163,7 @@ For the function $f(x) = \sin(\pi x)$, estimate the integral for $-1$ to $1$ usi
 ```{julia}
 #| hold: true
 #| echo: false
-f(x) = sin(x)
+f(x) = sin(pi*x)
 xs = -1:1/2:1
 deltas = diff(xs)
 val = sum(map(f, xs[1:end-1]) .* deltas)
@@ -1355,7 +1355,7 @@ Use `quadgk` to find the following definite integral:
 
 
 $$
-\int_0^{9/10} \tan(u \frac{\pi}{2}) du.   .
+\int_0^{9/10} \tan(u \frac{\pi}{2}) du.
 $$
 
 ```{julia}
@@ -1486,7 +1486,7 @@ Use these to estimate the integral $\int_{-1}^1 \cos(\pi/2 \cdot x)dx$ with $w_1
 #| hold: true
 #| echo: false
 f(x) = cos(pi/2*x)
-val = sum([f(wi)*ni for (wi, ni) in zip(wts, ns)])
+val = sum([f(ni)*wi for (wi, ni) in zip(wts, ns)])
 numericq(val)
 ```
 
@@ -1516,6 +1516,6 @@ Using the Gauss nodes and weights from the previous question, estimate the integ
 #| hold: true
 #| echo: false
 f(x) = exp(x)
-val = sum([f(wi)*ni for (wi, ni) in zip(wts, ns)])
+val = sum([f(ni)*wi for (wi, ni) in zip(wts, ns)])
 numericq(val)
 ```
