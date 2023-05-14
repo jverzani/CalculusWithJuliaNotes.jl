@@ -187,8 +187,9 @@ plot!(xs, ys)
 Not bad. We wouldn't expect this to be exact - due to the concavity of the solution, each step is an underestimate. However, we see it is an okay approximation and would likely be better with a smaller $h$. A topic we pursue in just a bit.
 
 
-Rather than type in the above command each time, we wrap it all up in a function.  The inputs are $n$, $a=x_0$, $b=x_n$, $y_0$, and, most importantly, $F$. The output is massaged into a function through a call to `linterp`, rather than two vectors. The `linterp` function we define below just finds a function that linearly interpolates between the points and is `NaN` outside of the range of the $x$ values:
+Rather than type in the above command each time, we wrap it all up in a function.  The inputs are $n$, $a=x_0$, $b=x_n$, $y_0$, and, most importantly, $F$. The output is massaged into a function through a call to `linterp`, rather than two vectors. The `linterp` function[^Interpolations] we define below just finds a function that linearly interpolates between the points and is `NaN` outside of the range of the $x$ values:
 
+[^Interpolations]: The `Interpolations` package handles linear interpolation and much more in an easy to use manner with "exceptional" performance. The `linterp` function is for pedagogical purposes only.
 
 ```{julia}
 function linterp(xs, ys)
@@ -230,9 +231,9 @@ For example, we thought the solution would look better with a smaller $h$ (or la
 
 
 ```{julia}
-u₁₂ = euler(F, 1, 2, 1, 50)
+u12 = euler(F, 1, 2, 1, 50)
 plot(exp(-1/2)*exp(x^2/2), x0, 2)
-plot!(u₁₂, x0, 2)
+plot!(u12, x0, 2)
 ```
 
 It is more work for the computer, but not for us, and clearly a much better approximation to the actual answer is found.
@@ -277,20 +278,20 @@ Consider the initial value problem $y'(x) = x + y(x)$ with initial condition $y(
 
 
 ```{julia}
-𝑭(y,x) = x + y
-𝒙0, 𝒙n, 𝒚0 = 0, 2, 1
-𝒇 = euler(𝑭, 𝒙0, 𝒙n, 𝒚0, 25)
-𝒇(𝒙n)
+F(y,x) = x + y
+x0, xn, y0 = 0, 2, 1
+f = euler(F, x0, xn, y0, 25)
+f(xn)
 ```
 
 We graphically compare our approximate answer with the exact one:
 
 
 ```{julia}
-plot(𝒇, 𝒙0, 𝒙n)
-𝒐ut = dsolve(D(u)(x) - 𝑭(u(x),x), u(x), ics = Dict(u(𝒙0) => 𝒚0))
-plot(rhs(𝒐ut), 𝒙0, 𝒙n)
-plot!(𝒇, 𝒙0, 𝒙n)
+plot(f, x0, xn)
+𝒐ut = dsolve(D(u)(x) - F(u(x),x), u(x), ics = Dict(u(x0) => y0))
+plot(rhs(𝒐ut), x0, xn)
+plot!(f, x0, xn)
 ```
 
 From the graph it appears our value for `f(xn)` will underestimate the actual value of the solution slightly.
@@ -306,30 +307,30 @@ First, the `SymPy` solution:
 
 
 ```{julia}
-𝐅(y,x) = sin(x*y)
-𝐞qn = D(u)(x) - 𝐅(u(x), x)
-𝐨ut = dsolve(𝐞qn, hint="1st_power_series")
+F(y,x) = sin(x*y)
+eqn = D(u)(x) - F(u(x), x)
+out = dsolve(eqn, hint="1st_power_series")
 ```
 
 If we assume $y(0) = 1$, we can continue:
 
 
 ```{julia}
-𝐨ut1 = dsolve(𝐞qn, u(x), ics=Dict(u(0) => 1), hint="1st_power_series")
+out1 = dsolve(eqn, u(x), ics=Dict(u(0) => 1), hint="1st_power_series")
 ```
 
 The approximate value given by the Euler method is
 
 
 ```{julia}
-𝐱0, 𝐱n, 𝐲0 = 0, 2, 1
+x0, xn, y0 = 0, 2, 1
 
 plot(legend=false)
-vectorfieldplot!((x,y) -> [1, 𝐅(y,x)], xlims=(𝐱0, 𝐱n), ylims=(0,5))
-plot!(rhs(𝐨ut1).removeO(),  linewidth=5)
+vectorfieldplot!((x,y) -> [1, F(y,x)], xlims=(x0, xn), ylims=(0,5))
+plot!(rhs(out1).removeO(),  linewidth=5)
 
-𝐮 = euler(𝐅, 𝐱0, 𝐱n, 𝐲0, 10)
-plot!(𝐮, linewidth=5)
+u = euler(F, x0, xn, y0, 10)
+plot!(u, linewidth=5)
 ```
 
 We see that the answer found from using a polynomial series matches that of Euler's method for a bit, but as time evolves, the approximate solution given by Euler's method more closely tracks the slope field.
@@ -533,10 +534,10 @@ We then have with $C=1$ over the interval $[0,1.2]$ the following:
 
 
 ```{julia}
-𝐹(y, x; C=1) = sqrt(C/y - 1)
-𝑥0, 𝑥n, 𝑦0 = 0, 1.2, 0
-cyc = back_euler(𝐹, 𝑥0, 𝑥n, 𝑦0, 50)
-plot(x -> 1 - cyc(x), 𝑥0, 𝑥n)
+F(y, x; C=1) = sqrt(C/y - 1)
+x0, xn, y0 = 0, 1.2, 0
+cyc = back_euler(F, x0, xn, y0, 50)
+plot(x -> 1 - cyc(x), x0, xn)
 ```
 
 Remember, $y$ is the displacement from the top, so it is non-negative. Above we flipped the graph to make it look more like expectation. In general, the trajectory may actually dip below the ending point and come back up. The above won't see this, for as written $dy/dx \geq 0$, which need not be the case, as the defining equation is in terms of $(dy/dx)^2$, so the derivative could have any sign.
@@ -549,21 +550,21 @@ The Euler method is *convergent*, in that as $h$ goes to $0$, the approximate so
 
 
 ```{julia}
-ℱ(y,x) = -5y
-𝓍0, 𝓍n, 𝓎0 = 0, 2, 1
-𝓊 = euler(ℱ, 𝓍0, 𝓍n, 𝓎0, 4)     # n =4 => h = 2/4
-vectorfieldplot((x,y) -> [1, ℱ(y,x)], xlims=(0, 2), ylims=(-5, 5))
+F(y,x) = -5y
+x0, xn, y0 = 0, 2, 1
+u = euler(F, x0, xn, y0, 4)     # n =4 => h = 2/4
+vectorfieldplot((x,y) -> [1, F(y,x)], xlims=(0, 2), ylims=(-5, 5))
 plot!(x -> y0 * exp(-5x), 0, 2, linewidth=5)
-plot!(𝓊, 0, 2, linewidth=5)
+plot!(u, 0, 2, linewidth=5)
 ```
 
 What we see is that the value of $h$ is too big to capture the decay scale of the solution. A smaller $h$, can do much better:
 
 
 ```{julia}
-𝓊₁ = euler(ℱ, 𝓍0, 𝓍n, 𝓎0, 50)    # n=50 => h = 2/50
+u₁ = euler(F, x0, xn, y0, 50)    # n=50 => h = 2/50
 plot(x -> y0 * exp(-5x), 0, 2)
-plot!(𝓊₁, 0, 2)
+plot!(u₁, 0, 2)
 ```
 
 This is an example of a [stiff equation](https://en.wikipedia.org/wiki/Stiff_equation). Such equations cause explicit methods like the Euler one problems, as small $h$s are needed to good results.
@@ -573,10 +574,10 @@ The implicit, backward Euler method does not have this issue, as we can see here
 
 
 ```{julia}
-𝓊₂ = back_euler(ℱ, 𝓍0, 𝓍n, 𝓎0, 4)     # n =4 => h = 2/4
-vectorfieldplot((x,y) -> [1, ℱ(y,x)],  xlims=(0, 2), ylims=(-1, 1))
+u₂ = back_euler(F, x0, xn, y0, 4)     # n =4 => h = 2/4
+vectorfieldplot((x,y) -> [1, F(y,x)],  xlims=(0, 2), ylims=(-1, 1))
 plot!(x -> y0 * exp(-5x), 0, 2, linewidth=5)
-plot!(𝓊₂, 0, 2, linewidth=5)
+plot!(u₂, 0, 2, linewidth=5)
 ```
 
 ##### Example: The pendulum
@@ -632,18 +633,18 @@ Let's take $a = \pi/4$ as the initial angle, then the approximate solution shoul
 
 
 ```{julia}
-𝗅, 𝗀 = 5, 9.8
-𝖳 = 2pi * sqrt(𝗅/𝗀)
-𝗑0, 𝗑n, 𝗒0, 𝗒p0 = 0, 4𝖳, pi/4, 0
-plot(euler2(𝗑0, 𝗑n, 𝗒0, 𝗒p0, 20), 0, 4𝖳)
+l, g = 5, 9.8
+T = 2pi * sqrt(l/g)
+x0, xn, y0, yp0 = 0, 4T, pi/4, 0
+plot(euler2(x0, xn, y0, yp0, 20), 0, 4T)
 ```
 
 Something looks terribly amiss. The issue is the step size, $h$, is too large to capture the oscillations. There are basically only $5$ steps to capture a full up and down motion. Instead, we try to get $20$ steps per period so $n$ must be not $20$, but $4 \cdot 20 \cdot T \approx 360$. To this graph, we add the approximate one:
 
 
 ```{julia}
-plot(euler2(𝗑0, 𝗑n, 𝗒0, 𝗒p0, 360), 0, 4𝖳)
-plot!(x -> pi/4*cos(sqrt(𝗀/𝗅)*x), 0, 4𝖳)
+plot(euler2(x0, xn, y0, yp0, 360), 0, 4T)
+plot!(x -> pi/4*cos(sqrt(g/l)*x), 0, 4T)
 ```
 
 Even now, we still see that something seems amiss, though the issue is not as dramatic as before. The oscillatory nature of the pendulum is seen, but in the Euler solution, the amplitude grows, which would necessarily mean energy is being put into the system.  A familiar instance of a pendulum would be a child on a swing. Without pumping the legs - putting energy in the system - the height of the swing's arc will not grow.  Though we now have oscillatory motion, this growth indicates the solution is still not quite right. The issue is likely due to each step mildly overcorrecting and resulting in an overall growth.  One of the questions pursues this a bit further.
