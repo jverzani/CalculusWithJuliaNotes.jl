@@ -394,7 +394,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../integrals/ftc.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">37</span>&nbsp; <span class="chapter-title">Fundamental Theorem or Calculus</span></a>
+  <a href="../integrals/ftc.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">37</span>&nbsp; <span class="chapter-title">Fundamental Theorem of Calculus</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -664,10 +664,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </header>
 
 <p>This section uses these add-on packages:</p>
+<div class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">CalculusWithJulia</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Plots</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">SymPy</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Roots</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 <hr>
 <p>The following section takes up the task of numerically approximating solutions to differential equations. <code>Julia</code> has a huge set of state-of-the-art tools for this task starting with the <a href="https://github.com/SciML/DifferentialEquations.jl">DifferentialEquations</a> package. We don’t use that package in this section, focusing on simpler methods and implementations for pedagogical purposes, but any further exploration should utilize the tools provided therein. A brief introduction to the package follows in an upcoming <a href="./differential_equations.html">section</a>.</p>
 <hr>
@@ -744,6 +746,7 @@ x_{n+1} = x_n + h, \quad y_{n+1} = y_n + h F(y_n, x_n).
 \]</span></p>
 <p>For our example, we can do some numerics. We want <span class="math inline">\(h=0.2\)</span> and <span class="math inline">\(5\)</span> pieces, so values of <span class="math inline">\(y\)</span> at <span class="math inline">\(x_0=1, x_1=1.2, x_2=1.4, x_3=1.6, x_4=1.8,\)</span> and <span class="math inline">\(x_5=2\)</span>.</p>
 <p>Below we do this in a loop. We have to be a bit careful, as in <code>Julia</code> the vector of zeros we create to store our answers begins indexing at <span class="math inline">\(1\)</span>, and not <span class="math inline">\(0\)</span>.</p>
+<div class="cell" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>n<span class="op">=</span><span class="fl">5</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>h <span class="op">=</span> (<span class="fl">2</span><span class="op">-</span><span class="fl">1</span>)<span class="op">/</span>n</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> <span class="fu">zeros</span>(n<span class="op">+</span><span class="fl">1</span>)</span>
@@ -754,6 +757,7 @@ x_{n+1} = x_n + h, \quad y_{n+1} = y_n + h F(y_n, x_n).
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  xs[i <span class="op">+</span> <span class="fl">1</span>] <span class="op">=</span> xs[i] <span class="op">+</span> h</span>
 <span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  ys[i <span class="op">+</span> <span class="fl">1</span>] <span class="op">=</span> ys[i] <span class="op">+</span> h <span class="op">*</span> <span class="fu">F</span>(ys[i], xs[i])</span>
 <span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 <p>So how did we do? Let’s look graphically:</p>
 <div class="cell" data-execution_count="11">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">exp</span>(<span class="op">-</span><span class="fl">1</span><span class="op">/</span><span class="fl">2</span>)<span class="fu">*exp</span>(x<span class="op">^</span><span class="fl">2</span><span class="op">/</span><span class="fl">2</span>), x0, <span class="fl">2</span>)</span>
@@ -763,7 +767,7 @@ x_{n+1} = x_n + h, \quad y_{n+1} = y_n + h F(y_n, x_n).
 </div>
 </div>
 <p>Not bad. We wouldn’t expect this to be exact - due to the concavity of the solution, each step is an underestimate. However, we see it is an okay approximation and would likely be better with a smaller <span class="math inline">\(h\)</span>. A topic we pursue in just a bit.</p>
-<p>Rather than type in the above command each time, we wrap it all up in a function. The inputs are <span class="math inline">\(n\)</span>, <span class="math inline">\(a=x_0\)</span>, <span class="math inline">\(b=x_n\)</span>, <span class="math inline">\(y_0\)</span>, and, most importantly, <span class="math inline">\(F\)</span>. The output is massaged into a function through a call to <code>linterp</code>, rather than two vectors. The <code>linterp</code> function we define below just finds a function that linearly interpolates between the points and is <code>NaN</code> outside of the range of the <span class="math inline">\(x\)</span> values:</p>
+<p>Rather than type in the above command each time, we wrap it all up in a function. The inputs are <span class="math inline">\(n\)</span>, <span class="math inline">\(a=x_0\)</span>, <span class="math inline">\(b=x_n\)</span>, <span class="math inline">\(y_0\)</span>, and, most importantly, <span class="math inline">\(F\)</span>. The output is massaged into a function through a call to <code>linterp</code>, rather than two vectors. The <code>linterp</code> function<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> we define below just finds a function that linearly interpolates between the points and is <code>NaN</code> outside of the range of the <span class="math inline">\(x\)</span> values:</p>
 <div class="cell" data-execution_count="12">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">linterp</span>(xs, ys)</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">function</span>(x)</span>
@@ -802,9 +806,9 @@ x_{n+1} = x_n + h, \quad y_{n+1} = y_n + h F(y_n, x_n).
 <p>With <code>euler</code>, it becomes easy to explore different values.</p>
 <p>For example, we thought the solution would look better with a smaller <span class="math inline">\(h\)</span> (or larger <span class="math inline">\(n\)</span>). Instead of <span class="math inline">\(n=5\)</span>, let’s try <span class="math inline">\(n=50\)</span>:</p>
 <div class="cell" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>u₁₂ <span class="op">=</span> <span class="fu">euler</span>(F, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">1</span>, <span class="fl">50</span>)</span>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>u12 <span class="op">=</span> <span class="fu">euler</span>(F, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">1</span>, <span class="fl">50</span>)</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">exp</span>(<span class="op">-</span><span class="fl">1</span><span class="op">/</span><span class="fl">2</span>)<span class="fu">*exp</span>(x<span class="op">^</span><span class="fl">2</span><span class="op">/</span><span class="fl">2</span>), x0, <span class="fl">2</span>)</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(u₁₂, x0, <span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(u12, x0, <span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="15">
 <p><img src="euler_files/figure-html/cell-15-output-1.svg" class="img-fluid"></p>
 </div>
@@ -834,20 +838,20 @@ x_{n+1} = x_n + h, \quad y_{n+1} = y_n + h \cdot F(y_n, x_n),
 <h5 class="anchored" data-anchor-id="example">Example</h5>
 <p>Consider the initial value problem <span class="math inline">\(y'(x) = x + y(x)\)</span> with initial condition <span class="math inline">\(y(0)=1\)</span>. This problem can be solved exactly. Here we approximate over <span class="math inline">\([0,2]\)</span> using Euler’s method.</p>
 <div class="cell" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">𝑭</span>(y,x) <span class="op">=</span> x <span class="op">+</span> y</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>𝒙<span class="fl">0</span>, 𝒙n, 𝒚<span class="fl">0</span> <span class="op">=</span> <span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">1</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>𝒇 <span class="op">=</span> <span class="fu">euler</span>(𝑭, 𝒙<span class="fl">0</span>, 𝒙n, 𝒚<span class="fl">0</span>, <span class="fl">25</span>)</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="fu">𝒇</span>(𝒙n)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">F</span>(y,x) <span class="op">=</span> x <span class="op">+</span> y</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>x0, xn, y0 <span class="op">=</span> <span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">1</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>f <span class="op">=</span> <span class="fu">euler</span>(F, x0, xn, y0, <span class="fl">25</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(xn)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="16">
 <pre><code>10.696950392438628</code></pre>
 </div>
 </div>
 <p>We graphically compare our approximate answer with the exact one:</p>
 <div class="cell" data-execution_count="16">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(𝒇, 𝒙<span class="fl">0</span>, 𝒙n)</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>𝒐ut <span class="op">=</span> <span class="fu">dsolve</span>(<span class="fu">D</span>(u)(x) <span class="op">-</span> <span class="fu">𝑭</span>(<span class="fu">u</span>(x),x), <span class="fu">u</span>(x), ics <span class="op">=</span> <span class="fu">Dict</span>(<span class="fu">u</span>(𝒙<span class="fl">0</span>) <span class="op">=&gt;</span> 𝒚<span class="fl">0</span>))</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">rhs</span>(𝒐ut), 𝒙<span class="fl">0</span>, 𝒙n)</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(𝒇, 𝒙<span class="fl">0</span>, 𝒙n)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(f, x0, xn)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>𝒐ut <span class="op">=</span> <span class="fu">dsolve</span>(<span class="fu">D</span>(u)(x) <span class="op">-</span> <span class="fu">F</span>(<span class="fu">u</span>(x),x), <span class="fu">u</span>(x), ics <span class="op">=</span> <span class="fu">Dict</span>(<span class="fu">u</span>(x0) <span class="op">=&gt;</span> y0))</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">rhs</span>(𝒐ut), x0, xn)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(f, x0, xn)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="17">
 <p><img src="euler_files/figure-html/cell-17-output-1.svg" class="img-fluid"></p>
 </div>
@@ -859,9 +863,9 @@ x_{n+1} = x_n + h, \quad y_{n+1} = y_n + h \cdot F(y_n, x_n),
 <p>The equation <span class="math inline">\(y'(x) = \sin(x \cdot y)\)</span> is not separable, so need not have an easy solution. The default method will fail. Looking at the available methods with <code>sympy.classify_ode(𝐞qn, u(x))</code> shows a power series method which can return a power series <em>approximation</em> (a Taylor polynomial). Let’s look at comparing an approximate answer given by the Euler method to that one returned by <code>SymPy</code>.</p>
 <p>First, the <code>SymPy</code> solution:</p>
 <div class="cell" data-execution_count="17">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">𝐅</span>(y,x) <span class="op">=</span> <span class="fu">sin</span>(x<span class="op">*</span>y)</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>𝐞qn <span class="op">=</span> <span class="fu">D</span>(u)(x) <span class="op">-</span> <span class="fu">𝐅</span>(<span class="fu">u</span>(x), x)</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>𝐨ut <span class="op">=</span> <span class="fu">dsolve</span>(𝐞qn, hint<span class="op">=</span><span class="st">"1st_power_series"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">F</span>(y,x) <span class="op">=</span> <span class="fu">sin</span>(x<span class="op">*</span>y)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>eqn <span class="op">=</span> <span class="fu">D</span>(u)(x) <span class="op">-</span> <span class="fu">F</span>(<span class="fu">u</span>(x), x)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>out <span class="op">=</span> <span class="fu">dsolve</span>(eqn, hint<span class="op">=</span><span class="st">"1st_power_series"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="18">
 <span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
 \[
@@ -872,7 +876,7 @@ u{\left(x \right)} = C_{1} + \frac{C_{1} x^{2}}{2} + \frac{C_{1} x^{4} \cdot \le
 </div>
 <p>If we assume <span class="math inline">\(y(0) = 1\)</span>, we can continue:</p>
 <div class="cell" data-execution_count="18">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>𝐨ut1 <span class="op">=</span> <span class="fu">dsolve</span>(𝐞qn, <span class="fu">u</span>(x), ics<span class="op">=</span><span class="fu">Dict</span>(<span class="fu">u</span>(<span class="fl">0</span>) <span class="op">=&gt;</span> <span class="fl">1</span>), hint<span class="op">=</span><span class="st">"1st_power_series"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>out1 <span class="op">=</span> <span class="fu">dsolve</span>(eqn, <span class="fu">u</span>(x), ics<span class="op">=</span><span class="fu">Dict</span>(<span class="fu">u</span>(<span class="fl">0</span>) <span class="op">=&gt;</span> <span class="fl">1</span>), hint<span class="op">=</span><span class="st">"1st_power_series"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="19">
 <span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
 \[
@@ -883,14 +887,14 @@ u{\left(x \right)} = 1 + \frac{x^{2}}{2} + \frac{x^{4}}{12} + O\left(x^{6}\right
 </div>
 <p>The approximate value given by the Euler method is</p>
 <div class="cell" data-execution_count="19">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>𝐱<span class="fl">0</span>, 𝐱n, 𝐲<span class="fl">0</span> <span class="op">=</span> <span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">1</span></span>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>x0, xn, y0 <span class="op">=</span> <span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">1</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(legend<span class="op">=</span><span class="cn">false</span>)</span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="fu">vectorfieldplot!</span>((x,y) <span class="op">-&gt;</span> [<span class="fl">1</span>, <span class="fu">𝐅</span>(y,x)], xlims<span class="op">=</span>(𝐱<span class="fl">0</span>, 𝐱n), ylims<span class="op">=</span>(<span class="fl">0</span>,<span class="fl">5</span>))</span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(<span class="fu">rhs</span>(𝐨ut1).<span class="fu">removeO</span>(),  linewidth<span class="op">=</span><span class="fl">5</span>)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="fu">vectorfieldplot!</span>((x,y) <span class="op">-&gt;</span> [<span class="fl">1</span>, <span class="fu">F</span>(y,x)], xlims<span class="op">=</span>(x0, xn), ylims<span class="op">=</span>(<span class="fl">0</span>,<span class="fl">5</span>))</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(<span class="fu">rhs</span>(out1).<span class="fu">removeO</span>(),  linewidth<span class="op">=</span><span class="fl">5</span>)</span>
 <span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>𝐮 <span class="op">=</span> <span class="fu">euler</span>(𝐅, 𝐱<span class="fl">0</span>, 𝐱n, 𝐲<span class="fl">0</span>, <span class="fl">10</span>)</span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(𝐮, linewidth<span class="op">=</span><span class="fl">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>u <span class="op">=</span> <span class="fu">euler</span>(F, x0, xn, y0, <span class="fl">10</span>)</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(u, linewidth<span class="op">=</span><span class="fl">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="20">
 <p><img src="euler_files/figure-html/cell-20-output-1.svg" class="img-fluid"></p>
 </div>
@@ -969,10 +973,10 @@ y_{n+1} = y_n + h \cdot F(y_{n+1}, x_{n+1}).
 </div>
 <p>We then have with <span class="math inline">\(C=1\)</span> over the interval <span class="math inline">\([0,1.2]\)</span> the following:</p>
 <div class="cell" data-execution_count="24">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">𝐹</span>(y, x; C<span class="op">=</span><span class="fl">1</span>) <span class="op">=</span> <span class="fu">sqrt</span>(C<span class="op">/</span>y <span class="op">-</span> <span class="fl">1</span>)</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>𝑥<span class="fl">0</span>, 𝑥n, 𝑦<span class="fl">0</span> <span class="op">=</span> <span class="fl">0</span>, <span class="fl">1.2</span>, <span class="fl">0</span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>cyc <span class="op">=</span> <span class="fu">back_euler</span>(𝐹, 𝑥<span class="fl">0</span>, 𝑥n, 𝑦<span class="fl">0</span>, <span class="fl">50</span>)</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x <span class="op">-&gt;</span> <span class="fl">1</span> <span class="op">-</span> <span class="fu">cyc</span>(x), 𝑥<span class="fl">0</span>, 𝑥n)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">F</span>(y, x; C<span class="op">=</span><span class="fl">1</span>) <span class="op">=</span> <span class="fu">sqrt</span>(C<span class="op">/</span>y <span class="op">-</span> <span class="fl">1</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>x0, xn, y0 <span class="op">=</span> <span class="fl">0</span>, <span class="fl">1.2</span>, <span class="fl">0</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>cyc <span class="op">=</span> <span class="fu">back_euler</span>(F, x0, xn, y0, <span class="fl">50</span>)</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x <span class="op">-&gt;</span> <span class="fl">1</span> <span class="op">-</span> <span class="fu">cyc</span>(x), x0, xn)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="25">
 <p><img src="euler_files/figure-html/cell-25-output-1.svg" class="img-fluid"></p>
 </div>
@@ -983,21 +987,21 @@ y_{n+1} = y_n + h \cdot F(y_{n+1}, x_{n+1}).
 <h5 class="anchored" data-anchor-id="example-stiff-equations">Example: stiff equations</h5>
 <p>The Euler method is <em>convergent</em>, in that as <span class="math inline">\(h\)</span> goes to <span class="math inline">\(0\)</span>, the approximate solution will converge to the actual answer. However, this does not say that for a fixed size <span class="math inline">\(h\)</span>, the approximate value will be good. For example, consider the differential equation <span class="math inline">\(y'(x) = -5y\)</span>. This has solution <span class="math inline">\(y(x)=y_0 e^{-5x}\)</span>. However, if we try the Euler method to get an answer over <span class="math inline">\([0,2]\)</span> with <span class="math inline">\(h=0.5\)</span> we don’t see this:</p>
 <div class="cell" data-execution_count="25">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ℱ</span>(y,x) <span class="op">=</span> <span class="op">-</span><span class="fl">5</span>y</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>𝓍<span class="fl">0</span>, 𝓍n, 𝓎<span class="fl">0</span> <span class="op">=</span> <span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">1</span></span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>𝓊 <span class="op">=</span> <span class="fu">euler</span>(ℱ, 𝓍<span class="fl">0</span>, 𝓍n, 𝓎<span class="fl">0</span>, <span class="fl">4</span>)     <span class="co"># n =4 =&gt; h = 2/4</span></span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="fu">vectorfieldplot</span>((x,y) <span class="op">-&gt;</span> [<span class="fl">1</span>, <span class="fu">ℱ</span>(y,x)], xlims<span class="op">=</span>(<span class="fl">0</span>, <span class="fl">2</span>), ylims<span class="op">=</span>(<span class="op">-</span><span class="fl">5</span>, <span class="fl">5</span>))</span>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">F</span>(y,x) <span class="op">=</span> <span class="op">-</span><span class="fl">5</span>y</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>x0, xn, y0 <span class="op">=</span> <span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">1</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>u <span class="op">=</span> <span class="fu">euler</span>(F, x0, xn, y0, <span class="fl">4</span>)     <span class="co"># n =4 =&gt; h = 2/4</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="fu">vectorfieldplot</span>((x,y) <span class="op">-&gt;</span> [<span class="fl">1</span>, <span class="fu">F</span>(y,x)], xlims<span class="op">=</span>(<span class="fl">0</span>, <span class="fl">2</span>), ylims<span class="op">=</span>(<span class="op">-</span><span class="fl">5</span>, <span class="fl">5</span>))</span>
 <span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(x <span class="op">-&gt;</span> y0 <span class="op">*</span> <span class="fu">exp</span>(<span class="op">-</span><span class="fl">5</span>x), <span class="fl">0</span>, <span class="fl">2</span>, linewidth<span class="op">=</span><span class="fl">5</span>)</span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(𝓊, <span class="fl">0</span>, <span class="fl">2</span>, linewidth<span class="op">=</span><span class="fl">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(u, <span class="fl">0</span>, <span class="fl">2</span>, linewidth<span class="op">=</span><span class="fl">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="26">
 <p><img src="euler_files/figure-html/cell-26-output-1.svg" class="img-fluid"></p>
 </div>
 </div>
 <p>What we see is that the value of <span class="math inline">\(h\)</span> is too big to capture the decay scale of the solution. A smaller <span class="math inline">\(h\)</span>, can do much better:</p>
 <div class="cell" data-execution_count="26">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>𝓊₁ <span class="op">=</span> <span class="fu">euler</span>(ℱ, 𝓍<span class="fl">0</span>, 𝓍n, 𝓎<span class="fl">0</span>, <span class="fl">50</span>)    <span class="co"># n=50 =&gt; h = 2/50</span></span>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>u₁ <span class="op">=</span> <span class="fu">euler</span>(F, x0, xn, y0, <span class="fl">50</span>)    <span class="co"># n=50 =&gt; h = 2/50</span></span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x <span class="op">-&gt;</span> y0 <span class="op">*</span> <span class="fu">exp</span>(<span class="op">-</span><span class="fl">5</span>x), <span class="fl">0</span>, <span class="fl">2</span>)</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(𝓊₁, <span class="fl">0</span>, <span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(u₁, <span class="fl">0</span>, <span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="27">
 <p><img src="euler_files/figure-html/cell-27-output-1.svg" class="img-fluid"></p>
 </div>
@@ -1005,10 +1009,10 @@ y_{n+1} = y_n + h \cdot F(y_{n+1}, x_{n+1}).
 <p>This is an example of a <a href="https://en.wikipedia.org/wiki/Stiff_equation">stiff equation</a>. Such equations cause explicit methods like the Euler one problems, as small <span class="math inline">\(h\)</span>s are needed to good results.</p>
 <p>The implicit, backward Euler method does not have this issue, as we can see here:</p>
 <div class="cell" data-execution_count="27">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>𝓊₂ <span class="op">=</span> <span class="fu">back_euler</span>(ℱ, 𝓍<span class="fl">0</span>, 𝓍n, 𝓎<span class="fl">0</span>, <span class="fl">4</span>)     <span class="co"># n =4 =&gt; h = 2/4</span></span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">vectorfieldplot</span>((x,y) <span class="op">-&gt;</span> [<span class="fl">1</span>, <span class="fu">ℱ</span>(y,x)],  xlims<span class="op">=</span>(<span class="fl">0</span>, <span class="fl">2</span>), ylims<span class="op">=</span>(<span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>))</span>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>u₂ <span class="op">=</span> <span class="fu">back_euler</span>(F, x0, xn, y0, <span class="fl">4</span>)     <span class="co"># n =4 =&gt; h = 2/4</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">vectorfieldplot</span>((x,y) <span class="op">-&gt;</span> [<span class="fl">1</span>, <span class="fu">F</span>(y,x)],  xlims<span class="op">=</span>(<span class="fl">0</span>, <span class="fl">2</span>), ylims<span class="op">=</span>(<span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>))</span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(x <span class="op">-&gt;</span> y0 <span class="op">*</span> <span class="fu">exp</span>(<span class="op">-</span><span class="fl">5</span>x), <span class="fl">0</span>, <span class="fl">2</span>, linewidth<span class="op">=</span><span class="fl">5</span>)</span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(𝓊₂, <span class="fl">0</span>, <span class="fl">2</span>, linewidth<span class="op">=</span><span class="fl">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(u₂, <span class="fl">0</span>, <span class="fl">2</span>, linewidth<span class="op">=</span><span class="fl">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="28">
 <p><img src="euler_files/figure-html/cell-28-output-1.svg" class="img-fluid"></p>
 </div>
@@ -1051,18 +1055,18 @@ v_{n+1} &amp;= v_n - h \cdot g/l \cdot \sin(u_n).
 </div>
 <p>Let’s take <span class="math inline">\(a = \pi/4\)</span> as the initial angle, then the approximate solution should be <span class="math inline">\(\pi/4\cos(\sqrt{g/l}x)\)</span> with period <span class="math inline">\(T = 2\pi\sqrt{l/g}\)</span>. We try first to plot then over 4 periods:</p>
 <div class="cell" data-execution_count="29">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>𝗅, 𝗀 <span class="op">=</span> <span class="fl">5</span>, <span class="fl">9.8</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>𝖳 <span class="op">=</span> <span class="fl">2</span>pi <span class="op">*</span> <span class="fu">sqrt</span>(𝗅<span class="op">/</span>𝗀)</span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>𝗑<span class="fl">0</span>, 𝗑n, 𝗒<span class="fl">0</span>, 𝗒p0 <span class="op">=</span> <span class="fl">0</span>, <span class="fl">4</span>𝖳, <span class="cn">pi</span><span class="op">/</span><span class="fl">4</span>, <span class="fl">0</span></span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">euler2</span>(𝗑<span class="fl">0</span>, 𝗑n, 𝗒<span class="fl">0</span>, 𝗒p0, <span class="fl">20</span>), <span class="fl">0</span>, <span class="fl">4</span>𝖳)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>l, g <span class="op">=</span> <span class="fl">5</span>, <span class="fl">9.8</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>T <span class="op">=</span> <span class="fl">2</span>pi <span class="op">*</span> <span class="fu">sqrt</span>(l<span class="op">/</span>g)</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>x0, xn, y0, yp0 <span class="op">=</span> <span class="fl">0</span>, <span class="fl">4</span>T, <span class="cn">pi</span><span class="op">/</span><span class="fl">4</span>, <span class="fl">0</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">euler2</span>(x0, xn, y0, yp0, <span class="fl">20</span>), <span class="fl">0</span>, <span class="fl">4</span>T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="30">
 <p><img src="euler_files/figure-html/cell-30-output-1.svg" class="img-fluid"></p>
 </div>
 </div>
 <p>Something looks terribly amiss. The issue is the step size, <span class="math inline">\(h\)</span>, is too large to capture the oscillations. There are basically only <span class="math inline">\(5\)</span> steps to capture a full up and down motion. Instead, we try to get <span class="math inline">\(20\)</span> steps per period so <span class="math inline">\(n\)</span> must be not <span class="math inline">\(20\)</span>, but <span class="math inline">\(4 \cdot 20 \cdot T \approx 360\)</span>. To this graph, we add the approximate one:</p>
 <div class="cell" data-execution_count="30">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">euler2</span>(𝗑<span class="fl">0</span>, 𝗑n, 𝗒<span class="fl">0</span>, 𝗒p0, <span class="fl">360</span>), <span class="fl">0</span>, <span class="fl">4</span>𝖳)</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(x <span class="op">-&gt;</span> <span class="cn">pi</span><span class="op">/</span><span class="fl">4</span><span class="fu">*cos</span>(<span class="fu">sqrt</span>(𝗀<span class="op">/</span>𝗅)<span class="op">*</span>x), <span class="fl">0</span>, <span class="fl">4</span>𝖳)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">euler2</span>(x0, xn, y0, yp0, <span class="fl">360</span>), <span class="fl">0</span>, <span class="fl">4</span>T)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(x <span class="op">-&gt;</span> <span class="cn">pi</span><span class="op">/</span><span class="fl">4</span><span class="fu">*cos</span>(<span class="fu">sqrt</span>(g<span class="op">/</span>l)<span class="op">*</span>x), <span class="fl">0</span>, <span class="fl">4</span>T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="31">
 <p><img src="euler_files/figure-html/cell-31-output-1.svg" class="img-fluid"></p>
 </div>
@@ -1085,43 +1089,43 @@ u'(x) = x - u(x), \quad u(0) = 1
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "8CKILeyh"
+var ID = "Jnq9RpnX"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="8CKILeyh" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="Jnq9RpnX" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_8CKILeyh">
+      <div class="form" id="controls_Jnq9RpnX">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="8CKILeyh" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="Jnq9RpnX" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="8CKILeyh_message" style="padding-bottom: 15px"></div>
+      <div id="Jnq9RpnX_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("8CKILeyh").addEventListener("change", function() {
+document.getElementById("Jnq9RpnX").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 0.6553599999999999) <= 0.001);
-  var msgBox = document.getElementById('8CKILeyh_message');
+  var msgBox = document.getElementById('Jnq9RpnX_message');
   
-    quizquestions_scorecard["8CKILeyh"]["attempts"] += 1;
+    quizquestions_scorecard["Jnq9RpnX"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_8CKILeyh")
+    var explanation = document.getElementById("explanation_Jnq9RpnX")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["8CKILeyh"]["correct"] = true;
+      quizquestions_scorecard["Jnq9RpnX"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1129,11 +1133,11 @@ document.getElementById("8CKILeyh").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_8CKILeyh")
+    var explanation = document.getElementById("explanation_Jnq9RpnX")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["8CKILeyh"]["correct"] = false;
+      quizquestions_scorecard["Jnq9RpnX"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1159,43 +1163,43 @@ y' = x \cdot \sin(y), \quad y(0) = 1.
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "Up0P7sw0"
+var ID = "zsJdjQcM"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="Up0P7sw0" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="zsJdjQcM" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_Up0P7sw0">
+      <div class="form" id="controls_zsJdjQcM">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="Up0P7sw0" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="zsJdjQcM" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="Up0P7sw0_message" style="padding-bottom: 15px"></div>
+      <div id="zsJdjQcM_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("Up0P7sw0").addEventListener("change", function() {
+document.getElementById("zsJdjQcM").addEventListener("change", function() {
   var correct = (Math.abs(this.value - NaN) <= 0.001);
-  var msgBox = document.getElementById('Up0P7sw0_message');
+  var msgBox = document.getElementById('zsJdjQcM_message');
   
-    quizquestions_scorecard["Up0P7sw0"]["attempts"] += 1;
+    quizquestions_scorecard["zsJdjQcM"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_Up0P7sw0")
+    var explanation = document.getElementById("explanation_zsJdjQcM")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["Up0P7sw0"]["correct"] = true;
+      quizquestions_scorecard["zsJdjQcM"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1203,11 +1207,11 @@ document.getElementById("Up0P7sw0").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_Up0P7sw0")
+    var explanation = document.getElementById("explanation_zsJdjQcM")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["Up0P7sw0"]["correct"] = false;
+      quizquestions_scorecard["zsJdjQcM"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1233,43 +1237,43 @@ document.getElementById("Up0P7sw0").addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "C2UTzgss"
+var ID = "lu1aEp6b"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="C2UTzgss" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="lu1aEp6b" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_C2UTzgss">
+      <div class="form" id="controls_lu1aEp6b">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="C2UTzgss" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="lu1aEp6b" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="C2UTzgss_message" style="padding-bottom: 15px"></div>
+      <div id="lu1aEp6b_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("C2UTzgss").addEventListener("change", function() {
+document.getElementById("lu1aEp6b").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 0.5858585858585857) <= 0.001);
-  var msgBox = document.getElementById('C2UTzgss_message');
+  var msgBox = document.getElementById('lu1aEp6b_message');
   
-    quizquestions_scorecard["C2UTzgss"]["attempts"] += 1;
+    quizquestions_scorecard["lu1aEp6b"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_C2UTzgss")
+    var explanation = document.getElementById("explanation_lu1aEp6b")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["C2UTzgss"]["correct"] = true;
+      quizquestions_scorecard["lu1aEp6b"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1277,11 +1281,11 @@ document.getElementById("C2UTzgss").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_C2UTzgss")
+    var explanation = document.getElementById("explanation_lu1aEp6b")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["C2UTzgss"]["correct"] = false;
+      quizquestions_scorecard["lu1aEp6b"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1307,43 +1311,43 @@ document.getElementById("C2UTzgss").addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "9XNsgU6e"
+var ID = "p8GpPfLM"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="9XNsgU6e" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="p8GpPfLM" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_9XNsgU6e">
+      <div class="form" id="controls_p8GpPfLM">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="9XNsgU6e" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="p8GpPfLM" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="9XNsgU6e_message" style="padding-bottom: 15px"></div>
+      <div id="p8GpPfLM_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("9XNsgU6e").addEventListener("change", function() {
+document.getElementById("p8GpPfLM").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 4.455188733723553) <= 0.001);
-  var msgBox = document.getElementById('9XNsgU6e_message');
+  var msgBox = document.getElementById('p8GpPfLM_message');
   
-    quizquestions_scorecard["9XNsgU6e"]["attempts"] += 1;
+    quizquestions_scorecard["p8GpPfLM"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_9XNsgU6e")
+    var explanation = document.getElementById("explanation_p8GpPfLM")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["9XNsgU6e"]["correct"] = true;
+      quizquestions_scorecard["p8GpPfLM"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1351,11 +1355,11 @@ document.getElementById("9XNsgU6e").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_9XNsgU6e")
+    var explanation = document.getElementById("explanation_p8GpPfLM")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["9XNsgU6e"]["correct"] = false;
+      quizquestions_scorecard["p8GpPfLM"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1382,43 +1386,43 @@ y' = y \cdot (1-2x), \quad y(0) = 1.
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "pepXrFYd"
+var ID = "c5H8tAch"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="pepXrFYd" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="c5H8tAch" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_pepXrFYd">
+      <div class="form" id="controls_c5H8tAch">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="pepXrFYd" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="c5H8tAch" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="pepXrFYd_message" style="padding-bottom: 15px"></div>
+      <div id="c5H8tAch_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("pepXrFYd").addEventListener("change", function() {
+document.getElementById("c5H8tAch").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 1.3046474273110373) <= 0.001);
-  var msgBox = document.getElementById('pepXrFYd_message');
+  var msgBox = document.getElementById('c5H8tAch_message');
   
-    quizquestions_scorecard["pepXrFYd"]["attempts"] += 1;
+    quizquestions_scorecard["c5H8tAch"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_pepXrFYd")
+    var explanation = document.getElementById("explanation_c5H8tAch")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["pepXrFYd"]["correct"] = true;
+      quizquestions_scorecard["c5H8tAch"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1426,11 +1430,11 @@ document.getElementById("pepXrFYd").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_pepXrFYd")
+    var explanation = document.getElementById("explanation_c5H8tAch")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["pepXrFYd"]["correct"] = false;
+      quizquestions_scorecard["c5H8tAch"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1449,43 +1453,43 @@ document.getElementById("pepXrFYd").addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "XSV7xb5Z"
+var ID = "tlh500fS"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="XSV7xb5Z" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="tlh500fS" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_XSV7xb5Z">
+      <div class="form" id="controls_tlh500fS">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="XSV7xb5Z" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="tlh500fS" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="XSV7xb5Z_message" style="padding-bottom: 15px"></div>
+      <div id="tlh500fS_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("XSV7xb5Z").addEventListener("change", function() {
+document.getElementById("tlh500fS").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 0.4870497621097424) <= 0.001);
-  var msgBox = document.getElementById('XSV7xb5Z_message');
+  var msgBox = document.getElementById('tlh500fS_message');
   
-    quizquestions_scorecard["XSV7xb5Z"]["attempts"] += 1;
+    quizquestions_scorecard["tlh500fS"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_XSV7xb5Z")
+    var explanation = document.getElementById("explanation_tlh500fS")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["XSV7xb5Z"]["correct"] = true;
+      quizquestions_scorecard["tlh500fS"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1493,11 +1497,11 @@ document.getElementById("XSV7xb5Z").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_XSV7xb5Z")
+    var explanation = document.getElementById("explanation_tlh500fS")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["XSV7xb5Z"]["correct"] = false;
+      quizquestions_scorecard["tlh500fS"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1520,19 +1524,19 @@ document.getElementById("XSV7xb5Z").addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "rLSqvY7L"
+var ID = "Nf9baqV4"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="rLSqvY7L" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="Nf9baqV4" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_rLSqvY7L">
+      <div class="form" id="controls_Nf9baqV4">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_rLSqvY7L_1">
-      <input class="form-check-input" type="radio" name="radio_rLSqvY7L" id="radio_rLSqvY7L_1" value="1">
+    <label class="form-check-label" for="radio_Nf9baqV4_1">
+      <input class="form-check-input" type="radio" name="radio_Nf9baqV4" id="radio_Nf9baqV4_1" value="1">
       
       <span class="label-body px-1">
         The same as before - the amplitude grows
@@ -1540,8 +1544,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_rLSqvY7L_2">
-      <input class="form-check-input" type="radio" name="radio_rLSqvY7L" id="radio_rLSqvY7L_2" value="2">
+    <label class="form-check-label" for="radio_Nf9baqV4_2">
+      <input class="form-check-input" type="radio" name="radio_Nf9baqV4" id="radio_Nf9baqV4_2" value="2">
       
       <span class="label-body px-1">
         The solution is identical to that of the approximation found by linearization of the sine term
@@ -1549,8 +1553,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_rLSqvY7L_3">
-      <input class="form-check-input" type="radio" name="radio_rLSqvY7L" id="radio_rLSqvY7L_3" value="3">
+    <label class="form-check-label" for="radio_Nf9baqV4_3">
+      <input class="form-check-input" type="radio" name="radio_Nf9baqV4" id="radio_Nf9baqV4_3" value="3">
       
       <span class="label-body px-1">
         The solution has a constant amplitude, but its period is slightly <em>shorter</em> than that of the approximate solution found by linearization
@@ -1558,8 +1562,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_rLSqvY7L_4">
-      <input class="form-check-input" type="radio" name="radio_rLSqvY7L" id="radio_rLSqvY7L_4" value="4">
+    <label class="form-check-label" for="radio_Nf9baqV4_4">
+      <input class="form-check-input" type="radio" name="radio_Nf9baqV4" id="radio_Nf9baqV4_4" value="4">
       
       <span class="label-body px-1">
         The solution has a constant amplitude, but its period is slightly <em>longer</em> than that of the approximate solution found by linearization
@@ -1570,26 +1574,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="rLSqvY7L_message" style="padding-bottom: 15px"></div>
+      <div id="Nf9baqV4_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_rLSqvY7L"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_Nf9baqV4"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 4;
-    var msgBox = document.getElementById('rLSqvY7L_message');
+    var msgBox = document.getElementById('Nf9baqV4_message');
     
-    quizquestions_scorecard["rLSqvY7L"]["attempts"] += 1;
+    quizquestions_scorecard["Nf9baqV4"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_rLSqvY7L")
+    var explanation = document.getElementById("explanation_Nf9baqV4")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["rLSqvY7L"]["correct"] = true;
+      quizquestions_scorecard["Nf9baqV4"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1597,11 +1601,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_rLSqvY7L")
+    var explanation = document.getElementById("explanation_Nf9baqV4")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["rLSqvY7L"]["correct"] = false;
+      quizquestions_scorecard["Nf9baqV4"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1616,6 +1620,12 @@ rb.addEventListener("change", function() {
 
 
 </section>
+</section>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn1"><p>The <code>Interpolations</code> package handles linear interpolation and much more in an easy to use manner with “exceptional” performance. The <code>linterp</code> function is for pedagogical purposes only.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
 </section>
 
 </main> <!-- /main -->
