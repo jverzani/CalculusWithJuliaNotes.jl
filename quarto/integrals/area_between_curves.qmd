@@ -135,7 +135,7 @@ $$
 \frac{1}{2\cdot 3} + \frac{1}{3\cdot 4} + \frac{1}{4\cdot 5} + \cdots?
 $$
 
-This should should be no surprise, given how the areas computed carve up the area under the line $y=x^1$ over $[0,1]$, so the answer should be $1/2$.
+This should be no surprise, given how the areas computed carve up the area under the line $y=x^1$ over $[0,1]$, so the answer should be $1/2$.
 
 
 ```{julia}
@@ -188,7 +188,7 @@ f2(x) = sab(x)
 A1 = quadgk(x -> f1(x) - f2(x), 𝐚, 𝐛)[1]
 ```
 
-As we needed three secant lines, we used the `secant` function from `CalculusWithJulia` to create functions representing each. Once that was done, we used the `max` function to facilitate integrating over the top bounding curve, alternatively, we could break the integral over $[a,c]$ and $[c,b]$.
+As we needed three secant lines, we used the `secant` function from `CalculusWithJulia` to create functions representing each. Once that was done, we used the `min` function to facilitate integrating over the top bounding curve, alternatively, we could break the integral over $[a,c]$ and $[c,b]$.
 
 
 The area of the parabolic segment is more straightforward.
@@ -498,7 +498,7 @@ numericq(val)
 ###### Question
 
 
-Find the area in the first quadrant between the lines $y=x$, $y=1$, and the curve $y=x^2 + 4$.
+Find the area in the first quadrant between the lines $y=x$, $y=1$, and the curve $y=x^2 / 4$.
 
 
 ```{julia}
@@ -532,7 +532,7 @@ numericq(val)
 ###### Question
 
 
-Let `f(x) = 1/(sqrt(pi)*gamma(1/2)) * (1 + t^2)^(-1)` and `g(x) = 1/sqrt(2*pi) * exp(-x^2/2)`. These graphs intersect in two points. Find the area bounded by them.
+Let `f(x) = 1/(sqrt(pi)*gamma(1/2)) * (1 + x^2)^(-1)` and `g(x) = 1/sqrt(2*pi) * exp(-x^2/2)`. These graphs intersect in two points. Find the area bounded by them.
 
 
 ```{julia}
@@ -541,8 +541,8 @@ Let `f(x) = 1/(sqrt(pi)*gamma(1/2)) * (1 + t^2)^(-1)` and `g(x) = 1/sqrt(2*pi) *
 import SpecialFunctions: gamma
 f(x) = 1/(sqrt(pi)*gamma(1/2)) * (1 + x^2)^(-1)
 g(x) = 1/sqrt(2*pi) * exp(-x^2/2)
-a,b =  find_zeros(x -> f(x) - g(x), -3, 3)
-val, _ = quadgk(x -> f(x) - g(x), a, b)
+a,b =  find_zeros(x -> g(x) - f(x), -3, 3)
+val, _ = quadgk(x -> g(x) - f(x), a, b)
 numericq(val)
 ```
 
@@ -561,10 +561,9 @@ Find the area in the first quadrant bounded by the graph of $x = (y-1)^2$, $x=3-
 f(y) = (y-1)^2
 g(y) = 3 - y
 h(y) = 2sqrt(y)
-a = 0
-b = find_zero(y -> f(y) - g(y), 2)
 f1(y) = max(f(y), zero(y))
 g1(y) = min(g(y), h(y))
+a, b = find_zeros(y -> g1(y) - f1(y), [0,2])
 val, _ = quadgk(y -> g1(y) - f1(y), a, b)
 numericq(val)
 ```
@@ -632,7 +631,7 @@ radioq(choices, answ, keep_order=true)
 
 :::{.callout-note}
 ## Note
-We used area to estimate weight in this example, but Galileo used weight to estimate area. It is [mentioned](https://www.maa.org/sites/default/files/pdf/cmj_ftp/CMJ/January%202010/3%20Articles/3%20Martin/08-170.pdf) by Martin that in order to estimate the area enclosed by one arch of a cycloid, Galileo cut the arch from from some material and compared the weight to the weight of the generating circle. He concluded the area is close to $3$ times that of the circle, a conjecture proved by Roberval in 1634.
+We used area to estimate weight in this example, but Galileo used weight to estimate area. It is [mentioned](https://www.maa.org/sites/default/files/pdf/cmj_ftp/CMJ/January%202010/3%20Articles/3%20Martin/08-170.pdf) by Martin that in order to estimate the area enclosed by one arch of a cycloid, Galileo cut the arch from some material and compared the weight to the weight of the generating circle. He concluded the area is close to $3$ times that of the circle, a conjecture proved by Roberval in 1634.
 
 :::
 
@@ -643,8 +642,8 @@ Formulas from the business world say that revenue is the integral of *marginal r
 
 
 $$
-\text{mr}(x) = 2 - \frac{e^{-x/10}}{1 + e^{-x/10}}, \quad
-\text{mc}(x) = 1 - \frac{1}{2} \cdot \frac{e^{-x/5}}{1 + e^{-x/5}}.
+\text{mr}(x) = 2 + \frac{e^{-x/10}}{1 + e^{-x/10}}, \quad
+\text{mc}(x) = 1 + \frac{1}{2} \cdot \frac{e^{-x/5}}{1 + e^{-x/5}}.
 $$
 
 Find the profit to produce 100 units: $P = \int_0^{100} (\text{mr}(x) - \text{mc}(x)) dx$.
@@ -709,7 +708,7 @@ nothing
 ![Figure from Martin  showing the companion curve to the cycloid. As the generating circle rolls, from ``A`` to ``C``, the original point of contact, ``D``, traces out an arch of the cycloid. The companion curve is that found by congruent line segments. In the figure, when ``D`` was at point ``P`` the line segment ``PQ`` is congruent to ``EF`` (on the original position of the generating circle).](./figures/cycloid-companion-curve.png)
 
 
-In particular, it can be read that Roberval proved that the area between the cycloid and its companion curve is half the are of the generating circle. Roberval didn't know integration, so finding the area between two curves required other tricks. One is called "Cavalieri's principle." From the figure above, which of the following would you guess this principle to be:
+In particular, it can be read that Roberval proved that the area between the cycloid and its companion curve is half the area of the generating circle. Roberval didn't know integration, so finding the area between two curves required other tricks. One is called "Cavalieri's principle." From the figure above, which of the following would you guess this principle to be:
 
 
 ```{julia}
