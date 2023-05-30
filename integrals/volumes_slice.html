@@ -672,12 +672,14 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </header>
 
 <p>This section uses these add-on packages:</p>
+<div class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">CalculusWithJulia</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Plots</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">QuadGK</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Unitful</span>, <span class="bu">UnitfulUS</span></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Roots</span></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">SymPy</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 <hr>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -695,7 +697,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul>
 <p>Then the volume would be found by adding:</p>
 <p><span class="math display">\[
-V = \pi \cdot r_1^2 \cdot h_1 + \pi \cdot r_2^2 \cdot h_2 + \cdot + \pi \cdot r_n^2 \cdot h_n.
+V = \pi \cdot r_1^2 \cdot h_1 + \pi \cdot r_2^2 \cdot h_2 + \cdots + \pi \cdot r_n^2 \cdot h_n.
 \]</span></p>
 <p>The weight would come by multiplying the volume by some appropriate density.</p>
 <p>Looking at the sum though, we see the makings of an approximate integral. If the heights were to get infinitely small, we might expect this to approach something like <span class="math inline">\(V=\int_a^b \pi r(h)^2 dh\)</span>.</p>
@@ -826,7 +828,7 @@ Note
 <div class="cell" data-hold="true" data-execution_count="17">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> r h x y</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>R <span class="op">=</span> <span class="fu">r*</span>(<span class="fl">1</span> <span class="op">-</span> y<span class="op">/</span>h)</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate</span>(<span class="cn">pi</span><span class="op">*</span>R<span class="op">^</span><span class="fl">2</span>, (y, <span class="fl">0</span>, h))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>cone <span class="op">=</span> <span class="fu">integrate</span>(<span class="cn">pi</span><span class="op">*</span>R<span class="op">^</span><span class="fl">2</span>, (y, <span class="fl">0</span>, h))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="18">
 <span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
 \[
@@ -835,16 +837,38 @@ Note
 </span>
 </div>
 </div>
-<p>The frustum of a cone is simply viewed as a cone with its top cut off. If the original height would have been <span class="math inline">\(h_0\)</span> and the actual height <span class="math inline">\(h_1\)</span>, then the volume remaining is just <span class="math inline">\(\int_{h_0}^h \pi r(y)^2 dy = \pi h_1 r^2/3 - \pi h_0 r^2/3 = \pi r^2 (h_1-h_0)/3\)</span>.</p>
 <p>It is not unusual to parameterize a cone by the angle <span class="math inline">\(\theta\)</span> it makes and the height. Since <span class="math inline">\(r/h=\tan\theta\)</span>, this gives the formula <span class="math inline">\(V = \pi/3\cdot h^3\tan(\theta)^2\)</span>.</p>
+<p>The frustum of a cone is simply viewed as a cone with its top cut off. If the original height would have been <span class="math inline">\(h_0\)</span> and the actual height <span class="math inline">\(h_1\)</span>, then the volume remaining is just <span class="math inline">\(\int_0^{h_1} \pi r(y)^2 dy\)</span>. We can see the formula for the frustrum of the right cone:</p>
+<div class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> h0</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>frustrum <span class="op">=</span> <span class="fu">integrate</span>(<span class="cn">pi</span><span class="op">*</span>R<span class="op">^</span><span class="fl">2</span>, (y, <span class="fl">0</span>, h0))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="19">
+<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
+\[
+\pi h_{0} r^{2} - \frac{\pi h_{0}^{2} r^{2}}{h} + \frac{\pi h_{0}^{3} r^{2}}{3 h^{2}}
+\]
+</span>
+</div>
+</div>
+<p>Simplifying, we can see this volume can be expressed using the ratio <span class="math inline">\((h_0/h_1)\)</span>:</p>
+<div class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>frustrum <span class="op">-</span> cone <span class="op">*</span> ( <span class="fl">3</span>h0<span class="op">/</span>h <span class="op">-</span> <span class="fl">3</span>(h0<span class="op">/</span>h)<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> (h0<span class="op">/</span>h)<span class="op">^</span><span class="fl">3</span>) <span class="op">|&gt;</span> simplify</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="20">
+<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
+\[
+0
+\]
+</span>
+</div>
+</div>
 </section>
 <section id="example-1" class="level5">
 <h5 class="anchored" data-anchor-id="example-1">Example</h5>
 <p><a href="http://tinyurl.com/8a6ygv">Gabriel’s</a> horn is a geometric figure of mathematics - but not the real world - which has infinite height, but not volume! The figure is found by rotating the curve <span class="math inline">\(y=1/x\)</span> around the <span class="math inline">\(x\)</span> axis from <span class="math inline">\(1\)</span> to <span class="math inline">\(\infty\)</span>. If the volume formula holds, what is the volume of this “horn?”</p>
-<div class="cell" data-execution_count="18">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">radius</span>(x) <span class="op">=</span> <span class="fl">1</span><span class="op">/</span>x</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">quadgk</span>(x <span class="op">-&gt;</span> <span class="fu">pi*radius</span>(x)<span class="op">^</span><span class="fl">2</span>, <span class="fl">1</span>, <span class="cn">Inf</span>)[<span class="fl">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="19">
+<div class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">radius</span>(x) <span class="op">=</span> <span class="fl">1</span><span class="op">/</span>x</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">quadgk</span>(x <span class="op">-&gt;</span> <span class="fu">pi*radius</span>(x)<span class="op">^</span><span class="fl">2</span>, <span class="fl">1</span>, <span class="cn">Inf</span>)[<span class="fl">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="21">
 <pre><code>3.141592653589793</code></pre>
 </div>
 </div>
@@ -874,33 +898,33 @@ d(h) = \begin{cases}
 \]</span></p>
 <p>If the vase were solid, what would be the volume?</p>
 <p>We define <code>d</code> using a ternary operator to handle the two cases:</p>
-<div class="cell" data-execution_count="19">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">d</span>(h) <span class="op">=</span> h <span class="op">&lt;=</span> <span class="fl">44</span> ? <span class="fl">2</span><span class="fu">*sqrt</span>(<span class="fl">26</span><span class="op">^</span><span class="fl">2</span> <span class="op">-</span> (h<span class="op">-</span><span class="fl">20</span>)<span class="op">^</span><span class="fl">2</span>) <span class="op">:</span> <span class="fl">20</span> <span class="op">*</span> <span class="fu">exp</span>(<span class="fu">-</span>(h<span class="op">-</span><span class="fl">44</span>)<span class="op">/</span><span class="fl">10</span>)</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rad</span>(h) <span class="op">=</span> <span class="fu">d</span>(h)<span class="op">/</span><span class="fl">2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="20">
+<div class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">d</span>(h) <span class="op">=</span> h <span class="op">&lt;=</span> <span class="fl">44</span> ? <span class="fl">2</span><span class="fu">*sqrt</span>(<span class="fl">26</span><span class="op">^</span><span class="fl">2</span> <span class="op">-</span> (h<span class="op">-</span><span class="fl">20</span>)<span class="op">^</span><span class="fl">2</span>) <span class="op">:</span> <span class="fl">20</span> <span class="op">*</span> <span class="fu">exp</span>(<span class="fu">-</span>(h<span class="op">-</span><span class="fl">44</span>)<span class="op">/</span><span class="fl">10</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rad</span>(h) <span class="op">=</span> <span class="fu">d</span>(h)<span class="op">/</span><span class="fl">2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="22">
 <pre><code>rad (generic function with 1 method)</code></pre>
 </div>
 </div>
 <p>The volume in cm<span class="math inline">\(^3\)</span> is then:</p>
-<div class="cell" data-execution_count="20">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>Vₜ, _ <span class="op">=</span> <span class="fu">quadgk</span>(h <span class="op">-&gt;</span> <span class="cn">pi</span> <span class="op">*</span> <span class="fu">rad</span>(h)<span class="op">^</span><span class="fl">2</span>, <span class="fl">0</span>, <span class="fl">50</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="21">
+<div class="cell" data-execution_count="22">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>Vₜ, _ <span class="op">=</span> <span class="fu">quadgk</span>(h <span class="op">-&gt;</span> <span class="cn">pi</span> <span class="op">*</span> <span class="fu">rad</span>(h)<span class="op">^</span><span class="fl">2</span>, <span class="fl">0</span>, <span class="fl">50</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="23">
 <pre><code>(71687.1744525789, 0.00030474267730795646)</code></pre>
 </div>
 </div>
 <p>For the actual shoot, the vase is to be filled with ash, to simulate a funeral urn. (It will then be knocked over in a humorous manner, of course.) How much ash is needed if the vase has walls that are 1/2 centimeter thick</p>
-<p>We need to subtract <span class="math inline">\(0.5\)</span> from the radius and <code>a</code> then recompute:</p>
-<div class="cell" data-execution_count="21">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>V_int, _ <span class="op">=</span> <span class="fu">quadgk</span>(h <span class="op">-&gt;</span> <span class="cn">pi</span> <span class="op">*</span> (<span class="fu">rad</span>(h) <span class="op">-</span> <span class="fl">1</span><span class="op">/</span><span class="fl">2</span>)<span class="op">^</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">2</span>, <span class="fl">50</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="22">
+<p>We need to subtract <span class="math inline">\(0.5\)</span> from the radius and <code>h</code> then recompute:</p>
+<div class="cell" data-execution_count="23">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>V_int, _ <span class="op">=</span> <span class="fu">quadgk</span>(h <span class="op">-&gt;</span> <span class="cn">pi</span> <span class="op">*</span> (<span class="fu">rad</span>(h) <span class="op">-</span> <span class="fl">1</span><span class="op">/</span><span class="fl">2</span>)<span class="op">^</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">2</span>, <span class="fl">50</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="24">
 <pre><code>(68082.16068327641, 0.00044615780792156556)</code></pre>
 </div>
 </div>
 <p>A liter of volume is <span class="math inline">\(1000 \text{cm}^3\)</span>. So this is about <span class="math inline">\(68\)</span> liters, or more than 15 gallons. Perhaps the dimensions given were bit off.</p>
 <p>While we are here, to compute the actual volume of the material in the vase could be done by subtraction.</p>
-<div class="cell" data-execution_count="22">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>Vₜ <span class="op">-</span> V_int</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="23">
+<div class="cell" data-execution_count="24">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>Vₜ <span class="op">-</span> V_int</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="25">
 <pre><code>3605.013769302488</code></pre>
 </div>
 </div>
@@ -925,11 +949,11 @@ R(x) = \sqrt{1^2 - (x-1)^2}, \quad r(x) = x,
 \]</span></p>
 <p>with <span class="math inline">\(x\)</span> ranging from <span class="math inline">\(x=0\)</span> to <span class="math inline">\(1\)</span>?</p>
 <p>The answer comes by integrating:</p>
-<div class="cell" data-hold="true" data-execution_count="23">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">Rad</span>(x) <span class="op">=</span> <span class="fu">sqrt</span>(<span class="fl">1</span> <span class="op">-</span> (x<span class="op">-</span><span class="fl">1</span>)<span class="op">^</span><span class="fl">2</span>)</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rad</span>(x) <span class="op">=</span> x</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>V, _ <span class="op">=</span> <span class="fu">quadgk</span>(x <span class="op">-&gt;</span> <span class="fu">pi*</span>(<span class="fu">Rad</span>(x)<span class="op">^</span><span class="fl">2</span> <span class="op">-</span> <span class="fu">rad</span>(x)<span class="op">^</span><span class="fl">2</span>), <span class="fl">0</span>, <span class="fl">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="24">
+<div class="cell" data-hold="true" data-execution_count="25">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">Rad</span>(x) <span class="op">=</span> <span class="fu">sqrt</span>(<span class="fl">1</span> <span class="op">-</span> (x<span class="op">-</span><span class="fl">1</span>)<span class="op">^</span><span class="fl">2</span>)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rad</span>(x) <span class="op">=</span> x</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>V, _ <span class="op">=</span> <span class="fu">quadgk</span>(x <span class="op">-&gt;</span> <span class="fu">pi*</span>(<span class="fu">Rad</span>(x)<span class="op">^</span><span class="fl">2</span> <span class="op">-</span> <span class="fu">rad</span>(x)<span class="op">^</span><span class="fl">2</span>), <span class="fl">0</span>, <span class="fl">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="26">
 <pre><code>(1.0471975511965974, 0.0)</code></pre>
 </div>
 </div>
@@ -940,12 +964,12 @@ R(x) = \sqrt{1^2 - (x-1)^2}, \quad r(x) = x,
 <h2 data-number="45.2" class="anchored" data-anchor-id="solids-with-known-cross-section"><span class="header-section-number">45.2</span> Solids with known cross section</h2>
 <p>The Dart cup company now produces the red solo cup with a <a href="http://www.solocup.com/products/squared-plastic-cup/">square</a> cross section. Suppose the dimensions are the same: a top diameter of <span class="math inline">\(d_1 = 3 3/4\)</span> inches, a bottom diameter of <span class="math inline">\(d_0 = 2 1/2\)</span> inches and a height of <span class="math inline">\(h = 4 3/4\)</span> inches. What is the volume now?</p>
 <p>The difference, of course, is that cross sections now have area <span class="math inline">\(d^2\)</span>, as opposed to <span class="math inline">\(\pi r^2\)</span>. This leads to some difference, which we quantify, as follows:</p>
-<div class="cell" data-hold="true" data-execution_count="24">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>d0, d1, h <span class="op">=</span> <span class="fl">2.5</span>, <span class="fl">3.75</span>, <span class="fl">4.75</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="fu">d</span>(x) <span class="op">=</span> d0 <span class="op">+</span> (d1 <span class="op">-</span> d0)<span class="op">/</span>h <span class="op">*</span> x</span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>vol, _ <span class="op">=</span> <span class="fu">quadgk</span>(x <span class="op">-&gt;</span> <span class="fu">d</span>(x)<span class="op">^</span><span class="fl">2</span>, <span class="fl">0</span>, h)</span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>vol <span class="op">/</span> <span class="fl">231</span> <span class="op">*</span> <span class="fl">128</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="25">
+<div class="cell" data-hold="true" data-execution_count="26">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>d0, d1, h <span class="op">=</span> <span class="fl">2.5</span>, <span class="fl">3.75</span>, <span class="fl">4.75</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">d</span>(x) <span class="op">=</span> d0 <span class="op">+</span> (d1 <span class="op">-</span> d0)<span class="op">/</span>h <span class="op">*</span> x</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>vol, _ <span class="op">=</span> <span class="fu">quadgk</span>(x <span class="op">-&gt;</span> <span class="fu">d</span>(x)<span class="op">^</span><span class="fl">2</span>, <span class="fl">0</span>, h)</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>vol <span class="op">/</span> <span class="fl">231</span> <span class="op">*</span> <span class="fl">128</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="27">
 <pre><code>26.046176046176043</code></pre>
 </div>
 </div>
@@ -958,9 +982,9 @@ R(x) = \sqrt{1^2 - (x-1)^2}, \quad r(x) = x,
 <p>A cone is the solid figure bounded by a base in a plane and by a surface (called the lateral surface) formed by the locus of all straight line segments joining the apex to the perimeter of the base.</p>
 </blockquote>
 <p>Let <span class="math inline">\(h\)</span> be the distance from the apex to the base. Consider cones with the property that all planes parallel to the base intersect the cone with the same shape, though perhaps a different scale. This figure shows an example, with the rays coming from the apex defining the volume.</p>
-<div class="cell" data-hold="true" data-execution_count="25">
-<div class="cell-output cell-output-display" data-execution_count="26">
-<p><img src="volumes_slice_files/figure-html/cell-26-output-1.svg" class="img-fluid"></p>
+<div class="cell" data-hold="true" data-execution_count="27">
+<div class="cell-output cell-output-display" data-execution_count="28">
+<p><img src="volumes_slice_files/figure-html/cell-28-output-1.svg" class="img-fluid"></p>
 </div>
 </div>
 <p>A right circular cone is one where this shape is a circle. This definition can be more general, as a square-based right pyramid is also such a cone. After possibly reorienting the cone in space so the base is at <span class="math inline">\(u=0\)</span> and the apex at <span class="math inline">\(u=h\)</span> the volume of the cone can be found from:</p>
@@ -973,7 +997,7 @@ A_{xc}(u)  = A_{xc}(0) \cdot (1 - \frac{u}{h})^2
 \]</span></p>
 <p>So the integral becomes:</p>
 <p><span class="math display">\[
-V = \int_0^h A_{xc}(u) du = A_{xc}(0) \int_0^h (1 - \frac{u}{h})^2 du = A_{xc}(0) \int_0^1 v^2 \frac{1}{h} dv = A_{xc}(0) \frac{h}{3}.
+V = \int_0^h A_{xc}(u) du = A_{xc}(0) \int_0^h (1 - \frac{u}{h})^2 du = A_{xc}(0) \int_0^1 v^2 h dv = A_{xc}(0) \frac{h}{3}.
 \]</span></p>
 <p>This gives a general formula for the volume of such cones.</p>
 </section>
@@ -981,9 +1005,9 @@ V = \int_0^h A_{xc}(u) du = A_{xc}(0) \int_0^h (1 - \frac{u}{h})^2 du = A_{xc}(0
 <h3 data-number="45.2.1" class="anchored" data-anchor-id="cavalieris-method"><span class="header-section-number">45.2.1</span> Cavalieri’s method</h3>
 <p><a href="http://tinyurl.com/oda9xd9">Cavalieri’s</a> Principle is “Suppose two regions in three-space (solids) are included between two parallel planes. If every plane parallel to these two planes intersects both regions in cross-sections of equal area, then the two regions have equal volumes.” (Wikipedia).</p>
 <p>With the formula for the volume of solids based on cross sections, this is a trivial observation, as the functions giving the cross-sectional area are identical. Still, it can be surprising. Consider a sphere with an interior cylinder bored out of it. (The <a href="http://tinyurl.com/o237v83">Napkin</a> ring problem.) The bore has height <span class="math inline">\(h\)</span> - for larger radius spheres this means very wide bores.</p>
-<div class="cell" data-hold="true" data-execution_count="26">
-<div class="cell-output cell-output-display" data-execution_count="27">
-<p><img src="volumes_slice_files/figure-html/cell-27-output-1.svg" class="img-fluid"></p>
+<div class="cell" data-hold="true" data-execution_count="28">
+<div class="cell-output cell-output-display" data-execution_count="29">
+<p><img src="volumes_slice_files/figure-html/cell-29-output-1.svg" class="img-fluid"></p>
 </div>
 </div>
 <p>The small orange line is rotated, so using the washer method we get the cross sections given by <span class="math inline">\(\pi(r_0^2 - r_i^2)\)</span>, the outer and inner radii, as a function of <span class="math inline">\(y\)</span>.</p>
@@ -1024,49 +1048,49 @@ V = \int_0^h A_{xc}(u) du = A_{xc}(0) \int_0^h (1 - \frac{u}{h})^2 du = A_{xc}(0
 <li>a cubic foot is 7.48052 gallons</li>
 <li>the radius as a function of height is <span class="math inline">\(r(h) = 5 + (3/15)\cdot h\)</span></li>
 </ul>
-<div class="cell" data-hold="true" data-execution_count="28">
-<div class="cell-output cell-output-display" data-execution_count="29">
+<div class="cell" data-hold="true" data-execution_count="30">
+<div class="cell-output cell-output-display" data-execution_count="31">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "eoyE9ifd"
+var ID = "P8HlBxIM"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="eoyE9ifd" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="P8HlBxIM" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_eoyE9ifd">
+      <div class="form" id="controls_P8HlBxIM">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="eoyE9ifd" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="P8HlBxIM" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="eoyE9ifd_message" style="padding-bottom: 15px"></div>
+      <div id="P8HlBxIM_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("eoyE9ifd").addEventListener("change", function() {
+document.getElementById("P8HlBxIM").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 15157.98160668533) <= 10.0);
-  var msgBox = document.getElementById('eoyE9ifd_message');
+  var msgBox = document.getElementById('P8HlBxIM_message');
   
-    quizquestions_scorecard["eoyE9ifd"]["attempts"] += 1;
+    quizquestions_scorecard["P8HlBxIM"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_eoyE9ifd")
+    var explanation = document.getElementById("explanation_P8HlBxIM")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["eoyE9ifd"]["correct"] = true;
+      quizquestions_scorecard["P8HlBxIM"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1074,11 +1098,11 @@ document.getElementById("eoyE9ifd").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_eoyE9ifd")
+    var explanation = document.getElementById("explanation_P8HlBxIM")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["eoyE9ifd"]["correct"] = false;
+      quizquestions_scorecard["P8HlBxIM"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1111,61 +1135,61 @@ r(h) = 3 + \frac{1}{5}h, \quad 0 \leq h \leq b;
 s(h) = 3 + \log(1 + h), \quad 0 \leq h \leq b
 \]</span></p>
 <p>The following functions find the volume as a function of height, <span class="math inline">\(h\)</span>:</p>
-<div class="cell" data-execution_count="30">
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">r1</span>(h) <span class="op">=</span> <span class="fl">3</span> <span class="op">+</span> h<span class="op">/</span><span class="fl">5</span></span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">s1</span>(h) <span class="op">=</span> <span class="fl">2</span> <span class="op">+</span> <span class="fu">log</span>(<span class="fl">1</span> <span class="op">+</span> h)</span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="fu">r_vol</span>(h) <span class="op">=</span> <span class="fu">quadgk</span>(x <span class="op">-&gt;</span> <span class="fu">pi*r1</span>(x)<span class="op">^</span><span class="fl">2</span>, <span class="fl">0</span>, h)[<span class="fl">1</span>]</span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="fu">s_vol</span>(h) <span class="op">=</span> <span class="fu">quadgk</span>(x <span class="op">-&gt;</span> <span class="fu">pi*s1</span>(x)<span class="op">^</span><span class="fl">2</span>, <span class="fl">0</span>, h)[<span class="fl">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="31">
+<div class="cell" data-execution_count="32">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">r1</span>(h) <span class="op">=</span> <span class="fl">3</span> <span class="op">+</span> h<span class="op">/</span><span class="fl">5</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">s1</span>(h) <span class="op">=</span> <span class="fl">2</span> <span class="op">+</span> <span class="fu">log</span>(<span class="fl">1</span> <span class="op">+</span> h)</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="fu">r_vol</span>(h) <span class="op">=</span> <span class="fu">quadgk</span>(x <span class="op">-&gt;</span> <span class="fu">pi*r1</span>(x)<span class="op">^</span><span class="fl">2</span>, <span class="fl">0</span>, h)[<span class="fl">1</span>]</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="fu">s_vol</span>(h) <span class="op">=</span> <span class="fu">quadgk</span>(x <span class="op">-&gt;</span> <span class="fu">pi*s1</span>(x)<span class="op">^</span><span class="fl">2</span>, <span class="fl">0</span>, h)[<span class="fl">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="33">
 <pre><code>s_vol (generic function with 1 method)</code></pre>
 </div>
 </div>
 <ul>
 <li>For the straight-sided glass find <span class="math inline">\(h\)</span> so that the volume is <span class="math inline">\(450\)</span>.</li>
 </ul>
-<div class="cell" data-execution_count="31">
-<div class="cell-output cell-output-display" data-execution_count="32">
+<div class="cell" data-execution_count="33">
+<div class="cell-output cell-output-display" data-execution_count="34">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "JllBbXtZ"
+var ID = "dt8xR7MM"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="JllBbXtZ" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="dt8xR7MM" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_JllBbXtZ">
+      <div class="form" id="controls_dt8xR7MM">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="JllBbXtZ" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="dt8xR7MM" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="JllBbXtZ_message" style="padding-bottom: 15px"></div>
+      <div id="dt8xR7MM_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("JllBbXtZ").addEventListener("change", function() {
+document.getElementById("dt8xR7MM").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 9.168923214523724) <= 0.001);
-  var msgBox = document.getElementById('JllBbXtZ_message');
+  var msgBox = document.getElementById('dt8xR7MM_message');
   
-    quizquestions_scorecard["JllBbXtZ"]["attempts"] += 1;
+    quizquestions_scorecard["dt8xR7MM"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_JllBbXtZ")
+    var explanation = document.getElementById("explanation_dt8xR7MM")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["JllBbXtZ"]["correct"] = true;
+      quizquestions_scorecard["dt8xR7MM"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1173,11 +1197,11 @@ document.getElementById("JllBbXtZ").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_JllBbXtZ")
+    var explanation = document.getElementById("explanation_dt8xR7MM")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["JllBbXtZ"]["correct"] = false;
+      quizquestions_scorecard["dt8xR7MM"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1192,49 +1216,49 @@ document.getElementById("JllBbXtZ").addEventListener("change", function() {
 <ul>
 <li>For the straight-sided glass find <span class="math inline">\(h\)</span> so that the volume is <span class="math inline">\(225\)</span> (half full).</li>
 </ul>
-<div class="cell" data-execution_count="32">
-<div class="cell-output cell-output-display" data-execution_count="33">
+<div class="cell" data-execution_count="34">
+<div class="cell-output cell-output-display" data-execution_count="35">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "8dYAVnHp"
+var ID = "ad4AWweW"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="8dYAVnHp" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="ad4AWweW" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_8dYAVnHp">
+      <div class="form" id="controls_ad4AWweW">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="8dYAVnHp" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="ad4AWweW" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="8dYAVnHp_message" style="padding-bottom: 15px"></div>
+      <div id="ad4AWweW_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("8dYAVnHp").addEventListener("change", function() {
+document.getElementById("ad4AWweW").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 5.603662378152273) <= 0.001);
-  var msgBox = document.getElementById('8dYAVnHp_message');
+  var msgBox = document.getElementById('ad4AWweW_message');
   
-    quizquestions_scorecard["8dYAVnHp"]["attempts"] += 1;
+    quizquestions_scorecard["ad4AWweW"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_8dYAVnHp")
+    var explanation = document.getElementById("explanation_ad4AWweW")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["8dYAVnHp"]["correct"] = true;
+      quizquestions_scorecard["ad4AWweW"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1242,11 +1266,11 @@ document.getElementById("8dYAVnHp").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_8dYAVnHp")
+    var explanation = document.getElementById("explanation_ad4AWweW")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["8dYAVnHp"]["correct"] = false;
+      quizquestions_scorecard["ad4AWweW"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1259,52 +1283,52 @@ document.getElementById("8dYAVnHp").addEventListener("change", function() {
 </div>
 </div>
 <ul>
-<li>For the straight-sided glass, what is the percentage of the total height when the glass is half full. (For a cylinder it would just be 50.</li>
+<li>For the straight-sided glass, what is the percentage of the total height when the glass is half full. (For a cylinder it would just be 50.)</li>
 </ul>
-<div class="cell" data-execution_count="33">
-<div class="cell-output cell-output-display" data-execution_count="34">
+<div class="cell" data-execution_count="35">
+<div class="cell-output cell-output-display" data-execution_count="36">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "3PbcpdZ9"
+var ID = "Ptkwri7S"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="3PbcpdZ9" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="Ptkwri7S" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_3PbcpdZ9">
+      <div class="form" id="controls_Ptkwri7S">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="3PbcpdZ9" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="Ptkwri7S" type="number" class="form-control" placeholder="Numeric answer">
     <span class="input-group-append">&nbsp;percent&nbsp;</span>
 </div>
 
     
         </div>
       </div>
-      <div id="3PbcpdZ9_message" style="padding-bottom: 15px"></div>
+      <div id="Ptkwri7S_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("3PbcpdZ9").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 1.2452583062560607) <= 2);
-  var msgBox = document.getElementById('3PbcpdZ9_message');
+document.getElementById("Ptkwri7S").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 61.11581749616989) <= 2);
+  var msgBox = document.getElementById('Ptkwri7S_message');
   
-    quizquestions_scorecard["3PbcpdZ9"]["attempts"] += 1;
+    quizquestions_scorecard["Ptkwri7S"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_3PbcpdZ9")
+    var explanation = document.getElementById("explanation_Ptkwri7S")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["3PbcpdZ9"]["correct"] = true;
+      quizquestions_scorecard["Ptkwri7S"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1312,11 +1336,11 @@ document.getElementById("3PbcpdZ9").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_3PbcpdZ9")
+    var explanation = document.getElementById("explanation_Ptkwri7S")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["3PbcpdZ9"]["correct"] = false;
+      quizquestions_scorecard["Ptkwri7S"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1331,50 +1355,50 @@ document.getElementById("3PbcpdZ9").addEventListener("change", function() {
 <ul>
 <li>People often confuse the half-way by height amount for the half way by volume, as it is for the cylinder. Take the height for the straight-sided glass filled with <span class="math inline">\(450\)</span> mm, divide it by <span class="math inline">\(2\)</span>, then compute the percentage of volume at the half way height to the original.</li>
 </ul>
-<div class="cell" data-execution_count="34">
-<div class="cell-output cell-output-display" data-execution_count="35">
+<div class="cell" data-execution_count="36">
+<div class="cell-output cell-output-display" data-execution_count="37">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "k79fhmBb"
+var ID = "L2aItw9s"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="k79fhmBb" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="L2aItw9s" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_k79fhmBb">
+      <div class="form" id="controls_L2aItw9s">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="k79fhmBb" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="L2aItw9s" type="number" class="form-control" placeholder="Numeric answer">
     <span class="input-group-append">&nbsp;percent&nbsp;</span>
 </div>
 
     
         </div>
       </div>
-      <div id="k79fhmBb_message" style="padding-bottom: 15px"></div>
+      <div id="L2aItw9s_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("k79fhmBb").addEventListener("change", function() {
+document.getElementById("L2aItw9s").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 38.505616912184344) <= 2);
-  var msgBox = document.getElementById('k79fhmBb_message');
+  var msgBox = document.getElementById('L2aItw9s_message');
   
-    quizquestions_scorecard["k79fhmBb"]["attempts"] += 1;
+    quizquestions_scorecard["L2aItw9s"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_k79fhmBb")
+    var explanation = document.getElementById("explanation_L2aItw9s")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["k79fhmBb"]["correct"] = true;
+      quizquestions_scorecard["L2aItw9s"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1382,11 +1406,11 @@ document.getElementById("k79fhmBb").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_k79fhmBb")
+    var explanation = document.getElementById("explanation_L2aItw9s")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["k79fhmBb"]["correct"] = false;
+      quizquestions_scorecard["L2aItw9s"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1402,49 +1426,49 @@ document.getElementById("k79fhmBb").addEventListener("change", function() {
 <ul>
 <li>For the curved-sided glass find <span class="math inline">\(h\)</span> so that the volume is <span class="math inline">\(450\)</span>.</li>
 </ul>
-<div class="cell" data-execution_count="35">
-<div class="cell-output cell-output-display" data-execution_count="36">
+<div class="cell" data-execution_count="37">
+<div class="cell-output cell-output-display" data-execution_count="38">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "hiwXe0W3"
+var ID = "Us269NYj"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="hiwXe0W3" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="Us269NYj" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_hiwXe0W3">
+      <div class="form" id="controls_Us269NYj">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="hiwXe0W3" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="Us269NYj" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="hiwXe0W3_message" style="padding-bottom: 15px"></div>
+      <div id="Us269NYj_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("hiwXe0W3").addEventListener("change", function() {
+document.getElementById("Us269NYj").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 10.37133536401327) <= 0.001);
-  var msgBox = document.getElementById('hiwXe0W3_message');
+  var msgBox = document.getElementById('Us269NYj_message');
   
-    quizquestions_scorecard["hiwXe0W3"]["attempts"] += 1;
+    quizquestions_scorecard["Us269NYj"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_hiwXe0W3")
+    var explanation = document.getElementById("explanation_Us269NYj")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["hiwXe0W3"]["correct"] = true;
+      quizquestions_scorecard["Us269NYj"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1452,11 +1476,11 @@ document.getElementById("hiwXe0W3").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_hiwXe0W3")
+    var explanation = document.getElementById("explanation_Us269NYj")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["hiwXe0W3"]["correct"] = false;
+      quizquestions_scorecard["Us269NYj"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1471,49 +1495,49 @@ document.getElementById("hiwXe0W3").addEventListener("change", function() {
 <ul>
 <li>For the curved-sided glass find <span class="math inline">\(h\)</span> so that the volume is <span class="math inline">\(225\)</span> (half full).</li>
 </ul>
-<div class="cell" data-execution_count="36">
-<div class="cell-output cell-output-display" data-execution_count="37">
+<div class="cell" data-execution_count="38">
+<div class="cell-output cell-output-display" data-execution_count="39">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "de8ZBJBO"
+var ID = "VMphq9WU"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="de8ZBJBO" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="VMphq9WU" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_de8ZBJBO">
+      <div class="form" id="controls_VMphq9WU">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="de8ZBJBO" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="VMphq9WU" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="de8ZBJBO_message" style="padding-bottom: 15px"></div>
+      <div id="VMphq9WU_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("de8ZBJBO").addEventListener("change", function() {
+document.getElementById("VMphq9WU").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 6.372119100356652) <= 0.001);
-  var msgBox = document.getElementById('de8ZBJBO_message');
+  var msgBox = document.getElementById('VMphq9WU_message');
   
-    quizquestions_scorecard["de8ZBJBO"]["attempts"] += 1;
+    quizquestions_scorecard["VMphq9WU"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_de8ZBJBO")
+    var explanation = document.getElementById("explanation_VMphq9WU")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["de8ZBJBO"]["correct"] = true;
+      quizquestions_scorecard["VMphq9WU"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1521,11 +1545,11 @@ document.getElementById("de8ZBJBO").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_de8ZBJBO")
+    var explanation = document.getElementById("explanation_VMphq9WU")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["de8ZBJBO"]["correct"] = false;
+      quizquestions_scorecard["VMphq9WU"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1538,52 +1562,52 @@ document.getElementById("de8ZBJBO").addEventListener("change", function() {
 </div>
 </div>
 <ul>
-<li>For the curved-sided glass, what is the percentage of the total height when the glass is half full. (For a cylinder it would just be 50.</li>
+<li>For the curved-sided glass, what is the percentage of the total height when the glass is half full. (For a cylinder it would just be 50.)</li>
 </ul>
-<div class="cell" data-execution_count="37">
-<div class="cell-output cell-output-display" data-execution_count="38">
+<div class="cell" data-execution_count="39">
+<div class="cell-output cell-output-display" data-execution_count="40">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "E4Fql6kW"
+var ID = "kg7sxNZF"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="E4Fql6kW" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="kg7sxNZF" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_E4Fql6kW">
+      <div class="form" id="controls_kg7sxNZF">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="E4Fql6kW" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="kg7sxNZF" type="number" class="form-control" placeholder="Numeric answer">
     <span class="input-group-append">&nbsp;percent&nbsp;</span>
 </div>
 
     
         </div>
       </div>
-      <div id="E4Fql6kW_message" style="padding-bottom: 15px"></div>
+      <div id="kg7sxNZF_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("E4Fql6kW").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 1.4160264667459228) <= 2);
-  var msgBox = document.getElementById('E4Fql6kW_message');
+document.getElementById("kg7sxNZF").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 61.43971703457587) <= 2);
+  var msgBox = document.getElementById('kg7sxNZF_message');
   
-    quizquestions_scorecard["E4Fql6kW"]["attempts"] += 1;
+    quizquestions_scorecard["kg7sxNZF"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_E4Fql6kW")
+    var explanation = document.getElementById("explanation_kg7sxNZF")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["E4Fql6kW"]["correct"] = true;
+      quizquestions_scorecard["kg7sxNZF"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1591,11 +1615,11 @@ document.getElementById("E4Fql6kW").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_E4Fql6kW")
+    var explanation = document.getElementById("explanation_kg7sxNZF")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["E4Fql6kW"]["correct"] = false;
+      quizquestions_scorecard["kg7sxNZF"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1610,50 +1634,50 @@ document.getElementById("E4Fql6kW").addEventListener("change", function() {
 <ul>
 <li>People often confuse the half-way by height amount for the half way by volume, as it is for the cylinder. Take the height for the curved-sided glass filled with <span class="math inline">\(450\)</span> mm, divide it by <span class="math inline">\(2\)</span>, then compute the percentage of volume at the half way height to the original.</li>
 </ul>
-<div class="cell" data-execution_count="38">
-<div class="cell-output cell-output-display" data-execution_count="39">
+<div class="cell" data-execution_count="40">
+<div class="cell-output cell-output-display" data-execution_count="41">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "1twDnJHL"
+var ID = "x53lzpdp"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="1twDnJHL" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="x53lzpdp" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_1twDnJHL">
+      <div class="form" id="controls_x53lzpdp">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="1twDnJHL" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="x53lzpdp" type="number" class="form-control" placeholder="Numeric answer">
     <span class="input-group-append">&nbsp;percent&nbsp;</span>
 </div>
 
     
         </div>
       </div>
-      <div id="1twDnJHL_message" style="padding-bottom: 15px"></div>
+      <div id="x53lzpdp_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("1twDnJHL").addEventListener("change", function() {
+document.getElementById("x53lzpdp").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 37.31833223550184) <= 2);
-  var msgBox = document.getElementById('1twDnJHL_message');
+  var msgBox = document.getElementById('x53lzpdp_message');
   
-    quizquestions_scorecard["1twDnJHL"]["attempts"] += 1;
+    quizquestions_scorecard["x53lzpdp"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_1twDnJHL")
+    var explanation = document.getElementById("explanation_x53lzpdp")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["1twDnJHL"]["correct"] = true;
+      quizquestions_scorecard["x53lzpdp"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1661,11 +1685,11 @@ document.getElementById("1twDnJHL").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_1twDnJHL")
+    var explanation = document.getElementById("explanation_x53lzpdp")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["1twDnJHL"]["correct"] = false;
+      quizquestions_scorecard["x53lzpdp"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1685,25 +1709,25 @@ document.getElementById("1twDnJHL").addEventListener("change", function() {
 <p><span class="math display">\[
 V = \int_0^h w^2 (1 - \frac{y}{h})^2 dy?
 \]</span></p>
-<div class="cell" data-hold="true" data-execution_count="39">
-<div class="cell-output cell-output-display" data-execution_count="40">
+<div class="cell" data-hold="true" data-execution_count="41">
+<div class="cell-output cell-output-display" data-execution_count="42">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "K31inyXW"
+var ID = "4v8klBiJ"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="K31inyXW" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="4v8klBiJ" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_K31inyXW">
+      <div class="form" id="controls_4v8klBiJ">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_K31inyXW_1">
-      <input class="form-check-input" type="radio" name="radio_K31inyXW" id="radio_K31inyXW_1" value="1">
+    <label class="form-check-label" for="radio_4v8klBiJ_1">
+      <input class="form-check-input" type="radio" name="radio_4v8klBiJ" id="radio_4v8klBiJ_1" value="1">
       
       <span class="label-body px-1">
         Yes
@@ -1711,8 +1735,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_K31inyXW_2">
-      <input class="form-check-input" type="radio" name="radio_K31inyXW" id="radio_K31inyXW_2" value="2">
+    <label class="form-check-label" for="radio_4v8klBiJ_2">
+      <input class="form-check-input" type="radio" name="radio_4v8klBiJ" id="radio_4v8klBiJ_2" value="2">
       
       <span class="label-body px-1">
         No
@@ -1723,26 +1747,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="K31inyXW_message" style="padding-bottom: 15px"></div>
+      <div id="4v8klBiJ_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_K31inyXW"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_4v8klBiJ"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 1;
-    var msgBox = document.getElementById('K31inyXW_message');
+    var msgBox = document.getElementById('4v8klBiJ_message');
     
-    quizquestions_scorecard["K31inyXW"]["attempts"] += 1;
+    quizquestions_scorecard["4v8klBiJ"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_K31inyXW")
+    var explanation = document.getElementById("explanation_4v8klBiJ")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["K31inyXW"]["correct"] = true;
+      quizquestions_scorecard["4v8klBiJ"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1750,11 +1774,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_K31inyXW")
+    var explanation = document.getElementById("explanation_4v8klBiJ")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["K31inyXW"]["correct"] = false;
+      quizquestions_scorecard["4v8klBiJ"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1767,25 +1791,34 @@ rb.addEventListener("change", function() {
 </div>
 </div>
 <p>What is the volume?</p>
-<div class="cell" data-hold="true" data-execution_count="40">
-<div class="cell-output cell-output-display" data-execution_count="41">
+<div class="cell" data-hold="true" data-execution_count="42">
+<div class="cell-output cell-output-display" data-execution_count="43">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "VDhz8J8S"
+var ID = "9qQcjbOE"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="VDhz8J8S" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="9qQcjbOE" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_VDhz8J8S">
+      <div class="form" id="controls_9qQcjbOE">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_VDhz8J8S_1">
-      <input class="form-check-input" type="radio" name="radio_VDhz8J8S" id="radio_VDhz8J8S_1" value="1">
+    <label class="form-check-label" for="radio_9qQcjbOE_1">
+      <input class="form-check-input" type="radio" name="radio_9qQcjbOE" id="radio_9qQcjbOE_1" value="1">
+      
+      <span class="label-body px-1">
+        \(l\cdot w \cdot h/ 3\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_9qQcjbOE_2">
+      <input class="form-check-input" type="radio" name="radio_9qQcjbOE" id="radio_9qQcjbOE_2" value="2">
       
       <span class="label-body px-1">
         \(1/3 \cdot b\cdot h\)
@@ -1793,20 +1826,11 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_VDhz8J8S_2">
-      <input class="form-check-input" type="radio" name="radio_VDhz8J8S" id="radio_VDhz8J8S_2" value="2">
+    <label class="form-check-label" for="radio_9qQcjbOE_3">
+      <input class="form-check-input" type="radio" name="radio_9qQcjbOE" id="radio_9qQcjbOE_3" value="3">
       
       <span class="label-body px-1">
         \(1/3 \cdot w^2\cdot h\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_VDhz8J8S_3">
-      <input class="form-check-input" type="radio" name="radio_VDhz8J8S" id="radio_VDhz8J8S_3" value="3">
-      
-      <span class="label-body px-1">
-        \(l\cdot w \cdot h/ 3\)
       </span>
     </label>
 </div>
@@ -1814,26 +1838,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="VDhz8J8S_message" style="padding-bottom: 15px"></div>
+      <div id="9qQcjbOE_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_VDhz8J8S"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_9qQcjbOE"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('VDhz8J8S_message');
+    var correct = rb.value == 3;
+    var msgBox = document.getElementById('9qQcjbOE_message');
     
-    quizquestions_scorecard["VDhz8J8S"]["attempts"] += 1;
+    quizquestions_scorecard["9qQcjbOE"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_VDhz8J8S")
+    var explanation = document.getElementById("explanation_9qQcjbOE")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["VDhz8J8S"]["correct"] = true;
+      quizquestions_scorecard["9qQcjbOE"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1841,11 +1865,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_VDhz8J8S")
+    var explanation = document.getElementById("explanation_9qQcjbOE")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["VDhz8J8S"]["correct"] = false;
+      quizquestions_scorecard["9qQcjbOE"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1861,49 +1885,49 @@ rb.addEventListener("change", function() {
 <section id="question-3" class="level6">
 <h6 class="anchored" data-anchor-id="question-3">Question</h6>
 <p>An ellipsoid is formed by rotating the region in the first and second quadrants bounded by the ellipse <span class="math inline">\((x/2)^2 + (y/3)^2=1\)</span> and the <span class="math inline">\(x\)</span> axis around the <span class="math inline">\(x\)</span> axis. What is the volume of this ellipsoid? Find it numerically.</p>
-<div class="cell" data-hold="true" data-execution_count="41">
-<div class="cell-output cell-output-display" data-execution_count="42">
+<div class="cell" data-hold="true" data-execution_count="43">
+<div class="cell-output cell-output-display" data-execution_count="44">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "5PDgfLhO"
+var ID = "WTu8xO5p"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="5PDgfLhO" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="WTu8xO5p" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_5PDgfLhO">
+      <div class="form" id="controls_WTu8xO5p">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="5PDgfLhO" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="WTu8xO5p" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="5PDgfLhO_message" style="padding-bottom: 15px"></div>
+      <div id="WTu8xO5p_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("5PDgfLhO").addEventListener("change", function() {
+document.getElementById("WTu8xO5p").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 75.39822368615503) <= 0.001);
-  var msgBox = document.getElementById('5PDgfLhO_message');
+  var msgBox = document.getElementById('WTu8xO5p_message');
   
-    quizquestions_scorecard["5PDgfLhO"]["attempts"] += 1;
+    quizquestions_scorecard["WTu8xO5p"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_5PDgfLhO")
+    var explanation = document.getElementById("explanation_WTu8xO5p")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["5PDgfLhO"]["correct"] = true;
+      quizquestions_scorecard["WTu8xO5p"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1911,11 +1935,11 @@ document.getElementById("5PDgfLhO").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_5PDgfLhO")
+    var explanation = document.getElementById("explanation_WTu8xO5p")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["5PDgfLhO"]["correct"] = false;
+      quizquestions_scorecard["WTu8xO5p"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1931,34 +1955,25 @@ document.getElementById("5PDgfLhO").addEventListener("change", function() {
 <section id="question-4" class="level6">
 <h6 class="anchored" data-anchor-id="question-4">Question</h6>
 <p>An ellipsoid is formed by rotating the region in the first and second quadrants bounded by the ellipse <span class="math inline">\((x/a)^2 + (y/b)^2=1\)</span> and the <span class="math inline">\(x\)</span> axis around the <span class="math inline">\(x\)</span> axis. What is the volume of this ellipsoid? Find it symbolically.</p>
-<div class="cell" data-hold="true" data-execution_count="42">
-<div class="cell-output cell-output-display" data-execution_count="43">
+<div class="cell" data-hold="true" data-execution_count="44">
+<div class="cell-output cell-output-display" data-execution_count="45">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "ougARUkO"
+var ID = "fdqADYKy"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="ougARUkO" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="fdqADYKy" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_ougARUkO">
+      <div class="form" id="controls_fdqADYKy">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_ougARUkO_1">
-      <input class="form-check-input" type="radio" name="radio_ougARUkO" id="radio_ougARUkO_1" value="1">
-      
-      <span class="label-body px-1">
-        \(\pi/3 \cdot a b^2\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_ougARUkO_2">
-      <input class="form-check-input" type="radio" name="radio_ougARUkO" id="radio_ougARUkO_2" value="2">
+    <label class="form-check-label" for="radio_fdqADYKy_1">
+      <input class="form-check-input" type="radio" name="radio_fdqADYKy" id="radio_fdqADYKy_1" value="1">
       
       <span class="label-body px-1">
         \(4/3 \cdot \pi a^2 b\)
@@ -1966,8 +1981,17 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_ougARUkO_3">
-      <input class="form-check-input" type="radio" name="radio_ougARUkO" id="radio_ougARUkO_3" value="3">
+    <label class="form-check-label" for="radio_fdqADYKy_2">
+      <input class="form-check-input" type="radio" name="radio_fdqADYKy" id="radio_fdqADYKy_2" value="2">
+      
+      <span class="label-body px-1">
+        \(\pi/3 \cdot a b^2\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_fdqADYKy_3">
+      <input class="form-check-input" type="radio" name="radio_fdqADYKy" id="radio_fdqADYKy_3" value="3">
       
       <span class="label-body px-1">
         \(4/3 \cdot \pi a b^2\)
@@ -1978,26 +2002,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="ougARUkO_message" style="padding-bottom: 15px"></div>
+      <div id="fdqADYKy_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_ougARUkO"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_fdqADYKy"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 3;
-    var msgBox = document.getElementById('ougARUkO_message');
+    var msgBox = document.getElementById('fdqADYKy_message');
     
-    quizquestions_scorecard["ougARUkO"]["attempts"] += 1;
+    quizquestions_scorecard["fdqADYKy"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_ougARUkO")
+    var explanation = document.getElementById("explanation_fdqADYKy")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["ougARUkO"]["correct"] = true;
+      quizquestions_scorecard["fdqADYKy"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2005,11 +2029,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_ougARUkO")
+    var explanation = document.getElementById("explanation_fdqADYKy")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["ougARUkO"]["correct"] = false;
+      quizquestions_scorecard["fdqADYKy"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2025,49 +2049,49 @@ rb.addEventListener("change", function() {
 <section id="question-5" class="level6">
 <h6 class="anchored" data-anchor-id="question-5">Question</h6>
 <p>A solid is generated by rotating the region enclosed by the graph <span class="math inline">\(y=\sqrt{x}\)</span>, the lines <span class="math inline">\(x=1\)</span>, <span class="math inline">\(x=2\)</span>, and <span class="math inline">\(y=1\)</span> about the <span class="math inline">\(x\)</span> axis. Find the volume of the solid.</p>
-<div class="cell" data-hold="true" data-execution_count="43">
-<div class="cell-output cell-output-display" data-execution_count="44">
+<div class="cell" data-hold="true" data-execution_count="45">
+<div class="cell-output cell-output-display" data-execution_count="46">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "8mqMYfKi"
+var ID = "CmYq4IBS"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="8mqMYfKi" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="CmYq4IBS" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_8mqMYfKi">
+      <div class="form" id="controls_CmYq4IBS">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="8mqMYfKi" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="CmYq4IBS" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="8mqMYfKi_message" style="padding-bottom: 15px"></div>
+      <div id="CmYq4IBS_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("8mqMYfKi").addEventListener("change", function() {
+document.getElementById("CmYq4IBS").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 1.5707963267948963) <= 0.001);
-  var msgBox = document.getElementById('8mqMYfKi_message');
+  var msgBox = document.getElementById('CmYq4IBS_message');
   
-    quizquestions_scorecard["8mqMYfKi"]["attempts"] += 1;
+    quizquestions_scorecard["CmYq4IBS"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_8mqMYfKi")
+    var explanation = document.getElementById("explanation_CmYq4IBS")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["8mqMYfKi"]["correct"] = true;
+      quizquestions_scorecard["CmYq4IBS"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2075,11 +2099,11 @@ document.getElementById("8mqMYfKi").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_8mqMYfKi")
+    var explanation = document.getElementById("explanation_CmYq4IBS")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["8mqMYfKi"]["correct"] = false;
+      quizquestions_scorecard["CmYq4IBS"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2095,57 +2119,57 @@ document.getElementById("8mqMYfKi").addEventListener("change", function() {
 <section id="question-6" class="level6">
 <h6 class="anchored" data-anchor-id="question-6">Question</h6>
 <p>The region enclosed by the graphs of <span class="math inline">\(y=x^3 - 1\)</span> and <span class="math inline">\(y=x-1\)</span> are rotated around the <span class="math inline">\(y\)</span> axis. What is the volume of the solid?</p>
-<div class="cell" data-hold="true" data-execution_count="44">
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> x</span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x<span class="op">^</span><span class="fl">3</span> <span class="op">-</span> <span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span>, legend<span class="op">=</span><span class="cn">false</span>)</span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(x<span class="op">-</span><span class="fl">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="45">
-<p><img src="volumes_slice_files/figure-html/cell-45-output-1.svg" class="img-fluid"></p>
+<div class="cell" data-hold="true" data-execution_count="46">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> x</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x<span class="op">^</span><span class="fl">3</span> <span class="op">-</span> <span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span>, legend<span class="op">=</span><span class="cn">false</span>)</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(x<span class="op">-</span><span class="fl">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="47">
+<p><img src="volumes_slice_files/figure-html/cell-47-output-1.svg" class="img-fluid"></p>
 </div>
 </div>
-<div class="cell" data-hold="true" data-execution_count="45">
-<div class="cell-output cell-output-display" data-execution_count="46">
+<div class="cell" data-hold="true" data-execution_count="47">
+<div class="cell-output cell-output-display" data-execution_count="48">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "RZI1mpTA"
+var ID = "ccb4bXmt"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="RZI1mpTA" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="ccb4bXmt" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_RZI1mpTA">
+      <div class="form" id="controls_ccb4bXmt">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="RZI1mpTA" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="ccb4bXmt" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="RZI1mpTA_message" style="padding-bottom: 15px"></div>
+      <div id="ccb4bXmt_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("RZI1mpTA").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - -3.2309774707332535) <= 0.001);
-  var msgBox = document.getElementById('RZI1mpTA_message');
+document.getElementById("ccb4bXmt").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 0.8377580413126988) <= 0.001);
+  var msgBox = document.getElementById('ccb4bXmt_message');
   
-    quizquestions_scorecard["RZI1mpTA"]["attempts"] += 1;
+    quizquestions_scorecard["ccb4bXmt"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_RZI1mpTA")
+    var explanation = document.getElementById("explanation_ccb4bXmt")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["RZI1mpTA"]["correct"] = true;
+      quizquestions_scorecard["ccb4bXmt"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2153,11 +2177,11 @@ document.getElementById("RZI1mpTA").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_RZI1mpTA")
+    var explanation = document.getElementById("explanation_ccb4bXmt")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["RZI1mpTA"]["correct"] = false;
+      quizquestions_scorecard["ccb4bXmt"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2172,51 +2196,56 @@ document.getElementById("RZI1mpTA").addEventListener("change", function() {
 </section>
 <section id="question-7" class="level6">
 <h6 class="anchored" data-anchor-id="question-7">Question</h6>
-<p>Rotate the region bounded by <span class="math inline">\(y=e^x\)</span>, the line <span class="math inline">\(x=\log(2)\)</span> and the first quadrant about the line <span class="math inline">\(x=\log(2)\)</span>.</p>
-<p>(Be careful, the radius in the formula <span class="math inline">\(V=\int_a^b \pi r(u)^2 du\)</span> is from the line <span class="math inline">\(x=\log(2)\)</span>.)</p>
-<div class="cell" data-hold="true" data-execution_count="46">
-<div class="cell-output cell-output-display" data-execution_count="47">
+<p>Rotate the region bounded by <span class="math inline">\(y=e^x\)</span>, the line <span class="math inline">\(x=\log(2)\)</span> and the first quadrant (<span class="math inline">\(x,y \geq 0\)</span>) about the line <span class="math inline">\(x=\log(2)\)</span>.</p>
+<div class="cell" data-execution_count="48">
+<div class="cell-output cell-output-display" data-execution_count="49">
+<p><img src="volumes_slice_files/figure-html/cell-49-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>(Be careful, the radius in the formula <span class="math inline">\(V=\int_a^b \pi r(u)^2 du\)</span> is from the line <span class="math inline">\(x=\log(2)\)</span>, further, the constraint <span class="math inline">\(x \geq 0\)</span> needs attention.)</p>
+<div class="cell" data-hold="true" data-execution_count="49">
+<div class="cell-output cell-output-display" data-execution_count="50">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "egbvIfWp"
+var ID = "RSSy859W"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="egbvIfWp" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="RSSy859W" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_egbvIfWp">
+      <div class="form" id="controls_RSSy859W">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="egbvIfWp" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="RSSy859W" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="egbvIfWp_message" style="padding-bottom: 15px"></div>
+      <div id="RSSy859W_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("egbvIfWp").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 12.56637058324514) <= 0.001);
-  var msgBox = document.getElementById('egbvIfWp_message');
+document.getElementById("RSSy859W").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 1.928013126572382) <= 0.001);
+  var msgBox = document.getElementById('RSSy859W_message');
   
-    quizquestions_scorecard["egbvIfWp"]["attempts"] += 1;
+    quizquestions_scorecard["RSSy859W"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_egbvIfWp")
+    var explanation = document.getElementById("explanation_RSSy859W")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["egbvIfWp"]["correct"] = true;
+      quizquestions_scorecard["RSSy859W"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2224,11 +2253,11 @@ document.getElementById("egbvIfWp").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_egbvIfWp")
+    var explanation = document.getElementById("explanation_RSSy859W")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["egbvIfWp"]["correct"] = false;
+      quizquestions_scorecard["RSSy859W"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2244,49 +2273,49 @@ document.getElementById("egbvIfWp").addEventListener("change", function() {
 <section id="question-8" class="level6">
 <h6 class="anchored" data-anchor-id="question-8">Question</h6>
 <p>Find the volume of rotating the region bounded by the line <span class="math inline">\(y=x\)</span>, <span class="math inline">\(x=1\)</span> and the <span class="math inline">\(x\)</span>-axis around the line <span class="math inline">\(y=x\)</span>. (The Theorem of Pappus is convenient and the fact that the centroid of the triangular region lies at <span class="math inline">\((2/3, 1/3)\)</span>.)</p>
-<div class="cell" data-hold="true" data-execution_count="47">
-<div class="cell-output cell-output-display" data-execution_count="48">
+<div class="cell" data-hold="true" data-execution_count="50">
+<div class="cell-output cell-output-display" data-execution_count="51">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "na5n7iUw"
+var ID = "HEIQPc4d"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="na5n7iUw" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="HEIQPc4d" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_na5n7iUw">
+      <div class="form" id="controls_HEIQPc4d">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="na5n7iUw" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="HEIQPc4d" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="na5n7iUw_message" style="padding-bottom: 15px"></div>
+      <div id="HEIQPc4d_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("na5n7iUw").addEventListener("change", function() {
+document.getElementById("HEIQPc4d").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 0.740480489693061) <= 0.001);
-  var msgBox = document.getElementById('na5n7iUw_message');
+  var msgBox = document.getElementById('HEIQPc4d_message');
   
-    quizquestions_scorecard["na5n7iUw"]["attempts"] += 1;
+    quizquestions_scorecard["HEIQPc4d"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_na5n7iUw")
+    var explanation = document.getElementById("explanation_HEIQPc4d")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["na5n7iUw"]["correct"] = true;
+      quizquestions_scorecard["HEIQPc4d"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2294,11 +2323,11 @@ document.getElementById("na5n7iUw").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_na5n7iUw")
+    var explanation = document.getElementById("explanation_HEIQPc4d")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["na5n7iUw"]["correct"] = false;
+      quizquestions_scorecard["HEIQPc4d"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2315,61 +2344,61 @@ document.getElementById("na5n7iUw").addEventListener("change", function() {
 <h6 class="anchored" data-anchor-id="question-9">Question</h6>
 <p>Rotate the region bounded by the line <span class="math inline">\(y=x\)</span> and the function <span class="math inline">\(f(x) = x^2\)</span> about the line <span class="math inline">\(y=x\)</span>. What is the resulting volume?</p>
 <p>You can integrate in the length along the line <span class="math inline">\(y=x\)</span> (<span class="math inline">\(u\)</span> from <span class="math inline">\(0\)</span> to <span class="math inline">\(\sqrt{2}\)</span>). The radius then can be found by intersecting the line perpendicular line to <span class="math inline">\(y=x\)</span> at <span class="math inline">\(u\)</span> to the curve <span class="math inline">\(f(x)\)</span>. This will do so:</p>
-<div class="cell" data-execution_count="48">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>theta <span class="op">=</span> <span class="cn">pi</span><span class="op">/</span><span class="fl">4</span>  <span class="co">## we write y=x as y = x * tan(pi/4) for more generality, as this allows other slants.</span></span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> x<span class="op">^</span><span class="fl">2</span></span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="fu">𝒙</span>(u) <span class="op">=</span> <span class="fu">find_zero</span>(x <span class="op">-&gt;</span> <span class="fu">u*sin</span>(theta) <span class="op">-</span> <span class="fl">1</span><span class="op">/</span><span class="fu">tan</span>(theta) <span class="op">*</span> (x <span class="op">-</span> <span class="fu">u*cos</span>(theta)) <span class="op">-</span> <span class="fu">f</span>(x), (<span class="fu">u*cos</span>(theta), <span class="fl">1</span>))</span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="fu">𝒓</span>(u) <span class="op">=</span> <span class="fu">sqrt</span>((<span class="fu">u*cos</span>(theta) <span class="op">-</span> <span class="fu">𝒙</span>(u))<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> (<span class="fu">u*sin</span>(theta) <span class="op">-</span> <span class="fu">f</span>(<span class="fu">𝒙</span>(u)))<span class="op">^</span><span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="49">
+<div class="cell" data-execution_count="51">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>theta <span class="op">=</span> <span class="cn">pi</span><span class="op">/</span><span class="fl">4</span>  <span class="co">## we write y=x as y = x * tan(pi/4) for more generality, as this allows other slants.</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> x<span class="op">^</span><span class="fl">2</span></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="fu">𝒙</span>(u) <span class="op">=</span> <span class="fu">find_zero</span>(x <span class="op">-&gt;</span> <span class="fu">u*sin</span>(theta) <span class="op">-</span> <span class="fl">1</span><span class="op">/</span><span class="fu">tan</span>(theta) <span class="op">*</span> (x <span class="op">-</span> <span class="fu">u*cos</span>(theta)) <span class="op">-</span> <span class="fu">f</span>(x), (<span class="fu">u*cos</span>(theta), <span class="fl">1</span>))</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a><span class="fu">𝒓</span>(u) <span class="op">=</span> <span class="fu">sqrt</span>((<span class="fu">u*cos</span>(theta) <span class="op">-</span> <span class="fu">𝒙</span>(u))<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> (<span class="fu">u*sin</span>(theta) <span class="op">-</span> <span class="fu">f</span>(<span class="fu">𝒙</span>(u)))<span class="op">^</span><span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="52">
 <pre><code>𝒓 (generic function with 1 method)</code></pre>
 </div>
 </div>
 <p>(Though in this case you can also find <code>r(u)</code> using the quadratic formula.)</p>
 <p>With this, find the volume.</p>
-<div class="cell" data-hold="true" data-execution_count="49">
-<div class="cell-output cell-output-display" data-execution_count="50">
+<div class="cell" data-hold="true" data-execution_count="52">
+<div class="cell-output cell-output-display" data-execution_count="53">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "veOFfEsK"
+var ID = "oBgWaaRr"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="veOFfEsK" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="oBgWaaRr" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_veOFfEsK">
+      <div class="form" id="controls_oBgWaaRr">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="veOFfEsK" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="oBgWaaRr" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="veOFfEsK_message" style="padding-bottom: 15px"></div>
+      <div id="oBgWaaRr_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("veOFfEsK").addEventListener("change", function() {
+document.getElementById("oBgWaaRr").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 0.07404804896930606) <= 0.001);
-  var msgBox = document.getElementById('veOFfEsK_message');
+  var msgBox = document.getElementById('oBgWaaRr_message');
   
-    quizquestions_scorecard["veOFfEsK"]["attempts"] += 1;
+    quizquestions_scorecard["oBgWaaRr"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_veOFfEsK")
+    var explanation = document.getElementById("explanation_oBgWaaRr")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["veOFfEsK"]["correct"] = true;
+      quizquestions_scorecard["oBgWaaRr"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2377,11 +2406,11 @@ document.getElementById("veOFfEsK").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_veOFfEsK")
+    var explanation = document.getElementById("explanation_oBgWaaRr")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["veOFfEsK"]["correct"] = false;
+      quizquestions_scorecard["oBgWaaRr"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2395,49 +2424,49 @@ document.getElementById("veOFfEsK").addEventListener("change", function() {
 </div>
 <hr>
 <p>Repeat (find the volume) only this time with the function <span class="math inline">\(f(x) = x^{20}\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="50">
-<div class="cell-output cell-output-display" data-execution_count="51">
+<div class="cell" data-hold="true" data-execution_count="53">
+<div class="cell-output cell-output-display" data-execution_count="54">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "l4VrzjFF"
+var ID = "u0QHDQ52"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="l4VrzjFF" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="u0QHDQ52" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_l4VrzjFF">
+      <div class="form" id="controls_u0QHDQ52">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="l4VrzjFF" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="u0QHDQ52" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="l4VrzjFF_message" style="padding-bottom: 15px"></div>
+      <div id="u0QHDQ52_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("l4VrzjFF").addEventListener("change", function() {
+document.getElementById("u0QHDQ52").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 0.59271276447715) <= 0.001);
-  var msgBox = document.getElementById('l4VrzjFF_message');
+  var msgBox = document.getElementById('u0QHDQ52_message');
   
-    quizquestions_scorecard["l4VrzjFF"]["attempts"] += 1;
+    quizquestions_scorecard["u0QHDQ52"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_l4VrzjFF")
+    var explanation = document.getElementById("explanation_u0QHDQ52")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["l4VrzjFF"]["correct"] = true;
+      quizquestions_scorecard["u0QHDQ52"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2445,11 +2474,11 @@ document.getElementById("l4VrzjFF").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_l4VrzjFF")
+    var explanation = document.getElementById("explanation_u0QHDQ52")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["l4VrzjFF"]["correct"] = false;
+      quizquestions_scorecard["u0QHDQ52"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
