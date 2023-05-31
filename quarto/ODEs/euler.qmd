@@ -220,6 +220,7 @@ function euler(F, x0, xn, y0, n)
     xs[i + 1] = xs[i] + h
     ys[i + 1] = ys[i] + h * F(ys[i], xs[i])
   end
+  xs[end] = xn
   linterp(xs, ys)
 end
 ```
@@ -288,7 +289,6 @@ We graphically compare our approximate answer with the exact one:
 
 
 ```{julia}
-plot(f, x0, xn)
 𝒐ut = dsolve(D(u)(x) - F(u(x),x), u(x), ics = Dict(u(x0) => y0))
 plot(rhs(𝒐ut), x0, xn)
 plot!(f, x0, xn)
@@ -348,7 +348,7 @@ The [Brachistochrone problem](http://www.unige.ch/~gander/Preprints/Ritz.pdf) wa
 imgfile = "figures/bead-game.jpg"
 caption = """
 
-A child's bead game. What shape wire will produce the shortest time for a bed to slide from a top to the bottom?
+A child's bead game. What shape wire will produce the shortest time for a bead to slide from a top to the bottom?
 
 """
 #ImageFile(:ODEs, imgfile, caption)
@@ -464,11 +464,11 @@ The race is on. An illustration of beads falling along a path, as can be seen, s
 ImageFile(imgfile, caption)
 ```
 
-Now, the natural question is which path is best?  The solution can be [reduced](http://mathworld.wolfram.com/BrachistochroneProblem.html) to solving this equation for a positive $c$:
+Now, the natural question is which path is best?  The solution can be [reduced](http://mathworld.wolfram.com/BrachistochroneProblem.html) to solving this equation for a positive $C$:
 
 
 $$
-1 + (y'(x))^2  = \frac{c}{y}, \quad c > 0.
+1 + (y'(x))^2  = \frac{C}{y}, \quad C > 0.
 $$
 
 Reexpressing, this becomes:
@@ -482,7 +482,7 @@ This is a separable equation and can be solved, but even `SymPy` has trouble wit
 
 
 $$
-x(u) = c\cdot u - \frac{c}{2}\sin(2u), \quad y(u) = \frac{c}{2}( 1- \cos(2u)), \quad 0 \leq u \leq U.
+x(u) = C\cdot u - \frac{C}{2}\sin(2u), \quad y(u) = \frac{C}{2}( 1- \cos(2u)), \quad 0 \leq u \leq U.
 $$
 
 The values of $U$ and $c$ must satisfy $(x(U), y(U)) = (B, A)$.
@@ -495,7 +495,7 @@ The equation can be written in terms of $y'=F(y,x)$, where
 
 
 $$
-F(y,x) = \sqrt{\frac{c-y}{y}}.
+F(y,x) = \sqrt{\frac{C-y}{y}}.
 $$
 
 But as $y_0 = 0$, we immediately would have a problem with the first step, as there would be division by $0$.
@@ -609,7 +609,7 @@ u_{n+1} &= u_n + h v_n,\\
 v_{n+1} &= v_n - h \cdot g/l \cdot \sin(u_n).
 \end{align*}
 
-Here we need *two* initial conditions: one for the initial value $u(t_0)$ and the initial value of $u'(t_0)$. We have seen if we start at an angle $a$ and release the bob from rest, so $u'(0)=0$ we get a sinusoidal answer to the linearized model. What happens here? We let $a=1$, $L=5$ and $g=9.8$:
+Here we need *two* initial conditions: one for the initial value $u(t_0)$ and the initial value of $u'(t_0)$. We have seen if we start at an angle $a$ and release the bob from rest, so $u'(0)=0$ we get a sinusoidal answer to the linearized model. What happens here? We let $a=1$, $l=5$ and $g=9.8$:
 
 
 We write a function to solve this starting from $(x_0, y_0)$ and ending at $x_n$:
@@ -624,12 +624,12 @@ function euler2(x0, xn, y0, yp0, n; g=9.8, l = 5)
     xs[i+1] = xs[i] + h
 	us[i+1] = us[i] + h * vs[i]
 	vs[i+1] = vs[i] + h * (-g / l) * sin(us[i])
-	end
-	linterp(xs, us)
+  end
+  linterp(xs, us)
 end
 ```
 
-Let's take $a = \pi/4$ as the initial angle, then the approximate solution should be $\pi/4\cos(\sqrt{g/l}x)$ with period $T = 2\pi\sqrt{l/g}$. We try first to plot then over 4 periods:
+Let's take $a = \pi/4$ as the initial angle, then the approximate solution should be $\pi/4\cos(\sqrt{g/l}x)$ with period $T = 2\pi\sqrt{l/g}$. We try first to plot them over 4 periods:
 
 
 ```{julia}
