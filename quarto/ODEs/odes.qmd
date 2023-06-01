@@ -88,7 +88,7 @@ Again, we can integrate to get an answer for any value $t$:
 
 
 \begin{align*}
-x(t) - x(t_0) &= \int_{t_0}^t \frac{dv}{dt} dt     \\
+x(t) - x(t_0) &= \int_{t_0}^t \frac{dx}{dt} dt     \\
 &= (v_0t + \frac{1}{2}a t^2 - at_0 t) |_{t_0}^t    \\
 &= (v_0 - at_0)(t - t_0) + \frac{1}{2} a (t^2 - t_0^2).
 \end{align*}
@@ -216,7 +216,7 @@ Let $F(y) = \int_{y_0}^y du/g(u)$, then a solution to the above is $F(y) = x - x
 [Toricelli's Law](http://tinyurl.com/hxvf3qp) describes the speed a jet of water will leave a vessel through an opening below the surface of the water. The formula is $v=\sqrt{2gh}$, where $h$ is the height of the water above the hole and $g$ the gravitational constant. This arises from equating the kinetic energy gained, $1/2 mv^2$ and potential energy lost, $mgh$, for the exiting water.
 
 
-An application of Torricelli's law is to describe the volume of water in a tank over time, $V(t)$. Imagine a cylinder of cross sectional area $A$ with a hole of cross sectional diameter $a$ at the bottom, Then $V(t) = A h(t)$, with $h$ giving the height. The change in volume over $\Delta t$ units of time must be given by the value $a v(t) \Delta t$, or
+An application of Torricelli's law is to describe the volume of water in a tank over time, $V(t)$. Imagine a cylinder of cross sectional area $A$ with a hole of cross sectional area $a$ at the bottom, Then $V(t) = A h(t)$, with $h$ giving the height. The change in volume over $\Delta t$ units of time must be given by the value $a v(t) \Delta t$, or
 
 
 $$
@@ -511,7 +511,7 @@ $$
 Here, the solution is in terms of sines and cosines, with period given by $T = 2\pi/\sqrt{k} =  2\pi\cdot\sqrt{l/g}$. The answer does not depend on the mass, $m$, of the bob nor the amplitude of the motion, provided the small-angle approximation is valid.
 
 
-If we pull the bob back an angle $a$ and release it then the initial conditions are $\theta(0) = a$ and $\theta'(a) = 0$. This gives the solution:
+If we pull the bob back an angle $a$ and release it then the initial conditions are $\theta(0) = a$ and $\theta'(0) = 0$. This gives the solution:
 
 
 ```{julia}
@@ -652,10 +652,12 @@ Furthermore, we can solve for $t$ from $x(t)$, to get an equation describing $y(
 ```{julia}
 #| hold: true
 @syms x0::real y0::real v0::real alpha::real g::real
-@syms t x u()
-a1 = dsolve(D2(u)(x) ~ 0, u(x), ics=Dict(u(0) => x0, D(u)(0) => v0 * cos(alpha)))
-a2 = dsolve(D2(u)(x) ~ -g, u(x), ics=Dict(u(0) => y0, D(u)(0) => v0 * sin(alpha)))
-ts = solve(t - rhs(a1), x)[1]
+@syms t::positive x u()
+Dₜ = Differential(t)
+D2ₜ = Dₜ ∘ Dₜ
+a1 = dsolve(D2ₜ(u)(t) ~ 0, u(t), ics=Dict(u(0) => x0, Dₜ(u)(0) => v0 * cos(alpha)))
+a2 = dsolve(D2ₜ(u)(t) ~ -g, u(t), ics=Dict(u(0) => y0, Dₜ(u)(0) => v0 * sin(alpha)))
+ts = solve(x - rhs(a1), t)[1]
 y = simplify(rhs(a2)(t => ts))
 sympy.Poly(y, x).coeffs()
 ```
@@ -676,9 +678,9 @@ We now attempt to solve these.
 
 
 ```{julia}
-@syms alpha::real, γ::postive, t::positive, v()
+@syms alpha::real, γ::postive, v()
 @syms x_0::real y_0::real v_0::real
-Dₜ = Differential(t)
+
 eq₁ = Dₜ(Dₜ(u))(t) ~    - γ * Dₜ(u)(t)
 eq₂ = Dₜ(Dₜ(v))(t) ~ -g - γ * Dₜ(v)(t)
 
@@ -931,7 +933,7 @@ The differential equation with boundary values
 
 
 $$
-\frac{r^2 \frac{dc}{dr}}{dr} = 0, \quad c(1)=2, c(10)=1,
+\frac{d(r^2 \frac{dc}{dr})}{dr} = 0, \quad c(1)=2, c(10)=1,
 $$
 
 can be solved with `SymPy`. What is the value of $c(5)$?
