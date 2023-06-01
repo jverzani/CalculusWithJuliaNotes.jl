@@ -236,13 +236,25 @@ By rotating the line segment $x/r + y/h=1$ that sits in the first quadrant aroun
 #| hold: true
 @syms r h x y
 R = r*(1 - y/h)
-integrate(pi*R^2, (y, 0, h))
+cone = integrate(pi*R^2, (y, 0, h))
 ```
 
-The frustum of a cone is simply viewed as a cone with its top cut off. If the original height would have been $h_0$ and the actual height $h_1$, then the volume remaining is just $\int_{h_0}^h \pi r(y)^2 dy = \pi h_1 r^2/3 - \pi h_0 r^2/3 = \pi r^2 (h_1-h_0)/3$.
-
-
 It is not unusual to parameterize a cone by the angle $\theta$ it makes and the height. Since $r/h=\tan\theta$, this gives the formula $V = \pi/3\cdot h^3\tan(\theta)^2$.
+
+
+The frustum of a cone is simply viewed as a cone with its top cut off. If the original height would have been $h_0$ and the actual height $h_1$, then the volume remaining is just $\int_0^{h_1}  \pi r(y)^2 dy$. We can see the formula for the frustrum of the right cone:
+
+```{julia}
+@syms h0
+frustrum = integrate(pi*R^2, (y, 0, h0))
+```
+
+Simplifying, we can see this volume can be expressed using the ratio $(h_0/h_1)$:
+
+```{julia}
+frustrum - cone * ( 3h0/h - 3(h0/h)^2 + (h0/h)^3) |> simplify
+```
+
 
 
 ##### Example
@@ -779,17 +791,37 @@ numericq(val)
 ###### Question
 
 
-Rotate the region bounded by $y=e^x$, the line $x=\log(2)$ and the first quadrant about the line $x=\log(2)$.
+Rotate the region bounded by $y=e^x$, the line $x=\log(2)$ and the first quadrant ($x,y \geq 0$) about the line $x=\log(2)$.
 
+```{julia}
+#| echo: false
+let
+    p = plot(exp, -0.1, log(2.2); legend=false, ylim = (-0.3, 2.3))
+    hline!(p, [0], color=:black)
+    vline!(p, [0], color=:black)
+    vline!(p, [log(2)], linestyle=:dash)
+    xs = range(0, log(2), length=50)
+    ys = exp.(xs)
+    plot!(p, [0, xs..., log(2), 0], [0, ys..., 0, 0], linewidth=2)
+    ts = pi/2 .+ range(pi/16, 2pi - pi/16, length=50)
+    a = 0.15; b = a/(1.5)
+    as(t) = log(2) + a*cos(t)
+    bs(t) = (exp(log(2)) - 4b) + b*sin(t)
+    plot!(p, as.(ts), bs.(ts), linewidth=1, color=:black, arrow=(:closed, 2.0))
 
-(Be careful, the radius in the formula $V=\int_a^b \pi r(u)^2 du$ is from the line $x=\log(2)$.)
+    p
+
+end
+```
+
+(Be careful, the radius in the formula $V=\int_a^b \pi r(u)^2 du$ is from the line $x=\log(2)$, further, the constraint $x \geq 0$ needs attention.)
 
 
 ```{julia}
 #| hold: true
 #| echo: false
 a, b = 0, exp(log(2))
-ra(y) = log(2) - log(y)
+ra(y) = log(2) - max(0, log(y))
 val, _ = quadgk(y -> pi * ra(y)^2, a, b)
 numericq(val)
 ```
