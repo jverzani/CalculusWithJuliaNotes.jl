@@ -83,7 +83,7 @@ To see why this formula is as it is, we look at the parameterized case, the firs
 Let a partition of $[a,b]$ be given by $a = t_0 < t_1 < t_2 < \cdots < t_n =b$. This breaks the curve into a collection of line segments. Consider the line segment connecting $(g(t_{i-1}), f(t_{i-1}))$ to $(g(t_i), f(t_i))$. Rotating this around the $x$ axis will generate something approximating a disc, but in reality will be the frustum of a cone. What will be the surface area?
 
 
-Consider a right-circular cone parameterized by an angle $\theta$ and the largest radius $r$ (so that the height satisfies $r/h=\tan(\theta)$). If this cone were made of paper, cut up a side, and layed out flat, it would form a sector of a circle, whose area would be $R\gamma$ where $R$ is the radius of the circle (also the side length of our cone), and $\gamma$ an angle that we can figure out from $r$ and $\theta$. To do this, we note that the arc length of the circle's edge is $R\gamma$ and also the circumference of the bottom of the cone so $R\gamma = 2\pi r$. With all this, we can solve to get $A = \pi r^2/\sin(\theta)$. But we have a frustum of a cone with radii $r_0$ and $r_1$, so the surface area is a difference: $A = \pi (r_1^2 - r_0^2) /\sin(\theta)$.
+Consider a right-circular cone parameterized by an angle $\theta$ and the largest radius $r$ (so that the height satisfies $r/h=\tan(\theta)$). If this cone were made of paper, cut up a side, and layed out flat, it would form a sector of a circle, whose area would be $R^2\gamma/2$ where $R$ is the radius of the circle (also the side length of our cone), and $\gamma$ an angle that we can figure out from $r$ and $\theta$. To do this, we note that the arc length of the circle's edge is $R\gamma$ and also the circumference of the bottom of the cone so $R\gamma = 2\pi r$. With all this, we can solve to get $A = \pi r^2/\sin(\theta)$. But we have a frustum of a cone with radii $r_0$ and $r_1$, so the surface area is a difference: $A = \pi (r_1^2 - r_0^2) /\sin(\theta)$.
 
 
 Relating this to our values in terms of $f$ and $g$, we have $r_1=f(t_i)$, $r_0 = f(t_{i-1})$, and $\sin(\theta) = \Delta f / \sqrt{(\Delta g)^2 + (\Delta f)^2}$, where $\Delta f = f(t_i) - f(t_{i-1})$ and similarly for $\Delta g$.
@@ -100,7 +100,7 @@ $$
 (This is $2 \pi$ times the average radius times the slant height.)
 
 
-As was done in the derivation of the formula for arc length, these pieces are multiplied both top and bottom by $\Delta t = t_{i} - t_{i-1}$. Carrying the bottom inside the square root and noting that by the mean value theorem $\Delta g/\Delta t = g(\xi)$ and $\Delta f/\Delta t = f(\psi)$ for some $\xi$ and $\psi$ in $[t_{i-1}, t_i]$, this becomes:
+As was done in the derivation of the formula for arc length, these pieces are multiplied both top and bottom by $\Delta t = t_{i} - t_{i-1}$. Carrying the bottom inside the square root and noting that by the mean value theorem $\Delta g/\Delta t = g'(\xi)$ and $\Delta f/\Delta t = f'(\psi)$ for some $\xi$ and $\psi$ in $[t_{i-1}, t_i]$, this becomes:
 
 
 $$
@@ -160,14 +160,14 @@ ImageFile(imgfile, caption)
 Lets see that the surface area of an open cone follows from this formula, even though we just saw how to get this value.
 
 
-A cone be be envisioned as rotating the function $f(x) = x\tan(\theta)$ between $0$ and $h$ around the $x$ axis. This integral yields the surface area:
+A cone can be envisioned as rotating the function $f(x) = x\tan(\theta)$ between $0$ and $h$ around the $x$ axis. This integral yields the surface area:
 
 
 
 \begin{align*}
 \int_0^h 2\pi f(x) \sqrt{1 + f'(x)^2}dx
 &= \int_0^h 2\pi x \tan(\theta) \sqrt{1 + \tan(\theta)^2}dx   \\
-&= (2\pi\tan(\theta)\sqrt{1 + \tan(\theta)^2} x^2/2 \big|_0^h \\
+&= (2\pi\tan(\theta)\sqrt{1 + \tan(\theta)^2}) x^2/2 \big|_0^h \\
 &= \pi \tan(\theta) \sec(\theta) h^2                          \\
 &= \pi r^2 / \sin(\theta).
 \end{align*}
@@ -287,7 +287,7 @@ val
 #| hold: true
 g(u) = u
 f(u) = u^u
-S(u,v) = [g(u)*cos(v), g(u)*sin(v), f(u)]
+S(u,v) = [g(u), f(u)*cos(v), f(u)*sin(v)]
 us = range(0, 3/2, length=100)
 vs = range(0, pi, length=100)  # not 2pi (to see inside)
 ws = unzip(S.(us,vs'))
@@ -515,7 +515,7 @@ $$
 A = \int_u^{u+h} 2\pi f(x) \sqrt{1 + f'(x)^2} dx.
 $$
 
-If we let $f(x) = y$ then $f'(x) = x/y$. With this, what does the integral above come down to after cancellations:
+If we let $f(x) = y$ then $f'(x) = -x/y$. With this, what does the integral above come down to after cancellations:
 
 
 ```{julia}
@@ -544,7 +544,7 @@ Numerically find the value.
 #| echo: false
 g(t) = cos(t)
 f(t) = sin(t)
-a, b = 0, pi/4
+a, b = 0, pi/6
 val, _ = quadgk(t -> 2pi* f(t) * sqrt(g'(t)^2 + f'(t)^2), a, b)
 numericq(val)
 ```
@@ -558,8 +558,8 @@ The [astroid](http://www-history.mcs.st-and.ac.uk/Curves/Astroid.html) is parame
 ```{julia}
 #| hold: true
 #| echo: false
-g(t) = cos(t^3)
-f(t) = sin(t^3)
+g(t) = cos(t)^3
+f(t) = sin(t)^3
 a, b = 0, pi
 val, _ = quadgk(t -> 2pi* f(t) * sqrt(g'(t)^2 + f'(t)^2), a, b)
 numericq(val)
@@ -574,8 +574,8 @@ For the curve   parameterized by $g(t) = a\cos(t)^5$ and $f(t) = a \sin(t)^5$. L
 ```{julia}
 #| hold: true
 #| echo: false
-g(t) = cos(t^5)
-f(t) = sin(t^5)
+g(t) = cos(t)^5
+f(t) = sin(t)^5
 a, b = 0, pi
 val, _ = quadgk(t -> 2pi* f(t) * sqrt(g'(t)^2 + f'(t)^2), a, b)
 numericq(val)
