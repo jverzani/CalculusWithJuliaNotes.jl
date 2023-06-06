@@ -967,59 +967,146 @@ Note
 </div>
 </div>
 </section>
+<section id="example-6" class="level5">
+<h5 class="anchored" data-anchor-id="example-6">Example</h5>
+<p>Consider two overlapping circles, one with smaller radius. How much area is in the larger circle that is not in the smaller? The question came up on the <code>Julia</code> <a href="https://discourse.julialang.org/t/is-there-package-or-method-to-calculate-certain-area-in-julia-symbolically-with-sympy/99751">discourse</a> discussion board. A solution modified from that of <code>@rocco_sprmnt21</code> follows.</p>
+<p>Without losing too-much generality, we can consider the smaller circle to be the unit circle <span class="math inline">\(x^2 + y^2 = 1^2\)</span>. The other a circle of radius <span class="math inline">\(a\)</span> centered at <span class="math inline">\((0,b)\)</span>, that is <span class="math inline">\(x^2 + (y-b)^2 = a^2\)</span>, such that <span class="math inline">\(0 \le b-a \le 1\)</span>, giving some overlap. We solve for the point of overlap below:</p>
+<div class="cell" data-execution_count="31">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> x<span class="op">::</span><span class="dt">real </span>y<span class="op">::</span><span class="dt">real </span>a<span class="op">::</span><span class="dt">positive </span>b<span class="op">::</span><span class="dt">positive</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>y₀ <span class="op">=</span> <span class="fu">first</span>(<span class="fu">solve</span>((x<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> y<span class="op">^</span><span class="fl">2</span> <span class="op">-</span> <span class="fl">1</span><span class="op">^</span><span class="fl">2</span>) <span class="op">~</span> (x<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> (y<span class="op">-</span>b)<span class="op">^</span><span class="fl">2</span> <span class="op">-</span> a<span class="op">^</span><span class="fl">2</span>), y))</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>x₀ <span class="op">=</span> <span class="fu">sqrt</span>(<span class="fl">1</span> <span class="op">-</span> y₀<span class="op">^</span><span class="fl">2</span>) <span class="co"># point of intersection</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="32">
+<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
+\[
+\sqrt{1 - \frac{\left(- a^{2} + b^{2} + 1\right)^{2}}{4 b^{2}}}
+\]
+</span>
+</div>
+</div>
+<p>Plotting with <span class="math inline">\(b=2, a=3/2\)</span> we have:</p>
+<div class="cell" data-execution_count="32">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> 𝑎<span class="op">=</span><span class="fl">3</span><span class="op">/</span><span class="fl">2</span>, 𝑏<span class="op">=</span><span class="fl">2</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> <span class="fu">N</span>(<span class="fu">x₀</span>(a <span class="op">=&gt;</span> 𝑎, b <span class="op">=&gt;</span> 𝑏))</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> <span class="fu">sqrt</span>(<span class="fl">1</span> <span class="op">-</span> x<span class="op">^</span><span class="fl">2</span>)</span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>    p <span class="op">=</span> <span class="fu">plot</span>(; legend<span class="op">=</span><span class="cn">false</span>, aspect_ratio<span class="op">=:</span>equal)</span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot!</span>(x <span class="op">-&gt;</span> 𝑏 <span class="op">+</span> <span class="fu">sqrt</span>(𝑎<span class="op">^</span><span class="fl">2</span> <span class="op">-</span> x<span class="op">^</span><span class="fl">2</span>),  <span class="op">-</span>𝑎, 𝑎; color<span class="op">=:</span>black)</span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot!</span>(x <span class="op">-&gt;</span> 𝑏 <span class="op">-</span> <span class="fu">sqrt</span>(𝑎<span class="op">^</span><span class="fl">2</span> <span class="op">-</span> x<span class="op">^</span><span class="fl">2</span>), <span class="op">-</span>𝑎, <span class="op">-</span>x; color<span class="op">=:</span>black)</span>
+<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot!</span>(x <span class="op">-&gt;</span> 𝑏 <span class="op">-</span> <span class="fu">sqrt</span>(𝑎<span class="op">^</span><span class="fl">2</span> <span class="op">-</span> x<span class="op">^</span><span class="fl">2</span>),  x,  𝑎; color<span class="op">=:</span>black)</span>
+<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot!</span>(x <span class="op">-&gt;</span>  <span class="fu">sqrt</span>(<span class="fl">1</span><span class="op">^</span><span class="fl">2</span> <span class="op">-</span> x<span class="op">^</span><span class="fl">2</span>), <span class="op">-</span>x,  x; color<span class="op">=:</span>black)</span>
+<span id="cb40-13"><a href="#cb40-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot!</span>(x <span class="op">-&gt;</span>  <span class="fu">sqrt</span>(<span class="fl">1</span><span class="op">^</span><span class="fl">2</span> <span class="op">-</span> x<span class="op">^</span><span class="fl">2</span>), <span class="op">-</span><span class="fl">1</span>, <span class="op">-</span>x; color<span class="op">=:</span>blue)</span>
+<span id="cb40-14"><a href="#cb40-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot!</span>(x <span class="op">-&gt;</span>  <span class="fu">sqrt</span>(<span class="fl">1</span><span class="op">^</span><span class="fl">2</span> <span class="op">-</span> x<span class="op">^</span><span class="fl">2</span>),  x,  <span class="fl">1</span>; color<span class="op">=:</span>blue)</span>
+<span id="cb40-15"><a href="#cb40-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot!</span>(x <span class="op">-&gt;</span> <span class="fu">-sqrt</span>(<span class="fl">1</span><span class="op">^</span><span class="fl">2</span> <span class="op">-</span> x<span class="op">^</span><span class="fl">2</span>), <span class="op">-</span><span class="fl">1</span>,  <span class="fl">1</span>; color<span class="op">=:</span>blue)</span>
+<span id="cb40-16"><a href="#cb40-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-17"><a href="#cb40-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-18"><a href="#cb40-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-19"><a href="#cb40-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scatter!</span>([<span class="op">-</span>x, x], [y, y])</span>
+<span id="cb40-20"><a href="#cb40-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-21"><a href="#cb40-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot!</span>([<span class="fl">0</span>, 𝑎], [𝑏, 𝑏]; linestyle<span class="op">=:</span>dash)</span>
+<span id="cb40-22"><a href="#cb40-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">annotate!</span>([(<span class="fl">0</span>, 𝑏, <span class="fu">text</span>(<span class="st">"(0,b)"</span>, <span class="fl">8</span>, <span class="op">:</span>left)),</span>
+<span id="cb40-23"><a href="#cb40-23" aria-hidden="true" tabindex="-1"></a>               (𝑎, 𝑏, <span class="fu">text</span>(<span class="st">"(a,b)"</span>, <span class="fl">8</span>, <span class="op">:</span>left)),</span>
+<span id="cb40-24"><a href="#cb40-24" aria-hidden="true" tabindex="-1"></a>               (x, y, <span class="fu">text</span>(<span class="st">"(x₀, y₀)"</span>, <span class="fl">8</span>, <span class="op">:</span>left))])</span>
+<span id="cb40-25"><a href="#cb40-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-26"><a href="#cb40-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot!</span>([<span class="fl">0</span>, <span class="fl">0</span>], [<span class="fl">1</span>, 𝑏 <span class="op">+</span> 𝑎])</span>
+<span id="cb40-27"><a href="#cb40-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot!</span>([x, x], [y, 𝑏 <span class="op">+</span> <span class="fu">sqrt</span>(𝑎<span class="op">^</span><span class="fl">2</span> <span class="op">-</span> x<span class="op">^</span><span class="fl">2</span>)])</span>
+<span id="cb40-28"><a href="#cb40-28" aria-hidden="true" tabindex="-1"></a>    p</span>
+<span id="cb40-29"><a href="#cb40-29" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="33">
+<p><img src="area_between_curves_files/figure-html/cell-33-output-1.svg" class="img-fluid"></p>
+</div>
+</div>
+<p>With this orientation, we can see that the area is twice the integral from <span class="math inline">\([0,x_0]\)</span> and from <span class="math inline">\([x_0, a]\)</span>:</p>
+<div class="cell" data-execution_count="33">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>a1 <span class="op">=</span> <span class="fu">integrate</span>(b <span class="op">+</span> <span class="fu">sqrt</span>(a<span class="op">^</span><span class="fl">2</span> <span class="op">-</span> x<span class="op">^</span><span class="fl">2</span>) <span class="op">-</span> (<span class="fu">sqrt</span>(<span class="fl">1</span><span class="op">^</span><span class="fl">2</span> <span class="op">-</span> x<span class="op">^</span><span class="fl">2</span>)), (x, <span class="fl">0</span>, x₀))</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>a2 <span class="op">=</span> <span class="fu">integrate</span>(b <span class="op">+</span> <span class="fu">sqrt</span>(a<span class="op">^</span><span class="fl">2</span> <span class="op">-</span> x<span class="op">^</span><span class="fl">2</span>) <span class="op">-</span> (b <span class="op">-</span> <span class="fu">sqrt</span>(a<span class="op">^</span><span class="fl">2</span> <span class="op">-</span> x<span class="op">^</span><span class="fl">2</span>)), (x, x₀, a))</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>A <span class="op">=</span> <span class="fl">2</span>(a1 <span class="op">+</span> a2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="34">
+<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
+\[
+- a^{2} \operatorname{asin}{\left(\frac{\sqrt{1 - \frac{\left(- a^{2} + b^{2} + 1\right)^{2}}{4 b^{2}}}}{a} \right)} + \pi a^{2} + 2 b \sqrt{1 - \frac{\left(- a^{2} + b^{2} + 1\right)^{2}}{4 b^{2}}} - \sqrt{1 - \frac{\left(- a^{2} + b^{2} + 1\right)^{2}}{4 b^{2}}} \sqrt{a^{2} - 1 + \frac{\left(- a^{2} + b^{2} + 1\right)^{2}}{4 b^{2}}} - \operatorname{asin}{\left(\sqrt{1 - \frac{\left(- a^{2} + b^{2} + 1\right)^{2}}{4 b^{2}}} \right)} - \frac{\sqrt{1 - \frac{\left(- a^{2} + b^{2} + 1\right)^{2}}{4 b^{2}}} \left|{- a^{2} + b^{2} + 1}\right|}{2 b}
+\]
+</span>
+</div>
+</div>
+<p>And for the <span class="math inline">\(b=2, a=3/2\)</span>:</p>
+<div class="cell" data-execution_count="34">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">A</span>(b <span class="op">=&gt;</span> <span class="fl">2</span>, a <span class="op">=&gt;</span> <span class="fl">3</span><span class="op">//</span><span class="fl">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="35">
+<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
+\[
+- \frac{9 \operatorname{asin}{\left(\frac{\sqrt{15}}{8} \right)}}{4} - \operatorname{asin}{\left(\frac{3 \sqrt{15}}{16} \right)} + \frac{3 \sqrt{15}}{8} + \frac{9 \pi}{4}
+\]
+</span>
+</div>
+</div>
+<p>When <span class="math inline">\(b=2\)</span> and <span class="math inline">\(a=1\)</span> we should get the same as the area of a circle with radius 1$ or <span class="math inline">\(\pi\)</span>:</p>
+<div class="cell" data-execution_count="35">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="fu">A</span>(b <span class="op">=&gt;</span> <span class="fl">2</span>, a <span class="op">=&gt;</span> <span class="fl">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="36">
+<span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
+\[
+\pi
+\]
+</span>
+</div>
+</div>
+</section>
 </section>
 <section id="integrating-in-different-directions" class="level4">
 <h4 class="anchored" data-anchor-id="integrating-in-different-directions">Integrating in different directions</h4>
 <p>The last example suggested integrating in the <span class="math inline">\(y\)</span> variable. This could have more explanation.</p>
 <p>It has been noted that different symmetries can aid in computing integrals through their interpretation as areas. For example, if <span class="math inline">\(f(x)\)</span> is odd, then <span class="math inline">\(\int_{-b}^b f(x)dx=0\)</span> and if <span class="math inline">\(f(x)\)</span> is even, <span class="math inline">\(\int_{-b}^b f(x) dx = 2\int_0^b f(x) dx\)</span>.</p>
 <p>Another symmetry of the <span class="math inline">\(x-y\)</span> plane is the reflection through the line <span class="math inline">\(y=x\)</span>. This has the effect of taking the graph of <span class="math inline">\(f(x)\)</span> to the graph of <span class="math inline">\(f^{-1}(x)\)</span> and vice versa. Here is an example with <span class="math inline">\(f(x) = x^3\)</span> over <span class="math inline">\([-1,1]\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="31">
-<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> x<span class="op">^</span><span class="fl">3</span></span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> <span class="fu">range</span>(<span class="op">-</span><span class="fl">1</span>, stop<span class="op">=</span><span class="fl">1</span>, length<span class="op">=</span><span class="fl">50</span>)</span>
-<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>ys <span class="op">=</span> <span class="fu">f</span>.(xs)</span>
-<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(ys, xs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="32">
-<p><img src="area_between_curves_files/figure-html/cell-32-output-1.svg" class="img-fluid"></p>
+<div class="cell" data-hold="true" data-execution_count="36">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> x<span class="op">^</span><span class="fl">3</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> <span class="fu">range</span>(<span class="op">-</span><span class="fl">1</span>, stop<span class="op">=</span><span class="fl">1</span>, length<span class="op">=</span><span class="fl">50</span>)</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>ys <span class="op">=</span> <span class="fu">f</span>.(xs)</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(ys, xs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="37">
+<p><img src="area_between_curves_files/figure-html/cell-37-output-1.svg" class="img-fluid"></p>
 </div>
 </div>
 <p>By switching the order of the <code>xs</code> and <code>ys</code> we “flip” the graph through the line <span class="math inline">\(x=y\)</span>.</p>
 <p>We can use this symmetry to our advantage. Suppose instead of being given an equation <span class="math inline">\(y=f(x)\)</span>, we are given it in “inverse” style: <span class="math inline">\(x = f(y)\)</span>, for example suppose we have <span class="math inline">\(x = y^3\)</span>. We can plot this as above via:</p>
-<div class="cell" data-hold="true" data-execution_count="32">
-<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>ys <span class="op">=</span> <span class="fu">range</span>(<span class="op">-</span><span class="fl">1</span>, stop<span class="op">=</span><span class="fl">1</span>, length<span class="op">=</span><span class="fl">50</span>)</span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> [y<span class="op">^</span><span class="fl">3</span> for y <span class="kw">in</span> ys]</span>
-<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(xs, ys)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="33">
-<p><img src="area_between_curves_files/figure-html/cell-33-output-1.svg" class="img-fluid"></p>
+<div class="cell" data-hold="true" data-execution_count="37">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>ys <span class="op">=</span> <span class="fu">range</span>(<span class="op">-</span><span class="fl">1</span>, stop<span class="op">=</span><span class="fl">1</span>, length<span class="op">=</span><span class="fl">50</span>)</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> [y<span class="op">^</span><span class="fl">3</span> for y <span class="kw">in</span> ys]</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(xs, ys)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="38">
+<p><img src="area_between_curves_files/figure-html/cell-38-output-1.svg" class="img-fluid"></p>
 </div>
 </div>
 <p>Suppose we wanted the area in the first quadrant between this graph, the <span class="math inline">\(y\)</span> axis and the line <span class="math inline">\(y=1\)</span>. What to do? With the problem “flipped” through the <span class="math inline">\(y=x\)</span> line, this would just be <span class="math inline">\(\int_0^1 x^3dx\)</span>. Rather than mentally flipping the picture to integrate, instead we can just integrate in the <span class="math inline">\(y\)</span> variable. That is, the area is <span class="math inline">\(\int_0^1 y^3 dy\)</span>. The mental picture for Riemann sums would be have the approximating rectangles laying flat and as a function of <span class="math inline">\(y\)</span>, are given a length of <span class="math inline">\(y^3\)</span> and height of “<span class="math inline">\(dy\)</span>”.</p>
 <hr>
-<div class="cell" data-hold="true" data-execution_count="33">
-<div class="cell-output cell-output-display" data-execution_count="34">
-<p><img src="area_between_curves_files/figure-html/cell-34-output-1.svg" class="img-fluid"></p>
+<div class="cell" data-hold="true" data-execution_count="38">
+<div class="cell-output cell-output-display" data-execution_count="39">
+<p><img src="area_between_curves_files/figure-html/cell-39-output-1.svg" class="img-fluid"></p>
 </div>
 </div>
 <p>The figure above suggests that the area under <span class="math inline">\(f(x)\)</span> over <span class="math inline">\([a,b]\)</span> could be represented as the area between the curves <span class="math inline">\(f^{-1}(y)\)</span> and <span class="math inline">\(y=b\)</span> from <span class="math inline">\([f(a), f(b)]\)</span>.</p>
 <hr>
 <p>For a less trivial problem, consider the area between <span class="math inline">\(x = y^2\)</span> and <span class="math inline">\(x = 2-y\)</span> in the first quadrant.</p>
-<div class="cell" data-hold="true" data-execution_count="34">
-<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>ys <span class="op">=</span> <span class="fu">range</span>(<span class="fl">0</span>, stop<span class="op">=</span><span class="fl">2</span>, length<span class="op">=</span><span class="fl">50</span>)</span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> [y<span class="op">^</span><span class="fl">2</span> for y <span class="kw">in</span> ys]</span>
-<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(xs, ys)</span>
-<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> [<span class="fl">2</span><span class="op">-</span>y for y <span class="kw">in</span> ys]</span>
-<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(xs, ys)</span>
-<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(zero)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="35">
-<p><img src="area_between_curves_files/figure-html/cell-35-output-1.svg" class="img-fluid"></p>
+<div class="cell" data-hold="true" data-execution_count="39">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>ys <span class="op">=</span> <span class="fu">range</span>(<span class="fl">0</span>, stop<span class="op">=</span><span class="fl">2</span>, length<span class="op">=</span><span class="fl">50</span>)</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> [y<span class="op">^</span><span class="fl">2</span> for y <span class="kw">in</span> ys]</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(xs, ys)</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> [<span class="fl">2</span><span class="op">-</span>y for y <span class="kw">in</span> ys]</span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(xs, ys)</span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot!</span>(zero)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="40">
+<p><img src="area_between_curves_files/figure-html/cell-40-output-1.svg" class="img-fluid"></p>
 </div>
 </div>
 <p>We see the bounded area could be described in the “<span class="math inline">\(x\)</span>” variable in terms of two integrals, but in the <span class="math inline">\(y\)</span> variable in terms of the difference of two functions with the limits of integration running from <span class="math inline">\(y=0\)</span> to <span class="math inline">\(y=1\)</span>. So, this area may be found as follows:</p>
-<div class="cell" data-hold="true" data-execution_count="35">
-<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(y) <span class="op">=</span> <span class="fl">2</span><span class="op">-</span>y</span>
-<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="fu">g</span>(y) <span class="op">=</span> y<span class="op">^</span><span class="fl">2</span></span>
-<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>a, b <span class="op">=</span> <span class="fl">0</span>, <span class="fl">1</span></span>
-<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a><span class="fu">quadgk</span>(y <span class="op">-&gt;</span> <span class="fu">f</span>(y) <span class="op">-</span> <span class="fu">g</span>(y), a, b)[<span class="fl">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="36">
+<div class="cell" data-hold="true" data-execution_count="40">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(y) <span class="op">=</span> <span class="fl">2</span><span class="op">-</span>y</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="fu">g</span>(y) <span class="op">=</span> y<span class="op">^</span><span class="fl">2</span></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>a, b <span class="op">=</span> <span class="fl">0</span>, <span class="fl">1</span></span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a><span class="fu">quadgk</span>(y <span class="op">-&gt;</span> <span class="fu">f</span>(y) <span class="op">-</span> <span class="fu">g</span>(y), a, b)[<span class="fl">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="41">
 <pre><code>1.1666666666666667</code></pre>
 </div>
 </div>
@@ -1029,49 +1116,49 @@ Note
 <section id="question" class="level6">
 <h6 class="anchored" data-anchor-id="question">Question</h6>
 <p>Find the area enclosed by the curves <span class="math inline">\(y=2-x^2\)</span> and <span class="math inline">\(y=x^2 - 3\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="36">
-<div class="cell-output cell-output-display" data-execution_count="37">
+<div class="cell" data-hold="true" data-execution_count="41">
+<div class="cell-output cell-output-display" data-execution_count="42">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "7QL8AYhw"
+var ID = "NkmyHgYY"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="7QL8AYhw" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="NkmyHgYY" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_7QL8AYhw">
+      <div class="form" id="controls_NkmyHgYY">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="7QL8AYhw" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="NkmyHgYY" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="7QL8AYhw_message" style="padding-bottom: 15px"></div>
+      <div id="NkmyHgYY_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("7QL8AYhw").addEventListener("change", function() {
+document.getElementById("NkmyHgYY").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 10.5409255338946) <= 0.001);
-  var msgBox = document.getElementById('7QL8AYhw_message');
+  var msgBox = document.getElementById('NkmyHgYY_message');
   
-    quizquestions_scorecard["7QL8AYhw"]["attempts"] += 1;
+    quizquestions_scorecard["NkmyHgYY"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_7QL8AYhw")
+    var explanation = document.getElementById("explanation_NkmyHgYY")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["7QL8AYhw"]["correct"] = true;
+      quizquestions_scorecard["NkmyHgYY"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1079,11 +1166,11 @@ document.getElementById("7QL8AYhw").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_7QL8AYhw")
+    var explanation = document.getElementById("explanation_NkmyHgYY")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["7QL8AYhw"]["correct"] = false;
+      quizquestions_scorecard["NkmyHgYY"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1099,49 +1186,49 @@ document.getElementById("7QL8AYhw").addEventListener("change", function() {
 <section id="question-1" class="level6">
 <h6 class="anchored" data-anchor-id="question-1">Question</h6>
 <p>Find the area between <span class="math inline">\(f(x) = \cos(x)\)</span>, <span class="math inline">\(g(x) = x\)</span> and the <span class="math inline">\(y\)</span> axis.</p>
-<div class="cell" data-hold="true" data-execution_count="37">
-<div class="cell-output cell-output-display" data-execution_count="38">
+<div class="cell" data-hold="true" data-execution_count="42">
+<div class="cell-output cell-output-display" data-execution_count="43">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "DdkcM7XR"
+var ID = "0HL8NFdT"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="DdkcM7XR" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="0HL8NFdT" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_DdkcM7XR">
+      <div class="form" id="controls_0HL8NFdT">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="DdkcM7XR" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="0HL8NFdT" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="DdkcM7XR_message" style="padding-bottom: 15px"></div>
+      <div id="0HL8NFdT_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("DdkcM7XR").addEventListener("change", function() {
+document.getElementById("0HL8NFdT").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 0.400488612113379) <= 0.001);
-  var msgBox = document.getElementById('DdkcM7XR_message');
+  var msgBox = document.getElementById('0HL8NFdT_message');
   
-    quizquestions_scorecard["DdkcM7XR"]["attempts"] += 1;
+    quizquestions_scorecard["0HL8NFdT"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_DdkcM7XR")
+    var explanation = document.getElementById("explanation_0HL8NFdT")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["DdkcM7XR"]["correct"] = true;
+      quizquestions_scorecard["0HL8NFdT"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1149,11 +1236,11 @@ document.getElementById("DdkcM7XR").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_DdkcM7XR")
+    var explanation = document.getElementById("explanation_0HL8NFdT")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["DdkcM7XR"]["correct"] = false;
+      quizquestions_scorecard["0HL8NFdT"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1169,49 +1256,49 @@ document.getElementById("DdkcM7XR").addEventListener("change", function() {
 <section id="question-2" class="level6">
 <h6 class="anchored" data-anchor-id="question-2">Question</h6>
 <p>Find the area between the line <span class="math inline">\(y=1/2(x+1)\)</span> and half circle <span class="math inline">\(y=\sqrt{1 - x^2}\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="38">
-<div class="cell-output cell-output-display" data-execution_count="39">
+<div class="cell" data-hold="true" data-execution_count="43">
+<div class="cell-output cell-output-display" data-execution_count="44">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "t4X8gPwt"
+var ID = "NSkDJVmX"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="t4X8gPwt" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="NSkDJVmX" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_t4X8gPwt">
+      <div class="form" id="controls_NSkDJVmX">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="t4X8gPwt" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="NSkDJVmX" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="t4X8gPwt_message" style="padding-bottom: 15px"></div>
+      <div id="NSkDJVmX_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("t4X8gPwt").addEventListener("change", function() {
+document.getElementById("NSkDJVmX").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 0.7071487182097226) <= 0.001);
-  var msgBox = document.getElementById('t4X8gPwt_message');
+  var msgBox = document.getElementById('NSkDJVmX_message');
   
-    quizquestions_scorecard["t4X8gPwt"]["attempts"] += 1;
+    quizquestions_scorecard["NSkDJVmX"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_t4X8gPwt")
+    var explanation = document.getElementById("explanation_NSkDJVmX")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["t4X8gPwt"]["correct"] = true;
+      quizquestions_scorecard["NSkDJVmX"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1219,11 +1306,11 @@ document.getElementById("t4X8gPwt").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_t4X8gPwt")
+    var explanation = document.getElementById("explanation_NSkDJVmX")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["t4X8gPwt"]["correct"] = false;
+      quizquestions_scorecard["NSkDJVmX"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1239,49 +1326,49 @@ document.getElementById("t4X8gPwt").addEventListener("change", function() {
 <section id="question-3" class="level6">
 <h6 class="anchored" data-anchor-id="question-3">Question</h6>
 <p>Find the area in the first quadrant between the lines <span class="math inline">\(y=x\)</span>, <span class="math inline">\(y=1\)</span>, and the curve <span class="math inline">\(y=x^2 / 4\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="39">
-<div class="cell-output cell-output-display" data-execution_count="40">
+<div class="cell" data-hold="true" data-execution_count="44">
+<div class="cell-output cell-output-display" data-execution_count="45">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "KGgCWtT5"
+var ID = "gk9ln6Sr"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="KGgCWtT5" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="gk9ln6Sr" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_KGgCWtT5">
+      <div class="form" id="controls_gk9ln6Sr">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="KGgCWtT5" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="gk9ln6Sr" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="KGgCWtT5_message" style="padding-bottom: 15px"></div>
+      <div id="gk9ln6Sr_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("KGgCWtT5").addEventListener("change", function() {
+document.getElementById("gk9ln6Sr").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 0.8333333333333333) <= 0.001);
-  var msgBox = document.getElementById('KGgCWtT5_message');
+  var msgBox = document.getElementById('gk9ln6Sr_message');
   
-    quizquestions_scorecard["KGgCWtT5"]["attempts"] += 1;
+    quizquestions_scorecard["gk9ln6Sr"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_KGgCWtT5")
+    var explanation = document.getElementById("explanation_gk9ln6Sr")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["KGgCWtT5"]["correct"] = true;
+      quizquestions_scorecard["gk9ln6Sr"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1289,11 +1376,11 @@ document.getElementById("KGgCWtT5").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_KGgCWtT5")
+    var explanation = document.getElementById("explanation_gk9ln6Sr")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["KGgCWtT5"]["correct"] = false;
+      quizquestions_scorecard["gk9ln6Sr"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1309,49 +1396,49 @@ document.getElementById("KGgCWtT5").addEventListener("change", function() {
 <section id="question-4" class="level6">
 <h6 class="anchored" data-anchor-id="question-4">Question</h6>
 <p>Find the area between <span class="math inline">\(y=x^2\)</span> and <span class="math inline">\(y=-x^4\)</span> for <span class="math inline">\(\lvert x \rvert \leq 1\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="40">
-<div class="cell-output cell-output-display" data-execution_count="41">
+<div class="cell" data-hold="true" data-execution_count="45">
+<div class="cell-output cell-output-display" data-execution_count="46">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "LoYldFNI"
+var ID = "oglYWhpA"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="LoYldFNI" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="oglYWhpA" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_LoYldFNI">
+      <div class="form" id="controls_oglYWhpA">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="LoYldFNI" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="oglYWhpA" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="LoYldFNI_message" style="padding-bottom: 15px"></div>
+      <div id="oglYWhpA_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("LoYldFNI").addEventListener("change", function() {
+document.getElementById("oglYWhpA").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 1.0666666666666667) <= 0.001);
-  var msgBox = document.getElementById('LoYldFNI_message');
+  var msgBox = document.getElementById('oglYWhpA_message');
   
-    quizquestions_scorecard["LoYldFNI"]["attempts"] += 1;
+    quizquestions_scorecard["oglYWhpA"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_LoYldFNI")
+    var explanation = document.getElementById("explanation_oglYWhpA")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["LoYldFNI"]["correct"] = true;
+      quizquestions_scorecard["oglYWhpA"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1359,11 +1446,11 @@ document.getElementById("LoYldFNI").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_LoYldFNI")
+    var explanation = document.getElementById("explanation_oglYWhpA")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["LoYldFNI"]["correct"] = false;
+      quizquestions_scorecard["oglYWhpA"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1379,49 +1466,49 @@ document.getElementById("LoYldFNI").addEventListener("change", function() {
 <section id="question-5" class="level6">
 <h6 class="anchored" data-anchor-id="question-5">Question</h6>
 <p>Let <code>f(x) = 1/(sqrt(pi)*gamma(1/2)) * (1 + x^2)^(-1)</code> and <code>g(x) = 1/sqrt(2*pi) * exp(-x^2/2)</code>. These graphs intersect in two points. Find the area bounded by them.</p>
-<div class="cell" data-hold="true" data-execution_count="41">
-<div class="cell-output cell-output-display" data-execution_count="42">
+<div class="cell" data-hold="true" data-execution_count="46">
+<div class="cell-output cell-output-display" data-execution_count="47">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "ZSHMteAu"
+var ID = "hwj0xS1e"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="ZSHMteAu" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="hwj0xS1e" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_ZSHMteAu">
+      <div class="form" id="controls_hwj0xS1e">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="ZSHMteAu" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="hwj0xS1e" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="ZSHMteAu_message" style="padding-bottom: 15px"></div>
+      <div id="hwj0xS1e_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("ZSHMteAu").addEventListener("change", function() {
+document.getElementById("hwj0xS1e").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 0.25116455428885115) <= 0.001);
-  var msgBox = document.getElementById('ZSHMteAu_message');
+  var msgBox = document.getElementById('hwj0xS1e_message');
   
-    quizquestions_scorecard["ZSHMteAu"]["attempts"] += 1;
+    quizquestions_scorecard["hwj0xS1e"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_ZSHMteAu")
+    var explanation = document.getElementById("explanation_hwj0xS1e")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["ZSHMteAu"]["correct"] = true;
+      quizquestions_scorecard["hwj0xS1e"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1429,11 +1516,11 @@ document.getElementById("ZSHMteAu").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_ZSHMteAu")
+    var explanation = document.getElementById("explanation_hwj0xS1e")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["ZSHMteAu"]["correct"] = false;
+      quizquestions_scorecard["hwj0xS1e"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1450,49 +1537,49 @@ document.getElementById("ZSHMteAu").addEventListener("change", function() {
 <section id="question-6" class="level6">
 <h6 class="anchored" data-anchor-id="question-6">Question</h6>
 <p>Find the area in the first quadrant bounded by the graph of <span class="math inline">\(x = (y-1)^2\)</span>, <span class="math inline">\(x=3-y\)</span> and <span class="math inline">\(x=2\sqrt{y}\)</span>. (Hint: integrate in the <span class="math inline">\(y\)</span> variable.)</p>
-<div class="cell" data-hold="true" data-execution_count="42">
-<div class="cell-output cell-output-display" data-execution_count="43">
+<div class="cell" data-hold="true" data-execution_count="47">
+<div class="cell-output cell-output-display" data-execution_count="48">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "0LepYvPF"
+var ID = "omn1dQY6"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="0LepYvPF" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="omn1dQY6" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_0LepYvPF">
+      <div class="form" id="controls_omn1dQY6">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="0LepYvPF" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="omn1dQY6" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="0LepYvPF_message" style="padding-bottom: 15px"></div>
+      <div id="omn1dQY6_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("0LepYvPF").addEventListener("change", function() {
+document.getElementById("omn1dQY6").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 2.2181457267794973) <= 0.001);
-  var msgBox = document.getElementById('0LepYvPF_message');
+  var msgBox = document.getElementById('omn1dQY6_message');
   
-    quizquestions_scorecard["0LepYvPF"]["attempts"] += 1;
+    quizquestions_scorecard["omn1dQY6"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_0LepYvPF")
+    var explanation = document.getElementById("explanation_omn1dQY6")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["0LepYvPF"]["correct"] = true;
+      quizquestions_scorecard["omn1dQY6"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1500,11 +1587,11 @@ document.getElementById("0LepYvPF").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_0LepYvPF")
+    var explanation = document.getElementById("explanation_omn1dQY6")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["0LepYvPF"]["correct"] = false;
+      quizquestions_scorecard["omn1dQY6"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1520,49 +1607,49 @@ document.getElementById("0LepYvPF").addEventListener("change", function() {
 <section id="question-7" class="level6">
 <h6 class="anchored" data-anchor-id="question-7">Question</h6>
 <p>Find the total area bounded by the lines <span class="math inline">\(x=0\)</span>, <span class="math inline">\(x=2\)</span> and the curves <span class="math inline">\(y=x^2\)</span> and <span class="math inline">\(y=x\)</span>. This would be <span class="math inline">\(\int_a^b \lvert f(x) - g(x) \rvert dx\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="43">
-<div class="cell-output cell-output-display" data-execution_count="44">
+<div class="cell" data-hold="true" data-execution_count="48">
+<div class="cell-output cell-output-display" data-execution_count="49">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "8VUta47p"
+var ID = "1sA1h9kf"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="8VUta47p" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="1sA1h9kf" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_8VUta47p">
+      <div class="form" id="controls_1sA1h9kf">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="8VUta47p" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="1sA1h9kf" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="8VUta47p_message" style="padding-bottom: 15px"></div>
+      <div id="1sA1h9kf_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("8VUta47p").addEventListener("change", function() {
+document.getElementById("1sA1h9kf").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 0.9999999999999999) <= 0.001);
-  var msgBox = document.getElementById('8VUta47p_message');
+  var msgBox = document.getElementById('1sA1h9kf_message');
   
-    quizquestions_scorecard["8VUta47p"]["attempts"] += 1;
+    quizquestions_scorecard["1sA1h9kf"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_8VUta47p")
+    var explanation = document.getElementById("explanation_1sA1h9kf")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["8VUta47p"]["correct"] = true;
+      quizquestions_scorecard["1sA1h9kf"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1570,11 +1657,11 @@ document.getElementById("8VUta47p").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_8VUta47p")
+    var explanation = document.getElementById("explanation_1sA1h9kf")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["8VUta47p"]["correct"] = false;
+      quizquestions_scorecard["1sA1h9kf"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1591,9 +1678,9 @@ document.getElementById("8VUta47p").addEventListener("change", function() {
 <h6 class="anchored" data-anchor-id="question-8">Question</h6>
 <p>Look at the sculpture <a href="https://www.google.com/search?q=Le+Tamanoir+by+Calder.&amp;num=50&amp;tbm=isch&amp;tbo=u&amp;source=univ&amp;sa=X&amp;ved=0ahUKEwiy8eO2tqzVAhVMPz4KHXmgBpgQsAQILQ&amp;biw=1556&amp;bih=878">Le Tamanoir</a> by Calder. A large scale work. How much does it weigh? Approximately?</p>
 <p>Let’s try to answer that with an educated guess. The right most figure looks to be about 1/5th the total amount. So if we estimate that piece and multiply by 5 we get a good guess. That part looks like an area of metal bounded by two quadratic polynomials. If we compute that area in square inches, then multiply by an assumed thickness of one inch, we have the cubic volume. The density of galvanized steel is 7850 kg/<span class="math inline">\(m^3\)</span> which we convert into pounds/in<span class="math inline">\(^3\)</span> via:</p>
-<div class="cell" data-execution_count="44">
-<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fl">7850</span> <span class="op">*</span> <span class="fl">2.2</span> <span class="op">*</span> (<span class="fl">1</span><span class="op">/</span><span class="fl">39.3</span>)<span class="op">^</span><span class="fl">3</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="45">
+<div class="cell" data-execution_count="49">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fl">7850</span> <span class="op">*</span> <span class="fl">2.2</span> <span class="op">*</span> (<span class="fl">1</span><span class="op">/</span><span class="fl">39.3</span>)<span class="op">^</span><span class="fl">3</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="50">
 <pre><code>0.28452123585283234</code></pre>
 </div>
 </div>
@@ -1602,49 +1689,49 @@ document.getElementById("8VUta47p").addEventListener("change", function() {
 f(x) = x^2/70, \quad g(x) = 35 + x^2/140
 \]</span></p>
 <p>Put this altogether to give an estimated weight in pounds.</p>
-<div class="cell" data-hold="true" data-execution_count="45">
-<div class="cell-output cell-output-display" data-execution_count="46">
+<div class="cell" data-hold="true" data-execution_count="50">
+<div class="cell-output cell-output-display" data-execution_count="51">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "nhcVwU7c"
+var ID = "XtxejnKv"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="nhcVwU7c" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="XtxejnKv" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_nhcVwU7c">
+      <div class="form" id="controls_XtxejnKv">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="nhcVwU7c" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="XtxejnKv" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="nhcVwU7c_message" style="padding-bottom: 15px"></div>
+      <div id="XtxejnKv_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("nhcVwU7c").addEventListener("change", function() {
+document.getElementById("XtxejnKv").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 4647.180185596263) <= 0.001);
-  var msgBox = document.getElementById('nhcVwU7c_message');
+  var msgBox = document.getElementById('XtxejnKv_message');
   
-    quizquestions_scorecard["nhcVwU7c"]["attempts"] += 1;
+    quizquestions_scorecard["XtxejnKv"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_nhcVwU7c")
+    var explanation = document.getElementById("explanation_XtxejnKv")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["nhcVwU7c"]["correct"] = true;
+      quizquestions_scorecard["XtxejnKv"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1652,11 +1739,11 @@ document.getElementById("nhcVwU7c").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_nhcVwU7c")
+    var explanation = document.getElementById("explanation_XtxejnKv")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["nhcVwU7c"]["correct"] = false;
+      quizquestions_scorecard["XtxejnKv"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1669,25 +1756,25 @@ document.getElementById("nhcVwU7c").addEventListener("change", function() {
 </div>
 </div>
 <p>Is the guess that the entire sculpture is more than two tons?</p>
-<div class="cell" data-hold="true" data-execution_count="46">
-<div class="cell-output cell-output-display" data-execution_count="47">
+<div class="cell" data-hold="true" data-execution_count="51">
+<div class="cell-output cell-output-display" data-execution_count="52">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "Tu1Z2ay7"
+var ID = "9mUXsvMW"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="Tu1Z2ay7" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="9mUXsvMW" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_Tu1Z2ay7">
+      <div class="form" id="controls_9mUXsvMW">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_Tu1Z2ay7_1">
-      <input class="form-check-input" type="radio" name="radio_Tu1Z2ay7" id="radio_Tu1Z2ay7_1" value="1">
+    <label class="form-check-label" for="radio_9mUXsvMW_1">
+      <input class="form-check-input" type="radio" name="radio_9mUXsvMW" id="radio_9mUXsvMW_1" value="1">
       
       <span class="label-body px-1">
         Less than two tons
@@ -1695,8 +1782,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_Tu1Z2ay7_2">
-      <input class="form-check-input" type="radio" name="radio_Tu1Z2ay7" id="radio_Tu1Z2ay7_2" value="2">
+    <label class="form-check-label" for="radio_9mUXsvMW_2">
+      <input class="form-check-input" type="radio" name="radio_9mUXsvMW" id="radio_9mUXsvMW_2" value="2">
       
       <span class="label-body px-1">
         More than two tons
@@ -1707,26 +1794,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="Tu1Z2ay7_message" style="padding-bottom: 15px"></div>
+      <div id="9mUXsvMW_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_Tu1Z2ay7"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_9mUXsvMW"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 2;
-    var msgBox = document.getElementById('Tu1Z2ay7_message');
+    var msgBox = document.getElementById('9mUXsvMW_message');
     
-    quizquestions_scorecard["Tu1Z2ay7"]["attempts"] += 1;
+    quizquestions_scorecard["9mUXsvMW"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_Tu1Z2ay7")
+    var explanation = document.getElementById("explanation_9mUXsvMW")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["Tu1Z2ay7"]["correct"] = true;
+      quizquestions_scorecard["9mUXsvMW"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1734,11 +1821,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_Tu1Z2ay7")
+    var explanation = document.getElementById("explanation_9mUXsvMW")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["Tu1Z2ay7"]["correct"] = false;
+      quizquestions_scorecard["9mUXsvMW"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1772,49 +1859,49 @@ Note
 \text{mc}(x) = 1 + \frac{1}{2} \cdot \frac{e^{-x/5}}{1 + e^{-x/5}}.
 \]</span></p>
 <p>Find the profit to produce 100 units: <span class="math inline">\(P = \int_0^{100} (\text{mr}(x) - \text{mc}(x)) dx\)</span>.</p>
-<div class="cell" data-hold="true" data-execution_count="47">
-<div class="cell-output cell-output-display" data-execution_count="48">
+<div class="cell" data-hold="true" data-execution_count="52">
+<div class="cell-output cell-output-display" data-execution_count="53">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "9waElJT3"
+var ID = "DGHFm64T"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="9waElJT3" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="DGHFm64T" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_9waElJT3">
+      <div class="form" id="controls_DGHFm64T">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="9waElJT3" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="DGHFm64T" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="9waElJT3_message" style="padding-bottom: 15px"></div>
+      <div id="DGHFm64T_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("9waElJT3").addEventListener("change", function() {
+document.getElementById("DGHFm64T").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 105.19814987036037) <= 0.001);
-  var msgBox = document.getElementById('9waElJT3_message');
+  var msgBox = document.getElementById('DGHFm64T_message');
   
-    quizquestions_scorecard["9waElJT3"]["attempts"] += 1;
+    quizquestions_scorecard["DGHFm64T"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_9waElJT3")
+    var explanation = document.getElementById("explanation_DGHFm64T")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["9waElJT3"]["correct"] = true;
+      quizquestions_scorecard["DGHFm64T"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1822,11 +1909,11 @@ document.getElementById("9waElJT3").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_9waElJT3")
+    var explanation = document.getElementById("explanation_DGHFm64T")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["9waElJT3"]["correct"] = false;
+      quizquestions_scorecard["DGHFm64T"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1843,15 +1930,15 @@ document.getElementById("9waElJT3").addEventListener("change", function() {
 <h6 class="anchored" data-anchor-id="question-10">Question</h6>
 <p>Can <code>SymPy</code> do what Archimedes did?</p>
 <p>Consider the following code which sets up the area of an inscribed triangle, <code>A1</code>, and the area of a parabolic segment, <code>A2</code> for a general parabola:</p>
-<div class="cell" data-hold="true" data-execution_count="48">
-<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> x<span class="op">::</span><span class="dt">real </span>A<span class="op">::</span><span class="dt">real </span>B<span class="op">::</span><span class="dt">real </span>C<span class="op">::</span><span class="dt">real </span>a<span class="op">::</span><span class="dt">real </span>b<span class="op">::</span><span class="dt">real</span></span>
-<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>c <span class="op">=</span> (a <span class="op">+</span> b) <span class="op">/</span> <span class="fl">2</span></span>
-<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> A<span class="op">*</span>x<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> B<span class="op">*</span>x <span class="op">+</span> C</span>
-<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a><span class="fu">Secant</span>(f, a, b) <span class="op">=</span> <span class="fu">f</span>(a) <span class="op">+</span> (<span class="fu">f</span>(b)<span class="fu">-f</span>(a))<span class="op">/</span>(b<span class="op">-</span>a) <span class="op">*</span> (x <span class="op">-</span> a)</span>
-<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>A1 <span class="op">=</span> <span class="fu">integrate</span>(<span class="fu">Secant</span>(f, a, c) <span class="op">-</span> <span class="fu">Secant</span>(f,a,b), (x,a,c)) <span class="op">+</span> <span class="fu">integrate</span>(<span class="fu">Secant</span>(f,c,b)<span class="fu">-Secant</span>(f,a,b), (x, c, b))</span>
-<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>A2 <span class="op">=</span> <span class="fu">integrate</span>(<span class="fu">f</span>(x) <span class="op">-</span> <span class="fu">Secant</span>(f,a,b), (x, a, b))</span>
-<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>out <span class="op">=</span> <span class="fl">4</span><span class="op">//</span><span class="fl">3</span> <span class="op">*</span> A1 <span class="op">-</span> A2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="49">
+<div class="cell" data-hold="true" data-execution_count="53">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> x<span class="op">::</span><span class="dt">real </span>A<span class="op">::</span><span class="dt">real </span>B<span class="op">::</span><span class="dt">real </span>C<span class="op">::</span><span class="dt">real </span>a<span class="op">::</span><span class="dt">real </span>b<span class="op">::</span><span class="dt">real</span></span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>c <span class="op">=</span> (a <span class="op">+</span> b) <span class="op">/</span> <span class="fl">2</span></span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> A<span class="op">*</span>x<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> B<span class="op">*</span>x <span class="op">+</span> C</span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a><span class="fu">Secant</span>(f, a, b) <span class="op">=</span> <span class="fu">f</span>(a) <span class="op">+</span> (<span class="fu">f</span>(b)<span class="fu">-f</span>(a))<span class="op">/</span>(b<span class="op">-</span>a) <span class="op">*</span> (x <span class="op">-</span> a)</span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>A1 <span class="op">=</span> <span class="fu">integrate</span>(<span class="fu">Secant</span>(f, a, c) <span class="op">-</span> <span class="fu">Secant</span>(f,a,b), (x,a,c)) <span class="op">+</span> <span class="fu">integrate</span>(<span class="fu">Secant</span>(f,c,b)<span class="fu">-Secant</span>(f,a,b), (x, c, b))</span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>A2 <span class="op">=</span> <span class="fu">integrate</span>(<span class="fu">f</span>(x) <span class="op">-</span> <span class="fu">Secant</span>(f,a,b), (x, a, b))</span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>out <span class="op">=</span> <span class="fl">4</span><span class="op">//</span><span class="fl">3</span> <span class="op">*</span> A1 <span class="op">-</span> A2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="54">
 <span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
 \[
 \frac{A a^{3}}{3} + A a^{2} b - A a b^{2} - \frac{A b^{3}}{3} + a^{2} \left(- \frac{A a}{2} - \frac{A b}{2}\right) - \frac{4 a^{2} \left(\frac{A a}{4} - \frac{A b}{4}\right)}{3} - \frac{4 a \left(- \frac{A a^{2}}{2} + \frac{A a b}{2}\right)}{3} - b^{2} \left(- \frac{A a}{2} - \frac{A b}{2}\right) + \frac{4 b^{2} \left(- \frac{A a}{4} + \frac{A b}{4}\right)}{3} + \frac{4 b \left(\frac{A a b}{2} - \frac{A b^{2}}{2}\right)}{3} - \frac{4 \left(\frac{a}{2} + \frac{b}{2}\right)^{2} \left(- \frac{A a}{4} + \frac{A b}{4}\right)}{3} + \frac{4 \left(\frac{a}{2} + \frac{b}{2}\right)^{2} \left(\frac{A a}{4} - \frac{A b}{4}\right)}{3} + \frac{4 \left(\frac{a}{2} + \frac{b}{2}\right) \left(- \frac{A a^{2}}{2} + \frac{A a b}{2}\right)}{3} - \frac{4 \left(\frac{a}{2} + \frac{b}{2}\right) \left(\frac{A a b}{2} - \frac{A b^{2}}{2}\right)}{3}
@@ -1860,25 +1947,25 @@ document.getElementById("9waElJT3").addEventListener("change", function() {
 </div>
 </div>
 <p>Does <code>SymPy</code> get the correct output, <span class="math inline">\(0\)</span>, after calling <code>simplify</code>?</p>
-<div class="cell" data-hold="true" data-execution_count="49">
-<div class="cell-output cell-output-display" data-execution_count="50">
+<div class="cell" data-hold="true" data-execution_count="54">
+<div class="cell-output cell-output-display" data-execution_count="55">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "xCOh9We5"
+var ID = "lkr0Vwwt"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="xCOh9We5" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="lkr0Vwwt" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_xCOh9We5">
+      <div class="form" id="controls_lkr0Vwwt">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_xCOh9We5_1">
-      <input class="form-check-input" type="radio" name="radio_xCOh9We5" id="radio_xCOh9We5_1" value="1">
+    <label class="form-check-label" for="radio_lkr0Vwwt_1">
+      <input class="form-check-input" type="radio" name="radio_lkr0Vwwt" id="radio_lkr0Vwwt_1" value="1">
       
       <span class="label-body px-1">
         Yes
@@ -1886,8 +1973,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_xCOh9We5_2">
-      <input class="form-check-input" type="radio" name="radio_xCOh9We5" id="radio_xCOh9We5_2" value="2">
+    <label class="form-check-label" for="radio_lkr0Vwwt_2">
+      <input class="form-check-input" type="radio" name="radio_lkr0Vwwt" id="radio_lkr0Vwwt_2" value="2">
       
       <span class="label-body px-1">
         No
@@ -1898,26 +1985,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="xCOh9We5_message" style="padding-bottom: 15px"></div>
+      <div id="lkr0Vwwt_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_xCOh9We5"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_lkr0Vwwt"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 1;
-    var msgBox = document.getElementById('xCOh9We5_message');
+    var msgBox = document.getElementById('lkr0Vwwt_message');
     
-    quizquestions_scorecard["xCOh9We5"]["attempts"] += 1;
+    quizquestions_scorecard["lkr0Vwwt"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_xCOh9We5")
+    var explanation = document.getElementById("explanation_lkr0Vwwt")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["xCOh9We5"]["correct"] = true;
+      quizquestions_scorecard["lkr0Vwwt"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1925,11 +2012,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_xCOh9We5")
+    var explanation = document.getElementById("explanation_lkr0Vwwt")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["xCOh9We5"]["correct"] = false;
+      quizquestions_scorecard["lkr0Vwwt"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1952,25 +2039,25 @@ rb.addEventListener("change", function() {
 </figure>
 </div>
 <p>In particular, it can be read that Roberval proved that the area between the cycloid and its companion curve is half the area of the generating circle. Roberval didn’t know integration, so finding the area between two curves required other tricks. One is called “Cavalieri’s principle.” From the figure above, which of the following would you guess this principle to be:</p>
-<div class="cell" data-hold="true" data-execution_count="51">
-<div class="cell-output cell-output-display" data-execution_count="52">
+<div class="cell" data-hold="true" data-execution_count="56">
+<div class="cell-output cell-output-display" data-execution_count="57">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "mj6wz5ZC"
+var ID = "ajN6pRjH"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="mj6wz5ZC" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="ajN6pRjH" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_mj6wz5ZC">
+      <div class="form" id="controls_ajN6pRjH">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_mj6wz5ZC_1">
-      <input class="form-check-input" type="radio" name="radio_mj6wz5ZC" id="radio_mj6wz5ZC_1" value="1">
+    <label class="form-check-label" for="radio_ajN6pRjH_1">
+      <input class="form-check-input" type="radio" name="radio_ajN6pRjH" id="radio_ajN6pRjH_1" value="1">
       
       <span class="label-body px-1">
         If two regions bounded by parallel lines are such that any parallel between them cuts each region in segments of equal length, then the regions have equal area.
@@ -1978,8 +2065,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_mj6wz5ZC_2">
-      <input class="form-check-input" type="radio" name="radio_mj6wz5ZC" id="radio_mj6wz5ZC_2" value="2">
+    <label class="form-check-label" for="radio_ajN6pRjH_2">
+      <input class="form-check-input" type="radio" name="radio_ajN6pRjH" id="radio_ajN6pRjH_2" value="2">
       
       <span class="label-body px-1">
         The area of the cycloid is nearly the area of a semi-ellipse with known values, so one can approximate the area of the cycloid with formula for the area of an ellipse
@@ -1990,26 +2077,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="mj6wz5ZC_message" style="padding-bottom: 15px"></div>
+      <div id="ajN6pRjH_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_mj6wz5ZC"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_ajN6pRjH"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 1;
-    var msgBox = document.getElementById('mj6wz5ZC_message');
+    var msgBox = document.getElementById('ajN6pRjH_message');
     
-    quizquestions_scorecard["mj6wz5ZC"]["attempts"] += 1;
+    quizquestions_scorecard["ajN6pRjH"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_mj6wz5ZC")
+    var explanation = document.getElementById("explanation_ajN6pRjH")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["mj6wz5ZC"]["correct"] = true;
+      quizquestions_scorecard["ajN6pRjH"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2017,11 +2104,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_mj6wz5ZC")
+    var explanation = document.getElementById("explanation_ajN6pRjH")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["mj6wz5ZC"]["correct"] = false;
+      quizquestions_scorecard["ajN6pRjH"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2034,10 +2121,10 @@ rb.addEventListener("change", function() {
 </div>
 </div>
 <p>Suppose the generating circle has radius <span class="math inline">\(1\)</span>, so the area shown is <span class="math inline">\(\pi/2\)</span>. The companion curve is then <span class="math inline">\(1-\cos(\theta)\)</span> (a fact not used by Roberval). The area <em>under</em> this curve is then</p>
-<div class="cell" data-hold="true" data-execution_count="52">
-<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> theta</span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate</span>(<span class="fl">1</span> <span class="op">-</span> <span class="fu">cos</span>(theta), (theta, <span class="fl">0</span>, SymPy.PI))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="53">
+<div class="cell" data-hold="true" data-execution_count="57">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> theta</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate</span>(<span class="fl">1</span> <span class="op">-</span> <span class="fu">cos</span>(theta), (theta, <span class="fl">0</span>, SymPy.PI))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="58">
 <span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
 \[
 \pi
@@ -2046,25 +2133,25 @@ rb.addEventListener("change", function() {
 </div>
 </div>
 <p>That means the area under <strong>one-half</strong> arch of the cycloid is</p>
-<div class="cell" data-hold="true" data-execution_count="53">
-<div class="cell-output cell-output-display" data-execution_count="54">
+<div class="cell" data-hold="true" data-execution_count="58">
+<div class="cell-output cell-output-display" data-execution_count="59">
 <script>
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "nogmCWDW"
+var ID = "spCp1bQJ"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="nogmCWDW" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="spCp1bQJ" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_nogmCWDW">
+      <div class="form" id="controls_spCp1bQJ">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_nogmCWDW_1">
-      <input class="form-check-input" type="radio" name="radio_nogmCWDW" id="radio_nogmCWDW_1" value="1">
+    <label class="form-check-label" for="radio_spCp1bQJ_1">
+      <input class="form-check-input" type="radio" name="radio_spCp1bQJ" id="radio_spCp1bQJ_1" value="1">
       
       <span class="label-body px-1">
         \(\pi\)
@@ -2072,8 +2159,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_nogmCWDW_2">
-      <input class="form-check-input" type="radio" name="radio_nogmCWDW" id="radio_nogmCWDW_2" value="2">
+    <label class="form-check-label" for="radio_spCp1bQJ_2">
+      <input class="form-check-input" type="radio" name="radio_spCp1bQJ" id="radio_spCp1bQJ_2" value="2">
       
       <span class="label-body px-1">
         \((3/2)\cdot \pi\)
@@ -2081,8 +2168,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_nogmCWDW_3">
-      <input class="form-check-input" type="radio" name="radio_nogmCWDW" id="radio_nogmCWDW_3" value="3">
+    <label class="form-check-label" for="radio_spCp1bQJ_3">
+      <input class="form-check-input" type="radio" name="radio_spCp1bQJ" id="radio_spCp1bQJ_3" value="3">
       
       <span class="label-body px-1">
         \(2\pi\)
@@ -2093,26 +2180,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="nogmCWDW_message" style="padding-bottom: 15px"></div>
+      <div id="spCp1bQJ_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_nogmCWDW"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_spCp1bQJ"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 2;
-    var msgBox = document.getElementById('nogmCWDW_message');
+    var msgBox = document.getElementById('spCp1bQJ_message');
     
-    quizquestions_scorecard["nogmCWDW"]["attempts"] += 1;
+    quizquestions_scorecard["spCp1bQJ"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_nogmCWDW")
+    var explanation = document.getElementById("explanation_spCp1bQJ")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["nogmCWDW"]["correct"] = true;
+      quizquestions_scorecard["spCp1bQJ"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2120,11 +2207,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_nogmCWDW")
+    var explanation = document.getElementById("explanation_spCp1bQJ")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["nogmCWDW"]["correct"] = false;
+      quizquestions_scorecard["spCp1bQJ"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
