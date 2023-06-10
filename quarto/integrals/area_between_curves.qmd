@@ -351,6 +351,76 @@ When doing problems by hand this latter style can often reduce the complications
 
 :::
 
+##### Example
+
+Consider two overlapping circles, one with smaller radius. How much area is in the larger circle that is not in the smaller? The question came up on the `Julia` [discourse](https://discourse.julialang.org/t/is-there-package-or-method-to-calculate-certain-area-in-julia-symbolically-with-sympy/99751) discussion board. A solution, modified from an answer of `@rocco_sprmnt21`, follows.
+
+Without losing too-much generality, we can consider the smaller circle to have radius $a$, the larger circle to have radius $b$ and centered at $(0,c)$.
+We assume some overlap -- $a \ge c-b$, but not too much -- $c-b \ge 0$ or $0 \le c-b \le a$.
+
+```{julia}
+@syms x::real y::real a::positive b::positive c::positive
+c₁ = x^2 + y^2 - a^2
+c₂ = x^2 + (y-c)^2 - b^2
+y₀ = first(solve(c₁ ~ c₂ , y))
+x₀ = sqrt(a - y₀^2) # point of intersection
+```
+
+Plotting with $a=1, b=3/2, c=2$ we have:
+
+```{julia}
+let 𝑎 = 1, 𝑏=3/2, 𝑐=2
+
+    @assert 0 ≤ 𝑐 - 𝑏 ≤ 𝑎
+
+    y = N(y₀(a => 𝑎, b => 𝑏, c => 𝑐))
+    x = sqrt(𝑎^2 - y^2)
+
+    p = plot(; legend=false, aspect_ratio=:equal)
+
+    plot!(x -> 𝑐 + sqrt(𝑏^2 - x^2), -𝑏, 𝑏; color=:black)
+    plot!(x -> 𝑐 - sqrt(𝑏^2 - x^2), -𝑏, -x; color=:black)
+    plot!(x -> 𝑐 - sqrt(𝑏^2 - x^2),  x,  𝑏; color=:black)
+
+    plot!(x ->  sqrt(𝑎^2 - x^2), -x,  x; color=:black)
+    plot!(x ->  sqrt(𝑎^2 - x^2), -𝑎, -x; color=:blue)
+    plot!(x ->  sqrt(𝑎^2 - x^2),  x,  𝑎; color=:blue)
+    plot!(x -> -sqrt(𝑎^2 - x^2), -𝑎,  𝑎; color=:blue)
+
+    scatter!([-x, x], [y, y])
+
+    plot!([0, 𝑏], [𝑐, 𝑐]; linestyle=:dash)
+    annotate!([(0, 𝑐, text("(0, c)", 8, :left)),
+               (𝑏, 𝑐, text("(b, c)", 8, :left)),
+               (x, y, text("(x₀, y₀)", 8, :left))])
+
+    plot!([0, 0], [𝑎, 𝑐 + 𝑏]; color=:green)
+    plot!([x, x], [y, 𝑐 + sqrt(𝑏^2 - x^2)]; color=:green)
+    p
+end
+```
+
+With this orientation, we can see by symmetry that the area is twice the integral from $[0,x_0]$ and from $[x_0, b]$ **provided** $0 \le c- b \le a$:
+
+```{julia}
+a1 = integrate(c + sqrt(b^2 - x^2) - (sqrt(a^2 - x^2)), (x, 0, x₀))
+a2 = integrate(c + sqrt(b^2 - x^2) - (c - sqrt(b^2 - x^2)), (x, x₀, b))
+A = 2(a1 + a2)
+```
+
+And for the $a=1, b=3/2, c=2$:
+
+```{julia}
+A(a => 1, b => 3//2, c => 2)
+```
+
+As a check, when the two circles just touch, or $a = c-b$, we should get the same as the area of a circle with radius $b$ or $b^2 \cdot \pi$:
+
+```{julia}
+A(c=>3, a=>1, b=>2)
+```
+
+
 #### Integrating in different directions
 
 
