@@ -675,10 +675,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </header>
 
 <p>This section uses these add-on package:</p>
+<div class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">CalculusWithJulia</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Plots</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">LinearAlgebra</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">SymPy</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 <hr>
 <p>In <a href="../precalc/vectors.html">vectors</a> we introduced the concept of a vector. For <code>Julia</code>, vectors are a useful storage container and are used to hold, for example, zeros of functions or the coefficients of a polynomial. This section is about their mathematical properties. A <a href="https://en.wikipedia.org/wiki/Euclidean_vector">vector</a> mathematically is a geometric object with two attributes a magnitude and a direction. (The direction is undefined in the case the magnitude is <span class="math inline">\(0\)</span>.) Vectors are typically visualized with an arrow, where the anchoring of the arrow is context dependent and is not particular to a given vector.</p>
 <p>Vectors and points are related, but distinct. They are identified when the tail of the vector is taken to be the origin. Let’s focus on <span class="math inline">\(3\)</span> dimensions. Mathematically, the notation for a point is <span class="math inline">\(p=(x,y,z)\)</span> while the notation for a vector is <span class="math inline">\(\vec{v} = \langle x, y, z \rangle\)</span>. The <span class="math inline">\(i\)</span>th component in a vector is referenced by a subscript: <span class="math inline">\(v_i\)</span>. With this, we may write a typical vector as <span class="math inline">\(\vec{v} = \langle v_1, v_2, \dots, v_n \rangle\)</span> and a vector in <span class="math inline">\(n=3\)</span> as <span class="math inline">\(\vec{v} =\langle v_1, v_2, v_3 \rangle\)</span>. The different grouping notation distinguishes the two objects. As another example, the notation <span class="math inline">\(\{x, y, z\}\)</span> indicates a set. Vectors and points may be <em>identified</em> by anchoring the vector at the origin. Sets are quite different from both, as the order of their entries is not unique.</p>
@@ -686,7 +688,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>The square bracket constructor has some subtleties:</p>
 <ul>
 <li><code>[x,y,z]</code> calls <code>vect</code> and creates a 1-dimensional array</li>
-<li><code>[x; y; z]</code> calls <code>vcat</code> to <strong>v</strong>ertically con<strong>cat</strong>enate values together. With simple (scalar) values <code>[x,y,z]</code> and <code>[x; y; z]</code> are identical, but not in other cases. (For example, is <code>A</code> is a matrix then <code>[A, A]</code> is a vector of matrices, <code>[A; A]</code> is a matrix combined from the two pieces.</li>
+<li><code>[x; y; z]</code> calls <code>vcat</code> to <strong>v</strong>ertically con<strong>cat</strong>enate values together. With simple (scalar) values <code>[x,y,z]</code> and <code>[x; y; z]</code> are identical, but not in other cases. (For example, if <code>A</code> is a matrix then <code>[A, A]</code> is a vector of matrices, <code>[A; A]</code> is a matrix combined from the two pieces.</li>
 <li><code>[x y z]</code> calls <code>hcat</code> to <strong>h</strong>orizontally con<strong>cat</strong>enate values together. If <code>x</code>, <code>y</code> are numbers then <code>[x y]</code> is <em>not</em> a vector, but rather a <span class="math inline">\(2\)</span>D array with a single row and two columns.</li>
 <li>finally <code>[w x; y z]</code> calls <code>hvcat</code> to horizontally and vertically concatenate values together to create a container in two dimensions, like a matrix.</li>
 </ul>
@@ -745,7 +747,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 </div>
 <p>The cumbersome syntax is typical here. We naturally describe vectors and points using <code>[a,b,c]</code> to combine them, but the plotting functions want to plot many such at a time and expect vectors containing just the <code>x</code> values, just the <code>y</code> values, etc. The above usage looks a bit odd, as these vectors of <code>x</code> and <code>y</code> values have only one entry. Converting from the one representation to the other requires reshaping the data. We will use the <code>unzip</code> function from <code>CalculusWithJulia</code> which in turn just uses the the <code>invert</code> function of the <code>SplitApplyCombine</code> package (“return a new nested container by reversing the order of the nested container”) for the bulk of its work.</p>
-<p>This function takes a vector of vectors, and returns a vector containing the <code>x</code> values, the <code>y</code> values, etc. So if <code>u=[1,2,3]</code> and <code>v=[4,5,6]</code>, then <code>unzip([u,v])</code> becomes <code>[[1,4],[2,5],[3,6]]</code>, etc. (The <code>zip</code> function in base does essentially the reverse operation, hence the name.) Notationally, <code>A = [u,v]</code> can have the third element of the first vector (<code>u</code>) accessed by <code>A[1][3]</code>, where as <code>unzip(A)[3][1]</code> will do the same. We use <code>unzip([u])</code> in the following, which for this <code>u</code> returns <code>([1],[2],[3])</code>. (Note the <code>[u]</code> to make a vector of a vector.)</p>
+<p>This function takes a vector of vectors, and returns a tuple containing the <code>x</code> values, the <code>y</code> values, etc. So if <code>u=[1,2,3]</code> and <code>v=[4,5,6]</code>, then <code>unzip([u,v])</code> becomes <code>([1,4],[2,5],[3,6])</code>, etc. (The <code>zip</code> function in base does essentially the reverse operation, hence the name.) Notationally, <code>A = [u,v]</code> can have the third element of the first vector (<code>u</code>) accessed by <code>A[1][3]</code>, where as <code>unzip(A)[3][1]</code> will do the same. We use <code>unzip([u])</code> in the following, which for this <code>u</code> returns <code>([1],[2],[3])</code>. (Note the <code>[u]</code> to make a vector of a vector.)</p>
 <p>With <code>unzip</code> defined, we can plot a <span class="math inline">\(2\)</span>-dimensional vector <code>v</code> anchored at point <code>p</code> through <code>quiver(unzip([p])..., quiver=unzip([v]))</code>.</p>
 <p>To illustrate, the following defines <span class="math inline">\(3\)</span> vectors (the third through addition), then graphs all three, though in different starting points to emphasize the geometric interpretation of vector addition.</p>
 <div class="cell" data-hold="true" data-execution_count="10">
@@ -1781,43 +1783,43 @@ Orientation
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "F06ypHky"
+var ID = "IyK6BJCY"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="F06ypHky" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="IyK6BJCY" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_F06ypHky">
+      <div class="form" id="controls_IyK6BJCY">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="F06ypHky" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="IyK6BJCY" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="F06ypHky_message" style="padding-bottom: 15px"></div>
+      <div id="IyK6BJCY_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("F06ypHky").addEventListener("change", function() {
+document.getElementById("IyK6BJCY").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 16) <= 0);
-  var msgBox = document.getElementById('F06ypHky_message');
+  var msgBox = document.getElementById('IyK6BJCY_message');
   
-    quizquestions_scorecard["F06ypHky"]["attempts"] += 1;
+    quizquestions_scorecard["IyK6BJCY"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_F06ypHky")
+    var explanation = document.getElementById("explanation_IyK6BJCY")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["F06ypHky"]["correct"] = true;
+      quizquestions_scorecard["IyK6BJCY"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1825,11 +1827,11 @@ document.getElementById("F06ypHky").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_F06ypHky")
+    var explanation = document.getElementById("explanation_IyK6BJCY")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["F06ypHky"]["correct"] = false;
+      quizquestions_scorecard["IyK6BJCY"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1848,19 +1850,19 @@ document.getElementById("F06ypHky").addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "APHqBhmB"
+var ID = "mWR8Pr9u"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="APHqBhmB" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="mWR8Pr9u" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_APHqBhmB">
+      <div class="form" id="controls_mWR8Pr9u">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_APHqBhmB_1">
-      <input class="form-check-input" type="radio" name="radio_APHqBhmB" id="radio_APHqBhmB_1" value="1">
+    <label class="form-check-label" for="radio_mWR8Pr9u_1">
+      <input class="form-check-input" type="radio" name="radio_mWR8Pr9u" id="radio_mWR8Pr9u_1" value="1">
       
       <span class="label-body px-1">
         Yes
@@ -1868,8 +1870,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_APHqBhmB_2">
-      <input class="form-check-input" type="radio" name="radio_APHqBhmB" id="radio_APHqBhmB_2" value="2">
+    <label class="form-check-label" for="radio_mWR8Pr9u_2">
+      <input class="form-check-input" type="radio" name="radio_mWR8Pr9u" id="radio_mWR8Pr9u_2" value="2">
       
       <span class="label-body px-1">
         No
@@ -1880,26 +1882,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="APHqBhmB_message" style="padding-bottom: 15px"></div>
+      <div id="mWR8Pr9u_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_APHqBhmB"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_mWR8Pr9u"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 2;
-    var msgBox = document.getElementById('APHqBhmB_message');
+    var msgBox = document.getElementById('mWR8Pr9u_message');
     
-    quizquestions_scorecard["APHqBhmB"]["attempts"] += 1;
+    quizquestions_scorecard["mWR8Pr9u"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_APHqBhmB")
+    var explanation = document.getElementById("explanation_mWR8Pr9u")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["APHqBhmB"]["correct"] = true;
+      quizquestions_scorecard["mWR8Pr9u"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1907,11 +1909,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_APHqBhmB")
+    var explanation = document.getElementById("explanation_mWR8Pr9u")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["APHqBhmB"]["correct"] = false;
+      quizquestions_scorecard["mWR8Pr9u"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1930,43 +1932,43 @@ rb.addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "AEgjY2sk"
+var ID = "4T1ZoYLC"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="AEgjY2sk" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="4T1ZoYLC" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_AEgjY2sk">
+      <div class="form" id="controls_4T1ZoYLC">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="AEgjY2sk" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="4T1ZoYLC" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="AEgjY2sk_message" style="padding-bottom: 15px"></div>
+      <div id="4T1ZoYLC_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("AEgjY2sk").addEventListener("change", function() {
+document.getElementById("4T1ZoYLC").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 0.945250237728822) <= 0.001);
-  var msgBox = document.getElementById('AEgjY2sk_message');
+  var msgBox = document.getElementById('4T1ZoYLC_message');
   
-    quizquestions_scorecard["AEgjY2sk"]["attempts"] += 1;
+    quizquestions_scorecard["4T1ZoYLC"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_AEgjY2sk")
+    var explanation = document.getElementById("explanation_4T1ZoYLC")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["AEgjY2sk"]["correct"] = true;
+      quizquestions_scorecard["4T1ZoYLC"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1974,11 +1976,11 @@ document.getElementById("AEgjY2sk").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_AEgjY2sk")
+    var explanation = document.getElementById("explanation_4T1ZoYLC")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["AEgjY2sk"]["correct"] = false;
+      quizquestions_scorecard["4T1ZoYLC"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1997,19 +1999,19 @@ document.getElementById("AEgjY2sk").addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "py8BnwR9"
+var ID = "JGR6vHBj"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="py8BnwR9" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="JGR6vHBj" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_py8BnwR9">
+      <div class="form" id="controls_JGR6vHBj">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_py8BnwR9_1">
-      <input class="form-check-input" type="radio" name="radio_py8BnwR9" id="radio_py8BnwR9_1" value="1">
+    <label class="form-check-label" for="radio_JGR6vHBj_1">
+      <input class="form-check-input" type="radio" name="radio_JGR6vHBj" id="radio_JGR6vHBj_1" value="1">
       
       <span class="label-body px-1">
         <code>[-4, 14, -8]</code>
@@ -2017,20 +2019,20 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_py8BnwR9_2">
-      <input class="form-check-input" type="radio" name="radio_py8BnwR9" id="radio_py8BnwR9_2" value="2">
+    <label class="form-check-label" for="radio_JGR6vHBj_2">
+      <input class="form-check-input" type="radio" name="radio_JGR6vHBj" id="radio_JGR6vHBj_2" value="2">
       
       <span class="label-body px-1">
-        <code>[-5, 10, -5]</code>
+        <code>[-1, 6, -7]</code>
       </span>
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_py8BnwR9_3">
-      <input class="form-check-input" type="radio" name="radio_py8BnwR9" id="radio_py8BnwR9_3" value="3">
+    <label class="form-check-label" for="radio_JGR6vHBj_3">
+      <input class="form-check-input" type="radio" name="radio_JGR6vHBj" id="radio_JGR6vHBj_3" value="3">
       
       <span class="label-body px-1">
-        <code>[-1, 6, -7]</code>
+        <code>[-5, 10, -5]</code>
       </span>
     </label>
 </div>
@@ -2038,26 +2040,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="py8BnwR9_message" style="padding-bottom: 15px"></div>
+      <div id="JGR6vHBj_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_py8BnwR9"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_JGR6vHBj"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('py8BnwR9_message');
+    var correct = rb.value == 3;
+    var msgBox = document.getElementById('JGR6vHBj_message');
     
-    quizquestions_scorecard["py8BnwR9"]["attempts"] += 1;
+    quizquestions_scorecard["JGR6vHBj"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_py8BnwR9")
+    var explanation = document.getElementById("explanation_JGR6vHBj")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["py8BnwR9"]["correct"] = true;
+      quizquestions_scorecard["JGR6vHBj"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2065,11 +2067,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_py8BnwR9")
+    var explanation = document.getElementById("explanation_JGR6vHBj")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["py8BnwR9"]["correct"] = false;
+      quizquestions_scorecard["JGR6vHBj"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2088,43 +2090,43 @@ rb.addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "jLlCvTwA"
+var ID = "6cI3p9Qd"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="jLlCvTwA" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="6cI3p9Qd" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_jLlCvTwA">
+      <div class="form" id="controls_6cI3p9Qd">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="jLlCvTwA" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="6cI3p9Qd" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="jLlCvTwA_message" style="padding-bottom: 15px"></div>
+      <div id="6cI3p9Qd_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("jLlCvTwA").addEventListener("change", function() {
+document.getElementById("6cI3p9Qd").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 9.273618495495704) <= 0.001);
-  var msgBox = document.getElementById('jLlCvTwA_message');
+  var msgBox = document.getElementById('6cI3p9Qd_message');
   
-    quizquestions_scorecard["jLlCvTwA"]["attempts"] += 1;
+    quizquestions_scorecard["6cI3p9Qd"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_jLlCvTwA")
+    var explanation = document.getElementById("explanation_6cI3p9Qd")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["jLlCvTwA"]["correct"] = true;
+      quizquestions_scorecard["6cI3p9Qd"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2132,11 +2134,11 @@ document.getElementById("jLlCvTwA").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_jLlCvTwA")
+    var explanation = document.getElementById("explanation_6cI3p9Qd")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["jLlCvTwA"]["correct"] = false;
+      quizquestions_scorecard["6cI3p9Qd"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2155,43 +2157,43 @@ document.getElementById("jLlCvTwA").addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "W3zEvJ8k"
+var ID = "eEamrSpd"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="W3zEvJ8k" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="eEamrSpd" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_W3zEvJ8k">
+      <div class="form" id="controls_eEamrSpd">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="W3zEvJ8k" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="eEamrSpd" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="W3zEvJ8k_message" style="padding-bottom: 15px"></div>
+      <div id="eEamrSpd_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("W3zEvJ8k").addEventListener("change", function() {
+document.getElementById("eEamrSpd").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 10) <= 0);
-  var msgBox = document.getElementById('W3zEvJ8k_message');
+  var msgBox = document.getElementById('eEamrSpd_message');
   
-    quizquestions_scorecard["W3zEvJ8k"]["attempts"] += 1;
+    quizquestions_scorecard["eEamrSpd"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_W3zEvJ8k")
+    var explanation = document.getElementById("explanation_eEamrSpd")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["W3zEvJ8k"]["correct"] = true;
+      quizquestions_scorecard["eEamrSpd"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2199,11 +2201,11 @@ document.getElementById("W3zEvJ8k").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_W3zEvJ8k")
+    var explanation = document.getElementById("explanation_eEamrSpd")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["W3zEvJ8k"]["correct"] = false;
+      quizquestions_scorecard["eEamrSpd"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2219,8 +2221,10 @@ document.getElementById("W3zEvJ8k").addEventListener("change", function() {
 <section id="question-1" class="level6">
 <h6 class="anchored" data-anchor-id="question-1">Question</h6>
 <p>The dot product of two vectors may be described in words: pair off the corresponding values, multiply them, then add. In <code>Julia</code> the <code>zip</code> command will pair off two iterable objects, like vectors, so it seems like this command: <code>sum(prod.(zip(u,v)))</code> will find a dot product. Investigate if it is does or doesn’t by testing the following command and comparing to the dot product:</p>
+<div class="cell" data-hold="true" data-execution_count="76">
 <div class="sourceCode cell-code" id="cb115"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb115-1"><a href="#cb115-1" aria-hidden="true" tabindex="-1"></a>u,v <span class="op">=</span> [<span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">3</span>], [<span class="fl">5</span>,<span class="fl">4</span>,<span class="fl">2</span>]</span>
 <span id="cb115-2"><a href="#cb115-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">prod</span>.(<span class="fu">zip</span>(u,v)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 <p>Does this return the same answer:</p>
 <div class="cell" data-hold="true" data-execution_count="77">
 <div class="cell-output cell-output-display" data-execution_count="77">
@@ -2228,19 +2232,19 @@ document.getElementById("W3zEvJ8k").addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "fyn6jGQs"
+var ID = "QJeXiLLA"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="fyn6jGQs" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="QJeXiLLA" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_fyn6jGQs">
+      <div class="form" id="controls_QJeXiLLA">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_fyn6jGQs_1">
-      <input class="form-check-input" type="radio" name="radio_fyn6jGQs" id="radio_fyn6jGQs_1" value="1">
+    <label class="form-check-label" for="radio_QJeXiLLA_1">
+      <input class="form-check-input" type="radio" name="radio_QJeXiLLA" id="radio_QJeXiLLA_1" value="1">
       
       <span class="label-body px-1">
         Yes
@@ -2248,8 +2252,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_fyn6jGQs_2">
-      <input class="form-check-input" type="radio" name="radio_fyn6jGQs" id="radio_fyn6jGQs_2" value="2">
+    <label class="form-check-label" for="radio_QJeXiLLA_2">
+      <input class="form-check-input" type="radio" name="radio_QJeXiLLA" id="radio_QJeXiLLA_2" value="2">
       
       <span class="label-body px-1">
         No
@@ -2260,26 +2264,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="fyn6jGQs_message" style="padding-bottom: 15px"></div>
+      <div id="QJeXiLLA_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_fyn6jGQs"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_QJeXiLLA"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 1;
-    var msgBox = document.getElementById('fyn6jGQs_message');
+    var msgBox = document.getElementById('QJeXiLLA_message');
     
-    quizquestions_scorecard["fyn6jGQs"]["attempts"] += 1;
+    quizquestions_scorecard["QJeXiLLA"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_fyn6jGQs")
+    var explanation = document.getElementById("explanation_QJeXiLLA")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["fyn6jGQs"]["correct"] = true;
+      quizquestions_scorecard["QJeXiLLA"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2287,11 +2291,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_fyn6jGQs")
+    var explanation = document.getElementById("explanation_QJeXiLLA")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["fyn6jGQs"]["correct"] = false;
+      quizquestions_scorecard["QJeXiLLA"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2310,31 +2314,31 @@ rb.addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "y2HZQ86q"
+var ID = "cBXGxatJ"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="y2HZQ86q" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="cBXGxatJ" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_y2HZQ86q">
+      <div class="form" id="controls_cBXGxatJ">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_y2HZQ86q_1">
-      <input class="form-check-input" type="radio" name="radio_y2HZQ86q" id="radio_y2HZQ86q_1" value="1">
+    <label class="form-check-label" for="radio_cBXGxatJ_1">
+      <input class="form-check-input" type="radio" name="radio_cBXGxatJ" id="radio_cBXGxatJ_1" value="1">
       
       <span class="label-body px-1">
-        A vector of values <code>[(1, 5), (2, 4), (3, 2)]</code>
+        An object of type <code>Base.Iterators.Zip</code> that is only realized when used
       </span>
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_y2HZQ86q_2">
-      <input class="form-check-input" type="radio" name="radio_y2HZQ86q" id="radio_y2HZQ86q_2" value="2">
+    <label class="form-check-label" for="radio_cBXGxatJ_2">
+      <input class="form-check-input" type="radio" name="radio_cBXGxatJ" id="radio_cBXGxatJ_2" value="2">
       
       <span class="label-body px-1">
-        An object of type <code>Base.Iterators.Zip</code> that is only realized when used
+        A vector of values <code>[(1, 5), (2, 4), (3, 2)]</code>
       </span>
     </label>
 </div>
@@ -2342,26 +2346,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="y2HZQ86q_message" style="padding-bottom: 15px"></div>
+      <div id="cBXGxatJ_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_y2HZQ86q"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_cBXGxatJ"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('y2HZQ86q_message');
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('cBXGxatJ_message');
     
-    quizquestions_scorecard["y2HZQ86q"]["attempts"] += 1;
+    quizquestions_scorecard["cBXGxatJ"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_y2HZQ86q")
+    var explanation = document.getElementById("explanation_cBXGxatJ")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["y2HZQ86q"]["correct"] = true;
+      quizquestions_scorecard["cBXGxatJ"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2369,11 +2373,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_y2HZQ86q")
+    var explanation = document.getElementById("explanation_cBXGxatJ")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["y2HZQ86q"]["correct"] = false;
+      quizquestions_scorecard["cBXGxatJ"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2392,31 +2396,31 @@ rb.addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "9DhARoyJ"
+var ID = "45JiIQwW"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="9DhARoyJ" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="45JiIQwW" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_9DhARoyJ">
+      <div class="form" id="controls_45JiIQwW">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_9DhARoyJ_1">
-      <input class="form-check-input" type="radio" name="radio_9DhARoyJ" id="radio_9DhARoyJ_1" value="1">
+    <label class="form-check-label" for="radio_45JiIQwW_1">
+      <input class="form-check-input" type="radio" name="radio_45JiIQwW" id="radio_45JiIQwW_1" value="1">
       
       <span class="label-body px-1">
-        An object of type <code>Base.Iterators.Zip</code> that when realized will produce a vector of values
+        A vector of values <code>[5, 8, 6]</code>
       </span>
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_9DhARoyJ_2">
-      <input class="form-check-input" type="radio" name="radio_9DhARoyJ" id="radio_9DhARoyJ_2" value="2">
+    <label class="form-check-label" for="radio_45JiIQwW_2">
+      <input class="form-check-input" type="radio" name="radio_45JiIQwW" id="radio_45JiIQwW_2" value="2">
       
       <span class="label-body px-1">
-        A vector of values <code>[5, 8, 6]</code>
+        An object of type <code>Base.Iterators.Zip</code> that when realized will produce a vector of values
       </span>
     </label>
 </div>
@@ -2424,26 +2428,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="9DhARoyJ_message" style="padding-bottom: 15px"></div>
+      <div id="45JiIQwW_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_9DhARoyJ"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_45JiIQwW"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('9DhARoyJ_message');
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('45JiIQwW_message');
     
-    quizquestions_scorecard["9DhARoyJ"]["attempts"] += 1;
+    quizquestions_scorecard["45JiIQwW"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_9DhARoyJ")
+    var explanation = document.getElementById("explanation_45JiIQwW")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["9DhARoyJ"]["correct"] = true;
+      quizquestions_scorecard["45JiIQwW"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2451,11 +2455,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_9DhARoyJ")
+    var explanation = document.getElementById("explanation_45JiIQwW")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["9DhARoyJ"]["correct"] = false;
+      quizquestions_scorecard["45JiIQwW"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2480,28 +2484,19 @@ rb.addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "WZfwIPxV"
+var ID = "PzsVhLQj"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="WZfwIPxV" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="PzsVhLQj" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_WZfwIPxV">
+      <div class="form" id="controls_PzsVhLQj">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_WZfwIPxV_1">
-      <input class="form-check-input" type="radio" name="radio_WZfwIPxV" id="radio_WZfwIPxV_1" value="1">
-      
-      <span class="label-body px-1">
-        Can't say in general
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_WZfwIPxV_2">
-      <input class="form-check-input" type="radio" name="radio_WZfwIPxV" id="radio_WZfwIPxV_2" value="2">
+    <label class="form-check-label" for="radio_PzsVhLQj_1">
+      <input class="form-check-input" type="radio" name="radio_PzsVhLQj" id="radio_PzsVhLQj_1" value="1">
       
       <span class="label-body px-1">
         \(1\)
@@ -2509,11 +2504,20 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_WZfwIPxV_3">
-      <input class="form-check-input" type="radio" name="radio_WZfwIPxV" id="radio_WZfwIPxV_3" value="3">
+    <label class="form-check-label" for="radio_PzsVhLQj_2">
+      <input class="form-check-input" type="radio" name="radio_PzsVhLQj" id="radio_PzsVhLQj_2" value="2">
       
       <span class="label-body px-1">
         \(0\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_PzsVhLQj_3">
+      <input class="form-check-input" type="radio" name="radio_PzsVhLQj" id="radio_PzsVhLQj_3" value="3">
+      
+      <span class="label-body px-1">
+        Can't say in general
       </span>
     </label>
 </div>
@@ -2521,26 +2525,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="WZfwIPxV_message" style="padding-bottom: 15px"></div>
+      <div id="PzsVhLQj_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_WZfwIPxV"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_PzsVhLQj"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
-    var correct = rb.value == 2;
-    var msgBox = document.getElementById('WZfwIPxV_message');
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('PzsVhLQj_message');
     
-    quizquestions_scorecard["WZfwIPxV"]["attempts"] += 1;
+    quizquestions_scorecard["PzsVhLQj"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_WZfwIPxV")
+    var explanation = document.getElementById("explanation_PzsVhLQj")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["WZfwIPxV"]["correct"] = true;
+      quizquestions_scorecard["PzsVhLQj"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2548,11 +2552,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_WZfwIPxV")
+    var explanation = document.getElementById("explanation_PzsVhLQj")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["WZfwIPxV"]["correct"] = false;
+      quizquestions_scorecard["PzsVhLQj"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2574,43 +2578,43 @@ rb.addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "IXRSreKV"
+var ID = "RvpsmIAM"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="IXRSreKV" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="RvpsmIAM" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_IXRSreKV">
+      <div class="form" id="controls_RvpsmIAM">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="IXRSreKV" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="RvpsmIAM" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="IXRSreKV_message" style="padding-bottom: 15px"></div>
+      <div id="RvpsmIAM_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("IXRSreKV").addEventListener("change", function() {
+document.getElementById("RvpsmIAM").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 2.6726124191242437) <= 0.001);
-  var msgBox = document.getElementById('IXRSreKV_message');
+  var msgBox = document.getElementById('RvpsmIAM_message');
   
-    quizquestions_scorecard["IXRSreKV"]["attempts"] += 1;
+    quizquestions_scorecard["RvpsmIAM"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_IXRSreKV")
+    var explanation = document.getElementById("explanation_RvpsmIAM")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["IXRSreKV"]["correct"] = true;
+      quizquestions_scorecard["RvpsmIAM"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2618,11 +2622,11 @@ document.getElementById("IXRSreKV").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_IXRSreKV")
+    var explanation = document.getElementById("explanation_RvpsmIAM")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["IXRSreKV"]["correct"] = false;
+      quizquestions_scorecard["RvpsmIAM"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2644,19 +2648,28 @@ document.getElementById("IXRSreKV").addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "rivo3YgC"
+var ID = "wIp6afWr"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="rivo3YgC" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="wIp6afWr" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_rivo3YgC">
+      <div class="form" id="controls_wIp6afWr">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_rivo3YgC_1">
-      <input class="form-check-input" type="radio" name="radio_rivo3YgC" id="radio_rivo3YgC_1" value="1">
+    <label class="form-check-label" for="radio_wIp6afWr_1">
+      <input class="form-check-input" type="radio" name="radio_wIp6afWr" id="radio_wIp6afWr_1" value="1">
+      
+      <span class="label-body px-1">
+        \(x + 2y + z = 0\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_wIp6afWr_2">
+      <input class="form-check-input" type="radio" name="radio_wIp6afWr" id="radio_wIp6afWr_2" value="2">
       
       <span class="label-body px-1">
         \(-4x + 8y - 4z = 0\)
@@ -2664,20 +2677,11 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_rivo3YgC_2">
-      <input class="form-check-input" type="radio" name="radio_rivo3YgC" id="radio_rivo3YgC_2" value="2">
+    <label class="form-check-label" for="radio_wIp6afWr_3">
+      <input class="form-check-input" type="radio" name="radio_wIp6afWr" id="radio_wIp6afWr_3" value="3">
       
       <span class="label-body px-1">
         \(x + 2y + 3z = 6\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_rivo3YgC_3">
-      <input class="form-check-input" type="radio" name="radio_rivo3YgC" id="radio_rivo3YgC_3" value="3">
-      
-      <span class="label-body px-1">
-        \(x + 2y + z = 0\)
       </span>
     </label>
 </div>
@@ -2685,26 +2689,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="rivo3YgC_message" style="padding-bottom: 15px"></div>
+      <div id="wIp6afWr_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_rivo3YgC"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_wIp6afWr"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('rivo3YgC_message');
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('wIp6afWr_message');
     
-    quizquestions_scorecard["rivo3YgC"]["attempts"] += 1;
+    quizquestions_scorecard["wIp6afWr"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_rivo3YgC")
+    var explanation = document.getElementById("explanation_wIp6afWr")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["rivo3YgC"]["correct"] = true;
+      quizquestions_scorecard["wIp6afWr"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2712,11 +2716,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_rivo3YgC")
+    var explanation = document.getElementById("explanation_wIp6afWr")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["rivo3YgC"]["correct"] = false;
+      quizquestions_scorecard["wIp6afWr"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2738,19 +2742,19 @@ rb.addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "uTRTNb8F"
+var ID = "uSarAReJ"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="uTRTNb8F" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="uSarAReJ" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_uTRTNb8F">
+      <div class="form" id="controls_uSarAReJ">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_uTRTNb8F_1">
-      <input class="form-check-input" type="radio" name="radio_uTRTNb8F" id="radio_uTRTNb8F_1" value="1">
+    <label class="form-check-label" for="radio_uSarAReJ_1">
+      <input class="form-check-input" type="radio" name="radio_uSarAReJ" id="radio_uSarAReJ_1" value="1">
       
       <span class="label-body px-1">
         \(\vec{n}_1\) and \(\vec{n_2}\) are unit vectors, so the cross product gives the projection, which must be orthogonal to each vector, hence in the intersection
@@ -2758,8 +2762,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_uTRTNb8F_2">
-      <input class="form-check-input" type="radio" name="radio_uTRTNb8F" id="radio_uTRTNb8F_2" value="2">
+    <label class="form-check-label" for="radio_uSarAReJ_2">
+      <input class="form-check-input" type="radio" name="radio_uSarAReJ" id="radio_uSarAReJ_2" value="2">
       
       <span class="label-body px-1">
         \(\vec{v}\) is in plane \(P_1\), as it is orthogonal to \(\vec{n}_1\) and \(P_2\) as it is orthogonal to \(\vec{n}_2\), hence it is parallel to both planes.
@@ -2770,26 +2774,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="uTRTNb8F_message" style="padding-bottom: 15px"></div>
+      <div id="uSarAReJ_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_uTRTNb8F"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_uSarAReJ"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 2;
-    var msgBox = document.getElementById('uTRTNb8F_message');
+    var msgBox = document.getElementById('uSarAReJ_message');
     
-    quizquestions_scorecard["uTRTNb8F"]["attempts"] += 1;
+    quizquestions_scorecard["uSarAReJ"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_uTRTNb8F")
+    var explanation = document.getElementById("explanation_uSarAReJ")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["uTRTNb8F"]["correct"] = true;
+      quizquestions_scorecard["uSarAReJ"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2797,11 +2801,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_uTRTNb8F")
+    var explanation = document.getElementById("explanation_uSarAReJ")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["uTRTNb8F"]["correct"] = false;
+      quizquestions_scorecard["uSarAReJ"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2823,28 +2827,19 @@ rb.addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "AIkhsVWO"
+var ID = "l4BGFPtS"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="AIkhsVWO" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="l4BGFPtS" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_AIkhsVWO">
+      <div class="form" id="controls_l4BGFPtS">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_AIkhsVWO_1">
-      <input class="form-check-input" type="radio" name="radio_AIkhsVWO" id="radio_AIkhsVWO_1" value="1">
-      
-      <span class="label-body px-1">
-        \(\langle 12, 12 \rangle\)
-      </span>
-    </label>
-</div>
-<div class="form-check">
-    <label class="form-check-label" for="radio_AIkhsVWO_2">
-      <input class="form-check-input" type="radio" name="radio_AIkhsVWO" id="radio_AIkhsVWO_2" value="2">
+    <label class="form-check-label" for="radio_l4BGFPtS_1">
+      <input class="form-check-input" type="radio" name="radio_l4BGFPtS" id="radio_l4BGFPtS_1" value="1">
       
       <span class="label-body px-1">
         \(12 \langle 1, 0 \rangle\)
@@ -2852,11 +2847,20 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_AIkhsVWO_3">
-      <input class="form-check-input" type="radio" name="radio_AIkhsVWO" id="radio_AIkhsVWO_3" value="3">
+    <label class="form-check-label" for="radio_l4BGFPtS_2">
+      <input class="form-check-input" type="radio" name="radio_l4BGFPtS" id="radio_l4BGFPtS_2" value="2">
       
       <span class="label-body px-1">
         \(\vec{0}\)
+      </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label" for="radio_l4BGFPtS_3">
+      <input class="form-check-input" type="radio" name="radio_l4BGFPtS" id="radio_l4BGFPtS_3" value="3">
+      
+      <span class="label-body px-1">
+        \(\langle 12, 12 \rangle\)
       </span>
     </label>
 </div>
@@ -2864,26 +2868,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="AIkhsVWO_message" style="padding-bottom: 15px"></div>
+      <div id="l4BGFPtS_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_AIkhsVWO"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_l4BGFPtS"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
-    var correct = rb.value == 3;
-    var msgBox = document.getElementById('AIkhsVWO_message');
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('l4BGFPtS_message');
     
-    quizquestions_scorecard["AIkhsVWO"]["attempts"] += 1;
+    quizquestions_scorecard["l4BGFPtS"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_AIkhsVWO")
+    var explanation = document.getElementById("explanation_l4BGFPtS")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["AIkhsVWO"]["correct"] = true;
+      quizquestions_scorecard["l4BGFPtS"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2891,11 +2895,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_AIkhsVWO")
+    var explanation = document.getElementById("explanation_l4BGFPtS")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["AIkhsVWO"]["correct"] = false;
+      quizquestions_scorecard["l4BGFPtS"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2914,19 +2918,19 @@ rb.addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "iCZPqjuL"
+var ID = "0kTu45XV"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="iCZPqjuL" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="0kTu45XV" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_iCZPqjuL">
+      <div class="form" id="controls_0kTu45XV">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_iCZPqjuL_1">
-      <input class="form-check-input" type="radio" name="radio_iCZPqjuL" id="radio_iCZPqjuL_1" value="1">
+    <label class="form-check-label" for="radio_0kTu45XV_1">
+      <input class="form-check-input" type="radio" name="radio_0kTu45XV" id="radio_0kTu45XV_1" value="1">
       
       <span class="label-body px-1">
         \(\langle 1, 0 \rangle\)
@@ -2934,8 +2938,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_iCZPqjuL_2">
-      <input class="form-check-input" type="radio" name="radio_iCZPqjuL" id="radio_iCZPqjuL_2" value="2">
+    <label class="form-check-label" for="radio_0kTu45XV_2">
+      <input class="form-check-input" type="radio" name="radio_0kTu45XV" id="radio_0kTu45XV_2" value="2">
       
       <span class="label-body px-1">
         \(\langle -1, 0 \rangle\)
@@ -2943,8 +2947,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_iCZPqjuL_3">
-      <input class="form-check-input" type="radio" name="radio_iCZPqjuL" id="radio_iCZPqjuL_3" value="3">
+    <label class="form-check-label" for="radio_0kTu45XV_3">
+      <input class="form-check-input" type="radio" name="radio_0kTu45XV" id="radio_0kTu45XV_3" value="3">
       
       <span class="label-body px-1">
         \(\langle 11, 11 \rangle\)
@@ -2955,26 +2959,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="iCZPqjuL_message" style="padding-bottom: 15px"></div>
+      <div id="0kTu45XV_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_iCZPqjuL"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_0kTu45XV"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 2;
-    var msgBox = document.getElementById('iCZPqjuL_message');
+    var msgBox = document.getElementById('0kTu45XV_message');
     
-    quizquestions_scorecard["iCZPqjuL"]["attempts"] += 1;
+    quizquestions_scorecard["0kTu45XV"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_iCZPqjuL")
+    var explanation = document.getElementById("explanation_0kTu45XV")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["iCZPqjuL"]["correct"] = true;
+      quizquestions_scorecard["0kTu45XV"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -2982,11 +2986,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_iCZPqjuL")
+    var explanation = document.getElementById("explanation_0kTu45XV")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["iCZPqjuL"]["correct"] = false;
+      quizquestions_scorecard["0kTu45XV"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -3008,19 +3012,19 @@ rb.addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "G3YYHl0X"
+var ID = "jXzspsE5"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="G3YYHl0X" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="jXzspsE5" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_G3YYHl0X">
+      <div class="form" id="controls_jXzspsE5">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_G3YYHl0X_1">
-      <input class="form-check-input" type="radio" name="radio_G3YYHl0X" id="radio_G3YYHl0X_1" value="1">
+    <label class="form-check-label" for="radio_jXzspsE5_1">
+      <input class="form-check-input" type="radio" name="radio_jXzspsE5" id="radio_jXzspsE5_1" value="1">
       
       <span class="label-body px-1">
         \(\vec{u} + \vec{v}\)
@@ -3028,8 +3032,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_G3YYHl0X_2">
-      <input class="form-check-input" type="radio" name="radio_G3YYHl0X" id="radio_G3YYHl0X_2" value="2">
+    <label class="form-check-label" for="radio_jXzspsE5_2">
+      <input class="form-check-input" type="radio" name="radio_jXzspsE5" id="radio_jXzspsE5_2" value="2">
       
       <span class="label-body px-1">
         \(1 + \vec{u}\cdot\vec{v}\)
@@ -3037,8 +3041,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_G3YYHl0X_3">
-      <input class="form-check-input" type="radio" name="radio_G3YYHl0X" id="radio_G3YYHl0X_3" value="3">
+    <label class="form-check-label" for="radio_jXzspsE5_3">
+      <input class="form-check-input" type="radio" name="radio_jXzspsE5" id="radio_jXzspsE5_3" value="3">
       
       <span class="label-body px-1">
         \(\vec{u}\cdot\vec{v} + \vec{v}\cdot \vec{v}\)
@@ -3049,26 +3053,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="G3YYHl0X_message" style="padding-bottom: 15px"></div>
+      <div id="jXzspsE5_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_G3YYHl0X"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_jXzspsE5"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 2;
-    var msgBox = document.getElementById('G3YYHl0X_message');
+    var msgBox = document.getElementById('jXzspsE5_message');
     
-    quizquestions_scorecard["G3YYHl0X"]["attempts"] += 1;
+    quizquestions_scorecard["jXzspsE5"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_G3YYHl0X")
+    var explanation = document.getElementById("explanation_jXzspsE5")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["G3YYHl0X"]["correct"] = true;
+      quizquestions_scorecard["jXzspsE5"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -3076,11 +3080,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_G3YYHl0X")
+    var explanation = document.getElementById("explanation_jXzspsE5")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["G3YYHl0X"]["correct"] = false;
+      quizquestions_scorecard["jXzspsE5"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -3099,19 +3103,19 @@ rb.addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "K0bPvTvn"
+var ID = "f6SglFDf"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="K0bPvTvn" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="f6SglFDf" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_K0bPvTvn">
+      <div class="form" id="controls_f6SglFDf">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_K0bPvTvn_1">
-      <input class="form-check-input" type="radio" name="radio_K0bPvTvn" id="radio_K0bPvTvn_1" value="1">
+    <label class="form-check-label" for="radio_f6SglFDf_1">
+      <input class="form-check-input" type="radio" name="radio_f6SglFDf" id="radio_f6SglFDf_1" value="1">
       
       <span class="label-body px-1">
         The vector \(\vec{w}\) must also be a unit vector
@@ -3119,20 +3123,20 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_K0bPvTvn_2">
-      <input class="form-check-input" type="radio" name="radio_K0bPvTvn" id="radio_K0bPvTvn_2" value="2">
+    <label class="form-check-label" for="radio_f6SglFDf_2">
+      <input class="form-check-input" type="radio" name="radio_f6SglFDf" id="radio_f6SglFDf_2" value="2">
       
       <span class="label-body px-1">
-        the two are orthogonal
+        The angle they make with \(\vec{w}\) is the same
       </span>
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_K0bPvTvn_3">
-      <input class="form-check-input" type="radio" name="radio_K0bPvTvn" id="radio_K0bPvTvn_3" value="3">
+    <label class="form-check-label" for="radio_f6SglFDf_3">
+      <input class="form-check-input" type="radio" name="radio_f6SglFDf" id="radio_f6SglFDf_3" value="3">
       
       <span class="label-body px-1">
-        The angle they make with \(\vec{w}\) is the same
+        the two are orthogonal
       </span>
     </label>
 </div>
@@ -3140,26 +3144,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="K0bPvTvn_message" style="padding-bottom: 15px"></div>
+      <div id="f6SglFDf_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_K0bPvTvn"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_f6SglFDf"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
-    var correct = rb.value == 3;
-    var msgBox = document.getElementById('K0bPvTvn_message');
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('f6SglFDf_message');
     
-    quizquestions_scorecard["K0bPvTvn"]["attempts"] += 1;
+    quizquestions_scorecard["f6SglFDf"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_K0bPvTvn")
+    var explanation = document.getElementById("explanation_f6SglFDf")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["K0bPvTvn"]["correct"] = true;
+      quizquestions_scorecard["f6SglFDf"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -3167,11 +3171,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_K0bPvTvn")
+    var explanation = document.getElementById("explanation_f6SglFDf")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["K0bPvTvn"]["correct"] = false;
+      quizquestions_scorecard["f6SglFDf"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -3194,28 +3198,28 @@ rb.addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "RAfEDaia"
+var ID = "NB2y3jGE"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="RAfEDaia" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="NB2y3jGE" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_RAfEDaia">
+      <div class="form" id="controls_NB2y3jGE">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_RAfEDaia_1">
-      <input class="form-check-input" type="radio" name="radio_RAfEDaia" id="radio_RAfEDaia_1" value="1">
+    <label class="form-check-label" for="radio_NB2y3jGE_1">
+      <input class="form-check-input" type="radio" name="radio_NB2y3jGE" id="radio_NB2y3jGE_1" value="1">
       
       <span class="label-body px-1">
-        \(\vec{u}\cdot\vec{v} = -(\vec{u}\cdot\vec{u} \vec{v}\cdot\vec{v})\)
+        \(\vec{u}\cdot\vec{v} = 2\)
       </span>
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_RAfEDaia_2">
-      <input class="form-check-input" type="radio" name="radio_RAfEDaia" id="radio_RAfEDaia_2" value="2">
+    <label class="form-check-label" for="radio_NB2y3jGE_2">
+      <input class="form-check-input" type="radio" name="radio_NB2y3jGE" id="radio_NB2y3jGE_2" value="2">
       
       <span class="label-body px-1">
         \(\vec{u}\cdot\vec{v} = 0\)
@@ -3223,11 +3227,11 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_RAfEDaia_3">
-      <input class="form-check-input" type="radio" name="radio_RAfEDaia" id="radio_RAfEDaia_3" value="3">
+    <label class="form-check-label" for="radio_NB2y3jGE_3">
+      <input class="form-check-input" type="radio" name="radio_NB2y3jGE" id="radio_NB2y3jGE_3" value="3">
       
       <span class="label-body px-1">
-        \(\vec{u}\cdot\vec{v} = 2\)
+        \(\vec{u}\cdot\vec{v} = -(\vec{u}\cdot\vec{u} \vec{v}\cdot\vec{v})\)
       </span>
     </label>
 </div>
@@ -3235,26 +3239,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="RAfEDaia_message" style="padding-bottom: 15px"></div>
+      <div id="NB2y3jGE_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_RAfEDaia"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_NB2y3jGE"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 2;
-    var msgBox = document.getElementById('RAfEDaia_message');
+    var msgBox = document.getElementById('NB2y3jGE_message');
     
-    quizquestions_scorecard["RAfEDaia"]["attempts"] += 1;
+    quizquestions_scorecard["NB2y3jGE"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_RAfEDaia")
+    var explanation = document.getElementById("explanation_NB2y3jGE")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["RAfEDaia"]["correct"] = true;
+      quizquestions_scorecard["NB2y3jGE"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -3262,11 +3266,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_RAfEDaia")
+    var explanation = document.getElementById("explanation_NB2y3jGE")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["RAfEDaia"]["correct"] = false;
+      quizquestions_scorecard["NB2y3jGE"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -3293,28 +3297,28 @@ rb.addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "GTmpNGHg"
+var ID = "OTDtJIa3"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="GTmpNGHg" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="OTDtJIa3" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_GTmpNGHg">
+      <div class="form" id="controls_OTDtJIa3">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_GTmpNGHg_1">
-      <input class="form-check-input" type="radio" name="radio_GTmpNGHg" id="radio_GTmpNGHg_1" value="1">
+    <label class="form-check-label" for="radio_OTDtJIa3_1">
+      <input class="form-check-input" type="radio" name="radio_OTDtJIa3" id="radio_OTDtJIa3_1" value="1">
       
       <span class="label-body px-1">
-        The vectors are <em>orthogonal</em>, so these are all zero
+        The vectors are all unit lengths, so these are all 1
       </span>
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_GTmpNGHg_2">
-      <input class="form-check-input" type="radio" name="radio_GTmpNGHg" id="radio_GTmpNGHg_2" value="2">
+    <label class="form-check-label" for="radio_OTDtJIa3_2">
+      <input class="form-check-input" type="radio" name="radio_OTDtJIa3" id="radio_OTDtJIa3_2" value="2">
       
       <span class="label-body px-1">
         The triple product describes a volume up to sign, this combination preserves the sign
@@ -3322,11 +3326,11 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_GTmpNGHg_3">
-      <input class="form-check-input" type="radio" name="radio_GTmpNGHg" id="radio_GTmpNGHg_3" value="3">
+    <label class="form-check-label" for="radio_OTDtJIa3_3">
+      <input class="form-check-input" type="radio" name="radio_OTDtJIa3" id="radio_OTDtJIa3_3" value="3">
       
       <span class="label-body px-1">
-        The vectors are all unit lengths, so these are all 1
+        The vectors are <em>orthogonal</em>, so these are all zero
       </span>
     </label>
 </div>
@@ -3334,26 +3338,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="GTmpNGHg_message" style="padding-bottom: 15px"></div>
+      <div id="OTDtJIa3_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_GTmpNGHg"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_OTDtJIa3"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 2;
-    var msgBox = document.getElementById('GTmpNGHg_message');
+    var msgBox = document.getElementById('OTDtJIa3_message');
     
-    quizquestions_scorecard["GTmpNGHg"]["attempts"] += 1;
+    quizquestions_scorecard["OTDtJIa3"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_GTmpNGHg")
+    var explanation = document.getElementById("explanation_OTDtJIa3")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["GTmpNGHg"]["correct"] = true;
+      quizquestions_scorecard["OTDtJIa3"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -3361,11 +3365,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_GTmpNGHg")
+    var explanation = document.getElementById("explanation_OTDtJIa3")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["GTmpNGHg"]["correct"] = false;
+      quizquestions_scorecard["OTDtJIa3"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -3393,19 +3397,19 @@ rb.addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "Nynw1SWX"
+var ID = "zieTYNO5"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="Nynw1SWX" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="zieTYNO5" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_Nynw1SWX">
+      <div class="form" id="controls_zieTYNO5">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_Nynw1SWX_1">
-      <input class="form-check-input" type="radio" name="radio_Nynw1SWX" id="radio_Nynw1SWX_1" value="1">
+    <label class="form-check-label" for="radio_zieTYNO5_1">
+      <input class="form-check-input" type="radio" name="radio_zieTYNO5" id="radio_zieTYNO5_1" value="1">
       
       <span class="label-body px-1">
         \(n_1 (\hat{v_1}\times\hat{N}) = n_2  (\hat{v_2}\times\hat{N})\)
@@ -3413,8 +3417,8 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_Nynw1SWX_2">
-      <input class="form-check-input" type="radio" name="radio_Nynw1SWX" id="radio_Nynw1SWX_2" value="2">
+    <label class="form-check-label" for="radio_zieTYNO5_2">
+      <input class="form-check-input" type="radio" name="radio_zieTYNO5" id="radio_zieTYNO5_2" value="2">
       
       <span class="label-body px-1">
         \(n_1 (\hat{v_1}\times\hat{N}) = -n_2  (\hat{v_2}\times\hat{N})\)
@@ -3425,26 +3429,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="Nynw1SWX_message" style="padding-bottom: 15px"></div>
+      <div id="zieTYNO5_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_Nynw1SWX"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_zieTYNO5"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 1;
-    var msgBox = document.getElementById('Nynw1SWX_message');
+    var msgBox = document.getElementById('zieTYNO5_message');
     
-    quizquestions_scorecard["Nynw1SWX"]["attempts"] += 1;
+    quizquestions_scorecard["zieTYNO5"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_Nynw1SWX")
+    var explanation = document.getElementById("explanation_zieTYNO5")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["Nynw1SWX"]["correct"] = true;
+      quizquestions_scorecard["zieTYNO5"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -3452,11 +3456,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_Nynw1SWX")
+    var explanation = document.getElementById("explanation_zieTYNO5")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["Nynw1SWX"]["correct"] = false;
+      quizquestions_scorecard["zieTYNO5"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -3484,28 +3488,28 @@ rb.addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "u0pygY2T"
+var ID = "wqFmK0Vz"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="u0pygY2T" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="wqFmK0Vz" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_u0pygY2T">
+      <div class="form" id="controls_wqFmK0Vz">
         <div style="padding-top: 5px">
     <div class="form-check">
-    <label class="form-check-label" for="radio_u0pygY2T_1">
-      <input class="form-check-input" type="radio" name="radio_u0pygY2T" id="radio_u0pygY2T_1" value="1">
+    <label class="form-check-label" for="radio_wqFmK0Vz_1">
+      <input class="form-check-input" type="radio" name="radio_wqFmK0Vz" id="radio_wqFmK0Vz_1" value="1">
       
       <span class="label-body px-1">
-        \(\vec{0}\)
+        \(\vec{a} + \vec{b} + \vec{c}\)
       </span>
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_u0pygY2T_2">
-      <input class="form-check-input" type="radio" name="radio_u0pygY2T" id="radio_u0pygY2T_2" value="2">
+    <label class="form-check-label" for="radio_wqFmK0Vz_2">
+      <input class="form-check-input" type="radio" name="radio_wqFmK0Vz" id="radio_wqFmK0Vz_2" value="2">
       
       <span class="label-body px-1">
         \(\vec{a}\)
@@ -3513,11 +3517,11 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_u0pygY2T_3">
-      <input class="form-check-input" type="radio" name="radio_u0pygY2T" id="radio_u0pygY2T_3" value="3">
+    <label class="form-check-label" for="radio_wqFmK0Vz_3">
+      <input class="form-check-input" type="radio" name="radio_wqFmK0Vz" id="radio_wqFmK0Vz_3" value="3">
       
       <span class="label-body px-1">
-        \(\vec{a} + \vec{b} + \vec{c}\)
+        \(\vec{0}\)
       </span>
     </label>
 </div>
@@ -3525,26 +3529,26 @@ if (typeof quizquestions_scorecard[ID] === 'undefined') {
     
         </div>
       </div>
-      <div id="u0pygY2T_message" style="padding-bottom: 15px"></div>
+      <div id="wqFmK0Vz_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_u0pygY2T"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_wqFmK0Vz"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
-    var correct = rb.value == 1;
-    var msgBox = document.getElementById('u0pygY2T_message');
+    var correct = rb.value == 3;
+    var msgBox = document.getElementById('wqFmK0Vz_message');
     
-    quizquestions_scorecard["u0pygY2T"]["attempts"] += 1;
+    quizquestions_scorecard["wqFmK0Vz"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_u0pygY2T")
+    var explanation = document.getElementById("explanation_wqFmK0Vz")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["u0pygY2T"]["correct"] = true;
+      quizquestions_scorecard["wqFmK0Vz"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -3552,11 +3556,11 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_u0pygY2T")
+    var explanation = document.getElementById("explanation_wqFmK0Vz")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["u0pygY2T"]["correct"] = false;
+      quizquestions_scorecard["wqFmK0Vz"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
