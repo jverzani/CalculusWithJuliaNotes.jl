@@ -115,7 +115,7 @@ More elegantly, perhaps – and the approach we will use in this section – is 
 j(x,y) = x^2 - 2x*y^2
 ```
 
-The we can define an alternative method with just a single variable and use splatting to turn it into multiple variables:
+Then we can define an alternative method with just a single variable and use splatting to turn it into multiple variables:
 
 
 ```{julia}
@@ -189,7 +189,7 @@ zs = [𝒇(x,y) for y in ys, x in xs]
 surface(xs, ys, zs)
 ```
 
-If remembering that the $y$ values go first, and then the $x$ values in the above is too hard, then an alternative can be used. Broadcasting `f.(xs,ys)` may not make sense, were the `xs` and `ys` not of commensurate lengths, and when it does, this call pairs off `xs` and `ys` values and passes them to `f`. What is desired here is different, where for each `xs` value there are pairs for each of the `ys` values. The syntax `xs'` can ve viewed as creating a *row* vector, where `xs` is a *column* vector. Broadcasting will create a *matrix*  of values in this case. So the following is identical to the above:
+If remembering that the $y$ values go first, and then the $x$ values in the above is too hard, then an alternative can be used. Broadcasting `f.(xs,ys)` may not make sense, were the `xs` and `ys` not of commensurate lengths, and when it does, this call pairs off `xs` and `ys` values and passes them to `f`. What is desired here is different, where for each `xs` value there are pairs for each of the `ys` values. The syntax `xs'` can be viewed as creating a *row* vector, where `xs` is a *column* vector. Broadcasting will create a *matrix*  of values in this case. So the following is identical to the above:
 
 
 ```{julia}
@@ -605,7 +605,7 @@ r2₁(t) = [γ₁(t)..., 0]
 plot_parametric!(0..1/2, r2₁, linewidth=5, color=:black) # in the $x$-$y$ plane
 ```
 
-The vector valued function `r3(t) = [γ(t)..., f(γ(t))]` takes the $2$-dimensional path specified by $\vec\gamma(t)$ and adds a third, $x$, direction by composing the position with `f`. In this way, a $2$-D path is visualized with a $3$-D path. This viewpoint can be reversed, as desired.
+The vector valued function `r3(t) = [γ(t)..., f(γ(t))]` takes the $2$-dimensional path specified by $\vec\gamma(t)$ and adds a third, $z$, direction by composing the position with `f`. In this way, a $2$-D path is visualized with a $3$-D path. This viewpoint can be reversed, as desired.
 
 
 However, the composition,  $f\circ\vec\gamma$, is a univariate function, so this can also be visualized by
@@ -619,10 +619,10 @@ With this graph, we might be led to ask about derivatives or rates of change. Fo
 
 
 $$
-(f \circ \vec\gamma)(t) = 2 - (2t) - 3(-2t^2)^2 = 2 - 2t +12t^4
+(f \circ \vec\gamma)(t) = 2 - (2t)^2 - 3(-2t^2)^2 = 2 - 4t^2 - 12t^4
 $$
 
-From here we clearly have $f'(t) = -2 + 48t^3$. But could this be computed in terms of a "derivative" of $f$ and the derivative of $\vec\gamma$?
+From here we clearly have $f'(t) = -8t - 48t^3$. But could this be computed in terms of a "derivative" of $f$ and the derivative of $\vec\gamma$?
 
 
 Before answering this, we discuss *directional* derivatives along the simplified paths $\vec\gamma_x(t) = \langle t, c\rangle$ or $\vec\gamma_y(t) = \langle c, t\rangle$.
@@ -852,7 +852,7 @@ To use `∇` and specify the variables, a tuple (grouping parentheses) is used:
 ---
 
 
-In computer science there are two related concepts [Currying](https://en.wikipedia.org/wiki/Currying) and [Partial application](https://en.wikipedia.org/wiki/Partial_application). For a function $f(x,y)$, say, partial application is the process of fixing one of the variables, producing a new function of fewer variables. For example, fixing $y=c$, the we get a new function (of just $x$ and not $(x,y)$) $g(x) = f(x,c)$. In partial derivatives the partial derivative of $f(x,y)$ with respect to $x$ is the derivative of the function $g$, as defined above.
+In computer science there are two related concepts [Currying](https://en.wikipedia.org/wiki/Currying) and [Partial application](https://en.wikipedia.org/wiki/Partial_application). For a function $f(x,y)$, say, partial application is the process of fixing one of the variables, producing a new function of fewer variables. For example, fixing $y=c$, then we get a new function (of just $x$ and not $(x,y)$) $g(x) = f(x,c)$. In partial derivatives the partial derivative of $f(x,y)$ with respect to $x$ is the derivative of the function $g$, as defined above.
 
 
 Currying, is related, but technically returns a function, so we think of the curried version of $f$ as a function, $h$, which takes $x$ and returns the function $y \rightarrow f(x,y)$ so that $h(x)(y) = f(x, y)$.
@@ -866,7 +866,7 @@ The gradient is not a univariate function, a simple vector-valued function, or a
 
 ```{julia}
 #| eval: false
-function vectorfieldplot!(V; xlim=(-5,5), ylim=(-5,5), nx=10, ny=10, kwargs...)
+function vectorfieldplot!(p, V; xlim=(-5,5), ylim=(-5,5), nx=10, ny=10, kwargs...)
 
     dx, dy = (xlim[2]-xlim[1])/nx, (ylim[2]-ylim[1])/ny
     xs, ys = xlim[1]:dx:xlim[2], ylim[1]:dy:ylim[2]
@@ -909,7 +909,7 @@ First, we consider the role of the derivative for univariate functions. The main
 
 
 $$
-f(c+h) = f(c) = f'(c)h + \frac{1}{2} f''(\xi) h^2,
+f(c+h) = f(c) + f'(c)h + \frac{1}{2} f''(\xi) h^2,
 $$
 
 for some $\xi$ within $c$ and $c+h$.
@@ -942,7 +942,7 @@ It is this characterization of differentiable that is generalized to define when
 >
 > $\|f(C + \vec{h}) - f(C) - \nabla{f}(C) \cdot \vec{h}\| = \mathcal{o}(\|\vec{h}\|),$
 >
-> where $\mathcal{o}(\|\vec{h}\|)$ means that dividing the left hand side by $\|\vec{h}\|$ and taking a limit as $\vec{h}\rightarrow 0$ the limit will be $0$..
+> where $\mathcal{o}(\|\vec{h}\|)$ means that dividing the left hand side by $\|\vec{h}\|$ and taking a limit as $\vec{h}\rightarrow 0$ the limit will be $0$.
 
 
 
@@ -1103,7 +1103,7 @@ the average is $50$ degrees. As for the maximum slope:
 
 ```{julia}
 #| hold: true
-cps = find_zeros(slope, 0, pi/2) # critical points
+cps = find_zeros(slope', 0, pi/2) # critical points
 
 append!(cps, (0, pi/2))  # add end points
 unique!(cps)
@@ -1129,12 +1129,12 @@ Then the function $f \circ \vec\gamma(t)$ will have a derivative when $f$ is dif
 
 
 $$
-(f\circ\vec\gamma)'(\vec\gamma(t)) = \nabla{f}(\vec\gamma(t)) \cdot \vec\gamma'(t) =
+(f\circ\vec\gamma)'(t) = \nabla{f}(\vec\gamma(t)) \cdot \vec\gamma'(t) =
 \nabla{f}(\vec\gamma(t)) \cdot \langle a, b\rangle =
 \vec{v} \cdot \nabla{f}(\vec\gamma(t)).
 $$
 
-At $t=0$, we see that $(f\circ\vec\gamma)'(C) = \nabla{f}(C)\cdot \vec{v}$.
+At $t=0$, we see that $(f\circ\vec\gamma)'(0) = \nabla{f}(C)\cdot \vec{v}$.
 
 
 This defines the *directional derivative* at $C$ in the direction $\vec{v}$:
@@ -1303,7 +1303,7 @@ $$
 \nabla{f} \cdot \vec{v} = \nabla{f}  \cdot (a\nabla{f}(C) + b \vec{T}) = a \| \nabla{f} \|^2  + b \nabla{f} \cdot \vec{T} = a \| \nabla{f} \|^2.
 $$
 
-The will be largest when $a=1$ and $b=0$. That is, the direction of greatest ascent in indicated by the gradient. (It is smallest when $a=-1$ and $b=0$, the direction opposite the gradient.
+It will be largest when $a=1$ and $b=0$. That is, the direction of greatest ascent is indicated by the gradient. (It is smallest when $a=-1$ and $b=0$, the direction opposite the gradient.
 
 
 In practical terms, if standing on a hill, walking in the direction of the gradient will go uphill the fastest possible way, walking along a contour will not gain any elevation. The two directions are orthogonal.
@@ -1339,7 +1339,7 @@ and
 
 
 $$
-\nabla{F} = \nabla{f \circ G} = f'(G(x,y)) \nabla{G}(x,y).
+\nabla{F} = \nabla{(f \circ G)} = f'(G(x,y)) \nabla{G}(x,y).
 $$
 
 The result is an immediate application of the univariate chain rule, when the partial functions are considered.
@@ -1366,9 +1366,9 @@ If $G(u_1, \dots, u_m) = \langle G_1, G_2,\dots, G_n\rangle$ is a function of $m
 
 $$
 \frac{\partial (f \circ G)}{\partial u_i} =
-\frac{\partial f}{\partial v_1} \frac{\partial G}{\partial u_i} +
-\frac{\partial f}{\partial v_2} \frac{\partial G}{\partial u_i} + \dots +
-\frac{\partial f}{\partial v_n} \frac{\partial G}{\partial u_i}.
+\frac{\partial f}{\partial v_1} \frac{\partial G_1}{\partial u_i} +
+\frac{\partial f}{\partial v_2} \frac{\partial G_2}{\partial u_i} + \dots +
+\frac{\partial f}{\partial v_n} \frac{\partial G_n}{\partial u_i}.
 $$
 
 The gradient is then:
@@ -1381,7 +1381,7 @@ $$
 \frac{\partial f}{\partial v_n} \nabla{G_n} = \nabla(f) \cdot \langle \nabla{G_1}, \nabla{G_2}, \dots, \nabla{G_n} \rangle,
 $$
 
-The last expression is a suggestion, as it is an abuse of previously used notation: the dot product isn't between vectors of the same type, as the rightmost vector is representing a vector of vectors. The [Jacobian](https://en.wikipedia.org/wiki/Jacobian_matrix_and_determinant) matrix combines these vectors into a rectangular array, though with the vectors written as *row* vectors. If $G: R^m \rightarrow R^n$, then the Jacobian is the $n \times m$ matrix with $(i,j)$ entry given by $\partial G_i, \partial u_j$:
+The last expression is a suggestion, as it is an abuse of previously used notation: the dot product isn't between vectors of the same type, as the rightmost vector is representing a vector of vectors. The [Jacobian](https://en.wikipedia.org/wiki/Jacobian_matrix_and_determinant) matrix combines these vectors into a rectangular array, though with the vectors written as *row* vectors. If $G: R^m \rightarrow R^n$, then the Jacobian is the $n \times m$ matrix with $(i,j)$ entry given by $\partial G_i/ \partial u_j$:
 
 $$
 J =
@@ -1402,7 +1402,7 @@ With this notation, and matrix multiplication we have $(\nabla(f\circ G))^t = \n
 ##### Example
 
 
-Let $f(x,y) = x^2 + y^2$ be a scalar function. We have if $G(r, \theta) = \langle r\cos(\theta)(, r\sin(\theta) \rangle$ then after simplification, we have $(f \circ G)(r, \theta) = r^2$. Clearly then $\partial(f\circ G)/\partial r = 2r$ and $\partial(f\circ G)/\partial \theta = 0$.
+Let $f(x,y) = x^2 + y^2$ be a scalar function. We have if $G(r, \theta) = \langle r\cos(\theta), r\sin(\theta) \rangle$ then after simplification, we have $(f \circ G)(r, \theta) = r^2$. Clearly then $\partial(f\circ G)/\partial r = 2r$ and $\partial(f\circ G)/\partial \theta = 0$.
 
 
 Were this computed through the chain rule, we have:
@@ -1885,13 +1885,13 @@ The gradient points in the direction of greatest increase of $f$. If a person we
 choices = [
     raw"`` \langle f_x, f_y, -1 \rangle``",
     raw"`` \langle -f_x, -f_y, 1 \rangle``",
-    raw"`` \langle f_x, f_y \rangle``"
+    raw"`` \langle f_x, f_y, 1 \rangle``"
 ]
-answ = 1
+answ = 3
 radioq(choices, answ)
 ```
 
-##### Question
+###### Question
 
 
 The figure shows climbers on their way to summit Mt. Everest:
@@ -1967,7 +1967,7 @@ In the figure, the climbers are making a switch back, so as to avoid the steeper
 choices = [
     L"Keep $\cos(\theta)$ smaller than $1$, so that the slope taken is not too great",
     L"Keep $\cos(\theta)$ as close to $1$ as possible, so the slope taken is as big as possible",
-    L"Keep $̧\cos(\theta)$ as close to $0$ as possible, so that they climbers don't waste energy going up and down"
+    L"Keep $\cos(\theta)$ as close to $0$ as possible, so that they climbers don't waste energy going up and down"
 ]
 answ = 1
 radioq(choices, answ)
@@ -1994,7 +1994,7 @@ radioq(choices, answ)
 Building sustainable hiking trails involves proper water management. Two rules of thumb are 1) the trail should not be steeper than 10 degrees 2) the outward slope (in the steepest downhill direction) should be around 5%. (A trail tread is not flat, but rather sloped downward, similar to the crown on a road, so that water will run to the downhill side of the tread, not along the tread, which would cause erosion. In the best possible world, the outslope will exceed the downward slope.)
 
 
-Suppose a trail height is described parametrically by a composition $(f \circ \vec\gamma)(t))$, where $\vec\gamma(t) = \langle x(t),y(t)\rangle$. The vector $\vec{T}(t) = \langle x(t), y(t), \nabla{f}(\vec\gamma(t)) \rangle$ describes the tangent to the trail at a point ($\vec\gamma(t)$). Let $\hat{T}(t)$ be the unit normal, and $\hat{P}(t)$ be a unit normal in the direction of the *projection* of $\vec{T}$ onto the $x$-$y$ plane. (Make the third component of $\vec{T}$ $0$, and then form a unit vector from that.)
+Suppose a trail height is described parametrically by a composition $(f \circ \vec\gamma)(t)$, where $\vec\gamma(t) = \langle x(t),y(t)\rangle$. The vector $\vec{T}(t) = \langle x'(t), y'(t), \nabla{f}(\vec\gamma(t)) \cdot \vec\gamma '(t) \rangle$ describes the tangent to the trail at a point ($\vec\gamma(t)$). Let $\hat{T}(t)$ be the unit normal, and $\hat{P}(t)$ be a unit normal in the direction of the *projection* of $\vec{T}$ onto the $x$-$y$ plane. (Make the third component of $\vec{T}$ $0$, and then form a unit vector from that.)
 
 
 What expression below captures point 1 that the steepness should be no more than 10 degrees ($\pi/18$ radians):
@@ -2217,7 +2217,7 @@ answ = 1
 radioq(choices, answ)
 ```
 
-Suppose, $H$ has the magic property that for *any* vector $\vec{v}^tH\vec{v} < 0$. What does this imply:
+Suppose, $H$ has the magic property that for *any* vector $\vec{v}^tH\vec{v} \ge 0$. What does this imply:
 
 
 ```{julia}
