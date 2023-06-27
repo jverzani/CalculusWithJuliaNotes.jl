@@ -689,7 +689,7 @@ f'(x) \approx \frac{f(x+h) - f(x-h)}{2h}.
 <p>As such there is a balancing act:</p>
 <ul>
 <li>if <span class="math inline">\(h\)</span> is too small the round-off errors are problematic,</li>
-<li>if <span class="math inline">\(h\)</span> is too big, the approximation to the limit is not good.</li>
+<li>if <span class="math inline">\(h\)</span> is too big the approximation to the limit is not good.</li>
 </ul>
 <p>For the forward difference <span class="math inline">\(h\)</span> values around <span class="math inline">\(10^{-8}\)</span> are typically good, for the central difference, values around <span class="math inline">\(10^{-6}\)</span> are typically good.</p>
 <section id="example" class="level5">
@@ -708,10 +708,10 @@ f'(x) \approx \frac{f(x+h) - f(x-h)}{2h}.
 <div class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> x</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> <span class="fu">diff</span>(<span class="fu">f</span>(x), x)</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>factual <span class="op">=</span> <span class="fu">N</span>(<span class="fu">df</span>(c))</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>factual <span class="op">=</span> <span class="fu">convert</span>(<span class="dt">Float64</span>, <span class="fu">df</span>(c))</span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">abs</span>(factual <span class="op">-</span> fapprox)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="8">
-<pre><code>1.178403974334123392219821170344191813548718695568289215873505651941374433299215e-08</code></pre>
+<pre><code>1.1784039744000552e-8</code></pre>
 </div>
 </div>
 <p>The error is about <span class="math inline">\(1\)</span> part in <span class="math inline">\(100\)</span> million.</p>
@@ -721,7 +721,7 @@ f'(x) \approx \frac{f(x+h) - f(x-h)}{2h}.
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>cdapprox <span class="op">=</span> (<span class="fu">f</span>(c<span class="op">+</span>h) <span class="op">-</span> <span class="fu">f</span>(c<span class="op">-</span>h)) <span class="op">/</span> (<span class="fl">2</span>h)</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">abs</span>(factual <span class="op">-</span> cdapprox)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="9">
-<pre><code>1.567568231457459370771602167922282298718695568289215873505651941374433299214873e-11</code></pre>
+<pre><code>1.5675682973892435e-11</code></pre>
 </div>
 </div>
 <hr>
@@ -745,7 +745,7 @@ f'(x) \approx \frac{f(x+h) - f(x-h)}{2h}.
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>fauto <span class="op">=</span> <span class="fu">D</span>(f)(c)         <span class="co"># D(f) is a function, D(f)(c) is the function called on c</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">abs</span>(factual <span class="op">-</span> fauto)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="11">
-<pre><code>6.593178415491414032952187053331255443171078412649434805862556670078512733295529e-19</code></pre>
+<pre><code>0.0</code></pre>
 </div>
 </div>
 <p>In this case, it is exact.</p>
@@ -755,16 +755,16 @@ f'(x) \approx \frac{f(x+h) - f(x-h)}{2h}.
 <p>For <span class="math inline">\(f(x) = \sqrt{1 + \sin(\cos(x))}\)</span> compare the difference between the forward derivative with <span class="math inline">\(h=1e-8\)</span> and that computed by <code>D</code> at <span class="math inline">\(x=\pi/4\)</span>.</p>
 <p>The forward derivative is found with:</p>
 <div class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">𝒇</span>(x) <span class="op">=</span> <span class="fu">sqrt</span>(<span class="fl">1</span> <span class="op">+</span> <span class="fu">sin</span>(<span class="fu">cos</span>(x)))</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>𝒄, 𝒉 <span class="op">=</span> <span class="cn">pi</span><span class="op">/</span><span class="fl">4</span>, <span class="fl">1e-8</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>fwd <span class="op">=</span> (<span class="fu">𝒇</span>(𝒄<span class="op">+</span>𝒉) <span class="op">-</span> <span class="fu">𝒇</span>(𝒄))<span class="op">/</span>𝒉</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">f</span>(x) <span class="op">=</span> <span class="fu">sqrt</span>(<span class="fl">1</span> <span class="op">+</span> <span class="fu">sin</span>(<span class="fu">cos</span>(x)))</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>c, h <span class="op">=</span> <span class="cn">pi</span><span class="op">/</span><span class="fl">4</span>, <span class="fl">1e-8</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>fwd <span class="op">=</span> (<span class="fu">f</span>(c<span class="op">+</span>h) <span class="op">-</span> <span class="fu">f</span>(c))<span class="op">/</span>h</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="12">
 <pre><code>-0.20927346522370271</code></pre>
 </div>
 </div>
 <p>That given by <code>D</code> is:</p>
 <div class="cell" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>ds_value <span class="op">=</span> <span class="fu">D</span>(𝒇)(𝒄)</span>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>ds_value <span class="op">=</span> <span class="fu">D</span>(f)(c)</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>ds_value, fwd, ds_value <span class="op">-</span> fwd</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="13">
 <pre><code>(-0.20927346371432803, -0.20927346522370271, 1.5093746807970376e-9)</code></pre>
@@ -772,7 +772,7 @@ f'(x) \approx \frac{f(x+h) - f(x-h)}{2h}.
 </div>
 <p>Finally, <code>SymPy</code> gives an exact value we use to compare:</p>
 <div class="cell" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>𝒇𝒑 <span class="op">=</span> <span class="fu">diff</span>(<span class="fu">𝒇</span>(x), x)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>fp <span class="op">=</span> <span class="fu">diff</span>(<span class="fu">f</span>(x), x)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="14">
 <span class="math-left-align" style="padding-left: 4px; width:0; float:left;"> 
 \[
@@ -782,10 +782,10 @@ f'(x) \approx \frac{f(x+h) - f(x-h)}{2h}.
 </div>
 </div>
 <div class="cell" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>actual <span class="op">=</span> <span class="fu">N</span>(<span class="fu">𝒇𝒑</span>(PI<span class="op">/</span><span class="fl">4</span>))</span>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>actual <span class="op">=</span> <span class="fu">convert</span>(<span class="dt">Float64</span>, <span class="fu">fp</span>(PI<span class="op">/</span><span class="fl">4</span>))</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>actual <span class="op">-</span> ds_value, actual <span class="op">-</span> fwd</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="15">
-<pre><code>(-5.2941373495493281085179064170722727004081123938542546154188381086149403149753e-17, 1.509374627855664131196135271205690010185476120918876061457453845811618913850597e-09)</code></pre>
+<pre><code>(-5.551115123125783e-17, 1.5093746252858864e-9)</code></pre>
 </div>
 </div>
 </section>
@@ -861,43 +861,43 @@ Note
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "q39ARWRe"
+var ID = "q4Rv8Mdn"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="q39ARWRe" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="q4Rv8Mdn" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_q39ARWRe">
+      <div class="form" id="controls_q4Rv8Mdn">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="q39ARWRe" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="q4Rv8Mdn" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="q39ARWRe_message" style="padding-bottom: 15px"></div>
+      <div id="q4Rv8Mdn_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("q39ARWRe").addEventListener("change", function() {
+document.getElementById("q4Rv8Mdn").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 7.496380917422423) <= 0.001);
-  var msgBox = document.getElementById('q39ARWRe_message');
+  var msgBox = document.getElementById('q4Rv8Mdn_message');
   
-    quizquestions_scorecard["q39ARWRe"]["attempts"] += 1;
+    quizquestions_scorecard["q4Rv8Mdn"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_q39ARWRe")
+    var explanation = document.getElementById("explanation_q4Rv8Mdn")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["q39ARWRe"]["correct"] = true;
+      quizquestions_scorecard["q4Rv8Mdn"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -905,11 +905,11 @@ document.getElementById("q39ARWRe").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_q39ARWRe")
+    var explanation = document.getElementById("explanation_q4Rv8Mdn")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["q39ARWRe"]["correct"] = false;
+      quizquestions_scorecard["q4Rv8Mdn"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -928,43 +928,43 @@ document.getElementById("q39ARWRe").addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "mc14BOic"
+var ID = "TT206gL1"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="mc14BOic" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="TT206gL1" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_mc14BOic">
+      <div class="form" id="controls_TT206gL1">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="mc14BOic" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="TT206gL1" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="mc14BOic_message" style="padding-bottom: 15px"></div>
+      <div id="TT206gL1_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("mc14BOic").addEventListener("change", function() {
+document.getElementById("TT206gL1").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 6.772588722239782) <= 0.001);
-  var msgBox = document.getElementById('mc14BOic_message');
+  var msgBox = document.getElementById('TT206gL1_message');
   
-    quizquestions_scorecard["mc14BOic"]["attempts"] += 1;
+    quizquestions_scorecard["TT206gL1"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_mc14BOic")
+    var explanation = document.getElementById("explanation_TT206gL1")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["mc14BOic"]["correct"] = true;
+      quizquestions_scorecard["TT206gL1"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -972,11 +972,11 @@ document.getElementById("mc14BOic").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_mc14BOic")
+    var explanation = document.getElementById("explanation_TT206gL1")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["mc14BOic"]["correct"] = false;
+      quizquestions_scorecard["TT206gL1"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -999,43 +999,43 @@ document.getElementById("mc14BOic").addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "YUXVXGBH"
+var ID = "DSxE3QNq"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="YUXVXGBH" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="DSxE3QNq" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_YUXVXGBH">
+      <div class="form" id="controls_DSxE3QNq">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="YUXVXGBH" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="DSxE3QNq" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="YUXVXGBH_message" style="padding-bottom: 15px"></div>
+      <div id="DSxE3QNq_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("YUXVXGBH").addEventListener("change", function() {
+document.getElementById("DSxE3QNq").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 0.0) <= 0.001);
-  var msgBox = document.getElementById('YUXVXGBH_message');
+  var msgBox = document.getElementById('DSxE3QNq_message');
   
-    quizquestions_scorecard["YUXVXGBH"]["attempts"] += 1;
+    quizquestions_scorecard["DSxE3QNq"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_YUXVXGBH")
+    var explanation = document.getElementById("explanation_DSxE3QNq")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["YUXVXGBH"]["correct"] = true;
+      quizquestions_scorecard["DSxE3QNq"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1043,11 +1043,11 @@ document.getElementById("YUXVXGBH").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_YUXVXGBH")
+    var explanation = document.getElementById("explanation_DSxE3QNq")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["YUXVXGBH"]["correct"] = false;
+      quizquestions_scorecard["DSxE3QNq"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1066,43 +1066,43 @@ document.getElementById("YUXVXGBH").addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "yMtgg1xu"
+var ID = "ygdbn5Eg"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="yMtgg1xu" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="ygdbn5Eg" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_yMtgg1xu">
+      <div class="form" id="controls_ygdbn5Eg">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="yMtgg1xu" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="ygdbn5Eg" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="yMtgg1xu_message" style="padding-bottom: 15px"></div>
+      <div id="ygdbn5Eg_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("yMtgg1xu").addEventListener("change", function() {
+document.getElementById("ygdbn5Eg").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 0.40311624343860897) <= 0.001);
-  var msgBox = document.getElementById('yMtgg1xu_message');
+  var msgBox = document.getElementById('ygdbn5Eg_message');
   
-    quizquestions_scorecard["yMtgg1xu"]["attempts"] += 1;
+    quizquestions_scorecard["ygdbn5Eg"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_yMtgg1xu")
+    var explanation = document.getElementById("explanation_ygdbn5Eg")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["yMtgg1xu"]["correct"] = true;
+      quizquestions_scorecard["ygdbn5Eg"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1110,11 +1110,11 @@ document.getElementById("yMtgg1xu").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_yMtgg1xu")
+    var explanation = document.getElementById("explanation_ygdbn5Eg")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["yMtgg1xu"]["correct"] = false;
+      quizquestions_scorecard["ygdbn5Eg"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1136,43 +1136,43 @@ document.getElementById("yMtgg1xu").addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "HKKYqXaN"
+var ID = "L0mWlwgW"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="HKKYqXaN" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="L0mWlwgW" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_HKKYqXaN">
+      <div class="form" id="controls_L0mWlwgW">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="HKKYqXaN" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="L0mWlwgW" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="HKKYqXaN_message" style="padding-bottom: 15px"></div>
+      <div id="L0mWlwgW_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("HKKYqXaN").addEventListener("change", function() {
+document.getElementById("L0mWlwgW").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 56.66253179403897) <= 0.001);
-  var msgBox = document.getElementById('HKKYqXaN_message');
+  var msgBox = document.getElementById('L0mWlwgW_message');
   
-    quizquestions_scorecard["HKKYqXaN"]["attempts"] += 1;
+    quizquestions_scorecard["L0mWlwgW"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_HKKYqXaN")
+    var explanation = document.getElementById("explanation_L0mWlwgW")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["HKKYqXaN"]["correct"] = true;
+      quizquestions_scorecard["L0mWlwgW"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1180,11 +1180,11 @@ document.getElementById("HKKYqXaN").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_HKKYqXaN")
+    var explanation = document.getElementById("explanation_L0mWlwgW")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["HKKYqXaN"]["correct"] = false;
+      quizquestions_scorecard["L0mWlwgW"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1206,43 +1206,43 @@ document.getElementById("HKKYqXaN").addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "0scGYwP9"
+var ID = "AElLLyhx"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="0scGYwP9" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="AElLLyhx" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_0scGYwP9">
+      <div class="form" id="controls_AElLLyhx">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="0scGYwP9" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="AElLLyhx" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="0scGYwP9_message" style="padding-bottom: 15px"></div>
+      <div id="AElLLyhx_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("0scGYwP9").addEventListener("change", function() {
+document.getElementById("AElLLyhx").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 0.25) <= 0.001);
-  var msgBox = document.getElementById('0scGYwP9_message');
+  var msgBox = document.getElementById('AElLLyhx_message');
   
-    quizquestions_scorecard["0scGYwP9"]["attempts"] += 1;
+    quizquestions_scorecard["AElLLyhx"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_0scGYwP9")
+    var explanation = document.getElementById("explanation_AElLLyhx")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["0scGYwP9"]["correct"] = true;
+      quizquestions_scorecard["AElLLyhx"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1250,11 +1250,11 @@ document.getElementById("0scGYwP9").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_0scGYwP9")
+    var explanation = document.getElementById("explanation_AElLLyhx")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["0scGYwP9"]["correct"] = false;
+      quizquestions_scorecard["AElLLyhx"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1276,43 +1276,43 @@ document.getElementById("0scGYwP9").addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "G5FSpIGw"
+var ID = "MWftYOYo"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="G5FSpIGw" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="MWftYOYo" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_G5FSpIGw">
+      <div class="form" id="controls_MWftYOYo">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="G5FSpIGw" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="MWftYOYo" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="G5FSpIGw_message" style="padding-bottom: 15px"></div>
+      <div id="MWftYOYo_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("G5FSpIGw").addEventListener("change", function() {
+document.getElementById("MWftYOYo").addEventListener("change", function() {
   var correct = (Math.abs(this.value - -1.1400385675133151) <= 0.001);
-  var msgBox = document.getElementById('G5FSpIGw_message');
+  var msgBox = document.getElementById('MWftYOYo_message');
   
-    quizquestions_scorecard["G5FSpIGw"]["attempts"] += 1;
+    quizquestions_scorecard["MWftYOYo"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_G5FSpIGw")
+    var explanation = document.getElementById("explanation_MWftYOYo")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["G5FSpIGw"]["correct"] = true;
+      quizquestions_scorecard["MWftYOYo"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1320,11 +1320,11 @@ document.getElementById("G5FSpIGw").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_G5FSpIGw")
+    var explanation = document.getElementById("explanation_MWftYOYo")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["G5FSpIGw"]["correct"] = false;
+      quizquestions_scorecard["MWftYOYo"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1346,43 +1346,43 @@ document.getElementById("G5FSpIGw").addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "gFnnqLxs"
+var ID = "XO5RyKdy"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="gFnnqLxs" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="XO5RyKdy" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_gFnnqLxs">
+      <div class="form" id="controls_XO5RyKdy">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="gFnnqLxs" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="XO5RyKdy" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="gFnnqLxs_message" style="padding-bottom: 15px"></div>
+      <div id="XO5RyKdy_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("gFnnqLxs").addEventListener("change", function() {
+document.getElementById("XO5RyKdy").addEventListener("change", function() {
   var correct = (Math.abs(this.value - -0.011912976768252426) <= 0.001);
-  var msgBox = document.getElementById('gFnnqLxs_message');
+  var msgBox = document.getElementById('XO5RyKdy_message');
   
-    quizquestions_scorecard["gFnnqLxs"]["attempts"] += 1;
+    quizquestions_scorecard["XO5RyKdy"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_gFnnqLxs")
+    var explanation = document.getElementById("explanation_XO5RyKdy")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["gFnnqLxs"]["correct"] = true;
+      quizquestions_scorecard["XO5RyKdy"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1390,11 +1390,11 @@ document.getElementById("gFnnqLxs").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_gFnnqLxs")
+    var explanation = document.getElementById("explanation_XO5RyKdy")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["gFnnqLxs"]["correct"] = false;
+      quizquestions_scorecard["XO5RyKdy"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1416,43 +1416,43 @@ document.getElementById("gFnnqLxs").addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "0ERUyCbu"
+var ID = "FtOAQimR"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="0ERUyCbu" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="FtOAQimR" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_0ERUyCbu">
+      <div class="form" id="controls_FtOAQimR">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="0ERUyCbu" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="FtOAQimR" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="0ERUyCbu_message" style="padding-bottom: 15px"></div>
+      <div id="FtOAQimR_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("0ERUyCbu").addEventListener("change", function() {
+document.getElementById("FtOAQimR").addEventListener("change", function() {
   var correct = (Math.abs(this.value - -32) <= 0);
-  var msgBox = document.getElementById('0ERUyCbu_message');
+  var msgBox = document.getElementById('FtOAQimR_message');
   
-    quizquestions_scorecard["0ERUyCbu"]["attempts"] += 1;
+    quizquestions_scorecard["FtOAQimR"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_0ERUyCbu")
+    var explanation = document.getElementById("explanation_FtOAQimR")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["0ERUyCbu"]["correct"] = true;
+      quizquestions_scorecard["FtOAQimR"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1460,11 +1460,11 @@ document.getElementById("0ERUyCbu").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_0ERUyCbu")
+    var explanation = document.getElementById("explanation_FtOAQimR")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["0ERUyCbu"]["correct"] = false;
+      quizquestions_scorecard["FtOAQimR"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1486,43 +1486,43 @@ document.getElementById("0ERUyCbu").addEventListener("change", function() {
 if (typeof quizquestions_scorecard === 'undefined') {
    quizquestions_scorecard = {};
 }
-var ID = "xpU83ZeF"
+var ID = "ly1Me3ya"
 if (typeof quizquestions_scorecard[ID] === 'undefined') {
       quizquestions_scorecard[ID] = {attempts: 0, correct: false};
 }
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="xpU83ZeF" data-controltype="">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="ly1Me3ya" data-controltype="">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_xpU83ZeF">
+      <div class="form" id="controls_ly1Me3ya">
         <div style="padding-top: 5px">
     <br>
 <div class="input-group">
-    <input id="xpU83ZeF" type="number" class="form-control" placeholder="Numeric answer">
+    <input id="ly1Me3ya" type="number" class="form-control" placeholder="Numeric answer">
 </div>
 
     
         </div>
       </div>
-      <div id="xpU83ZeF_message" style="padding-bottom: 15px"></div>
+      <div id="ly1Me3ya_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 
 <script text="text/javascript">
-document.getElementById("xpU83ZeF").addEventListener("change", function() {
+document.getElementById("ly1Me3ya").addEventListener("change", function() {
   var correct = (Math.abs(this.value - 322) <= 0);
-  var msgBox = document.getElementById('xpU83ZeF_message');
+  var msgBox = document.getElementById('ly1Me3ya_message');
   
-    quizquestions_scorecard["xpU83ZeF"]["attempts"] += 1;
+    quizquestions_scorecard["ly1Me3ya"]["attempts"] += 1;
 
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_xpU83ZeF")
+    var explanation = document.getElementById("explanation_ly1Me3ya")
     if (explanation != null) {
        explanation.style.display = "none";
     }
-      quizquestions_scorecard["xpU83ZeF"]["correct"] = true;
+      quizquestions_scorecard["ly1Me3ya"]["correct"] = true;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
@@ -1530,11 +1530,11 @@ document.getElementById("xpU83ZeF").addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_xpU83ZeF")
+    var explanation = document.getElementById("explanation_ly1Me3ya")
     if (explanation != null) {
        explanation.style.display = "block";
     }
-      quizquestions_scorecard["xpU83ZeF"]["correct"] = false;
+      quizquestions_scorecard["ly1Me3ya"]["correct"] = false;
   if (typeof score_summary !== 'undefined') {
      score_summary()
   }
