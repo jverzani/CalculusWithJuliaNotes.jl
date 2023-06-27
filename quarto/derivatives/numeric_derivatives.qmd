@@ -45,7 +45,7 @@ As such there is a balancing act:
 
 
   * if $h$ is too small the round-off errors are problematic,
-  * if $h$ is too big, the approximation to the limit is not good.
+  * if $h$ is too big the approximation to the limit is not good.
 
 
 For the forward difference $h$ values around $10^{-8}$ are typically good, for the central difference, values around $10^{-6}$ are typically good.
@@ -70,7 +70,7 @@ We can compare to the actual with:
 ```{julia}
 @syms x
 df = diff(f(x), x)
-factual = N(df(c))
+factual = convert(Float64, df(c))
 abs(factual - fapprox)
 ```
 
@@ -136,16 +136,16 @@ The forward derivative is found with:
 
 
 ```{julia}
-𝒇(x) = sqrt(1 + sin(cos(x)))
-𝒄, 𝒉 = pi/4, 1e-8
-fwd = (𝒇(𝒄+𝒉) - 𝒇(𝒄))/𝒉
+f(x) = sqrt(1 + sin(cos(x)))
+c, h = pi/4, 1e-8
+fwd = (f(c+h) - f(c))/h
 ```
 
 That given by `D` is:
 
 
 ```{julia}
-ds_value = D(𝒇)(𝒄)
+ds_value = D(f)(c)
 ds_value, fwd, ds_value - fwd
 ```
 
@@ -153,11 +153,11 @@ Finally, `SymPy` gives an exact value we use to compare:
 
 
 ```{julia}
-𝒇𝒑 = diff(𝒇(x), x)
+fp = diff(f(x), x)
 ```
 
 ```{julia}
-actual = N(𝒇𝒑(PI/4))
+actual = convert(Float64, fp(PI/4))
 actual - ds_value, actual - fwd
 ```
 
