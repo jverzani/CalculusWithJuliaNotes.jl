@@ -45,7 +45,7 @@ The multidimensional case will prove to be similar where a Riemann sum is used t
 #| hold: true
 #| echo: false
 imgfile = "figures/chrysler-building-in-new-york.jpg"
-caption = """How to estimate the volume contained within the Chrysler Building? One way might be to break the building up into tall vertical blocks based on its skyline;  compute the volume of each block using the formula of volume as area of the base times the height; and, finally, adding up the computed volumes This is the basic idea of finding volumes under surfaces using Riemann integration."""
+caption = """How to estimate the volume contained within the Chrysler Building? One way might be to break the building up into tall vertical blocks based on its skyline;  compute the volume of each block using the formula of volume as area of the base times the height; and, finally, adding up the computed volumes. This is the basic idea of finding volumes under surfaces using Riemann integration."""
 #ImageFile(:integral_vector_calculus, imgfile, caption)
 nothing
 ```
@@ -68,7 +68,7 @@ nothing
 Computing the volume of a nano-block construction of the Chrysler building is easier than trying to find an actual tree at the Chrysler building, as we can easily compute the volume of columns of equal-sized blocks. Riemann sums are similar.
 ](./figures/chrysler-nano-block.png)
 
-The definition of the  multi-dimensional integral is more involved then the one-dimensional case due to the possibly increased complexity of the region. This will require additional [steps](https://math.okstate.edu/people/lebl/osu4153-s16/chapter10-ver1.pdf). The basic approach is as follows.
+The definition of the  multi-dimensional integral is more involved than the one-dimensional case due to the possibly increased complexity of the region. This will require additional [steps](https://math.okstate.edu/people/lebl/osu4153-s16/chapter10-ver1.pdf). The basic approach is as follows.
 
 
 First, let $R = [a_1, b_1] \times [a_2, b_2] \times \cdots \times [a_n, b_n]$ be a closed rectangular region. If $n=2$, this is a rectangle, and if $n=3$, a box. We begin by defining integration over closed rectangular regions. For each side, a partition $P_i$ is chosen based on $a_i = x_{i0} < x_{i1} < \cdots < x_{ik} = b_i$. Then a sub-rectangular region would be of the form $R' = P_{1j_1} \times P_{2j_2} \times \cdots \times P_{nj_n}$, where $P_{ij_i}$ is one of the partitioning sub intervals of $[a_i, b_i]$. Set $\Delta R' = \Delta P_{1j_1} \cdot \Delta P_{2j_2} \cdot\cdots\cdot\Delta P_{nj_n}$ to be the $n$-dimensional volume of the sub-rectangular region.
@@ -260,8 +260,8 @@ We might try integrating a function with a condition:
 ```{julia}
 #| hold: true
 function f(x, y, r)
-    if x^2 + y^2 < r
-        sqrt(z - x^2 + y^2)
+    if x^2 + y^2 < r^2
+        sqrt(r^2 - (x^2 + y^2))
     else
         0.0
     end
@@ -295,7 +295,7 @@ Let the *measure* of a rectangular region be its volume and for any subset of $S
 In two dimensions, if $S$ is viewed on a grid, then this would be *area* of the smallest collection of cells that contain any part of $S$. This is the smallest this value takes as the grid becomes infinite.
 
 
-For the following graph, there are $100$ cells each of area $8/100$. Their are 58 cells covering the curve and its interior. So the outer measure is less than $58\cdot 8/100$, as this is just one possible covering.
+For the following graph, there are $100$ cells each of area $8/100$. Their are 48 cells covering the curve and its interior. So the outer measure is less than $48\cdot 8/100$, as this is just one possible covering.
 
 
 ```{julia}
@@ -416,7 +416,7 @@ In [Ferzola](https://doi.org/10.2307/2687130) we can read a summary of Euler's t
 #| hold: true
 #| echo: false
 imgfile ="figures/strang-slicing.png"
-caption = L"""Figure 14.2 of Strang illustrating the slice when either $x$ is fixed or $y$ is fixed. The inner integral computes the shared area, the outer integral adds the areas up to compute volume."""
+caption = L"""Figure 14.2 of Strang illustrating the slice when either $x$ is fixed or $y$ is fixed. The inner integral computes the shaded area, the outer integral adds the areas up to compute volume."""
 
 # ImageFile(:integral_vector_calculus, imgfile, caption)
 nothing
@@ -434,17 +434,17 @@ For example, we return to the problem of a square pyramid, only now using symmet
 
 
 $$
-V = 8 \int_0^{a/2} \int_0^x h(l(x,y) - d(x,y))/l(x,y) dy dx.
+V = 8 \int_0^{a/2} \int_0^x h \cdot (l(x,y) - d(x,y))/l(x,y) dy dx.
 $$
 
 But, using similar triangles, we have $d/x = l/(a/2)$ so $(l-d)/l = 1 - 2x/a$. Continuing, our answer becomes
 
 
 $$
-V = 8 \int_0^{a/2} (\int_0^x h(1-\frac{2x}{a}) dy) dx =
-8 \int_0^{a/2} (h(1-2x/a) \cdot x) dx =
-8 (hx^2_2 \big\lvert_{0}^{a/2} - \frac{2}{a}\frac{x^3}{3}\big\lvert_0^{a/2})=
-8 h(\frac{a^2}{8} - \frac{2}{24}a^2) = \frac{a^2h}{3}.
+V = 8 \int_0^{a/2} (\int_0^x h \cdot (1-\frac{2x}{a}) dy) dx =
+8 \int_0^{a/2} (h \cdot (1-2x/a) \cdot x) dx =
+8 h \cdot (\frac{x^2}{2} \big\lvert_{0}^{a/2} - \frac{2}{a}\frac{x^3}{3}\big\lvert_0^{a/2})=
+8 h \cdot (\frac{a^2}{8} - \frac{2}{24}a^2) = \frac{a^2h}{3}.
 $$
 
 ### `SymPy`'s `integrate`
@@ -468,7 +468,7 @@ the call would look like:
 integrate(f(x,y), (y, h(x), g(x)), (x, a, b))
 ```
 
-That is, the variable to integrate and the endpoints are passed as tuples. (Unlike `hcubature` which always uses two tuples to specify the bounds, `integrate` uses $n$ tuples to specify an $n$-dimensional integral.) The iteration happens from left to write, so in the above the `y` integral is done (and, as seen, may depend on the variable `x`) and then the `x` integral is performed. The above uses `f(x,y)`, `h(x)` and `g(x)`, but these may be simple symbolic expressions and not function calls using symbolic variables.
+That is, the variable to integrate and the endpoints are passed as tuples. (Unlike `hcubature` which always uses two tuples to specify the bounds, `integrate` uses $n$ tuples to specify an $n$-dimensional integral.) The iteration happens from left to right, so in the above the `y` integral is done (and, as seen, may depend on the variable `x`) and then the `x` integral is performed. The above uses `f(x,y)`, `h(x)` and `g(x)`, but these may be simple symbolic expressions and not function calls using symbolic variables.
 
 
 We define `x` and `y` below for use throughout:
@@ -579,7 +579,7 @@ Let $r=1$ and define three cylinders along the $x$, $y$, and $z$ axes by: $y^2+z
 Using the cylinder along the $z$ axis, we have the volume sits above and below the disk $R = x^2 + y^2 \leq r^2$. By symmetry, we can double the volume that sits above the disk to answer the question.
 
 
-Using symmetry, we can tell that the the wedge between $x=0$, $y=x$, and $x^2 + y^2 \leq 1$ (corresponding to a polar angle in $[0,\pi/4]$ in $R$ contains $1/8$ the volume of the top, so $1/16$ of the total.
+Using symmetry, we can tell that the wedge between $y=0$, $y=x$, and $x^2 + y^2 \leq 1$ (corresponding to a polar angle in $[0,\pi/4]$ in $R$ contains $1/8$ the volume of the top, so $1/16$ of the total.
 
 
 ```{julia}
@@ -650,7 +650,7 @@ The area of a region $R$ can be computed by $\iint_R 1 dA$. If the region is phy
 Find the mass of a disc bounded by the two parabolas $y=2 - x^2$ and $y = -3 + 2x^2$ with density function given by $\rho(x,y) = x^2y^2$.
 
 
-First we need the intersection points of the two parabolas. Solving $2-x^2 = -3 + 2x^2$ for $x$ yields: $5 = x^2$.
+First we need the intersection points of the two parabolas. Solving $2-x^2 = -3 + 2x^2$ for $x$ yields: $5 = 3x^2$.
 
 
 So we get a mass of:
@@ -661,7 +661,7 @@ So we get a mass of:
 rho(x,y) = x^2*y^2
 g(x) = 2 - x^2
 h(x) = -3 + 2x^2
-a = sqrt(Sym(5))
+a = sqrt(Sym(5//3))
 integrate(rho(x,y), (y, h(x), g(x)), (x, -a, a))
 ```
 
@@ -751,10 +751,10 @@ a = ∬(f, (x-> -sqrt(1-x^2), x-> sqrt(1-x^2)), (-1, 1))
 a, a - pi   # answer and error
 ```
 
-(The error is similar to that returned by `quadgk(x -> sqrt(1-x^2), -1, 1)`.)
+(The error is similar to that returned by `quadgk(x -> 2sqrt(1-x^2), -1, 1)`.)
 
 
-###### Example
+##### Example
 
 
 Show the volume of a sphere of radius $1$ is $4/3\pi = 4/3\pi\cdot 1^3$ by doubling the integral of $f(x,y) = \sqrt{1-x^2-y^2}$ over $R$, the unit disk.
@@ -852,7 +852,7 @@ let
 end
 ```
 
-Here we compute the volumes of these using a triple integral of the form $\iint_R 1 dV$.
+Here we compute the volumes of these using a triple integral of the form $\iiint_R 1 dV$.
 
 
   * Box. Consider the box-like, or "rectangular," region $[0,a]\times [0,b] \times [0,c]$. This has volume $abc$ which we see here using Fubini's theorem:
@@ -901,7 +901,7 @@ This is $1/6$th the volume of the box.
 
 
 $$
-\int_{x=-r}^r \int_{y=-\sqrt{r^2 - x^2}}^{\sqrt{r^2-x^2}} \int_0^{a - b(x^2 + y^2)} 1 dz dy dx.
+\int_{x=-r}^r \int_{y=-\sqrt{r^2 - x^2}}^{\sqrt{r^2-x^2}} \int_0^{a - b(x^2 + y^2)^{1/2}} 1 dz dy dx.
 $$
 
 This integral is doable, but `SymPy` has trouble with it. We will return to this when cylindrical coordinates are defined.
@@ -946,7 +946,7 @@ dy &= C du + D dv,
 \end{align*}
 
 
-where $A = \partial{x}/\partial{u}$, $B = \partial{x}/\partial{v}$, $C= \partial{y}/\partial{u}$, and $D = \partial{y}/\partial{v}$. Lagrange, following Euler, first sets $x$ to be constant (as is done in iterated integration). Hence, $dx = 0$ and so $du = -C(B/A) dv$ and, after substitution,  $dy = (D-C(B/A))dv$. Then Lagrange set $y$ to be a constant, so $dy = 0$ and hence $dv=0$ so $dx = Adu$. The area "element" $dx dy = A du \cdot (D - (B/A)) dv = (AD - BC) du dv$. Since areas and volumes are non-negative, the absolute value is used. With this, we have "$dxdy = |AD-BC|du dv$" as the analog of $dx = g'(u) du$.
+where $A = \partial{x}/\partial{u}$, $B = \partial{x}/\partial{v}$, $C= \partial{y}/\partial{u}$, and $D = \partial{y}/\partial{v}$. Lagrange, following Euler, first sets $x$ to be constant (as is done in iterated integration). Hence, $dx = 0$ and so $du = -(B/A) dv$ and, after substitution,  $dy = (D-C(B/A))dv$. Then Lagrange set $y$ to be a constant, so $dy = 0$ and hence $dv=0$ so $dx = Adu$. The area "element" $dx dy = A du \cdot (D - C(B/A)) dv = (AD - BC) du dv$. Since areas and volumes are non-negative, the absolute value is used. With this, we have "$dxdy = |AD-BC|du dv$" as the analog of $dx = g'(u) du$.
 
 
 The expression $AD - BC$ was also derived by Euler, by related means. Lagrange extended the analysis to 3 dimensions. Before doing so, it is helpful to understand the problem from a geometric perspective. Euler was attempting to understand the effects of the following change of variable:
@@ -1117,7 +1117,7 @@ Now we see several examples of two-dimensional transformations.
 #### Polar integrals
 
 
-We have [seen](../differentiable_vector_calculus/polar_coordinates.html) how to compute area in polar coordinates through the formula $A = \int (1/2) r^2(\theta) d\theta$. This formula can be derived as follows. Consider a region $R$ parameterized in polar coordinates by $r(\theta)$ for $a \leq \theta \leq b$. The area of this region would be $\iint_R fdA$. Let $G(r, \theta) = r \langle \cos\theta, \sin\theta\rangle$. Then
+We have [seen](../differentiable_vector_calculus/polar_coordinates.html) how to compute area in polar coordinates through the formula $A = \int (1/2) r^2(\theta) d\theta$. This formula can be derived as follows. Consider a region $R$ parameterized in polar coordinates by $r(\theta)$ for $a \leq \theta \leq b$. The area of this region would be $\iint_R 1dA$. Let $G(r, \theta) = r \langle \cos\theta, \sin\theta\rangle$. Then
 
 
 $$
@@ -1158,7 +1158,7 @@ where $R$ is the disc of radius $\rho$. Using polar coordinates, we have $x^2 + 
 
 
 $$
-V = 2 \int_0^{2\pi} \int_0^\rho \sqrt{\rho^2 - r^2} r dr d\theta = 2 \int_0^{2\pi} -(1 - r^2)^{3/2}\frac{1}{3} \mid_0^\rho d\theta = 2\int_0^{2\pi} \frac{\rho^3}{3}d\theta = \frac{4\pi\rho^3}{3}.
+V = 2 \int_0^{2\pi} \int_0^\rho \sqrt{\rho^2 - r^2} r dr d\theta = 2 \int_0^{2\pi} -(\rho^2 - r^2)^{3/2}\frac{1}{3} \mid_0^\rho d\theta = 2\int_0^{2\pi} \frac{\rho^3}{3}d\theta = \frac{4\pi\rho^3}{3}.
 $$
 
 ##### Linear transformations
@@ -1236,7 +1236,7 @@ $$
 For some simple cases: $\langle l_x, l_y \rangle = \langle 1, 1\rangle$, the diagonal, this is $G(u,v) = (1/2) \langle 2v, 2u \rangle$; $\langle l_x, l_y \rangle = \langle 0, 1\rangle$ (the $y$-axis) this is $G(u,v) = \langle -u, v\rangle$.
 
 
-  * A translation by $\langle a ,b \rangle$ would be given by $G(u,v) = \langle u+a, y+b \rangle$ and would have Jacobian determinant $1$.
+  * A translation by $\langle a ,b \rangle$ would be given by $G(u,v) = \langle u+a, v+b \rangle$ and would have Jacobian determinant $1$.
 
 
 As an example, consider the transformation of reflecting through the line $x = 1/2$. Let $\vec{ab} = \langle 1/2, 0\rangle$. This would be found by translating by $-\vec{ab}$ then reflecting through the $y$ axis, then translating by $\vec{ab}$:
@@ -1310,9 +1310,9 @@ This can be seen as a reflection through the line $x=1/2$ of the triangle above.
 
 
 \begin{align*}
-\int_{(G_2\circ G_1)(U))} f dx &= \int_U (f\circ G_2 \circ G_1) |\det(J_{G_2 \circ G_1}| du \\
+\int_{(G_2\circ G_1)(U)} f dx &= \int_U (f\circ G_2 \circ G_1) |\det(J_{G_2 \circ G_1})| du \\
 &=
-\int_U (f\circ G_2 \circ G_1) |\det(J_{G_2}(G_1(u))||\det J_{G_1}(u)| du.
+\int_U (f\circ G_2 \circ G_1) |\det(J_{G_2}(G_1(u)))||\det(J_{G_1}(u))| du.
 \end{align*}
 
 
@@ -1429,7 +1429,7 @@ The $x$ value can be seen in terms of Fubini by integrating in $y$ first:
 
 
 $$
-\iint_R x \rho(x,y) dA = \int_{x=a}^b (\int_{y=h(x)}^{g(x)} \rho(x,y) dy) dx.
+\iint_R x \rho(x,y) dA = \int_{x=a}^b x (\int_{y=h(x)}^{g(x)} \rho(x,y) dy) dx.
 $$
 
 The inner integral is the mass of a slice at a value along the $x$ axis. The center of mass is formed then by the mass times the distance from the origin. The center of mass is a "balance" point, in the sense that $\iint_R (x - \bar{x}) dA = 0$ and $\iint_R (y-\bar{y})dA = 0$.
@@ -1450,10 +1450,10 @@ The value of $\bar{y}$ is found using polar coordinate transformation from:
 
 $$
 \iint_R y dA = \int_{r=0}^1 \int_{\theta=0}^{\pi} (r\sin(\theta))r d\theta dr =
-\int_{r=0}^1 r^2 dr \int_{\theta=0}^{\pi}\sin(\theta) = \frac{1}{3} \cdot 2.
+\int_{r=0}^1 r^2 dr \int_{\theta=0}^{\pi}\sin(\theta) d\theta = \frac{1}{3} \cdot 2.
 $$
 
-The third equals sign uses separability. The answer for $\bar{y}$ is this value divided by the area, or $2/(3\pi)$.
+The third equals sign uses separability. The answer for $\bar{y}$ is this value divided by the area, or $4/(3\pi)$.
 
 
 ##### Example: Moment of inertia
@@ -1462,7 +1462,7 @@ The third equals sign uses separability. The answer for $\bar{y}$ is this value 
 The moment of [inertia](https://en.wikipedia.org/wiki/Moment_of_inertia) of a point mass about an axis is $I = mr^2$ where $m$ is the mass and $r$ the distance to the axis. The moment of inertia of a body is the sum of the moment of inertia of each piece. If $R$ is a region in the $x$-$y$ plane with density $\rho(x,y)$ and the axis is the $y$ axis, then an approximate moment of inertia would be $\sum (x_i)^2\rho(x_i, y_i)\Delta x_i \Delta y_i$ which would lead to $I = \iint_R x^2\rho(x,y) dA$.
 
 
-Let $R$ be the half disc contained by $x^2 + y^2 = 1$ and $y \geq 0$. Let $\rho(x,y) = xy^2$. Find the moment of inertia.
+Let $R$ be the half disc contained by $x^2 + y^2 = 1$ and $x \geq 0$. Let $\rho(x,y) = xy^2$. Find the moment of inertia.
 
 
 $$
@@ -1473,7 +1473,7 @@ is best described in polar coordinates, so we try to compute
 
 
 $$
-\int_0^1 \int_{-\pi/2}^{\pi/2} (r\cos(\theta))^2 (r\cos(\theta))(r\sin(\theta)) r d\theta dr.
+\int_0^1 \int_{-\pi/2}^{\pi/2} (r\cos(\theta))^2 (r\cos(\theta))(r\sin(\theta))^2 r d\theta dr.
 $$
 
 That requires integrating $\sin^2(\theta)\cos^3(\theta)$, a doable task, but best left to SymPy:
@@ -1558,14 +1558,14 @@ This has Jacobian determinant $r$, similar to polar coordinates.
 ##### Example
 
 
-Returning to the volume of a cone above the $x$-$y$ plane under $z = a - b(x^2 + y^2)^{12}$. This yielded the integral in Cartesian coordinates:
+Returning to the volume of a cone above the $x$-$y$ plane under $z = a - b(x^2 + y^2)^{1/2}$. This yielded the integral in Cartesian coordinates:
 
 
 $$
-\int_{x=-r}^r \int_{y=-\sqrt{r^2 - x^2}}^{\sqrt{r^2-x^2}} \int_0^{a - b(x^2 + y^2)} 1 dz dy dx,
+\int_{x=-r}^r \int_{y=-\sqrt{r^2 - x^2}}^{\sqrt{r^2-x^2}} \int_0^{a - b(x^2 + y^2)^{1/2}} 1 dz dy dx,
 $$
 
-where $r=a/b$. This is *much* simpler in Cylindrical coordinates, as the region is described by the rectangle in $(r, \theta)$: $[0, \sqrt{b/a}] \times [0, 2\pi]$ and the $z$ range is from $0$ to $a - b r$.
+where $r=a/b$. This is *much* simpler in Cylindrical coordinates, as the region is described by the rectangle in $(r, \theta)$: $[0, a/b] \times [0, 2\pi]$ and the $z$ range is from $0$ to $a - b r$.
 
 
 The volume then is:
@@ -1690,7 +1690,7 @@ $$
 ##### Example
 
 
-Compute the volume of the ellipsoid, $R$, described by $(x/a)^2 + (y/v)^2 + (z/c)^2 \leq 1$.
+Compute the volume of the ellipsoid, $R$, described by $(x/a)^2 + (y/b)^2 + (z/c)^2 \leq 1$.
 
 
 We first change variables via $G(u,v,w) = \langle ua, vb, wc \rangle$. This maps the unit sphere, $S$, given by $u^2 + v^2 + w^2 \leq 1$ into the ellipsoid. Then
@@ -1766,7 +1766,7 @@ Let $R$ be the unit disc. Which integrals can be found from common geometric for
 
 
 $$
-a = \iint_R (1 - (x^2+y2)) dA, \quad
+a = \iint_R (1 - (x^2+y^2)) dA, \quad
 b = \iint_R (1 - \sqrt{x^2 + y^2}) dA, \quad
 c = \iint_R (1 - (x^2 + y^2)^2 dA
 $$
@@ -1804,7 +1804,7 @@ radioq(choices, answ, keep_order=true)
 ###### Question
 
 
-Let $R$ be a triangular region with vertices $(0,0), (2,0), (1, b)$ where $b \geq 0$. What integral below computes the area of :R?
+Let $R$ be a triangular region with vertices $(0,0), (2,0), (1, b)$ where $b \geq 0$. What integral below computes the area of $R$?
 
 
 ```{julia}
@@ -1914,7 +1914,6 @@ A wedge, $R$, is specified by $0 \leq r \leq a$, $0 \leq \theta \leq b$.
 
 ```{julia}
 #| hold: true
-#| echo: false
 @syms r theta a b
 x = r*cos(theta)
 y = r*sin(theta)
@@ -1958,14 +1957,14 @@ radioq(choices, answ, keep_order=true)
 ###### Question
 
 
-According to [Katz](http://www.jstor.org/stable/2689856) in 1899 Cartan formalized the subject of differential forms (elements such as $dx$ or $du$). Using the rules $dtdt = 0 = dv=dv$ and $dv dt = - dt dv$, what is the product of $dx=mdt + dv\sqrt{1-m^2}$ and $dy=dt\sqrt{1-m^2}-mdv$?
+According to [Katz](http://www.jstor.org/stable/2689856) in 1899 Cartan formalized the subject of differential forms (elements such as $dx$ or $du$). Using the rules $dtdt = 0 = dvdv$ and $dv dt = - dt dv$, what is the product of $dx=mdt + dv\sqrt{1-m^2}$ and $dy=dt\sqrt{1-m^2}-mdv$?
 
 
 ```{julia}
 #| hold: true
 #| echo: false
 choices = [
-raw" ``dtdv``",
+raw" ``dvdt``",
 raw" ``(1-2m^2)dt dv``",
 raw" ``m\sqrt{1-m^2}dt^2+(1-2m^2)dtdv -m\sqrt{1-m^2}dv^2``"
 ]
