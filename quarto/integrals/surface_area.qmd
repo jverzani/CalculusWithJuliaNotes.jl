@@ -1,7 +1,8 @@
 # Surface Area
 
-
 {{< include ../_common_code.qmd >}}
+
+
 
 This section uses these add-on packages:
 
@@ -12,6 +13,7 @@ using Plots
 using SymPy
 using QuadGK
 ```
+
 
 ---
 
@@ -114,45 +116,8 @@ $$
 \text{SA} = \int_a^b 2\pi f(t) \sqrt{g'(t)^2 + f'(t)^2} dt.
 $$
 
-If we assume integrability of the integrand, then as our partition size goes to zero, this approximate surface area converges to the value given by the limit.  (As with arc length, this needs a technical adjustment to the Riemann integral theorem as here we are evaluating the integrand function at four points ($t_i$, $t_{i-1}$, $\xi$ and $\psi$) and not just at some $c_i$.
+If we assume integrability of the integrand, then as our partition size goes to zero, this approximate surface area converges to the value given by the limit.  (As with arc length, this needs a technical adjustment to the Riemann integral theorem as here we are evaluating the integrand function at four points ($t_i$, $t_{i-1}$, $\xi$ and $\psi$) and not just at some $c_i$. An figure appears at the end.
 
-
-```{julia}
-#| hold: true
-#| echo: false
-## {{{approximate_surface_area}}}
-
-xs,ys = range(-1, stop=1, length=50), range(-1, stop=1, length=50)
-f(x,y)= 2 - (x^2 + y^2)
-
-dr = [1/2, 3/4]
-df = [f(dr[1],0), f(dr[2],0)]
-
-function sa_approx_graph(i)
-    p = plot(xs, ys, f, st=[:surface], legend=false)
-    for theta in range(0, stop=i/10*2pi, length=10*i )
-        path3d!(p,sin(theta)*dr, cos(theta)*dr, df)
-    end
-    p
-end
-n = 10
-
-anim = @animate for i=1:n
-    sa_approx_graph(i)
-end
-
-imgfile = tempname() * ".gif"
-gif(anim, imgfile, fps = 1)
-
-
-caption = L"""
-
-Surface of revolution of $f(x) = 2 - x^2$ about the $y$ axis. The lines segments are the images of rotating the secant line connecting $(1/2, f(1/2))$ and $(3/4, f(3/4))$. These trace out the frustum of a cone which approximates the corresponding surface area of the surface of revolution. In the limit, this approximation becomes exact and a formula for the surface area of surfaces of revolution can be used to compute the value.
-
-"""
-
-ImageFile(imgfile, caption)
-```
 
 #### Examples
 
@@ -232,14 +197,12 @@ Though parametric plots have a convenience constructor, `plot(g, f, a, b)`, we c
 
 Now, to rotate this about the $y$ axis, creating a surface plot, we have the following pattern:
 
-
 ```{julia}
 S(u,v) = [g(u)*cos(v), g(u)*sin(v), f(u)]
 us = range(a, b, length=100)
 vs = range(0, 2pi, length=100)
 ws = unzip(S.(us, vs'))   # reorganize data
 surface(ws..., zlims=(-6,6), legend=false)
-
 plot!([0,0], [0,0], [-3,3], color=:red, linewidth=5) # y axis emphasis
 ```
 
@@ -256,7 +219,6 @@ us = range(a, b, length=100)
 vs = range(0, 2pi, length=100)
 ws = unzip(S.(us,vs'))
 surface(ws..., legend=false)
-
 plot!([3,9], [0,0],[0,0], color=:green, linewidth=5) # x axis emphasis
 ```
 
@@ -579,4 +541,46 @@ f(t) = sin(t)^5
 a, b = 0, pi
 val, _ = quadgk(t -> 2pi* f(t) * sqrt(g'(t)^2 + f'(t)^2), a, b)
 numericq(val)
+```
+
+
+# Appendix
+
+```{julia}
+#| hold: true
+#| echo: false
+
+## For **some reason** having this in the natural place messes up the plots.
+## {{{approximate_surface_area}}}
+
+xs,ys = range(-1, stop=1, length=50), range(-1, stop=1, length=50)
+f(x,y)= 2 - (x^2 + y^2)
+
+dr = [1/2, 3/4]
+df = [f(dr[1],0), f(dr[2],0)]
+
+function sa_approx_graph(i)
+    p = plot(xs, ys, f, st=[:surface], legend=false)
+    for theta in range(0, stop=i/10*2pi, length=10*i )
+        path3d!(p,sin(theta)*dr, cos(theta)*dr, df)
+    end
+    p
+end
+n = 10
+
+anim = @animate for i=1:n
+    sa_approx_graph(i)
+end
+
+imgfile = tempname() * ".gif"
+gif(anim, imgfile, fps = 1)
+
+
+caption = L"""
+
+Surface of revolution of $f(x) = 2 - x^2$ about the $y$ axis. The lines segments are the images of rotating the secant line connecting $(1/2, f(1/2))$ and $(3/4, f(3/4))$. These trace out the frustum of a cone which approximates the corresponding surface area of the surface of revolution. In the limit, this approximation becomes exact and a formula for the surface area of surfaces of revolution can be used to compute the value.
+
+"""
+
+ImageFile(imgfile, caption)
 ```
