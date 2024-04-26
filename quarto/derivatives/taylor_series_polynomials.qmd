@@ -592,12 +592,12 @@ To see a plot, we have
 
 
 ```{julia}
-𝒇(x) = sin(x)
-𝒄, 𝒉, 𝒏 = 0, 1/4, 4
-int_poly = newton_form(𝒇, [𝒄 + i*𝒉 for i in 0:𝒏])
-tp = taylor_poly(𝒇, 𝒄, 𝒏)
-𝒂, 𝒃 = -pi, pi
-plot(𝒇, 𝒂, 𝒃; linewidth=5, label="f")
+f(x) = sin(x)
+c, h, n = 0, 1/4, 4
+int_poly = newton_form(f, [c + i*h for i in 0:n])
+tp = taylor_poly(f, c, n)
+a, b = -pi, pi
+plot(f, a, b; linewidth=5, label="f")
 plot!(int_poly; color=:green, label="interpolating")
 plot!(tp; color=:red, label="Taylor")
 ```
@@ -606,10 +606,10 @@ To get a better sense, we plot the residual differences here:
 
 
 ```{julia}
-d1(x) = 𝒇(x) - int_poly(x)
-d2(x) = 𝒇(x) - tp(x)
-plot(d1, 𝒂, 𝒃; color=:blue, label="interpolating")
-plot!(d2; color=:green, label="Taylor")
+d1(x) = f(x) - int_poly(x)
+d2(x) = f(x) - tp(x)
+plot(d1, a, b; linecolor=:blue, label="interpolating")
+plot!(d2;      linecolor=:green, label="Taylor")
 ```
 
 The graph should be $0$ at each of the points in `xs`, which we can verify in the graph above. Plotting over a wider region shows a common phenomenon that these polynomials approximate the function near the values, but quickly deviate away:
@@ -825,10 +825,10 @@ To try this out to compute $\log(5)$. We have $5 = 2^2(1+0.25)$, so $k=2$ and $m
 
 ```{julia}
 k, m = 2, 0.25
-𝒔 = m / (2+m)
-pₗ = 2 * sum(𝒔^(2i)/(2i+1) for i in 1:8)  # where the polynomial approximates the logarithm...
+s = m / (2+m)
+pₗ = 2 * sum(s^(2i)/(2i+1) for i in 1:8)  # where the polynomial approximates the logarithm...
 
-log(1 + m), m - 𝒔*(m-pₗ), log(1 + m) - ( m - 𝒔*(m-pₗ))
+log(1 + m), m - s*(m-pₗ), log(1 + m) - ( m - s*(m-pₗ))
 
 ```
 
@@ -836,7 +836,7 @@ The two values differ by less than $10^{-16}$, as advertised. Re-assembling then
 
 
 ```{julia}
-Δ = k * log(2) + (m - 𝒔*(m-pₗ)) - log(5)
+Δ = k * log(2) + (m - s*(m-pₗ)) - log(5)
 ```
 
 The actual  code is different, as the Taylor polynomial isn't used. The Taylor polynomial is a great approximation near a point, but there might be better polynomial approximations for all values in an interval. In this case there is, and that polynomial is used in the production setting. This makes things a bit more efficient, but the basic idea remains - for a prescribed accuracy, a polynomial approximation can be found over a given interval, which can be cleverly utilized to solve for all applicable values.
@@ -1166,7 +1166,7 @@ Here is one way to get all the values bigger than 1:
 ex = (1 - x + x^2)*exp(x)
 Tn = series(ex, x, 0, 100).removeO()
 ps = sympy.Poly(Tn, x).coeffs()
-qs = numer.(ps)
+qs = numerator.(ps)
 qs[qs .> 1]  |> Tuple # format better for output
 ```
 

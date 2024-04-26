@@ -1,22 +1,18 @@
-
 # CalculusWithJulia via quarto
 
 Short cut. Run first command until happy, then run second to publish
 
 ```
 quarto render
-julia adjust_plotly.jl; quarto publish gh-pages --no-render
+#julia adjust_plotly.jl # <-- no longer needed
+quarto publish gh-pages --no-render
 ```
 
 
 To compile the pages through quarto
 
 
-* author in `.jmd` files (to be run through pluto)
-* run `julia make_qmd.jl` to convert to `.qmd` files
-  - The files in subdirectories are generated, they should not be edited
-  - The files in this main directory are quarto specific.
-  - `_book` and `_freeze` are conveniences
+* author in `.qmd` files (to be run through pluto)
 * run `quarto preview` to develop interactively (kinda slow!)
 * run `quarto render` to render pages (not too bad)
 
@@ -28,9 +24,7 @@ To compile the pages through quarto
 * should also push project to github
 * no need to push `_freeze` the repo, as files are locally rendered for now.
 
-* XXX to get `PlotlyLight` to work the plotly library needs loading **before** require.min.js. This is accomplished by **editing** the .html file and moving up this line:
-
-<script src="https://cdn.plot.ly/plotly-2.11.0.min.js"></script>
+* NO LONGERto get `PlotlyLight` to work the plotly library needs loading **before** require.min.js. This is accomplished by **editing** the .html file and moving up this line: <script src="https://cdn.plot.ly/plotly-2.11.0.min.js"></script>
 
 This can be done with this commandline call: julia adjust_plotly.jl
 

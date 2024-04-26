@@ -79,14 +79,15 @@ For this problem we need to identify $a$ and $b$. These are found numerically th
 
 
 ```{julia}
-a,b = find_zeros(x -> f(x) - g(x), -3, 3)
+h(x) = f(x) - g(x)
+a,b = find_zeros(h, -3, 3)
 ```
 
 The answer then can be found numerically:
 
 
 ```{julia}
-quadgk(x -> f(x) - g(x), a, b)[1]
+first(quadgk(h, a, b))
 ```
 
 ##### Example
@@ -99,18 +100,18 @@ A plot shows the areas:
 
 
 ```{julia}
-𝒇(x) = sin(x)
-𝒈(x) = cos(x)
-plot(𝒇, 0, 2pi)
-plot!(𝒈)
+f(x) = sin(x)
+g(x) = cos(x)
+plot(f, 0, 2pi)
+plot!(g)
 ```
 
 There is a single interval when $f \geq g$ and this can be found algebraically using basic trigonometry, or numerically:
 
 
 ```{julia}
-𝒂,𝒃 = find_zeros(x -> 𝒇(x) - 𝒈(x), 0, 2pi)  # pi/4, 5pi/4
-quadgk(x -> 𝒇(x) - 𝒈(x), 𝒂, 𝒃)[1]
+a, b = find_zeros(x -> f(x) - g(x), 0, 2pi)  # pi/4, 5pi/4
+quadgk(x -> f(x) - g(x), a, b)[1]
 ```
 
 ##### Example
@@ -177,15 +178,15 @@ For concreteness, let $f(x) = 2-x^2$ and $[a,b] = [-1, 1/2]$, as in the figure. 
 
 
 ```{julia}
-𝐟(x) = 2 - x^2
-𝐚, 𝐛 = -1, 1/2
-𝐜 = (𝐚 + 𝐛)/2
+f(x) = 2 - x^2
+a, b = -1, 1/2
+𝐜 = (a + b)/2
 
-sac, sab, scb = secant(𝐟, 𝐚, 𝐜), secant(𝐟, 𝐚, 𝐛), secant(𝐟, 𝐜, 𝐛)
+sac, sab, scb = secant(f, a, 𝐜), secant(f, a, b), secant(f, 𝐜, b)
 f1(x) = min(sac(x), scb(x))
 f2(x) = sab(x)
 
-A1 = quadgk(x -> f1(x) - f2(x), 𝐚, 𝐛)[1]
+A1 = quadgk(x -> f1(x) - f2(x), a, b)[1]
 ```
 
 As we needed three secant lines, we used the `secant` function from `CalculusWithJulia` to create functions representing each. Once that was done, we used the `min` function to facilitate integrating over the top bounding curve, alternatively, we could break the integral over $[a,c]$ and $[c,b]$.
@@ -195,7 +196,7 @@ The area of the parabolic segment is more straightforward.
 
 
 ```{julia}
-A2 = quadgk(x -> 𝐟(x) - f2(x), 𝐚, 𝐛)[1]
+A2 = quadgk(x -> f(x) - f2(x), a, b)[1]
 ```
 
 Finally, if Archimedes was right, this relationship should bring about $0$ (or something within round-off error):

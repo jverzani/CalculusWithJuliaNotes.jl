@@ -180,8 +180,8 @@ Consider the function $f(x) = e^{-\lvert x\rvert} \cos(\pi x)$ over $[-3,3]$:
 
 
 ```{julia}
-𝐟(x) = exp(-abs(x)) * cos(pi * x)
-plotif(𝐟, 𝐟', -3, 3)
+f(x) = exp(-abs(x)) * cos(pi * x)
+plotif(f, f', -3, 3)
 ```
 
 We can see the first derivative test in action: at the peaks and valleys – the relative extrema – the color changes. This is because $f'$ is changing sign as the function changes from increasing to decreasing or vice versa.
@@ -191,7 +191,7 @@ This function has a critical point at $0$, as can be seen. It corresponds to a p
 
 
 ```{julia}
-find_zeros(𝐟', -3, 3)
+find_zeros(f', -3, 3)
 ```
 
 ##### Example
@@ -204,17 +204,17 @@ We will do so numerically. For this task we first need to gather the critical po
 
 
 ```{julia}
-𝒇(x) = sin(pi*x) * (x^3 - 4x^2 + 2)
-𝒇cps = find_zeros(𝒇', -2, 2)
+f(x) = sin(pi*x) * (x^3 - 4x^2 + 2)
+cps = find_zeros(f', -2, 2)
 ```
 
 We should be careful though, as `find_zeros` may miss zeros that are not simple or too close together. A critical point will correspond to a relative maximum if the function crosses the axis, so these can not be "pauses." As this is exactly the case we are screening for, we double check that all the critical points are accounted for by graphing the derivative:
 
 
 ```{julia}
-plot(𝒇', -2, 2, legend=false)
+plot(f', -2, 2, legend=false)
 plot!(zero)
-scatter!(𝒇cps, 0*𝒇cps)
+scatter!(cps, 0*cps)
 ```
 
 We see the six zeros as stored in `cps` and note that at each the function clearly crosses the $x$ axis.
@@ -234,7 +234,7 @@ We will apply the same approach, but need to get a handle on how large the value
 
 ```{julia}
 g(x) = sqrt(abs(x^2 - 1))
-gcps = find_zeros(g', -2, 2)
+cps = find_zeros(g', -2, 2)
 ```
 
 We see the three values $-1$, $0$, $1$ that correspond to the two zeros and the relative minimum of $x^2 - 1$. We could graph things, but instead we characterize these values using a sign chart. A piecewise continuous function can only change sign when it crosses $0$ or jumps over $0$. The derivative will be continuous, except possibly at the three values above, so is piecewise continuous.
@@ -244,7 +244,7 @@ A sign chart picks convenient values between crossing points to test if the func
 
 
 ```{julia}
-pts = sort(union(-2, gcps, 2))  # this includes the endpoints (a, b) and the critical points
+pts = sort(union(-2, cps, 2))  # this includes the endpoints (a, b) and the critical points
 test_pts = pts[1:end-1] + diff(pts)/2 # midpoints of intervals between pts
 [test_pts sign.(g'.(test_pts))]
 ```
@@ -512,14 +512,14 @@ Use the second derivative test to characterize the critical points of $j(x) = x^
 
 ```{julia}
 j(x) = x^5 - 2x^4 + x^3
-jcps = find_zeros(j', -3, 3)
+cps = find_zeros(j', -3, 3)
 ```
 
 We can check the sign of the second derivative for each critical point:
 
 
 ```{julia}
-[jcps j''.(jcps)]
+[cps j''.(cps)]
 ```
 
 That $j''(0.6) < 0$ implies that at $0.6$, $j(x)$ will have a relative maximum. As $j''(1) > 0$, the second derivative test says at $x=1$ there will be a relative minimum. That $j''(0) = 0$ says that only that there **may** be a relative maximum or minimum at $x=0$, as the second derivative test does not speak to this situation. (This last check, requiring a function evaluation to be `0`,  is susceptible to floating point errors, so isn't very robust as a general tool.)

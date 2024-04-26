@@ -517,6 +517,24 @@ ys = f.(xs)
 
 Same story. The numeric evidence supports a limit of $L=0.6$.
 
+::: {.callout-note}
+### The `lim` function
+
+The `CalculusWithJulia` package provides a convenience function `lim(f, c)` to create tables to showcase limits. The `dir` keyword can be `"+-"` (the default) to show values from both the left and the right; `"+"` to only show values to the right of `c`; and `"-"` to only show values to the left of `c`:
+
+For example:
+
+```{julia}
+lim(f, c)
+```
+
+The numbers are displayed in decreasing order so the values on the left are read from top to bottom:
+
+```{julia}
+lim(f, c; dir="-")  # or even lim(f, c, -)
+```
+
+:::
 
 ##### Example: the secant line
 
@@ -567,18 +585,18 @@ What is the value of $L$, if it exists? A quick attempt numerically yields:
 
 
 ```{julia}
-𝒙s = 0 .+ hs
-𝒚s = [g(x) for x in 𝒙s]
-[𝒙s 𝒚s]
+xs = 0 .+ hs
+ys = [g(x) for x in xs]
+[xs ys]
 ```
 
 Hmm, the values in `ys` appear to be going to $0.5$, but then end up at $0$. Is the limit $0$ or $1/2$? The answer is $1/2$. The last $0$ is an artifact of floating point arithmetic and the last few deviations from `0.5` due to loss of precision in subtraction. To investigate, we look more carefully at the two ratios:
 
 
 ```{julia}
-y1s = [1 - cos(x) for x in 𝒙s]
-y2s = [x^2 for x in 𝒙s]
-[𝒙s y1s y2s]
+y1s = [1 - cos(x) for x in xs]
+y2s = [x^2 for x in xs]
+[xs y1s y2s]
 ```
 
 Looking at the bottom of the second column reveals the error. The value of `1 - cos(1.0e-8)` is `0` and not a value around `5e-17`, as would be expected from the pattern above it. This is because the smallest floating point value less than `1.0` is more than `5e-17` units away, so `cos(1e-8)` is evaluated to be `1.0`. There just isn't enough granularity to get this close to $0$.
@@ -928,7 +946,7 @@ We know the first factor has a limit found by evaluation: $2/\pi$, so it is real
 
 ```{julia}
 l(x) = cos(PI*x) / (1 - (2x)^2)
-limit(l, 1//2)
+limit(l(x), x => 1//2)
 ```
 
 Putting together, we would get $1/2$. Which we could have done directly in this case:
