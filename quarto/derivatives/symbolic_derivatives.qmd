@@ -34,7 +34,7 @@ The `Symbolics` package provides native symbolic manipulation abilities for `Jul
 An expression is an unevaluated portion of code that for our purposes below contains other expressions, symbols, and numeric literals. They are held in the `Expr` type.  A symbol, such as `:x`, is distinct from a string (e.g. `"x"`) and is useful to the programmer to distinguish between the contents a variable points to from the name of the variable. Symbols are fundamental to metaprogramming in `Julia`. An expression is a specification of some set of statements to execute. A numeric literal is just a number.
 
 
-The three main functions from `TermInterface` we leverage are `istree`, `operation`, and `arguments`. The `operation` function returns the "outside" function of an expression. For example:
+The three main functions from `TermInterface` we leverage are `isexpr`, `operation`, and `arguments`. The `operation` function returns the "outside" function of an expression. For example:
 
 
 ```{julia}
@@ -65,7 +65,7 @@ function arity(ex)
 end
 ```
 
-Differentiation must distinguish between expressions, variables, and numbers.  Mathematically expressions have an "outer" function, whereas variables and numbers can be directly differentiated.  The `istree` function in `TermInterface` returns `true` when passed an expression, and `false` when passed a symbol or numeric literal. The latter two may be distinguished by `isa(..., Symbol)`.
+Differentiation must distinguish between expressions, variables, and numbers.  Mathematically expressions have an "outer" function, whereas variables and numbers can be directly differentiated.  The `isexpr` function in `TermInterface` returns `true` when passed an expression, and `false` when passed a symbol or numeric literal. The latter two may be distinguished by `isa(..., Symbol)`.
 
 
 Here we create a function, `D`, that when it encounters an expression it *dispatches* to a specific method of `D` based on the outer operation and arity, otherwise if it encounters a symbol or a numeric literal it does the differentiation:
@@ -73,7 +73,7 @@ Here we create a function, `D`, that when it encounters an expression it *dispat
 
 ```{julia}
 function D(ex, var=:x)
-	if istree(ex)
+	if isexpr(ex)
 		op, args = operation(ex), arguments(ex)
 		D(Val(op), arity(ex), args, var)
 	elseif isa(ex, Symbol) && ex == :x

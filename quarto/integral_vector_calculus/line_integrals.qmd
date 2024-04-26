@@ -906,8 +906,8 @@ Let $S$ be the closed surface bounded by the cylinder $x^2 + y^2 = 1$, the plane
 
 
 ```{julia}
-𝐅(x,y,z) = [1, y, z]
-𝐅(v) = 𝐅(v...)
+F(x,y,z) = [1, y, z]
+F(v) = F(v...)
 ```
 
 The surface has three faces, with different outward pointing normals for each. Let $S_1$ be the unit disk in the $x-y$ plane with normal $-\hat{k}$; $S_2$ be the top part, with normal $\langle-1, 0, 1\rangle$ (as the plane is $-1x + 0y + 1z = 1$); and $S_3$ be the cylindrical part with outward pointing normal $\vec{r}$.
@@ -917,32 +917,32 @@ Integrating over $S_1$, we have the parameterization $\Phi(r,\theta) = \langle r
 
 
 ```{julia}
-@syms 𝐑::positive 𝐭heta::positive
-𝐏hi₁(r,theta) = [r*cos(theta), r*sin(theta), 0]
-𝐉ac₁ = 𝐏hi₁(𝐑, 𝐭heta).jacobian([𝐑, 𝐭heta])
-𝐯₁, 𝐰₁ = 𝐉ac₁[:,1], 𝐉ac₁[:,2]
-𝐍ormal₁ = 𝐯₁ × 𝐰₁ .|> simplify
+@syms R::positive theta::positive
+Phi₁(r,theta) = [r*cos(theta), r*sin(theta), 0]
+Jac₁ = Phi₁(R, theta).jacobian([R, theta])
+v₁, w₁ = Jac₁[:,1], Jac₁[:,2]
+𝐍ormal₁ = v₁ × w₁ .|> simplify
 ```
 
 ```{julia}
-A₁ = integrate(𝐅(𝐏hi₁(𝐑, 𝐭heta)) ⋅ (-𝐍ormal₁), (𝐭heta, 0, 2PI), (𝐑, 0, 1))  # use -Normal for outward pointing
+A₁ = integrate(F(Phi₁(R, theta)) ⋅ (-𝐍ormal₁), (theta, 0, 2PI), (R, 0, 1))  # use -Normal for outward pointing
 ```
 
 Integrating over $S_2$ we use the parameterization $\Phi(r, \theta) = \langle r\cos(\theta), r\sin(\theta), 1 + r\cos(\theta)\rangle$.
 
 
 ```{julia}
-𝐏hi₂(r, theta) = [r*cos(theta), r*sin(theta), 1 + r*cos(theta)]
-𝐉ac₂ = 𝐏hi₂(𝐑, 𝐭heta).jacobian([𝐑, 𝐭heta])
-𝐯₂, 𝐰₂ = 𝐉ac₂[:,1], 𝐉ac₂[:,2]
-𝐍ormal₂ = 𝐯₂ × 𝐰₂ .|> simplify  # has correct orientation
+Phi₂(r, theta) = [r*cos(theta), r*sin(theta), 1 + r*cos(theta)]
+Jac₂ = Phi₂(R, theta).jacobian([R, theta])
+v₂, w₂ = Jac₂[:,1], Jac₂[:,2]
+Normal₂ = v₂ × w₂ .|> simplify  # has correct orientation
 ```
 
 With this, the contribution for $S_2$ is:
 
 
 ```{julia}
-A₂ = integrate(𝐅(𝐏hi₂(𝐑, 𝐭heta)) ⋅ (𝐍ormal₂), (𝐭heta, 0, 2PI), (𝐑, 0, 1))
+A₂ = integrate(F(Phi₂(R, theta)) ⋅ (Normal₂), (theta, 0, 2PI), (R, 0, 1))
 ```
 
 Finally for $S_3$, the parameterization used is $\Phi(z, \theta) = \langle \cos(\theta), \sin(\theta), z\rangle$, but this is over a non-rectangular region, as $z$ is between $0$ and $1 + x$.
@@ -953,17 +953,17 @@ This parameterization gives a normal computed through:
 
 ```{julia}
 @syms 𝐳::positive
-𝐏hi₃(z, theta) = [cos(theta), sin(theta), 𝐳]
-𝐉ac₃ = 𝐏hi₃(𝐳, 𝐭heta).jacobian([𝐳, 𝐭heta])
-𝐯₃, 𝐰₃ = 𝐉ac₃[:,1], 𝐉ac₃[:,2]
-𝐍ormal₃ = 𝐯₃ × 𝐰₃ .|> simplify  # wrong orientation, so we change sign below
+Phi₃(z, theta) = [cos(theta), sin(theta), 𝐳]
+Jac₃ = Phi₃(𝐳, theta).jacobian([𝐳, theta])
+v₃, w₃ = Jac₃[:,1], Jac₃[:,2]
+Normal₃ = v₃ × w₃ .|> simplify  # wrong orientation, so we change sign below
 ```
 
 The contribution is
 
 
 ```{julia}
-A₃ = integrate(𝐅(𝐏hi₃(𝐳, 𝐭heta)) ⋅ (-𝐍ormal₃), (𝐳, 0, 1 + cos(𝐭heta)), (𝐭heta, 0, 2PI))
+A₃ = integrate(F(Phi₃(𝐳, theta)) ⋅ (-Normal₃), (𝐳, 0, 1 + cos(theta)), (theta, 0, 2PI))
 ```
 
 In total, the surface integral is

@@ -427,23 +427,25 @@ SymPy is phasing in the `solveset` function to replace `solve`. The main reason 
 
 
 ```{julia}
-𝒑 = 8x^4 - 8x^2  + 1
-𝒑_rts = solveset(𝒑)
+p = 8x^4 - 8x^2  + 1
+p_rts = solveset(p)
 ```
 
-The `𝒑_rts` object, a `FiniteSet`, does not allow immediate access to its elements. For that `elements` will work to return a vector:
+The `p_rts` object, a `Set`, does not allow indexed access to its elements. For that `collect` will work to return a vector:
 
 
 ```{julia}
-elements(𝒑_rts)
+collect(p_rts)
 ```
 
-To get the numeric approximation, we compose these function calls:
+To get the numeric approximation, we can broadcast:
 
 
 ```{julia}
-N.(elements(solveset(𝒑)))
+N.(solveset(p))
 ```
+
+(There is no need to call `collect` -- though you can -- as broadcasting over a set falls back to broadcasting over the iteration of the set and in this case returns a vector.)
 
 ## Do numeric methods matter when you can just graph?
 
@@ -455,8 +457,8 @@ For another example, consider the polynomial $(x-20)^5 - (x-20) + 1$. In this fo
 
 
 ```{julia}
-𝐩 =   x^5 - 100x^4 + 4000x^3 - 80000x^2 + 799999x - 3199979
-plot(𝐩, -10, 10)
+p = x^5 - 100x^4 + 4000x^3 - 80000x^2 + 799999x - 3199979
+plot(p, -10, 10)
 ```
 
 This seems to indicate a root near $10$. But look at the scale of the $y$ axis. The value at $-10$ is around $-25,000,000$ so it is really hard to tell if $f$ is near $0$ when $x=10$, as the range is too large.
@@ -466,7 +468,7 @@ A graph over $[10,20]$ is still unclear:
 
 
 ```{julia}
-plot(𝐩, 10,20)
+plot(p, 10,20)
 ```
 
 We see that what looked like a zero near $10$, was actually a number around $-100,000$.
@@ -476,7 +478,7 @@ Continuing, a plot over $[15, 20]$ still isn't that useful. It isn't until we ge
 
 
 ```{julia}
-plot(𝐩, 18, 22)
+plot(p, 18, 22)
 ```
 
 Not that it can't be done, but graphically solving for a root here can require some judicious choice of viewing window. Even worse is the case where something might graphically look like a root, but in fact not be a root. Something like $(x-100)^2 + 0.1$ will demonstrate.
@@ -576,6 +578,10 @@ from which it follows that $|x| \leq h$, as desired.
 
 
 For our polynomial $x^5 -x + 1$ we have the sum above is $3$. The lone real root is approximately $-1.1673$ which satisfies $|-1.1673| \leq 3$.
+
+
+
+
 
 
 ## Questions
@@ -883,10 +889,10 @@ function mag()
     p = Permutation(0,2)
     q = Permutation(1,2)
     m = 0
-    for perm in (p, q, q*p, p*q, p*q*p, p^2)
-        as =  perm([2,3,4])
+    for perm in (p, q, q*p, p*q, p*q*p)#, p^2)
+        as =  N.(collect(perm([2,3,4])))
         fn = x -> x^3 - as[1]*x^2 + as[2]*x - as[3]
-        rts_ = find_zeros(fn, -10..10)
+        rts_ = find_zeros(fn, -10,10)
 	    a1 = maximum(abs.(rts_))
 	    m = a1 > m ? a1 : m
     end

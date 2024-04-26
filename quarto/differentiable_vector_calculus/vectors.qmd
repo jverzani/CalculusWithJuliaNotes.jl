@@ -201,13 +201,13 @@ For example, if `xs` is a vector and `ys` a scalar, then the value in `ys` is re
 
 
 ```{julia}
-𝐟(x,y) = x + y
+f(x,y) = x + y
 ```
 
 ```{julia}
 #| hold: true
 xs = ys = [0, 1]
-𝐟.(xs, ys)
+f.(xs, ys)
 ```
 
 This matches `xs` and `ys` to pass `(0,0)` and then `(1,1)` to `f`, returning `0` and `2`. Now consider
@@ -216,7 +216,7 @@ This matches `xs` and `ys` to pass `(0,0)` and then `(1,1)` to `f`, returning `0
 ```{julia}
 #| hold: true
 xs = [0, 1]; ys = [0 1]  # xs is a column vector, ys a row vector
-𝐟.(xs, ys)
+f.(xs, ys)
 ```
 
 The two dimensions are different so for each value of `xs` the vector of `ys` is broadcast. This returns a matrix now. This will be important for some plotting usages where a grid (matrix) of values is needed.
@@ -255,9 +255,9 @@ The dot product is computed in `Julia` by the `dot` function, which is in the `L
 
 
 ```{julia}
-𝒖 = [1, 2]
-𝒗 = [2, 1]
-dot(𝒖, 𝒗)
+u = [1, 2]
+v = [2, 1]
+dot(u, v)
 ```
 
 :::{.callout-note}
@@ -267,15 +267,15 @@ In `Julia`, the unicode operator entered by `\cdot[tab]` can also be used to mir
 :::
 
 ```{julia}
-𝒖 ⋅ 𝒗   # u \cdot[tab] v
+u ⋅ v   # u \cdot[tab] v
 ```
 
 Continuing, to find the angle between $\vec{u}$ and $\vec{v}$, we might do this:
 
 
 ```{julia}
-𝒄theta = dot(𝒖/norm(𝒖), 𝒗/norm(𝒗))
-acos(𝒄theta)
+cos_theta = dot(u/norm(u), v/norm(v))
+acos(cos_theta)
 ```
 
 The cosine of $\pi/2$ is $0$, so two vectors which are at right angles to each other will have a dot product of  $0$:
@@ -350,16 +350,16 @@ A [force diagram](https://en.wikipedia.org/wiki/Free_body_diagram) is a useful v
 
 
 ```{julia}
-𝗍heta = pi/12
-𝗆ass, 𝗀ravity = 1/9.8, 9.8
+theta = pi/12
+mass, gravity = 1/9.8, 9.8
 
-𝗅 = [-sin(𝗍heta), cos(𝗍heta)]
-𝗉 = -𝗅
-𝖥g = [0, -𝗆ass * 𝗀ravity]
+R = [-sin(theta), cos(theta)]
+p = -R
+Fg = [0, -mass * gravity]
 plot(legend=false)
-arrow!(𝗉, 𝗅)
-arrow!(𝗉, 𝖥g)
-scatter!(𝗉[1:1], 𝗉[2:2], markersize=5)
+arrow!(p, R)
+arrow!(p, Fg)
+scatter!(p[1:1], p[2:2], markersize=5)
 ```
 
 The magnitude of the tension force is exactly that of the force of gravity projected onto $\vec{l}$, as the bob is not accelerating in that direction. The component of the gravity force in the perpendicular direction is the part of the gravitational force that causes acceleration in the pendulum. Here we find the projection onto $\vec{l}$ and visualize the two components of the gravitational force.
@@ -367,15 +367,15 @@ The magnitude of the tension force is exactly that of the force of gravity proje
 
 ```{julia}
 plot(legend=false, aspect_ratio=:equal)
-arrow!(𝗉, 𝗅)
-arrow!(𝗉, 𝖥g)
-scatter!(𝗉[1:1], 𝗉[2:2], markersize=5)
+arrow!(p, R)
+arrow!(p, Fg)
+scatter!(p[1:1], p[2:2], markersize=5)
 
-𝗉roj = (𝖥g ⋅ 𝗅) / (𝗅 ⋅ 𝗅) * 𝗅   # force of gravity in direction of tension
-𝗉orth = 𝖥g - 𝗉roj              # force of gravity perpendicular to tension
+proj = (Fg ⋅ R) / (R ⋅ R) * R   # force of gravity in direction of tension
+porth = Fg - proj              # force of gravity perpendicular to tension
 
-arrow!(𝗉, 𝗉roj)
-arrow!(𝗉, 𝗉orth, linewidth=3)
+arrow!(p, proj)
+arrow!(p, porth, linewidth=3)
 ```
 
 ##### Example
@@ -551,7 +551,7 @@ As mentioned previously, a matrix in `Julia` is defined component by component w
 
 
 ```{julia}
-ℳ = [3 4 -5; 5 -5 7; -3 6 9]
+M = [3 4 -5; 5 -5 7; -3 6 9]
 ```
 
 Space is the separator, which means computing a component during definition (i.e., writing `2 + 3` in place of `5`) can be problematic, as no space can be used in the computation, lest it be parsed as a separator.
@@ -568,88 +568,87 @@ In `Julia`, entries in a matrix (or a vector) are stored in a container with a t
 
 
 ```{julia}
-@syms x1 x2 x3
-𝓍 = [x1, x2, x3]
+@syms xs[1:3]
 ```
 
 Matrices may also be defined from blocks. This example shows how to make two column vectors into a matrix:
 
 
 ```{julia}
-𝓊 = [10, 11, 12]
-𝓋 = [13, 14, 15]
-[𝓊 𝓋]   # horizontally combine
+u = [10, 11, 12]
+v = [13, 14, 15]
+[u v]   # horizontally combine
 ```
 
 Vertically combining the two will stack them:
 
 
 ```{julia}
-[𝓊; 𝓋]
+[u; v]
 ```
 
 Scalar multiplication will just work as expected:
 
 
 ```{julia}
-2 * ℳ
+2 * M
 ```
 
 Matrix addition is also straightforward:
 
 
 ```{julia}
-ℳ + ℳ
+M + M
 ```
 
 Matrix addition expects matrices of the same size. An error will otherwise be thrown. However, if addition is *broadcasted* then the sizes need only be commensurate. For example, this will add `1` to each entry of `M`:
 
 
 ```{julia}
-ℳ .+ 1
+M .+ 1
 ```
 
 Matrix multiplication is defined by `*`:
 
 
 ```{julia}
-ℳ * ℳ
+M * M
 ```
 
 We can then see how the system of equations is represented with matrices:
 
 
 ```{julia}
-ℳ * 𝓍 - 𝒷
+M * xs - 𝒷
 ```
 
 Here we use `SymPy` to verify the above:
 
 
 ```{julia}
-𝒜 = [symbols("A$i$j", real=true) for i in 1:3, j in 1:2]
-ℬ = [symbols("B$i$j", real=true) for i in 1:2, j in 1:2]
+A = [symbols("A$i$j", real=true) for i in 1:3, j in 1:2]
+B = [symbols("B$i$j", real=true) for i in 1:2, j in 1:2]
 ```
 
 The matrix product has the expected size: the number of rows of `A` ($3$) by the number of columns of `B` ($2$):
 
 
 ```{julia}
-𝒜 * ℬ
+A * B
 ```
 
 This confirms how each entry (`(A*B)[i,j]`) is from a dot product (`A[i,:]  ⋅ B[:,j]`):
 
 
 ```{julia}
-[ (𝒜 * ℬ)[i,j] == 𝒜[i,:] ⋅ ℬ[:,j] for i in 1:3, j in 1:2]
+[ (A * B)[i,j] == A[i,:] ⋅ B[:,j] for i in 1:3, j in 1:2]
 ```
 
 When the multiplication is broadcasted though, with `.*`, the operation will be component wise:
 
 
 ```{julia}
-ℳ .* ℳ   # component wise (Hadamard product)
+M .* M   # component wise (Hadamard product)
 ```
 
 ---
@@ -659,7 +658,7 @@ The determinant is found by `det` provided by the `LinearAlgebra` package:
 
 
 ```{julia}
-det(ℳ)
+det(M)
 ```
 
 ---
@@ -669,14 +668,14 @@ The transpose of a matrix is found through `transpose` which doesn't create a ne
 
 
 ```{julia}
-transpose(ℳ)
+transpose(M)
 ```
 
 For matrices with *real* numbers, the transpose can be performed with the postfix operation `'`:
 
 
 ```{julia}
-ℳ'
+M'
 ```
 
 (However, this is not true for matrices with complex numbers as `'` is the "adjoint," that is, the transpose of the matrix *after* taking complex conjugates.)
@@ -686,14 +685,14 @@ With `u` and `v`, vectors from above, we have:
 
 
 ```{julia}
-[𝓊' 𝓋']   # [𝓊 𝓋] was a 3 × 2 matrix, above
+[u' v']   # [u v] was a 3 × 2 matrix, above
 ```
 
 and
 
 
 ```{julia}
-[𝓊'; 𝓋']
+[u'; v']
 ```
 :::{.callout-note}
 ## Note
@@ -782,29 +781,30 @@ In `Julia`, the `cross` function from the `LinearAlgebra` package implements the
 
 
 ```{julia}
-𝓪 = [1, 2, 3]
-𝓫 = [4, 2, 1]
-cross(𝓪, 𝓫)
+a = [1, 2, 3]
+b = [4, 2, 1]
+cross(a, b)
 ```
 
 There is also the *infix* unicode operator `\times[tab]` that can be used for similarity to traditional mathematical syntax.
 
 
 ```{julia}
-𝓪 × 𝓫
+a × b
 ```
 
 We can see the cross product is anti-commutative by comparing the last answer with:
 
 
 ```{julia}
-𝓫 × 𝓪
+b × a
 ```
 
 Using vectors of size different than $n=3$ produces a dimension mismatch error:
 
 
 ```{julia}
+#| error: true
 [1, 2] × [3, 4]
 ```
 
@@ -816,15 +816,15 @@ Let's see that the matrix definition will be identical (after identifications) t
 
 ```{julia}
 @syms î ĵ k̂
-𝓜 = [î ĵ k̂; 3 4 5; 3 6 7]
-det(𝓜) |> simplify
+M = [î ĵ k̂; 3 4 5; 3 6 7]
+det(M) |> simplify
 ```
 
 Compare with
 
 
 ```{julia}
-𝓜[2,:] × 𝓜[3,:]
+M[2,:] × M[3,:]
 ```
 
 ---
