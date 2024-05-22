@@ -1,0 +1,431 @@
+#  A dozen minima for a parabola
+
+This section uses these packages:
+
+```{julia}
+using SymPy
+using Plots
+```
+
+----
+
+In the March 2003 issue of the College Mathematics Journal, Leon M Hall posed 12 questions related to the following figure:
+
+```{julia}
+#| echo: false
+f(x) = x^2
+fp(x) = 2x
+a₀ = 7/8
+q₀ = -a₀ - 1/(2a₀)
+tangent(x) = f(a₀) + fp(a₀) * (x - a₀)
+normal(x) = f(a₀) - (1 / fp(a₀)) * (x - a₀)
+function make_plot(a₀=7/8, q₀=-a₀ - 1/2a₀)
+    plt = plot(; xlim=(-2,2), ylim=(-1, (1.5)^2),
+               xticks=nothing, yticks=nothing,
+               aspect_ratio=:equal, border=:none, legend=false)
+    f(x) = x^2
+    fp(x) = 2x
+    plot!(f, -1.5, 1.5)
+    plot!(zero)
+
+    tl = x -> f(a₀) + fp(a₀) * (x-a₀)
+    nl = x -> f(a₀) - 1/(fp(a₀)) * (x-a₀)
+    plot!(tl, -0.02, 1.6; linecolor=:black)
+    plot!(nl, -1.6, 1; linecolor=:black)
+    # add in right triangle
+    scatter!([a₀, q₀], f.([a₀, q₀]), markersize=5)
+    Δ = 0.01
+    annotate!([(a₀ + Δ, nl(a₀+Δ), "P", :bottom),
+               (q₀ - Δ, nl(q₀-Δ), "Q", :top)])
+    plt
+end
+make_plot()
+```
+
+The figure shows $f(x) = x^2$, the tangent line at $(a, f(a))$ (for $a > 0$), and the *normal* line at $(a, f(a))$. The  questions all involve finding the value $a$ which minimizes a related quantity.
+
+
+We set up some variables to work symbolically:
+
+```{julia}
+@syms a::positive x::real
+f(x) = x^2
+fp(x) = 2x
+m = fp(a)
+mᴵ = - 1/m
+tl = f(a) + m * (x - a)
+nl = f(a) + mᴵ * (x - a)
+zs = solve(f(x) ~ nl, x)
+q = only(filter(!=(a), zs))
+```
+
+----
+
+The first question is simply:
+
+> 1a. The $y$ coordinate of $Q$
+
+```{julia}
+#| echo: false
+let
+    p = make_plot()
+    plot!(p, [q₀,q₀], [0,normal(q₀)], linewidth=5)
+end
+```
+
+The value is $f(q)$
+
+```{julia}
+yvalue = f(q)
+```
+
+To minimize we solve for critical points:
+
+```{julia}
+cps = solve(diff(yvalue, a), a)
+```
+
+The lone critical point must be at a minimum. (Given the geometry of the problem, as $a$ goes to $\infty$ the height does too, and as $a$ goes to $0$ the height will also go to $\infty$. This can also be seen analytically, as $q = -a - 1/(2a)$ which goes to $-\infty$ when $a$ heads to $0$ or $\infty$.)
+
+::: {.callout-note}
+## We hide the code
+
+In the remaining examples we don't show the code by default.
+
+:::
+
+----
+
+> 1b. The length of the line segment $PQ$
+
+```{julia}
+#| echo: false
+p = make_plot()
+plot!([q₀, a₀], [f(q₀), f(a₀)], linewidth=5)
+```
+
+
+```{julia}
+#| code-fold: true
+#| code-summary: "Show the code"
+lseg = sqrt((f(a) - f(q))^2 + (a - q)^2);
+```
+
+
+----
+
+> 2a. The horizontal distance between $P$ and $Q$
+
+
+```{julia}
+#| echo: false
+p = make_plot()
+plot!([q₀, a₀], [f(a₀), f(a₀)], linewidth=5)
+```
+
+
+```{julia}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+hd = a - q;
+```
+----
+
+> 2b. The area of the parabolic segment
+
+
+```{julia}
+#| echo: false
+p = make_plot()
+xs′ = range(q₀, a₀, 50)
+xs = vcat(xs′, reverse(xs′), first(xs′))
+ys = vcat(f.(xs′), normal.(reverse(xs′)), f(first(xs′)))
+plot!(xs, ys, fill=(:green, 0.25, 0))
+```
+
+
+```{julia}
+#| code-fold: true
+#| code-summary: "Show the code"
+A = simplify(integrate(nl - f(x), (x, q, a)));
+```
+
+----
+
+> 2c. The volume of the rotated solid formed by revolving the parabolic segment around the vertical line $k$ units to the right of $P$ or to the left of $Q$ where $k > 0$.
+
+
+
+```{julia}
+#| code-fold: true
+#| code-summary: "Show the code"
+@syms k::nonnegative
+V = simplify(integrate(PI * (nl - f(x) - k)^2, (x, q, a)));
+```
+
+----
+
+> 3. The $y$ coordinate of the centroid of the parabolic segment
+
+
+```{julia}
+#| echo: false
+p = make_plot()
+scatter!(p, [-1/(4a₀)], [1], marker=(10, :diamond))
+p
+```
+
+
+We warm up with the $x$ coordinate, given by:
+
+```{julia}
+xₘ = integrate(x * (nl - f(x)), (x, q, a)) / A
+simplify(xₘ)
+```
+
+a fact noted by the author.
+
+```{julia}
+#| code-fold: true
+#| code-summary: "Show the code"
+yₘ = integrate( (1//2) * (nl^2 - f(x)^2), (x, q, a)) / A
+yₘ = simplify(yₘ);
+```
+
+----
+
+> 4. The length of the arc of the parabola between $P$ and $Q$
+
+
+```{julia}
+#| echo: false
+p = make_plot()
+xs = range(q₀, a₀, 100)
+plot!(xs, f.(xs), linewidth=5)
+p
+```
+
+```{julia}
+#| code-fold: true
+#| code-summary: "Show the code"
+L = integrate(sqrt(1 + fp(x)^2), (x, q, a));
+```
+
+----
+
+> 5. The $y$ coordinate of the midpoint ofthe line segment $PQ$
+
+
+```{julia}
+#| echo: false
+p = make_plot()
+mid = a₀/2 + q₀/2
+vline!([mid])
+scatter!([mid], [normal(mid)], markersize=5)
+p
+```
+
+
+```{julia}
+#| code-fold: true
+#| code-summary: "Show the code"
+mp = nl(x => (a + q)/2);
+```
+
+----
+
+> 6. The area of the trapezoid bound by the normal line, the $x$-axis, and the vertical lines through $P$ and $Q$.
+
+
+```{julia}
+#| echo: false
+p = make_plot()
+plot!([q₀, a₀, a₀, q₀, q₀],
+      [0,  0, f(a₀), f(q₀), 0]; fill=(:green, 0.25, 0))
+p
+```
+
+```{julia}
+#| code-fold: true
+#| code-summary: "Show the code"
+trap = 1//2 * (f(q) + f(a)) * (a - q);
+```
+
+----
+
+> 7. The area bounded by the parabola and the $x$ axis and the vertical lines through $P$ and $Q$
+
+```{julia}
+#| echo: false
+p = make_plot()
+ts = range(q₀, a₀, 100)
+xs = vcat(ts, a₀, q₀, q₀)
+ys = vcat(f.(ts), 0, 0, f(q₀))
+plot!(xs, ys, fill=(:green, 0.25, 0))
+p
+```
+
+
+
+```{julia}
+#| code-fold: true
+#| code-summary: "Show the code"
+pa = integrate(x^2, (x, q, a));
+```
+
+----
+
+> 8. The area of the surface formed by revolving the arc of the parabola between $P$ and $Q$ around the vertical line through $P$
+
+```{julia}
+#| echo: false
+let
+    using SplitApplyCombine
+    S(x, θ) = (a₀ - (a₀-x)*cos(θ), (a₀-x)*sin(θ), f(x))
+    xs = range(q₀, a₀, 50)
+    θs = range(0, 2pi, 50)
+    surface(SplitApplyCombine.invert(S.(xs,θs'))...)
+end
+```
+
+
+
+```{julia}
+#| code-fold: true
+#| code-summary: "Show the code"
+# use parametric and  2π ∫ u(t) √(u'(t)^2 + v'(t)^2) dt
+uu(x) = a - x
+vv(x) = f(uu(x))
+SA = 2PI * integrate(uu(x) * sqrt(diff(uu(x),x)^2 + diff(vv(x),x)^2), (x, q, a));
+```
+
+----
+
+> 9. The height of the parabolic segment (i.e. the distance between the normal line and the tangent line to the parabola that is parallel to the normal line)
+
+```{julia}
+#| echo: false
+# distance point to a line
+# > solve(diff(x^2,x) ~ -1/fp(a), x) # mean value theorem
+#  -1/(4*a)
+
+b₀ = -1/(4a₀) # mean value approach
+# f(b0) + fp(a0)*(x-b0) = f(a0) - 1/fp(a0)*(x-a0)
+x₀ =  a₀/2 - 1/(8*a₀)
+make_plot()
+plot!(x -> f(b₀) + (-1/fp(a₀))*(x - b₀), -1, 1/2)
+plot!([b₀,x₀], [f(b₀), normal(x₀)]; linewidth=5)
+```
+
+```{julia}
+#| code-fold: true
+#| code-summary: "Show the code"
+# find b through mean value theorem,
+# then solve for point of intersection
+b = only(solve(diff(f(x),x) ~ -1/fp(a), x))
+b′ = only(solve(f(b) + fp(a)*(x-b) ~ nl, x))
+segment_height = sqrt((b-b′)^2 + (f(b) - nl(x=>b′))^2);
+```
+
+
+----
+
+> 10. The volume of the solid formed by revolving the parabolic segment around the $x$-axis
+
+```{julia}
+#| echo: false
+let
+    using SplitApplyCombine
+    S(x,θ) = (x, ((f(a₀) - 1/fp(a₀)*(x - a₀)) .* (sin(θ), cos(θ)))...)
+    xs = range(q₀, a₀, 50)
+    θs = range(0, 2pi, 50)
+    surface(SplitApplyCombine.invert(S.(xs,θs'))...)
+end
+```
+
+```{julia}
+#| code-fold: true
+#| code-summary: "Show the code"
+Vₓ = integrate(pi * (nl^2 - f(x)^2), (x, q, a));
+```
+
+----
+
+> 11. The area of the triangle bound by the normal line, the vertical line through $Q$ and the $x$-axis
+
+```{julia}
+#| echo: false
+make_plot()
+# solve 0 = y0 + m * (x-x0) --> x0 - y0/m
+p₀ = a₀ - f(a₀) / (-1/fp(a₀))
+xlims!((-2,  p₀ + 0.2))
+plot!([p₀,q₀,q₀,p₀], [0,f(q₀),0,0];
+      fill=(:green, 0.25,0))
+```
+
+```{julia}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+triangle = 1/2 * f(q) * (a - f(a)/(-1/fp(a)) - q);
+```
+
+----
+
+> 12. The area of the quadrilateral bound by the normal line, the tangent line, the vertical line through $Q$ and the $x$-axis
+
+```{julia}
+#| echo: false
+make_plot()
+plot!([a₀,q₀,q₀,a₀-f(a₀)/fp(a₀),a₀],
+      [f(a₀), f(q₀), 0, 0,f(a₀)], fill=(:green, 0.25, 0))
+```
+
+
+```{julia}
+#| code-fold: true
+#| code-summary: "Show the code"
+# @syms x[1:4], y[1:4]
+# v1, v2, v3 = [[x[i]-x[1],y[i]-y[1], 0] for i in 2:4]
+# area = 1//2 * last(cross(v3,v2) + cross(v2, v1)) # 1/2 area of parallelogram
+# print(simplify(area))
+# -(x₁ - x₂)*(y₁ - y₃)/2 + (x₁ - x₃)*(y₁ - y₂)/2 - (x₁ - x₃)*(y₁ - y₄)/2 + (x₁ - x₄)*(y₁ - y₃)/2
+tl₀ = a - f(a) / fp(a)
+x₁,x₂,x₃,x₄ = (a,q,q,tl₀)
+y₁, y₂, y₃, y₄ = (f(a), f(q), 0, 0)
+quadrilateral = -(x₁ - x₂)*(y₁ - y₃)/2 + (x₁ - x₃)*(y₁ - y₂)/2 - (x₁ - x₃)*(y₁ - y₄)/2 + (x₁ - x₄)*(y₁ - y₃)/2;
+```
+----
+
+The answers appear here in sorted order, some given as approximate floating point values:
+
+
+```{julia}
+article_answers = (1/(2sqrt(2)), 1/2, sqrt(3/10), 0.558480, 0.564641,
+                   0.569723, 0.574646,
+                   1/sqrt(3), 1/8^(1/4), 1/6^(1/4), .644004, 1/sqrt(2))
+```
+
+```{julia}
+#| echo: false
+# check
+problems = ("1a"=>yvalue, "1b"=>lseg, "1c"=>hd,
+            "2a" => A, "2b" => V,
+            "3" => yₘ,
+            "4" => L,
+            "5" => mp,
+            "6" => trap,
+            "7" => pa,
+            "8" => SA,
+            "9" => segment_height,
+            "10" => Vₓ,
+            "11" => triangle,
+            "12" => quadrilateral
+            )
+≈ₒ(a,b) = isapprox(a, b; atol=1e-5, rtol=sqrt(eps()))
+∂ = Differential(a)
+solutions = [k => only(solve(∂(p) ~ 0, a)) for (k,p) in problems]
+[(sol=k, correct=(any(isapprox.(s, article_answers; atol=1e-5)))) for (k,s) ∈ solutions]
+nothing
+```
