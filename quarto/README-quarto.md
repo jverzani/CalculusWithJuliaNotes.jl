@@ -24,7 +24,7 @@ To compile the pages through quarto
 * should also push project to github
 * no need to push `_freeze` the repo, as files are locally rendered for now.
 
-* NO LONGERto get `PlotlyLight` to work the plotly library needs loading **before** require.min.js. This is accomplished by **editing** the .html file and moving up this line: <script src="https://cdn.plot.ly/plotly-2.11.0.min.js"></script>
+* NO LONGER to get `PlotlyLight` to work the plotly library needs loading **before** require.min.js. This is accomplished by **editing** the .html file and moving up this line: <script src="https://cdn.plot.ly/plotly-2.11.0.min.js"></script>
 
 This can be done with this commandline call: julia adjust_plotly.jl
 
@@ -102,7 +102,7 @@ DONE * clean up edit link
 DONE * remove pinned header
 DONE * clean up directory
 DONE (?) * JSXGraph files
-WON'T DO * download links to Pluto .jl files (if we have .jmd, but we might deprecate...) For *now* .jmd is derprecated; though we keep the files around ....
+WON'T DO * download links to Pluto .jl files (if we have .jmd, but we might deprecate...) For *now* .jmd is deprecated; though we keep the files around ....
 
 ## Cone, general
 # https://discourse.julialang.org/t/general-plotting-code-for-cone-in-3d-with-glmakie-or-plots/92104/3
