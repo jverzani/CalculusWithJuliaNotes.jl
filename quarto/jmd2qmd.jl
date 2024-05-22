@@ -68,7 +68,7 @@ Convert `.jmd` file in `jmd_file` to a `.qmd` file, write output to `io`.
 
 * code blocks use comments at the top of the file to add features like `echo=false`
 * admonitions use "callout" syntax
-* LaTeX uses dollar signs for delimeters, not double back tics or a `math` block
+* LaTeX uses dollar signs for delimiters, not double back tics or a `math` block
 
 """
 function jmd2qmd(io::IO, jmd_file::AbstractString)
