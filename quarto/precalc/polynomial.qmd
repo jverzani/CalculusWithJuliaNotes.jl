@@ -9,6 +9,7 @@ In this section we use the following add-on packages:
 ```{julia}
 using SymPy
 using Plots
+plotly()
 ```
 
 ```{julia}
@@ -43,7 +44,7 @@ $$
 #| cache: true
 ##{{{ different_poly_graph }}}
 
-
+gr()
 anim = @animate for m in  2:2:10
     fn = x -> x^m
     plot(fn, -1, 1, size = fig_size, legend=false, title="graph of x^{$m}", xlims=(-1,1), ylims=(-.1,1))
@@ -53,6 +54,7 @@ imgfile = tempname() * ".gif"
 gif(anim, imgfile, fps = 1)
 caption = "Polynomials of varying even degrees over ``[-1,1]``."
 
+plotly()
 ImageFile(imgfile, caption)
 ```
 
@@ -87,7 +89,7 @@ $$
 #| echo: false
 #| cache: true
 ### {{{ lines_m_graph }}}
-
+gr()
 anim = @animate for m in  [-5, -2, -1, 1, 2, 5, 10, 20]
     fn = x -> m * x
     plot(fn, -1, 1, size = fig_size, legend=false, title="m = $m", xlims=(-1,1), ylims=(-20, 20))
@@ -96,7 +98,7 @@ end
 imgfile = tempname() * ".gif"
 gif(anim, imgfile, fps = 1)
 caption = "Graphs of y = mx for different values of m"
-
+plotly()
 ImageFile(imgfile, caption)
 ```
 
@@ -172,17 +174,17 @@ To illustrate, using the just defined `x`, here is how we can create the polynom
 
 
 ```{julia}
-𝒑 = -16x^2 + 100
+p = -16x^2 + 100
 ```
 
 That is, the expression is created just as you would create it within a function body. But here the result is still a symbolic object. We have assigned this expression to a variable `p`, and have not defined it as a function `p(x)`. Mentally keeping the distinction between symbolic expressions and functions is very important.
 
 
-The `typeof` function shows that `𝒑` is of a symbolic type (`Sym`):
+The `typeof` function shows that `p` is of a symbolic type (`Sym`):
 
 
 ```{julia}
-typeof(𝒑)
+typeof(p)
 ```
 
 We can mix and match symbolic objects. This command creates an arbitrary quadratic polynomial:
@@ -230,28 +232,28 @@ To illustrate, to do the task above for the polynomial $-16x^2 + 100$ we could h
 
 
 ```{julia}
-𝒑(x => (x-1)^2)
+p(x => (x-1)^2)
 ```
 
 This "call" notation takes pairs (designated by `a=>b`) where the left-hand side is the variable to substitute for, and the right-hand side the new value. The value to substitute can depend on the variable, as illustrated; be a different variable; or be a numeric value, such as $2$:
 
 
 ```{julia}
-𝒚 = 𝒑(x=>2)
+y = p(x=>2)
 ```
 
 The result will always be of a symbolic type, even if the answer is just a number:
 
 
 ```{julia}
-typeof(𝒚)
+typeof(y)
 ```
 
 If there is just one free variable in an expression, the pair notation can be dropped:
 
 
 ```{julia}
-𝒑(4) # substitutes x=>4
+p(4) # substitutes x=>4
 ```
 
 ##### Example
@@ -311,8 +313,8 @@ Evaluating a symbolic expression and returning a numeric value can be done by co
 
 
 ```{julia}
-𝐩 = 200 - 16x^2
-N(𝐩(2))
+p = 200 - 16x^2
+N(p(2))
 ```
 
 This approach is direct, but can be slow *if* many such evaluations were needed (such as with a plot). An alternative is to turn the symbolic expression into a `Julia` function and then evaluate that as usual.
@@ -323,7 +325,7 @@ The `lambdify` function turns a symbolic expression into a `Julia` function
 
 ```{julia}
 #| hold: true
-pp = lambdify(𝐩)
+pp = lambdify(p)
 pp(2)
 ```
 
@@ -356,7 +358,7 @@ Consider the graph of the polynomial `x^5 - x + 1`:
 plot(x^5 - x + 1, -3/2, 3/2)
 ```
 
-(Plotting symbolic expressions is similar to plotting a function, in that the expression is passed in as the first argument. The expression must have only one free variable, as above, or an error will occur.)
+(Plotting symbolic expressions with `Plots` is similar to plotting a function, in that the expression is passed in as the first argument. The expression must have only one free variable, as above, or an error will occur. This happens, as there is a `Plots` "recipe" for `SymPy` defined.)
 
 
 This graph illustrates the key features of polynomial graphs:
@@ -375,7 +377,7 @@ To investigate this last point, let's consider the case of the monomial $x^n$. W
 #| echo: false
 #| cache: true
 ### {{{ poly_growth_graph }}}
-
+gr()
 anim = @animate for m in  0:2:12
     fn = x -> x^m
     plot(fn, -1.2, 1.2, size = fig_size, legend=false, xlims=(-1.2, 1.2), ylims=(0, 1.2^12), title="x^{$m} over [-1.2, 1.2]")
@@ -384,7 +386,7 @@ end
 imgfile = tempname() * ".gif"
 gif(anim, imgfile, fps = 1)
 caption = L"Demonstration that $x^{10}$ grows faster than $x^8$, ... and $x^2$  grows faster than $x^0$ (which is constant)."
-
+plotly()
 ImageFile(imgfile, caption)
 ```
 
@@ -412,7 +414,7 @@ To see the roots and/or the peaks and valleys of a polynomial requires a judicio
 #| echo: false
 #| cache: true
 ### {{{ leading_term_graph }}}
-
+gr()
 anim = @animate for n in 1:6
     m = [1, .5, -1, -5, -20, -25]
     M = [2, 4,    5, 10, 25, 30]
@@ -427,7 +429,7 @@ end
 caption = "The previous graph is highlighted in red. Ultimately the leading term (\$x^4\$ here) dominates the graph."
 imgfile = tempname() * ".gif"
 gif(anim, imgfile, fps=1)
-
+plotly()
 ImageFile(imgfile, caption)
 ```
 

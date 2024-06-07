@@ -9,8 +9,8 @@ This section uses these add-on packages:
 ```{julia}
 using CalculusWithJulia
 using Plots
+plotly()
 using Roots
-
 ```
 
 ```{julia}
@@ -288,13 +288,19 @@ j(x) = exp(x) * x * (x-1)
 find_zeros(j', 0, 1)
 ```
 
-This graph illustrates the lone value for $c$ for this problem
+The following graph illustrates the lone value for $c$ in $[a,b]$ for
+this problem:
 
 
 ```{julia}
 #| echo: false
 x0 = find_zero(j', (0, 1))
-plot([j, x->j(x0) + 0*(x-x0)], 0, 1)
+j₀ = j(x0)
+plot([j, x->j₀ + 0*(x-x0)], 0, 1; legend=false)
+scatter!([0,x0,1], [j₀, j₀, j₀])
+annotate!([(0,j₀,text("a", :bottom)),
+          (x0, j₀, text("c", :bottom)),
+          (1, j₀, text("b", :bottom))])
 ```
 
 ## The mean value theorem
@@ -327,10 +333,15 @@ cps = find_zeros(x -> f'(x) - m, a, b)
 p = plot(f, a-1, b+1,         linewidth=3, legend=false)
 plot!(x -> f(a) + m*(x-a),  a-1, b+1,   linewidth=3, color=:orange)
 scatter!([a,b], [f(a), f(b)])
+annotate!([(a, f(a), text("a", :bottom)),
+           (b, f(b), text("b", :bottom))])
 
 for cp in cps
-  plot!(x -> f(cp) + f'(cp)*(x-cp), a-1, b+1, color=:red)
+    plot!(x -> f(cp) + f'(cp)*(x-cp), a-1, b+1, color=:red)
 end
+scatter!(cps, f.(cps))
+subsscripts = collect("₀₁₂₃₄₅₆₇₈₉")
+annotate!([(cp, f(cp), text("c"*subsscripts[i], :bottom)) for (i,cp) ∈ enumerate(cps)])
 p
 ```
 
@@ -454,7 +465,7 @@ The Cauchy mean value theorem can be visualized in terms of a tangent line and a
 #| echo: false
 #| cache: true
 ### {{{parametric_fns}}}
-
+gr()
 
 
 function parametric_fns_graph(n)
@@ -488,7 +499,7 @@ end
 
 imgfile = tempname() * ".gif"
 gif(anim, imgfile, fps = 1)
-
+plotly()
 ImageFile(imgfile, caption)
 ```
 

@@ -1,0 +1,78 @@
+## THIS IS FAILING
+## Appendix
+
+
+There are other packages in the `Julia` ecosystem that can plot implicit equations.
+
+
+### The ImplicitEquations package
+
+
+The `ImplicitEquations` packages can plot equations and inequalities. The use is somewhat similar to the examples above, but the object plotted is a predicate, not a function. These predicates are created with functions like `Eq` or `Lt`.
+
+
+For example, the `ImplicitPlots` manual shows this function $f(x,y) = (x^4 + y^4 - 1) \cdot (x^2 + y^2 - 2) + x^5 \cdot y$ to plot. Using `ImplicitEquations`, this equation would be plotted with:
+
+
+```{julia}
+#| hold: true
+using ImplicitEquations
+f(x,y) = (x^4 + y^4 - 1) * (x^2 + y^2 - 2) + x^5 * y
+r = Eq(f, 0)  # the equation f(x,y) = 0
+plot(r)
+```
+
+Unlike `ImplicitPlots`, inequalities may be displayed:
+
+
+```{julia}
+#| hold: true
+f(x,y) = (x^4 + y^4 - 1) * (x^2 + y^2 - 2) + x^5 * y
+r = Lt(f, 0)          # the inequality f(x,y) < 0
+plot(r; M=10, N=10)  # less blocky
+```
+
+The rendered plots look "blocky" due to the algorithm used to plot the equations. As there is no rule defining $(x,y)$ pairs to plot, a search by regions is done. A region is initially labeled undetermined. If it can be shown that for any value in the region the equation is true (equations can also be inequalities), the region is colored black. If it can be shown it will never be true, the region is dropped. If a black-and-white answer is not clear, the region is subdivided and each subregion is similarly tested. This continues until the remaining undecided regions are smaller than some threshold. Such regions comprise a boundary, and here are also colored black. Only regions are plotted - not $(x,y)$ pairs - so the results are blocky. Pass larger values of $N=M$ (with defaults of $8$) to `plot` to lower the threshold at the cost of longer computation times, as seen in the last example.
+
+
+### The IntervalConstraintProgramming package
+
+
+The `IntervalConstraintProgramming` package also can be used to graph implicit equations. For certain problem descriptions it is significantly faster and makes better graphs. The usage is slightly more involved. We show the commands, but don't run them here, as there are minor conflicts with the `CalculusWithJulia`package.
+
+
+We specify a problem using the `@constraint` macro. Using a macro allows expressions to involve free symbols, so the problem is specified in an equation-like manner:
+
+
+```{julia}
+#| eval: false
+S = @constraint x^2 + y^2 <= 2
+```
+
+The right hand side must be a number.
+
+
+The area to plot over must be specified as an `IntervalBox`, basically a pair of intervals. The interval $[a,b]$ is expressed through `a..b`:
+
+
+```{julia}
+#| eval: false
+J = -3..3
+X = IntervalArithmetic.IntervalBox(J, J)
+```
+
+The `pave` command does the heavy lifting:
+
+
+```{julia}
+#| eval: false
+region = IntervalConstraintProgramming.pave(S, X)
+```
+
+A plot can be made of either the boundary, the interior, or both.
+
+
+```{julia}
+#| eval: false
+plot(region.inner)       # plot interior; use r.boundary for boundary
+```

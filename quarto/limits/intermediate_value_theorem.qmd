@@ -9,6 +9,7 @@ This section uses these add-on packages:
 ```{julia}
 using CalculusWithJulia
 using Plots
+plotly()
 using Roots
 using SymPy
 ```
@@ -31,7 +32,7 @@ Continuity for functions is a valued property which carries implications. In thi
 #| echo: false
 #| cache: true
 ### {{{IVT}}}
-
+gr()
 function IVT_graph(n)
     f(x) = sin(pi*x) + 9x/10
     a,b = [0,3]
@@ -68,6 +69,7 @@ with $f(x)=y$.
 
 """
 
+plotly()
 ImageFile(imgfile, caption)
 ```
 
@@ -88,12 +90,20 @@ We use this fact when building a "sign chart" of a polynomial function. Between 
 
 Here, we use the Bolzano theorem to give an algorithm - the *bisection method* - to locate the value $c$ under the assumption $f$ is continuous on $[a,b]$ and changes sign between $a$ and $b$.
 
+::: {.callout-note}
+#### Between
+
+The bisection method is used to find a zero, $c$, of $f(x)$ *between* two values, $a$ and $b$. The method is guaranteed to work under assumptions, the most important being the continuous function having different signs at $a$ and $b$.
+:::
+
+
 
 ```{julia}
 #| hold: true
 #| echo: false
 #| cache: true
 ## {{{bisection_graph}}}
+gr()
 function bisecting_graph(n)
     f(x) = x^2 - 2
     a,b = [0,2]
@@ -138,6 +148,7 @@ that the intermediate value theorem guaratees a zero.
 
 """
 
+plotly()
 ImageFile(imgfile, caption)
 ```
 
@@ -269,6 +280,13 @@ Find the zero numerically. The plot shows $q(5) < 0 < q(10)$, so $[5,10]$ is a b
 find_zero(q, (5, 10))
 ```
 
+::: {.callout-note}
+### Between need not be near
+
+Later, we will see more efficient algorithms to find a zero *near* a given guess. The bisection method finds a zero *between* two values of a bracketing interval. This interval need not be small. Indeed in many cases it can be infinite. For this particular problem, any interval like `(2,N)` will work as long as `N` is bigger than the zero and small enough that `q(N)` is finite *or* infinite *but* not `NaN`. (Basically, `q` must evaluate to a number with a sign. Here, the value of `q(Inf)` is `NaN` as it evaluates to the indeterminate `Inf - Inf`. But `q` is still not `NaN` for quite large numbers, such as `1e77`, as `x^4` can as big as `1e308` -- technically `floatmax(Float64)` -- and be finite.)
+
+:::
+
 ##### Example
 
 
@@ -316,6 +334,12 @@ We see from the graph that it is clearly between $0$ and $2$, so all we need is 
 h(x) = f(x) - g(x)
 find_zero(h, (0, 2))
 ```
+
+::: {.callout-note}
+### Solving `f(x) = g(x)` and `f(x) = c`
+
+The above shows a means to translate a given problem into one that can be solved with `find_zero`. Basically to solve either when a function is a non-zero constant or when a function is equal to some other function, the difference between the two sides is formed and turned into a function, called `h` above.
+:::
 
 ##### Example: Inverse functions
 
@@ -379,11 +403,12 @@ plot!(plan2)
 We can see the intersection point is around $14$ and that if a family generates between $0$-$14$ bags of trash per month that plan $2$ would be cheaper.
 
 
-Let's get a numeric value, using a simple bracket and an anonymous function:
+Let's get a numeric value. We first, form an auxiliary function returning the difference:
 
 
 ```{julia}
-find_zero(x -> plan1(x) - plan2(x), (10, 20))
+h(x) = plan1(x) - plan2(x)
+find_zero(h, (10, 20))
 ```
 
 ##### Example, the flight of an arrow
@@ -495,17 +520,17 @@ plot!(d, 0, x1, label="windy day")
 The Bolzano theorem assumes a continuous function $f$, and when applicable, yields an algorithm to find a guaranteed zero.
 
 
-However, the algorithm itself does not know that the function is continuous or not, only that the function changes sign. As such, it can produce answers that are not "zeros" when used with discontinuous functions.
+However, the algorithm itself does not know that the function is continuous or not, only that the function changes sign. As such, it can produce useful answers that are not "zeros" when applied to discontinuous functions.
 
 
-In general a function over floating point values could be considered as a large table of mappings: each of the $2^{64}$ floating point values gets assigned a value. This is discrete mapping, there is nothing the computer sees related to continuity.
+In general a function over floating point values could be considered as a large table of mappings: each of the $2^{64}$ floating point values gets assigned a value. This is a discrete mapping, there is nothing the computer sees related to continuity.
 
 
 > The concept of continuity, if needed, must be verified by the user of the algorithm.
 
 
 
-We have seen this when plotting rational functions or functions with vertical asymptotes. The default algorithms just connect points with lines. The user must manage the discontinuity (by assigning some values `NaN`, say); the algorithms used do not.
+We have remarked on this discreteness when plotting rational functions or functions with vertical asymptotes. The default algorithms just connect points with lines. The user must manage the discontinuity (by assigning some values `NaN`, say); the algorithms used may not.
 
 
 In this particular case, the bisection algorithm can still be fruitful even when the function is not continuous, as the algorithm will yield information about crossing values of $0$, possibly at discontinuities. But the user of the algorithm must be aware that the answers are only guaranteed to be zeros of the function if the function is continuous and the algorithm did not check for that assumption.
@@ -579,7 +604,7 @@ f(x) = x^5 - x^4 + x^3 - x^2 + 1
 find_zeros(f, (-10, 10))
 ```
 
-(Here $-10$ and $10$ were arbitrarily chosen. Cauchy's method could be used to be more systematic.)
+(The choice of $-10$ and $10$ was arbitrary. Cauchy's method could be used to be more systematic.)
 
 
 ##### Example: Solving f(x) = g(x)
@@ -592,15 +617,15 @@ To proceed with `find_zeros`, we define $f(x) = e^x - x^5$, as $f(x) = 0$ precis
 
 
 ```{julia}
-f₁(x) = exp(x) - x^5
-zs = find_zeros(f₁, (-20,20))
+f(x) = exp(x) - x^5
+zs = find_zeros(f, (-20,20))
 ```
 
 The output of `find_zeros` is a vector of values. To check that each value is an approximate zero can be done with the "." (broadcast) syntax:
 
 
 ```{julia}
-f₁.(zs)
+f.(zs)
 ```
 
 (For a continuous function this should be the case that the values returned by `find_zeros` are approximate zeros. Bear in mind that if $f$ is not continuous the algorithm might find jumping points that are not zeros and may not even be in the domain of the function.)
@@ -612,15 +637,15 @@ f₁.(zs)
 The `find_zero` function in the `Roots` package is an interface to one of several methods. For now we focus on the *bracketing* methods, later we will see others. Bracketing methods, among others,  include `Roots.Bisection()`, the basic bisection method though with a different sense of "middle" than $(a+b)/2$ and used by default above; `Roots.A42()`, which will typically converge much faster than simple bisection; `Roots.Brent()` for the classic method of Brent, and `FalsePosition()` for a family of *regula falsi* methods. These can all be used by specifying the method in a call to `find_zero`.
 
 
-Alternatively, `Roots` implements the `CommonSolve` interface popularized by its use in the `DifferentialEquations.jl` ecosystem, a wildly successful area for `Julia`. The basic setup is two steps: setup a "problem", solve the problem.
+Alternatively, `Roots` implements the `CommonSolve` interface popularized by its use in the `DifferentialEquations.jl` ecosystem, a wildly successful area for `Julia`. The basic setup involves two steps: setup a "problem;" solve the problem.
 
 
-To set up a problem, we call `ZeroProblem` with the function and an initial interval, as in:
+To set up a problem we call `ZeroProblem` with the function and an initial interval, as in:
 
 
 ```{julia}
-f₅(x) = x^5 - x - 1
-prob = ZeroProblem(f₅, (1,2))
+f(x) = x^5 - x - 1
+prob = ZeroProblem(f, (1,2))
 ```
 
 Then we can "solve" this problem with `solve`. For example:
@@ -715,7 +740,7 @@ plot(x -> x * exp(-x), 0, 5)
 ##### Example
 
 
-The tangent function does not have a *guarantee* of absolute maximum or minimum over $(-\pi/2, \pi/2),$ as it is not *continuous* at the endpoints. In fact, it doesn't have either extrema - it has vertical asymptotes at each endpoint of this interval.
+The tangent function does not have a *guarantee* of an absolute maximum or an minimum over $(-\pi/2, \pi/2),$ as it is not *continuous* at the endpoints. In fact, it doesn't have either extrema - it has vertical asymptotes at each endpoint of this interval.
 
 
 ##### Example
@@ -729,7 +754,7 @@ The function $f(x) = x^{2/3}$ over the interval $[-2,2]$ has cusp at $0$. Howeve
 plot(x -> (x^2)^(1/3), -2, 2)
 ```
 
-(The use of just `x^(2/3)` would fail, can you guess why?)
+(The use of just `x^(2/3)` in the above would fail, can you guess why?)
 
 
 ##### Example
@@ -771,6 +796,60 @@ The *preimage* of an open set, $I$, is $\{a: f(a) \in I\}$. (All $a$ with an ima
 
 
 ## Questions
+
+###### Question
+Consider the following plot
+
+```{julia}
+plot(airy, -5, 5; xticks=-5:5)
+```
+
+There is a guaranteed zero between:
+
+```{julia}
+#| echo: false
+choices = ["``-4`` and ``-3``",
+           "``-3`` and ``-2``",
+           "``-2`` and ``-1``",
+           "``-1`` and ``-0``"]
+answer = 2
+radioq(choices, answer; keep_order=true)
+```
+
+
+
+###### Question
+Consider the following plot
+
+```{julia}
+plot(erf, -5, 5; xticks=-5:5)
+```
+
+There is a guaranteed zero to `erf(x) = 0.5` between
+
+
+```{julia}
+#| echo: false
+choices = ["``-1`` and ``0``",
+           "``0`` and ``1``",
+           "``1`` and ``2``"]
+answer = 2
+radioq(choices, answer; keep_order=true)
+```
+
+###### Question
+
+The hyperbolic tangent has a domain of all real numbers and a range between $-1$ and $1$. It is a strictly increasing function.
+
+Is the interval $(-\infty, \infty)$ a *bracketing* interval for the function `f(x) = tanh(x) - 1/2`?
+
+```{julia}
+#| echo: false
+choices = ["Technically no, as you can't evaluate the function at these points without using a limit; but practically yes. As the hyperbolic tangent function is monotonic and increases from ``-1`` to ``1`` in that interval, it must cross the line ``y=1/2``.",
+           "No, the function has a jump"]
+answer = 1
+radioq(choices, answer; keep_order=true)
+```
 
 
 ###### Question

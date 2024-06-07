@@ -384,15 +384,16 @@ Finally, we note that the `ModelingToolkit` package provides symbolic-numeric co
 
 ```{julia}
 #| hold: true
-@parameters t γ g
-@variables x(t) y(t)
+@parameters γ g
+@variables t x(t) y(t)
 D = Differential(t)
 
 eqs = [D(D(x)) ~ -γ * D(x),
        D(D(y)) ~ -g - γ * D(y)]
 
-@named sys = ODESystem(eqs)
+@named sys = ODESystem(eqs, t, [x,y], [γ,g])
 sys = ode_order_lowering(sys) # turn 2nd order into 1st
+sys = structural_simplify(sys)
 
 u0 = [D(x) => vxy₀[1],
       D(y) => vxy₀[2],
