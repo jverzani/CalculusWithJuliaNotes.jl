@@ -173,7 +173,7 @@ We can solve for several parameters at once, by using a matching number of initi
 
 ```{julia}
 ps = [1, 2, 3, 4]
-u0 = @SVector[1, 1, 1, 1]
+u0 = [1, 1, 1, 1]
 prob = NonlinearProblem(f, u0, ps)
 solve(prob, NewtonRaphson())
 ```
@@ -235,6 +235,7 @@ The extra step is to specify a "`NonlinearSystem`." It is a system, as in practi
 
 ```{julia}
 ns = NonlinearSystem([eq], [x], [α], name=:ns);
+ns = complete(ns)
 ```
 
 The `name` argument is special. The name of the object (`ns`) is assigned through `=`, but the system must also know this same name. However, the name on the left is not known when the name on the right is needed, so it is up to the user to keep them synchronized. The `@named` macro handles this behind the scenes by simply rewriting the syntax of the assignment:
@@ -242,6 +243,7 @@ The `name` argument is special. The name of the object (`ns`) is assigned throug
 
 ```{julia}
 @named ns = NonlinearSystem([eq], [x], [α]);
+ns = complete(ns)
 ```
 
 With the system defined, we can pass this to `NonlinearProblem`, as was done with a function. The parameter is specified here, and in this case is `α => 1.0`. The initial guess is `[1.0]`:
@@ -366,6 +368,7 @@ The above should be self explanatory. To put into a form to pass to `solve` we d
 
 ```{julia}
 @named sys = OptimizationSystem(Area, [x], [P]);
+sys = complete(sys)
 ```
 
 (This step is different, as before an `OptimizationFunction` was defined; we use `@named`, as above, to ensure the system has the same name as the identifier, `sys`.)

@@ -9,6 +9,7 @@ This section uses these add-on packages:
 ```{julia}
 using CalculusWithJulia
 using Plots
+plotly()
 using SymPy
 using Roots
 using LinearAlgebra
@@ -322,11 +323,13 @@ In 1935 [Marcel Duchamp](https://arthur.io/art/marcel-duchamp/rotorelief-no-10-c
 
 
 ```{julia}
+#| echo: false
 let
 # https://exploratorium.tumblr.com/post/33140874462/marcel-duchamp-rotoreliefs-duchamp-recognized
 
 # coordinates and colors selected by gimp from
-# https://arthur.io/art/marcel-duchamp/rotorelief-no-10-cage-modele-depose-verso
+    # https://arthur.io/art/marcel-duchamp/rotorelief-no-10-cage-modele-depose-verso
+    gr()
     circs = [466 548 513 505 556 554 # x₁,y₁,x₂,y₂,x₂,y₃
              414 549 511 455 595 549
              365 545 507 408 635 548
@@ -354,7 +357,7 @@ let
     function solve_i(i)
         eqs = [(p[1] - h)^2 + (p[2]-k)^2 ~ r^2 for
 		       p ∈ (circs[i,1:2], circs[i,3:4], circs[i,5:6])]
-        d = solve(eqs)[1]
+        d = solve(tuple(eqs...))[1]
         (x=float(d[h]), y=float(d[k]), r=float(d[r]))
     end
     c₀, cs... = solve_i.(16:-1:1) # c₀ is centered
@@ -391,6 +394,9 @@ let
 
     fname = tempname() * ".gif"
     gif(anim, fname, fps = 40)
+
+    plotly()
+    ImageFile(fname, "Duchamp rotorelief")
 end
 ```
 
@@ -1268,6 +1274,10 @@ For the torsion to be defined, the cross product $\vec{r}' \times \vec{r}''$ mus
 
 ##### Example: Tubular surface
 
+```{julia}
+#| echo: false
+gr();
+```
 
 This last example comes from a collection of several [examples](https://github.com/empet/3D-Viz-with-PlotlyJS.jl/blob/main/5-Tubular-surface.ipynb) provided by Discourse user `@empet` to illustrate `plotlyjs`. We adopt it to `Plots` with some minor changes below.
 
@@ -1374,6 +1384,11 @@ The tubular surface is now ready to be rendered along the entire time span using
 ts = range(t_span..., length=1001)
 θs = range(0, 2pi, length=100)
 surface(unzip(r_0.(ts, θs'))...)
+```
+
+```{julia}
+#| echo: false
+plotly();
 ```
 
 ## Arc length
@@ -1586,6 +1601,7 @@ Here, when $b$ gets large, the curve looks more and more "straight" and the tors
 ```{julia}
 #| echo: false
 let
+    gr()
 a = 1
 F(t) = [cos(pi/2 - t), 2sin(pi/2-t)]
 p = (a, F)
@@ -1613,7 +1629,7 @@ using LaTeXStrings
 annotate!([(-.5,1.5,L"k"),
 (.775,1.55,L"\kappa"),
 (.85, 1.3, L"\alpha")])
-
+plotly()
 plt
 end
 ```
