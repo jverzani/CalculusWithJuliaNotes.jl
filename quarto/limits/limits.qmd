@@ -238,13 +238,13 @@ annotate!([(0,0+Δ,"A"), (x-Δ,y+Δ/4, "B"), (1+Δ/2,y/x, "C"),
 annotate!([(.2*cos(θ/2), 0.2*sin(θ/2), "θ")])
 imgfile = tempname() * ".png"
 savefig(p, imgfile)
-caption = "Triangle ``ABD` has less area than the shaded wedge, which has less area than triangle ``ACD``. Their respective areas are ``(1/2)\\sin(\\theta)``, ``(1/2)\\theta``, and ``(1/2)\\tan(\\theta)``. The inequality used to show ``\\sin(x)/x`` is bounded below by ``\\cos(x)`` and above by ``1`` comes from a division by ``(1/2) \\sin(x)`` and taking reciprocals.
+caption = "Triangle ``ABD`` has less area than the shaded wedge, which has less area than triangle ``ACD``. Their respective areas are ``(1/2)\\sin(\\theta)``, ``(1/2)\\theta``, and ``(1/2)\\tan(\\theta)``. The inequality used to show ``\\sin(x)/x`` is bounded below by ``\\cos(x)`` and above by ``1`` comes from a division by ``(1/2) \\sin(x)`` and taking reciprocals.
 "
 plotly()
 ImageFile(imgfile, caption)
 ```
 
-To discuss the case of $(1+x)^{1/x}$ it proved convenient to assume $x = 1/m$ for integer values of $m$. At the time of Cauchy, log tables were available to identify the approximate value of the limit. Cauchy computed the following value from logarithm tables.
+To discuss the case of $(1+x)^{1/x}$ it proved convenient to assume $x = 1/m$ for integer values of $m$. At the time of Cauchy, log tables were available to identify the approximate value of the limit. Cauchy computed the following value from logarithm tables:
 
 
 ```{julia}
@@ -337,13 +337,14 @@ Let's return to the function $f(x) = \sin(x)/x$. This function was studied by Eu
 
 ```{julia}
 #| hold: true
+
 f(x) = sin(x)/x
-xs, ys = unzip(f, -pi/2, pi/2)  # get points used to plot `f`
-plot(xs,  ys)
-scatter!(xs, ys)
+plot(f, -pi/2, pi/2;
+     seriestype=[:scatter, :line], # show points and line segments
+     legend=false)
 ```
 
-The $y$ values of the graph seem to go to $1$ as the $x$ values get close to $0$. (That the graph looks defined at $0$ is due to the fact that the points sampled to graph do not include $0$, as shown through the `scatter!` command – which can be checked via `minimum(abs, xs)`.)
+The $y$ values of the graph seem to go to $1$ as the $x$ values get close to $0$. (That the graph looks defined at $0$ is due to the fact that the points sampled to graph do not include $0$.)
 
 
 We can also verify Euler's intuition through this graph:
@@ -432,7 +433,7 @@ The `NaN` indicates that this function is indeterminate at $c=2$. A quick plot g
 ```{julia}
 #| hold: true
 c, delta = 2, 1
-plot(x -> (x^2 - 5x + 6) / (x^2 + x - 6), c - delta, c + delta)
+plot(f, c - delta, c + delta)
 ```
 
 The graph looks "continuous." In fact, the value $c=2$ is termed a *removable singularity* as redefining $f(x)$ to be $-0.2$ when $x=2$ results in a "continuous" function.
@@ -585,13 +586,11 @@ g(x) = (1 - cos(x)) / x^2
 g(0)
 ```
 
-What is the value of $L$, if it exists? A quick attempt numerically yields:
+What is the value of $L$, if it exists? Getting closer to $0$ numerically than the default yields:
 
 
 ```{julia}
-xs = 0 .+ hs
-ys = [g(x) for x in xs]
-[xs ys]
+lim(g, 0; n=9)
 ```
 
 Hmm, the values in `ys` appear to be going to $0.5$, but then end up at $0$. Is the limit $0$ or $1/2$? The answer is $1/2$. The last $0$ is an artifact of floating point arithmetic and the last few deviations from `0.5` due to loss of precision in subtraction. To investigate, we look more carefully at the two ratios:
@@ -606,7 +605,7 @@ y2s = [x^2 for x in xs]
 Looking at the bottom of the second column reveals the error. The value of `1 - cos(1.0e-8)` is `0` and not a value around `5e-17`, as would be expected from the pattern above it. This is because the smallest floating point value less than `1.0` is more than `5e-17` units away, so `cos(1e-8)` is evaluated to be `1.0`. There just isn't enough granularity to get this close to $0$.
 
 
-Not that we needed to. The answer would have been clear if we had stopped with `x=1e-6`, say.
+Not that we needed to. The answer would have been clear if we had stopped with `x=1e-6` (with `n=6`) say.
 
 
 In general, some functions will frustrate the numeric approach. It is best to be wary of results. At a minimum they should confirm what a quick graph shows, though even that isn't enough, as this next example shows.
@@ -633,23 +632,20 @@ A plot shows the answer appears to be straightforward:
 
 
 ```{julia}
-#| echo: false
 h(x) = x^2 + 1 + log(abs(11*x - 15))/99
 plot(h, 15/11 - 1, 15/11 + 1)
 ```
 
-Taking values near $15/11$ shows nothing too unusual:
+Taking values near $15/11$ shows nothing perhaps too unusual:
 
 
 ```{julia}
 #| hold: true
 c = 15/11
-hs = [1/10^i for i in 4:3:16]
-xs = c .+ hs
-[xs h.(xs)]
+lim(h, c; n = 16)
 ```
 
-(Though both the graph and the table hint at something a bit odd.)
+(Though the graph and table do hint at something a bit odd -- the graph shows a blip, the table doesn't show values in the second column going towards a specific value.)
 
 
 However the limit in this case is $-\infty$ (or DNE), as there is an aysmptote at $c=15/11$. The problem is the asymptote due to the logarithm is extremely narrow and happens between floating point values to the left and right of $15/11$.
@@ -726,7 +722,7 @@ For example, the limit at $0$ of $(1-\cos(x))/x^2$ is easily handled:
 limit((1 - cos(x)) / x^2, x => 0)
 ```
 
-The pair notation (`x => 0`) is used to indicate the variable and the value it is going to.
+The pair notation (`x => 0`) is used to indicate the variable and the value it is going to. A `dir` argument is used to indicate ``x \rightarrow c+`` (the default), ``x \rightarrow c-``, and ``x \rightarrow c``.
 
 
 ##### Example
@@ -736,7 +732,7 @@ We look again at this function which despite having a vertical asymptote at $x=1
 
 
 $$
-f(x) = x^2 + 1 + \log(| 11 \cdot x - 15 |)/99.
+h(x) = x^2 + 1 + \log(| 11 \cdot x - 15 |)/99.
 $$
 
 We find the limit symbolically at $c=15/11$ as follows, taking care to use the exact value `15//11` and not the *floating point* approximation returned by `15/11`:
@@ -744,8 +740,8 @@ We find the limit symbolically at $c=15/11$ as follows, taking care to use the e
 
 ```{julia}
 #| hold: true
-f(x) = x^2 + 1 + log(abs(11x - 15))/99
-limit(f(x), x => 15 // 11)
+h(x) = x^2 + 1 + log(abs(11x - 15))/99
+limit(h(x), x => 15 // 11)
 ```
 
 ##### Example
@@ -764,8 +760,10 @@ We have for the first:
 
 
 ```{julia}
-limit( (2sin(x) - sin(2x)) / (x - sin(x)), x => 0)
+limit( (2sin(x) - sin(2x)) / (x - sin(x)), x => 0; dir="+-")
 ```
+
+(The `dir = "+-"` indicates take both a right and left limit and ensure both exist and are equal.)
 
 The second is similarly done, though here we define a function for variety:
 
@@ -773,7 +771,7 @@ The second is similarly done, though here we define a function for variety:
 ```{julia}
 #| hold: true
 f(x) = (exp(x) - 1 - x) / x^2
-limit(f(x), x => 0)
+limit(f(x), x => 0; dir="+-")
 ```
 
 Finally, for the third we define a new variable and proceed:
@@ -781,7 +779,7 @@ Finally, for the third we define a new variable and proceed:
 
 ```{julia}
 @syms rho::real
-limit( (x^(1-rho) - 1) / (1 - rho), rho => 1)
+limit( (x^(1-rho) - 1) / (1 - rho), rho => 1; dir="+-")
 ```
 
 This last limit demonstrates that the `limit` function of `SymPy` can readily evaluate limits that involve parameters, though at times some assumptions on the parameters may be needed, as was done through `rho::real`.
@@ -842,7 +840,7 @@ limit(f(x), x => PI/2)
 Right and left limits will be discussed in the next section; here we give an example of the idea.  The mathematical convention is to say a limit exists if both the left *and* right limits exist and are equal. Informally a right (left) limit at $c$ only considers values of $x$ more (less) than $c$. The `limit` function of `SymPy`  finds directional limits by default, a right limit, where $x > c$.
 
 
-The left limit can be found by passing the argument `dir="-"`. Passing `dir="+-"` (and not `"-+"`) will compute the mathematical limit, throwing an error in `Python` if no limit exists.
+The left limit can be found by passing the argument `dir="-"`. Passing `dir="+-"` (and not `"-+"`), as done in a few examples above, will compute the mathematical limit, throwing an error in `Python` if no limit exists.
 
 
 ```{julia}
@@ -938,7 +936,7 @@ as this is the limit of $f(g(x))$ with $f$ as above and  $g(x) = x^2$. We need $
 ##### Example: products
 
 
-Consider this complicated limit found on this [Wikipedia](http://en.wikipedia.org/wiki/L%27H%C3%B4pital%27s_rule) page.
+Consider this more complicated limit found on this [Wikipedia](http://en.wikipedia.org/wiki/L%27H%C3%B4pital%27s_rule) page.
 
 
 $$
