@@ -76,7 +76,7 @@ ImageFile(imgfile, caption)
 In the early years of calculus, the intermediate value theorem was intricately connected with the definition of continuity, now it is a consequence.
 
 
-The basic proof starts with a set of points in $[a,b]$: $C = \{x \text{ in } [a,b] \text{ with } f(x) \leq y\}$. The set is not empty (as $a$ is in $C$) so it *must* have a largest value, call it $c$ (this requires the completeness property of the real numbers).  By continuity of $f$, it can be shown that $\lim_{x \rightarrow c-} f(x) = f(c) \leq y$ and $\lim_{y \rightarrow c+}f(x) =f(c) \geq y$, which forces $f(c) = y$.
+The basic proof starts with a set of points in $[a,b]$: $C = \{x \text{ in } [a,b] \text{ with } f(x) \leq y\}$. The set is not empty (as $a$ is in $C$) so it *must* have a largest value, call it $c$ (this might seem obvious, but it requires the completeness property of the real numbers).  By continuity of $f$, it can be shown that $\lim_{x \rightarrow c-} f(x) = f(c) \leq y$ and $\lim_{y \rightarrow c+}f(x) =f(c) \geq y$, which forces $f(c) = y$.
 
 
 ### Bolzano and the bisection method
@@ -87,8 +87,19 @@ Suppose we have a continuous function $f(x)$ on $[a,b]$ with $f(a) < 0$ and $f(b
 
 We use this fact when building a "sign chart" of a polynomial function. Between any two consecutive real zeros the polynomial can not change sign. (Why?) So a "test point" can be used to determine the sign of the function over an entire interval.
 
+The `sign_chart` function from `CalculusWithJulia` uses this to indicate where an *assumed* continuous function changes sign:
 
-Here, we use the Bolzano theorem to give an algorithm - the *bisection method* - to locate the value $c$ under the assumption $f$ is continuous on $[a,b]$ and changes sign between $a$ and $b$.
+```{julia}
+f(x) = sin(x + x^2) + x/2
+sign_chart(f, -3, 3)
+```
+
+
+The intermediate value theorem can find the sign of the function *between* adjacent zeros, but how are the zeros identified?
+
+Here, we use the Bolzano theorem to give an algorithm - the *bisection method* - to locate a value $c$ in $[a,b]$ with $f(c) = 0$ under the assumptions:
+* $f$ is continuous on $[a,b]$
+* $f$ changes sign between $a$ and $b$. (In particular, when  $f(a)$ and $f(b)$ have different signs.)
 
 ::: {.callout-note}
 #### Between
@@ -339,6 +350,13 @@ find_zero(h, (0, 2))
 ### Solving `f(x) = g(x)` and `f(x) = c`
 
 The above shows a means to translate a given problem into one that can be solved with `find_zero`. Basically to solve either when a function is a non-zero constant or when a function is equal to some other function, the difference between the two sides is formed and turned into a function, called `h` above.
+
+If using symbolic expressions, as below, then an equation (formed by `~`) can be passed to `find_zero`:
+
+```{julia}
+@syms x
+solve(cos(x) ~ x, (0, 2))
+```
 :::
 
 ##### Example: Inverse functions
@@ -493,7 +511,7 @@ Note that the function is infinite at `b`:
 d(b)
 ```
 
-From the graph,  we can see the zero is around `b`. As `d(b)` is `-Inf` we can use the bracket `(b/2,b)`
+From the graph,  we can see the zero is around `b`. As `d(b)` is `-Inf` we can use the bracket `(b/2, b)`
 
 
 ```{julia}
@@ -569,7 +587,7 @@ find_zero(f, I), find_zero(f, I, p=2)
 
 The second number is the solution when `p=2`.
 
-The above used a *keyword* argument, but a positional argument allows for broadcasting:
+The above used a *keyword* argument to pass in the parameter, but using a positional argument (the last one) allows for broadcasting:
 
 ```{julia}
 find_zero.(f, Ref(I), 1:5) # solutions for p=1,2,3,4,5
