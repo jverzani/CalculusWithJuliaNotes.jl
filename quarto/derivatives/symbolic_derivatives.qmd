@@ -3,7 +3,7 @@
 
 {{< include ../_common_code.qmd >}}
 
-This section uses this add-on package:
+This section uses the `TermInterface` add-on package.
 
 
 ```{julia}
@@ -54,16 +54,7 @@ arguments(:(-x)), arguments(:(pi^2)), arguments(:(1 + x + x^2))
 (The last one may be surprising, but all three arguments are passed to the `+` function.)
 
 
-Here we define a function to decide the *arity* of an expression based on the number of arguments it is called with:
-
-
-```{julia}
-function arity(ex)
-		n = length(arguments(ex))
-		n == 1 ? Val(:unary) :
-		n == 2 ? Val(:binary) : Val(:nary)
-end
-```
+`TermInterface` has an `arity` function defined by `length(arguments(ex))` that will be used for dispatch below.
 
 Differentiation must distinguish between expressions, variables, and numbers.  Mathematically expressions have an "outer" function, whereas variables and numbers can be directly differentiated.  The `isexpr` function in `TermInterface` returns `true` when passed an expression, and `false` when passed a symbol or numeric literal. The latter two may be distinguished by `isa(..., Symbol)`.
 
@@ -75,14 +66,16 @@ Here we create a function, `D`, that when it encounters an expression it *dispat
 function D(ex, var=:x)
 	if isexpr(ex)
 		op, args = operation(ex), arguments(ex)
-		D(Val(op), arity(ex), args, var)
-	elseif isa(ex, Symbol) && ex == :x
+		D(Val(op), Val(arity(ex)), args, var)
+	elseif isa(ex, Symbol) && ex == var
 		1
 	else
 		0
 	end
 end
 ```
+
+(The use of `Val` is an idiom of `Julia` allowing dispatch on certain values such as function names and numbers.)
 
 Now to develop methods for `D` for different "outside" functions and arities.
 
@@ -91,31 +84,31 @@ Addition can be unary (`:(+x)` is a valid quoting, even if it might simplify to 
 
 
 ```{julia}
-D(::Val{:+}, ::Val{:unary}, args, var) = D(first(args), var)
+D(::Val{:+}, ::Val{1}, args, var) = D(first(args), var)
 
-function D(::Val{:+}, ::Val{:binary}, args, var)
+function D(::Val{:+}, ::Val{2}, args, var)
 	a′, b′ = D.(args, var)
 	:($a′ + $b′)
 end
 
-function D(::Val{:+}, ::Val{:nary}, args, var)
+function D(::Val{:+}, ::Any, args, var)
 	a′s = D.(args, var)
 	:(+($a′s...))
 end
 ```
 
-The `args` are always held in a container, so the unary method must pull out the first one. The binary case should read as: apply `D` to each of the two arguments, and then create a quoted expression containing the sum of the results. The dollar signs interpolate into the quoting. (The "primes" are unicode notation achieved through `\prime[tab]` and not operations.) The *nary* case does something similar, only using splatting to produce the sum.
+The `args` are always held in a container, so the unary method must pull out the first one. The binary case should read as: apply `D` to each of the two arguments, and then create a quoted expression containing the sum of the results. The dollar signs interpolate into the quoting. (The "primes" are unicode notation achieved through `\prime[tab]` and not operations.) The *nary* method (which catches *any* arity besides `1` and `2`) does something similar, only using splatting to produce the sum.
 
 
-Subtraction must also be implemented in a similar manner, but not for the *nary* case:
+Subtraction must also be implemented in a similar manner, but not for the *nary* case, as subtraction is not associative:
 
 
 ```{julia}
-function D(::Val{:-}, ::Val{:unary}, args, var)
+function D(::Val{:-}, ::Val{1}, args, var)
 	a′ = D(first(args), var)
 	:(-$a′)
 end
-function D(::Val{:-}, ::Val{:binary}, args, var)
+function D(::Val{:-}, ::Val{2}, args, var)
 	a′, b′ = D.(args, var)
 	:($a′ - $b′)
 end
@@ -125,15 +118,15 @@ The *product rule* is similar to addition, in that $3$ cases are considered:
 
 
 ```{julia}
-D(op::Val{:*}, ::Val{:unary}, args, var) = D(first(args), var)
+D(op::Val{:*}, ::Val{1}, args, var) = D(first(args), var)
 
-function D(::Val{:*}, ::Val{:binary}, args, var)
+function D(::Val{:*}, ::Val{2}, args, var)
     a, b = args
     a′, b′ = D.(args, var)
     :($a′ * $b + $a * $b′)
 end
 
-function D(op::Val{:*}, ::Val{:nary}, args, var)
+function D(op::Val{:*}, ::Any, args, var)
     a, bs... = args
     b = :(*($(bs...)))
 	a′ = D(a, var)
@@ -149,7 +142,7 @@ Division is only a binary operation, so here we have the *quotient rule*:
 
 
 ```{julia}
-function D(::Val{:/}, ::Val{:binary}, args, var)
+function D(::Val{:/}, ::Val{2}, args, var)
 	u,v = args
 	u′, v′ = D(u, var), D(v, var)
 	:( ($u′*$v - $u*$v′)/$v^2 )
@@ -160,7 +153,7 @@ Powers are handled a bit differently. The power rule would require checking if t
 
 
 ```{julia}
-function D(::Val{:^}, ::Val{:binary}, args, var)
+function D(::Val{:^}, ::Val{2}, args, var)
 	a, b = args
     D(:(exp($b*log($a))), var)  # a > 0 assumed here
 end
@@ -170,26 +163,26 @@ That leaves the task of defining a rule to differentiate both `exp` and `log`. W
 
 
 ```{julia}
-function D(::Val{:exp}, ::Val{:unary}, args, var)
-	a = first(args)
+function D(::Val{:exp}, ::Val{1}, args, var)
+	a = only(args)
 	a′ = D(a, var)
 	:(exp($a) * $a′)
 end
 
-function D(::Val{:log}, ::Val{:unary}, args, var)
-	a = first(args)
+function D(::Val{:log}, ::Val{1}, args, var)
+	a = only(args)
 	a′ = D(a, var)
 	:(1/$a * $a′)
 end
 
-function D(::Val{:sin}, ::Val{:unary}, args, var)
-	a = first(args)
+function D(::Val{:sin}, ::Val{1}, args, var)
+	a = only(args)
 	a′ = D(a, var)
 	:(cos($a) * $a′)
 end
 
-function D(::Val{:cos}, ::Val{:unary}, args, var)
-	a = first(args)
+function D(::Val{:cos}, ::Val{1}, args, var)
+	a = only(args)
 	a′ = D(a, var)
 	:(-sin($a) * $a′)
 end
@@ -207,16 +200,16 @@ More functions could be included, but for this example the above will suffice, a
 
 
 ```{julia}
-ex₁ = :(x + 2/x)
-D(ex₁, :x)
+ex = :(x + 2/x)
+D(ex, :x)
 ```
 
 The output does not simplify, so some work is needed to identify `1 - 2/x^2` as the answer.
 
 
 ```{julia}
-ex₂ = :( (x + sin(x))/sin(x))
-D(ex₂, :x)
+ex = :( (x + sin(x))/sin(x))
+D(ex, :x)
 ```
 
 Again, simplification is not performed.
@@ -226,8 +219,8 @@ Finally, we have a second derivative taken below:
 
 
 ```{julia}
-ex₃ = :(sin(x) - x - x^3/6)
-D(D(ex₃, :x), :x)
+ex = :(sin(x) - x - x^3/6)
+D(D(ex, :x), :x)
 ```
 
 The length of the expression should lead to further appreciation for simplification steps taken when doing such a computation by hand.

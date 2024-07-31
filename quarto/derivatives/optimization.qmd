@@ -38,7 +38,7 @@ The main tool is the extreme value theorem of Bolzano and Fermat's theorem about
 Though not all of our problems lend themselves to a description of a continuous function on a closed interval, if they do, we have an algorithmic prescription to find the absolute extrema of a function:
 
 
-1. Find the critical points. For this we can use a root-finding algorithm like `find_zero`.
+1. Find the critical points. For this we can use a root-finding algorithm like `find_zero` or `find_zeros`.
 2. Evaluate the function values at the critical points and at the end points.
 3. Identify the largest and smallest values.
 
@@ -65,7 +65,9 @@ gr()
 function perimeter_area_graphic_graph(n)
     h = 1 + 2n
     w = 10-h
-    plt = plot([0,0,w,w,0], [0,h,h,0,0], legend=false, size=fig_size,
+    plt = plot(Shape([0,0,w,w,0], [0,h,h,0,0]), legend=false,
+               fill=(:gray, 0.1),
+               size=fig_size,
                xlim=(0,10), ylim=(0,10))
     scatter!(plt, [w], [h], color=:orange, markersize=5)
     annotate!(plt, [(w/2, h/2, "Area=$(round(w*h,digits=1))")])
@@ -153,12 +155,16 @@ Now we can solve graphically as before, or numerically, such as here where we se
 find_zeros(A', 0, 10)   # find_zeros in `Roots`,
 ```
 
-(As a reminder, the notation `A'` is defined in `CalculusWithJulia` using the `derivative` function from the `ForwardDiff` package.)
-
 
 :::{.callout-note}
 ## Note
-Look at the last definition of `A`. The function `A` appears on both sides, though on the left side with one argument and on the right with two. These are two "methods" of a *generic* function, `A`. `Julia` allows multiple definitions for the same name as long as the arguments (their number and type) can disambiguate which to use. In this instance, when one argument is passed in then the last definition is used (`A(b,h(b))`), whereas if two are passed in, then the method that multiplies both arguments is used. The advantage of multiple dispatch is illustrated: the same concept - area - has one function name, though there may be different ways to compute the area, so there is more than one implementation.
+Look at the last definition of `A`. The function `A` appears on both sides, though on the left side with one argument and on the right with two. These are two "methods" of a *generic* function, `A`. `Julia` allows multiple definitions (methods) for the same function name (a generic function) as long as the arguments (their number and type) can disambiguate which to use. In this instance, when one argument is passed in then the last definition is used (`A(b, h(b))`), whereas if two are passed in, then the method that multiplies both arguments is used. The advantage of multiple dispatch is illustrated: the same concept - area - has one function name, though there may be different ways to compute the area, so there is more than one implementation.
+
+:::
+
+:::{.callout-note}
+## Alternatively ...
+If using composition for substitution is too complicated, the step of creating `A(b,h)` can be skipped by just using `h(b)` when defining `A`: `A(b) = b * h(b)`.
 
 :::
 
@@ -203,7 +209,7 @@ In `Julia` this is
 
 
 ```{julia}
-Aᵣ(x, y) = x*y + pi*(x/2)^2 / 2
+A(x, y) = x*y + pi*(x/2)^2 / 2
 ```
 
 The perimeter consists of $3$ sides of the rectangle and the perimeter of half a circle ($\pi r$, with $r=x/2$):
@@ -224,7 +230,7 @@ And then we substitute in `y(x)` for `y` in the area formula through:
 
 
 ```{julia}
-Aᵣ(x) = Aᵣ(x, y(x))
+A(x) = A(x, y(x))
 ```
 
 Of course both $x$ and $y$ are non-negative. The latter forces $x$ to be no more than $x=20/(1+\pi/2)$.
@@ -237,7 +243,7 @@ We begin by simply graphing and estimating the values of the maximum and where i
 
 
 ```{julia}
-plot(Aᵣ, 0, 20/(1+pi/2))
+plot(A, 0, 20/(1+pi/2))
 ```
 
 The naked eye sees that maximum value is somewhere around $27$ and occurs at $x\approx 5.6$. Clearly from the graph, we know the maximum value happens at the critical point and there is only one such critical point.
@@ -247,7 +253,7 @@ As reading the maximum from the graph is more difficult than reading a $0$ of a 
 
 
 ```{julia}
-plot(Aᵣ', 5.5, 5.7)
+plot(A', 5.5, 5.7)
 ```
 
 We confirm that the critical point is around $5.6$.
@@ -259,18 +265,21 @@ We confirm that the critical point is around $5.6$.
 Rather than zoom in graphically, we now use a root-finding algorithm, to find a more precise value of the zero of $A'$. We know that the maximum will occur at a critical point, a zero of the derivative. The `find_zero` function from the `Roots` package provides a non-linear root-finding algorithm based on the bisection method. The only thing to keep track of is that solving $f'(x) = 0$ means we use the derivative and not the original function.
 
 
-We see from the graph that $[0, 20/(1+\pi/2)]$ will provide a bracket, as there is only one relative maximum:
+In a few sections we will see how to use `find_zero` to find a zero *near* an initial guess, but for now we will use `find_zero` to find a zero *between* two values which form a bracketing interval.
+
+
+From the graph, it is clear that $[0, 20/(1+\pi/2)]$ will provide a bracket for the derivative, as there is only one relative maximum:
 
 
 ```{julia}
-x′ = find_zero(Aᵣ', (0, 20/(1+pi/2)))
+x′ = find_zero(A', (0, 20/(1+pi/2)))
 ```
 
 This value is the lone critical point, and in this case gives the position of the value that will maximize the function.  The value and maximum area are then given by:
 
 
 ```{julia}
-(x′, Aᵣ(x′))
+(x′, A(x′))
 ```
 
 (Compare this answer to the previous, is the square the figure of greatest area for a fixed perimeter, or just the figure amongst all rectangles? See [Isoperimetric inequality](https://en.wikipedia.org/wiki/Isoperimetric_inequality) for an answer.)
@@ -279,11 +288,11 @@ This value is the lone critical point, and in this case gives the position of th
 ### Using `argmax` to identify where a function is maximized
 
 
-This value that maximizes a function is sometimes referred to as the *argmax*, or argument which maximizes the function. In `Julia` the `argmax(f,domain)` function is defined to "Return a value $x$ in the domain of $f$ for which $f(x)$ is maximized. If there are multiple maximal values for $f(x)$ then the first one will be found." The domain is some iterable collection. In the mathematical world this would be an interval $[a,b]$, but on the computer it is an approximation, such as is returned by `range` below. Without having to take a derivative, as above, but sacrificing some accuracy, the task of identifying `x` for where `A` is maximum, could be done with
+This value that maximizes a function is sometimes referred to as the *argmax*, or argument which maximizes the function. In `Julia` the `argmax(f, domain)` function is defined to "Return a value $x$ in the domain of $f$ for which $f(x)$ is maximized. If there are multiple maximal values for $f(x)$ then the first one will be found." The domain is some iterable collection. In the mathematical world this would be an interval $[a,b]$, but on the computer it is an approximation, such as is returned by `range` below. Without having to take a derivative, as above, but sacrificing some accuracy, the task of identifying `x` for where `A` is maximum, could be done with
 
 
 ```{julia}
-argmax(Aᵣ, range(0, 20/(1+pi/2), length=10000))
+argmax(A, range(0, 20/(1+pi/2), length=10000))
 ```
 
 #### A symbolic approach
@@ -293,20 +302,20 @@ We could also do the above problem symbolically with the aid of `SymPy`. Here ar
 
 
 ```{julia}
-@syms 𝒘::real 𝒉::real
+@syms 𝐰::real 𝐡::real
 
-𝑨₀    = 𝒘 * 𝒉 + pi * (𝒘/2)^2 / 2
-𝑷erim = 2*𝒉 + 𝒘 + pi * 𝒘/2
-𝒉₀    = solve(𝑷erim - 20, 𝒉)[1]
-𝑨₁    = 𝑨₀(𝒉 => 𝒉₀)
-𝒘₀    = solve(diff(𝑨₁,𝒘), 𝒘)[1]
+𝐀₀    = 𝐰 * 𝐡 + pi * (𝐰/2)^2 / 2
+𝐏erim = 2*𝐡 + 𝐰 + pi * 𝐰/2
+𝐡₀    = solve(𝐏erim - 20, 𝐡)[1]
+𝐀₁    = 𝐀₀(𝐡 => 𝐡₀)
+𝐰₀    = solve(diff(𝐀₁,𝐰), 𝐰)[1]
 ```
 
-We know that `𝒘₀` is the maximum in this example from our previous work. We shall see soon, that just knowing that the second derivative is negative at `𝒘₀` would suffice to know this. Here we check that condition:
+We know that `𝐰₀` is the maximum in this example from our previous work. We shall see soon, that just knowing that the second derivative is negative at `𝐰₀` would suffice to know this. Here we check that condition:
 
 
 ```{julia}
-diff(𝑨₁, 𝒘, 𝒘)(𝒘 => 𝒘₀)
+diff(𝐀₁, 𝐰, 𝐰)(𝐰 => 𝐰₀)
 ```
 
 As an aside, compare the steps involved above for a symbolic solution to those of previous work for a numeric solution:
@@ -314,9 +323,9 @@ As an aside, compare the steps involved above for a symbolic solution to those o
 
 ```{julia}
 #| hold: true
-Aᵣ(w, h) = w*h + pi*(w/2)^2 / 2
-h(w)     = (20 - w - pi * w/2) / 2
-Aᵣ(w)    =  A(w, h(w))
+A(w, h) = w * h + pi*(w/2)^2 / 2
+h(w)    = (20 - w - pi * w/2) / 2
+A(w)    =  A(w, h(w))
 find_zero(A', (0, 20/(1+pi/2)))  # 40 / (pi + 4)
 ```
 
@@ -496,7 +505,7 @@ It appears to be around $8.3$. We now use `find_zero` to refine our guess at the
 α = find_zero(T', (7, 9))
 ```
 
-Okay, got it. Around$8.23$. So is  our minimum time
+Okay, got it. Around $8.23$. So is our minimum time.
 
 
 ```{julia}
@@ -527,9 +536,9 @@ caption = L"""
 Image number $43$ from l'Hospital's calculus book (the first). A
 traveler leaving location $C$ to go to location $F$ must cross two
 regions separated by the straight line $AEB$. We suppose that in the
-region on the side of $C$, he covers distance $a$ in time $c$, and
+region on the side of $C$, they cover distance $a$ in time $c$, and
 that on the other, on the side of $F$, distance $b$ in the same time
-$c$. We ask through which point $E$ on the line $AEB$ he should pass,
+$c$. We ask through which point $E$ on the line $AEB$ they should pass,
 so as to take the least possible time to get from $C$ to $F$? (From
 http://www.ams.org/samplings/feature-column/fc-2016-05.)
 
@@ -675,7 +684,9 @@ Here traveling directly to the point $(L,0)$ is fastest. Though travel is slower
 Maximize the function $xe^{-(1/2) x^2}$ over the interval $[0, \infty)$.
 
 
-Here the extreme value theorem doesn't technically apply, as we don't have a closed interval. However, **if** we can eliminate the endpoints as candidates, then we should be able to convince ourselves the maximum must occur at a critical point of $f(x)$. (If not, then convince yourself for all sufficiently large $M$ the maximum over $[0,M]$ occurs at a critical point, not an endpoint. Then let $M$ go to infinity. In general, for an optimization problem of a continuous function on the interval $(a,b)$ if the right limit at $a$ and left limit at $b$ can be ruled out as candidates, the optimal value must occur at a critical point.)
+Here the extreme value theorem doesn't technically apply, as we don't have a closed interval. However, **if** we can eliminate the endpoints as candidates, then we should be able to convince ourselves the maximum must occur at a critical point of $f(x)$. (If not, then convince yourself for all sufficiently large $M$ the maximum over $[0,M]$ occurs at a critical point, not an endpoint. Then let $M$ go to infinity.
+
+In general, for an optimization problem of a continuous function on the interval $(a,b)$ if the right limit at $a$ and left limit at $b$ can be ruled out as candidates, the optimal value must occur at a critical point.)
 
 
 So to approach this problem we first graph it over a wide interval.
@@ -762,14 +773,14 @@ The minimum looks to be around $4$cm and is clearly between $2$cm and $6$cm. We 
 
 
 ```{julia}
-rₛₐ = find_zero(SA', (2, 6))
+r = find_zero(SA', (2, 6))
 ```
 
 Okay, $3.837...$ is our answer for $r$. Use this to get $h$:
 
 
 ```{julia}
-canheight(rₛₐ)
+canheight(r)
 ```
 
 This produces a can which is about square in profile. This is not how most cans look though. Perhaps our model is too simple, or the cans are optimized for some other purpose than minimizing materials.
@@ -1417,7 +1428,7 @@ radioq(choices, 1)
 ###### Question
 
 
-In [Hall](https://www.maa.org/sites/default/files/hall03010308158.pdf) we can find a dozen optimization problems related to the following figure of the parabola $y=x^2$ a point $P=(a,a^2)$, $a > 0$, and its normal line. We will do two.
+In [Hall](https://www.maa.org/sites/default/files/hall03010308158.pdf) we can find a dozen optimization problems related to the following figure of the parabola $y=x^2$ a point $P=(a,a^2)$, $a > 0$, and its normal line. We will do two here, the full set will be looked at later.
 
 
 ```{julia}
