@@ -660,3 +660,51 @@ The [product](http://en.wikipedia.org/wiki/Arithmetic_progression) of the terms 
 val = prod(1:2:19)
 numericq(val)
 ```
+
+##### Question
+
+Credit card numbers have a check digit to ensure data entry of a 16-digit number is correct. How does it work? The [Luhn Alogorithm](https://en.wikipedia.org/wiki/Luhn_algorithm).
+
+Let's see if `4137 8947 1175 5804` is a valid credit card number?
+
+First, we enter it as a value and immediately break the number into its digits:
+
+```{julia}
+x = 4137_8947_1175_5904  # _ in a number is ignored by parser
+xs = digits(x)
+```
+
+We reverse the order, so the first number in digits is the largest place value in `xs`
+
+```{julia}
+reverse!(xs)
+```
+
+Now, the 1st, 3rd, 5th, ... digit is doubled. We do this through indexing:
+
+```{julia}
+for i in 1:2:length(xs)
+    xs[i] = 2 * xs[i]
+end
+```
+
+Number greater than 9, have their digits added, then all the resulting numbers are added. This can be done with a generator:
+
+
+```{julia}
+z = sum(sum(digits(xi)) for xi in xs)
+```
+
+If this sum has a remainder of 0 when dividing by 10, the credit card number is possibly valid, if not it is definitely invalid. (The check digit is the last number and is set so that the above applied to the first 15 digits *plus* the check digit results in a multiple of 10.)
+
+```{julia}
+iszero(rem(z,10))
+```
+
+Darn. A typo. is `4137 8947 1175 5804` a possible credit card number?
+
+```{julia}
+#| hold: true
+#| echo: false
+booleanq(true)
+```

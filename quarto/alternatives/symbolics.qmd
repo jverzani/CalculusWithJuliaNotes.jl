@@ -140,8 +140,8 @@ typeof(sin(x)), typeof(Symbolics.value(sin(x)))
 The `TermInterface` package is used by `SymbolicUtils` to explore the tree structure of an expression. The main methods are (cf. [SymbolicUtils.jl](https://symbolicutils.juliasymbolics.org/#expression_interface)):
 
 
-  * `istree(ex)`: `true` if `ex` is not a *leaf* node (like a symbol or numeric literal)
-  * `operation(ex)`: the function being called (if `istree` returns `true`)
+  * `iscall(ex)`: `true` if `ex` is not a *leaf* node (like a symbol or numeric literal). The old name was `istree`.
+  * `operation(ex)`: the function being called (if `iscall` returns `true`)
   * `arguments(ex)`: the arguments to the function being called
   * `symtype(ex)`: the inferred type of the expression
 
@@ -163,7 +163,7 @@ arguments(ex) # `+` is n-ary, in this case with 3 arguments
 ```
 
 ```{julia}
-ex1 = arguments(ex)[3] # terms have been reordered
+ex1 = arguments(ex)[2] # terms have been reordered
 operation(ex1)  # operation for `x^2` is `^`
 ```
 
@@ -172,10 +172,10 @@ a, b = arguments(ex1)
 ```
 
 ```{julia}
-istree(ex1), istree(a)
+iscall(ex1), iscall(a)
 ```
 
-Here `a` is not a "tree", as it has no operation or arguments, it is just a variable (the `x` variable).
+Here `a` is not a call, as it has no operation or arguments, it is just a variable (the `x` variable).
 
 
 The value of `symtype` is the *inferred* type of an expression, which may not match the actual type. For example,
@@ -199,7 +199,7 @@ As an example, we write a function to find the free symbols in a symbolic expres
 import Symbolics.SymbolicUtils: issym
 free_symbols(ex) = (s=Set(); free_symbols!(s, ex); s)
 function free_symbols!(s, ex)
-    if istree(ex)
+    if iscall(ex)
         for a ∈ arguments(ex)
             free_symbols!(s, a)
         end
@@ -660,11 +660,11 @@ or
 eqs = [5x + 2y, 6x + 3y] .~ [1, 2]
 ```
 
-The `Symbolics.solve_for` function can solve *linear* equations. For example,
+The `Symbolics.symbolic_linear_solve` function can solve *linear* equations. For example,
 
 
 ```{julia}
-Symbolics.solve_for(eqs, [x, y])
+Symbolics.symbolic_linear_solve(eqs, [x, y])
 ```
 
 The coefficients can be symbolic. Two examples could be:
@@ -673,7 +673,7 @@ The coefficients can be symbolic. Two examples could be:
 ```{julia}
 @variables m b x y
 eq = y ~ m*x + b
-Symbolics.solve_for(eq, x)
+Symbolics.symbolic_linear_solve(eq, x)
 ```
 
 ```{julia}
@@ -683,13 +683,30 @@ eqs = R*X .~ b
 ```
 
 ```{julia}
-Symbolics.solve_for(eqs, [x,y])
+Symbolics.symbolic_linear_solve(eqs, [x,y])
 ```
 
 ### Limits
 
+Many symbolic limits involving exponentials and logarithms can be
+computed in Symbolics, as of recent versions. The underlying package
+is `SymbolicLimits`. This package is in development.  Below we use the
+unwrapped version of the variable. We express limits as $x$ goes to
+infinity, which can be achieved by rewriting:
 
-As of writing, there is no extra functionality provided by `Symbolics` for computing limits.
+```{julia}
+@variables x
+𝑥 = x.val  # unwrapped
+F(x) = exp(x+exp(-x))-exp(x)
+limit(F(𝑥), 𝑥, Inf)
+```
+
+Or
+
+```{julia}
+F(x) = log(log(x*exp(x*exp(x))+1))-exp(exp(log(log(x))+1/x))
+limit(F(𝑥), 𝑥, Inf)
+```
 
 
 ### Derivatives
@@ -708,7 +725,7 @@ Or to find a critical point:
 
 
 ```{julia}
-Symbolics.solve_for(yp ~ 0, x) # linear equation to solve
+Symbolics.symbolic_linear_solve(yp ~ 0, x) # linear equation to solve
 ```
 
 The derivative computation can also be broken up into an expression indicating the derivative and then a function to apply the derivative rules:
@@ -726,7 +743,8 @@ and then
 expand_derivatives(D(y))
 ```
 
-Using `Differential`, differential equations can be specified. An example was given in [ODEs](../ODEs/differential_equations.html), using `ModelingToolkit`.
+Using `Differential`, differential equations can be specified. An example was given in [ODEs](../ODEs/differential_equations.html),
+using `ModelingToolkit`.
 
 
 Higher order derivatives can be done through composition:
@@ -773,12 +791,6 @@ Symbolics.jacobian(eqs, [x,y])
 ```
 
 ### Integration
-
-::: {.callout-note}
-#### This area is very much WIP
-
-The use of `SymbolicNumericIntegration` below is currently broken.
-:::
 
 The `SymbolicNumericIntegration` package provides a means to integrate *univariate* expressions through its `integrate` function.
 
@@ -838,18 +850,10 @@ substitute(ΣqᵢΘᵢ, d)
 The package provides an algorithm for the creation of candidates and the means to solve when possible. The `integrate` function is the main entry point. It returns three values: `solved`, `unsolved`, and `err`. The `unsolved` is the part of the integrand which can not be solved through this package. It is  `0` for a given problem when `integrate` is successful in identifying an antiderivative, in which case `solved` is the answer. The value of `err` is a bound on the numerical error introduced by the algorithm.
 
 
-::: {.callout-note}
-### This is currently broken
-
-The following isn't working with `SymbolicNumericIntegration` version `v"1.4.0"`. For now, the cells are not evaluated.
-
-:::
-
 To see, we have:
 
 
 ```{julia}
-#| eval: false
 using SymbolicNumericIntegration
 @variables x
 
@@ -871,7 +875,6 @@ Powers of trig functions have antiderivatives, as can be deduced using integrati
 
 
 ```{julia}
-#| eval: false
 u,v,w = integrate(sin(x)^5)
 ```
 
@@ -879,7 +882,6 @@ The derivative of `u` matches up to some numeric tolerance:
 
 
 ```{julia}
-#| eval: false
 Symbolics.derivative(u, x) - sin(x)^5
 ```
 
