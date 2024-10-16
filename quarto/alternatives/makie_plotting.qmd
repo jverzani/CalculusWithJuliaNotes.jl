@@ -867,40 +867,21 @@ end
 
 To plot the equation $F(x,y,z)=0$, for $F$ a scalar-valued function, again the implicit function theorem says that, under conditions, near any solution $(x,y,z)$, $z$ can be represented as a function of $x$ and $y$, so the graph will look likes surfaces stitched together.  The `Implicit3DPlotting` package takes an approach like `ImplicitPlots` to represent these surfaces. It replaces the `Contour` package computation with a $3$-dimensional alternative provided through the `Meshing` and `GeometryBasics` packages.
 
-
-The `Implicit3DPlotting` package needs some maintenance, so we borrow the main functionality and wrap it into a function:
-
-
 ```{julia}
-import Meshing
-import GeometryBasics
-
-function make_mesh(xlims, ylims, zlims, f,
-                   M = Meshing.MarchingCubes(); # or  Meshing.MarchingTetrahedra()
-                   samples=(35, 35, 35),
-                   )
-
-    lims = extrema.((xlims, ylims, zlims))
-    Δ = xs -> last(xs) - first(xs)
-    xs = Vec(first.(lims))
-    Δxs = Vec(Δ.(lims))
-
-    GeometryBasics.Mesh(f, Rect(xs, Δxs), M; samples = samples)
-end
+using Implicit3DPlotting
 ```
 
-The `make_mesh` function creates a mesh that can be visualized with the `wireframe` or `mesh` plotting functions.
 
-
-This example, plotting an implicitly defined sphere, comes from the documentation of `Implicit3DPlotting`. The `f` in `make_mesh` is a scalar-valued function of a vector:
+This example, plotting an implicitly defined sphere, comes from the documentation of `Implicit3DPlotting`. The `f` to be plotted is a scalar-valued function of a vector:
 
 
 ```{julia}
 f(x) = sum(x.^2) - 1
-xs = ys = zs = (-5, 5)
-m = make_mesh(xs, ys, zs, f)
-wireframe(m)
+xlims = ylims = zlims = (-5, 5)
+plot_implicit_surface(f; xlims, ylims, zlims)
 ```
+
+
 
 Here we visualize an intersection of a sphere with another figure:
 
@@ -908,11 +889,9 @@ Here we visualize an intersection of a sphere with another figure:
 ```{julia}
 r₂(x) = sum(x.^2) - 5/4 # a sphere
 r₄(x) = sum(x.^4) - 1
-xs = ys = zs = -2:2
-m2,m4 = make_mesh(xs, ys, zs, r₂), make_mesh(xs, ys, zs, r₄)
-
-wireframe(m4, color=:yellow)
-wireframe!(m2, color=:red)
+xlims = ylims = zlims = (-2, 2)
+p = plot_implicit_surface(r₂; xlims, ylims, zlims, color=:yellow)
+plot_implicit_surface!(p, r₄; xlims, ylims, zlims, color=:red)
 current_figure()
 ```
 
@@ -921,9 +900,8 @@ This example comes from [Wikipedia](https://en.wikipedia.org/wiki/Implicit_surfa
 
 ```{julia}
 f(x,y,z) = 2y*(y^2 -3x^2)*(1-z^2) + (x^2 +y^2)^2 - (9z^2-1)*(1-z^2)
-zs = ys = xs = range(-5/2, 5/2, length=100)
-m = make_mesh(xs, ys, zs, x -> f(x...))
-wireframe(m)
+xlims = ylims = zlims = (-5/2, 5/2)
+plot_implicit_surface(x -> f(x...); xlims, ylims, zlims)
 ```
 
 (This figure does not render well through `contour(xs, ys, zs, f, levels=[0])`, as the hole is not shown.)
@@ -937,9 +915,8 @@ function cassini(λ, ps = ((1,0,0), (-1, 0, 0)))
     n = length(ps)
     x -> prod(norm(x .- p) for p ∈ ps) - λ^n
 end
-xs = ys = zs = range(-2, 2, length=100)
-m = make_mesh(xs, ys, zs, cassini(1.05))
-wireframe(m)
+xlims = ylims = zlims = (-2, 2)
+plot_implicit_surface(cassini(1.05); xlims, ylims, zlims)
 ```
 
 ## Vector fields. Visualizations of $f:R^2 \rightarrow R^2$

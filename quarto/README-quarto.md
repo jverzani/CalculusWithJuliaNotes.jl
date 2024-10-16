@@ -5,6 +5,7 @@ Short cut. Run first command until happy, then run second to publish
 ```
 quarto render
 #julia adjust_plotly.jl # <-- no longer needed
+# maybe git config --global http.postBuffer 157286400
 quarto publish gh-pages --no-render
 ```
 
