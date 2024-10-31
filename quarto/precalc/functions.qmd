@@ -7,7 +7,8 @@ This section will use the following add-on packages:
 
 
 ```{julia}
-using CalculusWithJulia, Plots
+using CalculusWithJulia
+using Plots
 plotly()
 ```
 
@@ -153,10 +154,14 @@ The definition of $s(x)$ above has two cases:
 
 
 $$
-s(x) = \begin{cases} -1 & s < 0\\ 1 & s > 0. \end{cases}
+s(x) =
+\begin{cases}
+-1 & x < 0 \\
+ 1 & x > 0.
+\end{cases}
 $$
 
-We learn to read this as: when $s$ is less than $0$, then the answer is $-1$. If $s$ is greater than $0$ the answer is $1.$ Often - but not in this example - there is an "otherwise" case to catch those values of $x$ that are not explicitly mentioned. As there is no such "otherwise" case here, we can see that this function has no definition when $x=0$. This function is often called the "sign" function and is also defined by $\lvert x\rvert/x$. (`Julia`'s `sign` function actually defines `sign(0)` to be `0`.)
+We learn to read this as: when $x$ is less than $0$, then the answer is $-1$. If $x$ is greater than $0$ the answer is $1.$ Often - but not in this example - there is an "otherwise" case to catch those values of $x$ that are not explicitly mentioned. As there is no such "otherwise" case here, we can see that this function has no definition when $x=0$. This function is often called the "sign" function and is also defined by $\lvert x\rvert/x$. (`Julia`'s `sign` function actually defines `sign(0)` to be `0`.)
 
 
 How do we create conditional statements in `Julia`? Programming languages generally have "if-then-else" constructs to handle conditional evaluation. In `Julia`, the following code will handle the above condition:
@@ -333,8 +338,8 @@ We utilize this as follows. Suppose we wish to solve $f(x) = 0$ and we have two 
 
 ```{julia}
 q(x) = x^2 - 2
-𝒂, 𝒃 = 1, 2
-𝒄 = secant_intersection(q, 𝒂, 𝒃)
+a, b = 1, 2
+c = secant_intersection(q, a, b)
 ```
 
 In our example, we see that in trying to find an answer to $f(x) = 0$ ( $\sqrt{2}\approx 1.414\dots$) our value found from the intersection point is a better guess than either $a=1$ or $b=2$:
@@ -342,17 +347,17 @@ In our example, we see that in trying to find an answer to $f(x) = 0$ ( $\sqrt{2
 
 ```{julia}
 #| echo: false
-plot(q, 𝒂, 𝒃, linewidth=5, legend=false)
-plot!(zero, 𝒂, 𝒃)
-plot!([𝒂, 𝒃], q.([𝒂, 𝒃]))
-scatter!([𝒄], [q(𝒄)])
+plot(q, a, b, linewidth=5, legend=false)
+plot!(zero, a, b)
+plot!([a, b], q.([a, b]))
+scatter!([c], [q(c)])
 ```
 
-Still,  `q(𝒄)` is not really close to $0$:
+Still,  `q(c)` is not really close to $0$:
 
 
 ```{julia}
-q(𝒄)
+q(c)
 ```
 
 *But* it is much closer than either $q(a)$ or $q(b)$, so it is an improvement. This suggests renaming $a$ and $b$ with the old $b$ and $c$ values and trying again we might do better still:
@@ -360,9 +365,9 @@ q(𝒄)
 
 ```{julia}
 #| hold: true
-𝒂, 𝒃 = 𝒃, 𝒄
-𝒄 = secant_intersection(q, 𝒂, 𝒃)
-q(𝒄)
+a, b = b, c
+c = secant_intersection(q, a, b)
+q(c)
 ```
 
 Yes, now the function value at this new $c$ is even closer to $0$. Trying a few more times we see we just get closer and closer. Here we start again to see the progress
@@ -370,10 +375,10 @@ Yes, now the function value at this new $c$ is even closer to $0$. Trying a few 
 
 ```{julia}
 #| hold: true
-𝒂,𝒃 = 1, 2
+a,b = 1, 2
 for step in 1:6
-    𝒂, 𝒃 = 𝒃, secant_intersection(q, 𝒂, 𝒃)
-    current = (c=𝒃, qc=q(𝒃))
+    a, b = b, secant_intersection(q, a, b)
+    current = (c=b, qc=q(b))
     @show current
 end
 ```
@@ -486,7 +491,14 @@ During this call, values for `m` and `b` are found from how the function is call
 mxplusb(0; m=3, b=2)
 ```
 
-Keywords are used to mark the parameters whose values are to be changed from the default. Though one can use *positional arguments* for parameters - and there are good reasons to do so - using keyword arguments is a good practice if performance isn't paramount, as their usage is more explicit yet the defaults mean that a minimum amount of typing needs to be done. Keyword arguments are widely used with plotting commands, as there are numerous options to adjust, but typically only a handful adjusted per call.
+Keywords are used to mark the parameters whose values are to be changed from the default. Though one can use *positional arguments* for parameters - and there are good reasons to do so - using keyword arguments is a good practice if performance isn't paramount, as their usage is more explicit yet the defaults mean that a minimum amount of typing needs to be done.
+
+
+Keyword arguments are widely used with plotting commands, as there are numerous options to adjust, but typically only a handful adjusted per call. The `Plots` package whose commands we illustrate throughout these notes starting with the next section has this in its docs: `Plots.jl` follows two simple rules with data and attributes:
+
+* Positional arguments correspond to input data
+* Keyword arguments correspond to attributes
+
 
 
 ##### Example
@@ -526,7 +538,14 @@ p = (g=9.8, v0=200, theta = 45*pi/180, k=1/2)
 trajectory(100, p)
 ```
 
-The style isn't so different from using keyword arguments, save the extra step of unpacking the parameters. The *big* advantage is consistency – the function is always called in an identical manner regardless of the number of parameters (or variables).
+The style isn't so different from using keyword arguments, save the extra step of unpacking the parameters. Unpacking as above has shortcut syntax to extract selected fields by name:
+
+```{julia}
+(; v0, theta) = p
+v0, theta
+```
+
+The *big* advantage of bundling parameters into a container is consistency – the function is always called in an identical manner regardless of the number of parameters (or variables).
 
 
 ## Multiple dispatch
@@ -568,7 +587,7 @@ methods(log, (Number,))
 
 ##### Example
 
-A common usage of multiple dispatch is, as is done with `log` above, to restrict the type of an argument and define a method for just this type. Types in `Julia` can be abstract or concrete. This distinction is important when construction *composite types* (which we are not doing here), but otherwise not so important. In the following example, we use the abstract types `Integer`, `Real`, and `Complex` to define methods for a function we call `twotox`:
+A common usage of multiple dispatch is, as is done with `log` above, to restrict the type of an argument and define a method for just this type. Types in `Julia` can be abstract or concrete. This distinction is important when constructing *composite types* (which we are not doing here), but otherwise not so important. In the following example, we use the abstract types `Integer`, `Real`, and `Complex` to define methods for a function we call `twotox`:
 
 ```{julia}
 function twotox(x::Integer)
@@ -706,7 +725,7 @@ When the `->` is seen a function is being created.
 
 :::{.callout-warning}
 ## Warning
-Generic versus anonymous functions. Julia has two types of functions, generic ones, as defined by `f(x)=x^2` and anonymous ones, as defined by `x -> x^2`. One gotcha is that `Julia` does not like to use the same variable name for the two types.  In general, Julia is a dynamic language, meaning variable names can be reused with different types of variables. But generic functions take more care, as when a new method is defined it gets added to a method table. So repurposing the name of a generic function for something else is not allowed. Similarly, repurposing an already defined variable name for a generic function is not allowed. This comes up when we use functions that return functions as we have different styles that can be used: When we defined `l = shift_right(f, c=3)` the value of `l` is assigned an anonymous function. This binding can be reused to define other variables. However, we could have defined the function `l` through `l(x) = shift_right(f, c=3)(x)`, being explicit about what happens to the variable `x`. This would add a method to the generic function `l`. Meaning, we get an error if we tried to assign a variable to `l`, such as an expression like `l=3`. We generally employ the latter style, even though it involves a bit more typing, as we tend to stick to methods of generic functions for consistency.
+Generic versus anonymous functions. Julia has two types of functions, generic ones, as defined by `f(x)=x^2` and anonymous ones, as defined by `x -> x^2`. One gotcha is that `Julia` does not like to use the same variable name for the two types.  In general, Julia is a dynamic language, meaning variable names can be reused with different types of variables. But generic functions take more care, as when a new method is defined it gets added to a method table. So repurposing the name of a generic function for something else is not allowed. Similarly, repurposing an already defined variable name for a generic function is not allowed. This comes up when we use functions that return functions as we have different styles that can be used: When we defined `l = shift_right(f, c=3)` the value of `l` is assigned an anonymous function. This binding can be reused to define other variables. However, we could have defined the function `l` through `l(x) = shift_right(f, c=3)(x)`, being explicit about what happens to the variable `x`. This would add a method to the generic function `l`. Meaning, we get an error if we tried to assign a variable to `l`, such as an expression like `l=3`. The latter style is inefficient, so is not preferred.
 
 :::
 

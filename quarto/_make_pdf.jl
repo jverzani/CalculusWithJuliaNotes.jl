@@ -17,11 +17,13 @@ execute:
 format:
   typst:
     toc: false
-    section-numbering: "1."
+    section-numbering: "1.1.1"
+    number-depth: 3
     keep-typ: false
     include-before-body:
       - text: |
         #set figure(placement: auto)
+bibliography: references.bib
 ---
 """
 

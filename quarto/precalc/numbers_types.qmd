@@ -62,8 +62,7 @@ Similarly, each type is printed slightly differently.
 
 The key distinction is between integers and floating points. While floating point values include integers, and so can be used exclusively on the calculator, the difference is that an integer is guaranteed to be an exact value, whereas a floating point value, while often an exact representation of a number is also often just an *approximate* value. This can be an advantage – floating point values can model a much wider range of numbers.
 
-
-Now in nearly all cases the differences are not noticeable. Take for instance this simple calculation involving mixed types.
+In nearly all cases the differences are not noticeable. Take for instance this simple calculation involving mixed types.
 
 
 ```{julia}
@@ -89,10 +88,10 @@ These values are *very* small numbers, but not exactly $0$, as they are mathemat
 ---
 
 
-The only  common issue is with powers. `Julia` tries to keep a predictable output from the input types (not their values). Here are the two main cases that arise where this can cause unexpected results:
+The only  common issue is with powers. We saw this previously when discussing a distinction between `2^64` and `2.0^64. `Julia` tries to keep a predictable output from the input types (not their values). Here are the two main cases that arise where this can cause unexpected results:
 
 
-  * integer bases and integer exponents can *easily* overflow. Not only `m^n` is always an integer, it is always an integer with a fixed storage size computed from the sizes of `m` and `n`. So the powers can quickly get too big. This can be especially noticeable on older $32$-bit machines, where too big is $2^{32} = 4,294,967,296$. On $64$-bit machines, this limit is present but much bigger.
+* integer bases and integer exponents can *easily* overflow. Not only `m^n` is always an integer, it is always an integer with a fixed storage size computed from the sizes of `m` and `n`. So the powers can quickly get too big. This can be especially noticeable on older $32$-bit machines, where too big is $2^{32} = 4,294,967,296$. On $64$-bit machines, this limit is present but much bigger.
 
 
 Rather than give an error though, `Julia` gives seemingly arbitrary answers, as can be seen in this example on a $64$-bit machine:
@@ -102,13 +101,13 @@ Rather than give an error though, `Julia` gives seemingly arbitrary answers, as 
 2^62, 2^63
 ```
 
-(They aren't arbitrary, rather integer arithmetic is implemented as modular arithmetic.)
+(They aren't arbitrary, as explained previously.)
 
 
-This could be worked around, as it is with some programming languages, but it isn't, as it would slow down this basic computation. So, it is up to the user to be aware of cases where their integer values can grow to big. The suggestion is to use floating point numbers in this domain, as they have more room, at the cost of sometimes being approximate values.
+This could be worked around, as it is with some programming languages, but it isn't, as it would slow down this basic computation. So, it is up to the user to be aware of cases where their integer values can grow to big. The suggestion is to use floating point numbers in this domain, as they have more room, at the cost of sometimes being approximate values for fairly large values.
 
 
-  * the `sqrt` function will give a domain error for negative values:
+* the `sqrt` function will give a domain error for negative values:
 
 
 ```{julia}
@@ -161,11 +160,12 @@ Integers are often used casually, as they come about from parsing. As with a cal
 ### Floating point numbers
 
 
-[Floating point](http://en.wikipedia.org/wiki/Floating_point) numbers are a computational model for the real numbers.  For floating point numbers, $64$ bits are used by default for both $32$- and $64$-bit systems, though other storage sizes can be requested. This gives a large ranging - but still finite - set of real numbers that can be represented. However, there are infinitely many real numbers just between $0$ and $1$, so there is no chance that all can be represented exactly on the computer with a floating point value. Floating point then is *necessarily* an approximation for all but a subset of the real numbers. Floating point values can be viewed in normalized [scientific notation](http://en.wikipedia.org/wiki/Scientific_notation) as $a\cdot 2^b$ where $a$ is the *significand* and $b$ is the *exponent*. Save for special values, the significand $a$ is normalized to satisfy $1 \leq \lvert a\rvert < 2$, the exponent can be taken to be an integer, possibly negative.
+[Floating point](http://en.wikipedia.org/wiki/Floating_point) numbers are a computational model for the real numbers.  For floating point numbers, $64$ bits are used by default for both $32$- and $64$-bit systems, though other storage sizes can be requested. This gives a large range - but still finite - set of real numbers that can be represented. However, there are infinitely many real numbers just between $0$ and $1$, so there is no chance that all can be represented exactly on the computer with a floating point value. Floating point then is *necessarily* an approximation for all but a subset of the real numbers. Floating point values can be viewed in normalized [scientific notation](http://en.wikipedia.org/wiki/Scientific_notation) as $a\cdot 2^b$ where $a$ is the *significand* and $b$ is the *exponent*. Save for special values, the significand $a$ is normalized to satisfy $1 \leq \lvert a\rvert < 2$, the exponent can be taken to be an integer, possibly negative.
 
 
 As per IEEE Standard 754, the `Float64` type gives 52 bits to the precision (with an additional implied one), 11 bits to the exponent and the other bit is used to represent the sign.  Positive, finite, floating point numbers have a range approximately between $10^{-308}$ and $10^{308}$, as 308 is about $\log_{10} 2^{1023}$. The numbers are not evenly spread out over this range, but, rather, are much more concentrated closer to $0$.
 
+The use of 32-bit floating point values is common, as some widley used computer chips expect this. These values have a narrower range of possible values.
 
 :::{.callout-warning}
 ## More on floating point numbers
@@ -205,8 +205,10 @@ The special coding `aeb` (or if the exponent is negative `ae-b`) is used to repr
 avogadro = 6.022e23
 ```
 
-Here `e` is decidedly *not* the Euler number, rather syntax to separate the exponent from the mantissa.
-
+::: {.callout-note}
+## Not `e`
+Here `e` is decidedly *not* the Euler number, rather **syntax** to separate the exponent from the mantissa.
+:::
 
 The first way of representing this number required using `10.0` and not `10` as the integer power will return an integer and even for 64-bit systems is only valid up to `10^18`. Using scientific notation avoids having to concentrate on such limitations.
 
@@ -296,7 +298,7 @@ That is adding `1/10` and `2/10` is not exactly `3/10`, as expected mathematical
 1/10 + (2/10 + 3/10) == (1/10 + 2/10) + 3/10
 ```
 
-  * For real numbers subtraction of similar-sized numbers is not exceptional, for example $1 - \cos(x)$ is positive if $0 < x < \pi/2$, say. This will not be the case for floating point values. If $x$ is close enough to $0$, then $\cos(x)$ and $1$ will be so close, that they will be represented by the same floating point value, `1.0`, so the difference will be zero:
+  * Mathematically, or real numbers, subtraction of similar-sized numbers is not exceptional, for example $1 - \cos(x)$ is positive if $0 < x < \pi/2$, say. This will not be the case for floating point values. If $x$ is close enough to $0$, then $\cos(x)$ and $1$ will be so close, that they will be represented by the same floating point value, `1.0`, so the difference will be zero:
 
 
 ```{julia}
@@ -306,7 +308,7 @@ That is adding `1/10` and `2/10` is not exactly `3/10`, as expected mathematical
 ### Rational numbers
 
 
-Rational numbers can be used when the exactness of the number is more important than the speed or wider range of values offered by floating point numbers. In `Julia` a rational number is comprised of a numerator and a denominator, each an integer of the same type, and reduced to lowest terms. The operations of addition, subtraction, multiplication, and division will keep their answers as rational numbers. As well, raising a rational number to a positive, integer value will produce a rational number.
+Rational numbers can be used when the exactness of the number is more important than the speed or wider range of values offered by floating point numbers. In `Julia` a rational number is comprised of a numerator and a denominator, each an integer of the same type, and reduced to lowest terms. The operations of addition, subtraction, multiplication, and division will keep their answers as rational numbers. As well, raising a rational number to an integer value will produce a rational number.
 
 
 As mentioned, these are constructed using double slashes:
@@ -643,5 +645,5 @@ Finding the value through division introduces a floating point deviation. Which 
 #| echo: false
 as = [`1/10^21`, `1e-21`]
 explanation = "The scientific notation is correct. Due to integer overflow `10^21` is not the same number as `10.0^21`."
-buttonq(as, 2; explanation=explanation)
+buttonq(as, 2; explanation)
 ```

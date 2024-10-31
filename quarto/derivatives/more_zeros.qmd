@@ -127,12 +127,13 @@ Though the derivative is related to the slope of the secant line, that is in the
 Let $\epsilon_{n+1} = x_{n+1}-\alpha$, where $\alpha$ is assumed to be the *simple* zero of $f(x)$ that the secant method converges to. A [calculation](https://math.okstate.edu/people/binegar/4513-F98/4513-l08.pdf) shows that
 
 
-
+$$
 \begin{align*}
 \epsilon_{n+1} &\approx \frac{x_n-x_{n-1}}{f(x_n)-f(x_{n-1})} \frac{(1/2)f''(\alpha)(\epsilon_n-\epsilon_{n-1})}{x_n-x_{n-1}} \epsilon_n \epsilon_{n-1}\\
 & \approx \frac{f''(\alpha)}{2f'(\alpha)} \epsilon_n \epsilon_{n-1}\\
 &= C  \epsilon_n \epsilon_{n-1}.
 \end{align*}
+$$
 
 
 The constant `C` is similar to that for Newton's method, and reveals potential troubles for the secant method similar to those of Newton's method: a poor initial guess (the initial error is too big), the second derivative is too large, the first derivative too flat near the answer.
@@ -185,7 +186,7 @@ Here we use `SymPy` to identify the degree-$2$ polynomial as a function of $y$, 
 @syms y hs[0:2] xs[0:2] fs[0:2]
 H(y) = sum(hᵢ*(y - fs[end])^i for (hᵢ,i) ∈ zip(hs, 0:2))
 
-eqs = [H(fᵢ) ~ xᵢ for (xᵢ, fᵢ) ∈ zip(xs, fs)]
+eqs = tuple((H(fᵢ) ~ xᵢ for (xᵢ, fᵢ) ∈ zip(xs, fs))...)
 ϕ = solve(eqs, hs)
 hy = subs(H(y), ϕ)
 ```
@@ -277,41 +278,6 @@ We can see it in action on the sine function.   Here we pass in $\lambda$, but i
 ```{julia}
 #| term: true
 chandrapatla(sin, 3, 4,  λ3, verbose=true)
-```
-
-```{julia}
-#| output: false
-
-#=
-The condition `Φ^2 < ξ < 1 - (1-Φ)^2` can be visualized. Assume `a,b=0,1`, `fa,fb=-1/2,1`, Then `c < a < b`, and `fc` has the same sign as `fa`, but what values of `fc` will satisfy the inequality?
-
-
-XX```{julia}
-ξ(c,fc) = (a-b)/(c-b)
-Φ(c,fc) = (fa-fb)/(fc-fb)
-Φl(c,fc) = Φ(c,fc)^2
-Φr(c,fc) = 1 - (1-Φ(c,fc))^2
-a,b = 0, 1
-fa,fb = -1/2, 1
-region = Lt(Φl, ξ) & Lt(ξ,Φr)
-plot(region, xlims=(-2,a), ylims=(-3,0))
-XX```
-
-When `(c,fc)` is in the shaded area, the inverse quadratic step is chosen. We can see that `fc < fa` is needed.
-
-
-For these values, this area is within the area where a implicit quadratic step will result in a value between `a` and `b`:
-
-
-XX```{julia}
-l(c,fc) = λ3(fa,fb,fc,a,b,c)
-region₃ = ImplicitEquations.Lt(l,b) & ImplicitEquations.Gt(l,a)
-plot(region₃, xlims=(-2,0), ylims=(-3,0))
-XX```
-
-There are values in the parameter space where this does not occur.
-=#
-nothing
 ```
 
 ## Tolerances
@@ -424,6 +390,96 @@ So a modified criteria for convergence might look like:
 
 
 It is not uncommon to assign `rtol` to have a value like `sqrt(eps())` to account for accumulated floating point errors and the factor of $f'(\alpha)$, though in the `Roots` package it is set smaller by default.
+
+
+### Conditioning and stability
+
+In Part III of @doi:10.1137/1.9781611977165 we find language of numerical analysis useful to  formally describe the zero-finding problem. Key concepts are errors, conditioning, and stability. These give some theoretical justification for the tolerances above.
+
+Abstractly a *problem* is a mapping, $F$, from a domain $X$ of data to a range $Y$ of solutions. Both $X$ and $Y$ have a sense of distance given by a *norm*. A norm is a generalization of the absolute value and gives quantitative meaning to terms like small and large.
+
+
+> A *well-conditioned* problem is one with the property that all small perturbations of $x$ lead to only small changes in $F(x)$.
+
+This sense of "small" is measured through a *condition number*.
+
+If we let $\delta_x$ be a small perturbation of $x$ then $\delta_F = F(x + \delta_x) - F(x)$.
+
+The *forward error* is $\lVert\delta_F\rVert = \lVert F(x+\delta_x) - F(x)\rVert$, the *relative forward error* is  $\lVert\delta_F\rVert/\lVert F\rVert = \lVert F(x+\delta_x) - F(x)\rVert/ \lVert F(x)\rVert$.
+
+The *backward error* is $\lVert\delta_x\rVert$, the *relative backward error* is $\lVert\delta_x\rVert / \lVert x\rVert$.
+
+ The *absolute condition number* $\hat{\kappa}$ is worst case of this ratio $\lVert\delta_F\rVert/ \lVert\delta_x\rVert$ as the perturbation size shrinks to $0$.
+The relative condition number $\kappa$ divides $\lVert\delta_F\rVert$ by $\lVert F(x)\rVert$ and $\lVert\delta_x\rVert$ by $\lVert x\rVert$ before taking the ratio.
+
+
+A *problem* is a mathematical concept, an *algorithm* the computational version. Algorithms may differ for many reasons, such as floating point errors, tolerances, etc. We use notation $\tilde{F}$ to indicate the algorithm.
+
+The absolute error in the algorithm is $\lVert\tilde{F}(x) - F(x)\rVert$, the relative error divides by $\lVert F(x)\rVert$. A good algorithm would have smaller relative errors.
+
+An algorithm is called *stable* if
+
+$$
+\frac{\lVert\tilde{F}(x) - F(\tilde{x})\rVert}{\lVert F(\tilde{x})\rVert}
+$$
+
+is *small* for *some* $\tilde{x}$ relatively near $x$, $\lVert\tilde{x}-x\rVert/\lVert x\rVert$.
+
+> A *stable* algorithm gives nearly the right answer to nearly the right question.
+
+(The answer it gives is $\tilde{F}(x)$, the nearly right question: what is $F(\tilde{x})$?)
+
+A related concept is an algorithm $\tilde{F}$ for a problem $F$ is *backward stable* if for each $x \in X$,
+
+$$
+\tilde{F}(x) = F(\tilde{x})
+$$
+
+for some $\tilde{x}$ with $\lVert\tilde{x} - x\rVert/\lVert x\rVert$ is small.
+
+> "A backward stable algorithm gives exactly the right answer to nearly the right question."
+
+
+The concepts are related by Trefethen and Bao's Theorem 15.1 which says  for a backward stable algorithm the relative error $\lVert\tilde{F}(x) - F(x)\rVert/\lVert F(x)\rVert$ is small in a manner proportional to the relative condition number.
+
+Applying this to the zero-finding we follow @doi:10.1137/1.9781611975086.
+
+To be specific, the problem, $F$, is finding a zero of a function $f$ starting at an initial point $x_0$. The data is $(f, x_0)$, the solution is $r$ a zero of $f$.
+
+Take the algorithm as Newton's method. Any implementation must incorporate tolerances, so this is a computational approximation to the problem. The data is the same, but technically we use $\tilde{f}$ for the function, as any computation is dependent on machine implementations. The output is $\tilde{r}$ an *approximate* zero.
+
+Suppose for sake of argument that $\tilde{f}(x) = f(x) + \epsilon$, $f$ has a continuous derivative, and $r$ is a root of $f$ and $\tilde{r}$ is a root of $\tilde{f}$. Then by linearization:
+
+$$
+\begin{align*}
+0 &= \tilde{f}(\tilde r) \\
+  &= f(r + \delta) + \epsilon\\
+  &\approx f(r) + f'(r)\delta + \epsilon\\
+  &= 0 + f'(r)\delta + \epsilon
+\end{align*}
+$$
+Rearranging gives $\lVert\delta/\epsilon\rVert \approx 1/\lVert f'(r)\rVert$. But the $|\delta|/|\epsilon|$ ratio is related to the the condition number:
+
+> The absolute condition number is $\hat{\kappa}_r = |f'(r)|^{-1}$.
+
+
+The error formula in Newton's method measuring the distance between the actual root and an approximation includes the derivative in the denominator, so we see large condition numbers are tied into possibly larger errors.
+
+Now consider $g(x) = f(x) - f(\tilde{r})$. Call $f(\tilde{r})$ the residual. We have $g$ is near $f$ if the residual is small. The algorithm will solve $(g, x_0)$ with $\tilde{r}$, so with a small residual an exact solution to an approximate question will be found. Driscoll and Braun state
+
+> The backward error in a root estimate is equal to the residual.
+
+
+Practically these two observations lead to
+
+* If there is a large condition number, it may not be possible to find an approximate root near the real root.
+
+* A tolerance in an algorithm should consider both the size of $x_{n} - x_{n-1}$ and the residual $f(x_n)$.
+
+For the first observation, the example of Wilkinson's polynomial is often used where $f(x) = (x-1)\cdot(x-2)\cdot \cdots\cdot(x-20)$. When expanded this function has exactness issues of typical floating point values, the condition number is large and some of the roots found are quite different from the mathematical values.
+
+
+The second observation follows from $f(x_n)$ monitoring the backward error and the product of the condition number and the backward error monitoring the forward error. This product is on the order of $|f(x_n)/f'(x_n)|$ or $|x_{n+1} - x_n|$.
 
 
 ## Questions

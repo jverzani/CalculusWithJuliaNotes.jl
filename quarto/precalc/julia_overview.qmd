@@ -32,7 +32,7 @@ The [https://mybinder.org/](https://mybinder.org/) service in particular allows 
 * [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jverzani/CalculusWithJuliaBinder.jl/sympy?labpath=blank-notebook.ipynb) (Image with SymPy, longer to load)
 
 
-[Google colab](https://colab.research.google.com/) offers a free service with more computing power than `binder`, though setup is a bit more fussy. To use `colab`, you need to execute a command that downloads `Julia` and installs the `CalculusWithJulia` package and a plotting package. (Modify the `pkg"add ..."` command to add other desired packages):
+[Google colab](https://colab.research.google.com/) offers a free service with more computing power than `binder`, though setup is a bit more fussy. To use `colab` along with these notes, you need to execute a command that downloads `Julia` and installs the `CalculusWithJulia` package and a plotting package. (Modify the `pkg"add ..."` command to add other desired packages; update the julia version as necessary):
 
 ```
 # Installation cell
@@ -50,6 +50,9 @@ julia -e 'using Pkg; Pkg.add(url="https://github.com/mth229/BinderPlots.jl")'
 echo 'Now change the runtime type'
 ```
 
+	(The `BinderPlots` is a light-weight, barebones, plotting package that uses `PlotlyLight` to render graphics with commands mostly following those of the `Plots` package. Though suitable for most examples herein, the `Plots` package could instead be installed)
+
+
 After this executes (which can take quite some time, as in a few minutes) under the `Runtime` menu select `Change runtime type` and then select `Julia`.
 
 After that, in a cell execute these commands to load the two installed packages:
@@ -63,11 +66,10 @@ As mentioned, other packages can be chosen for installation.
 
 
 
-
 ## Interacting with `Julia`
 
 
-At a basic level, `Julia` provides a means to read commands or instructions, evaluate those commands, and then print or return those commands. At a user level, there are many different ways to interact with the reading and printing. For example:
+At a basic level, `Julia` provides an interactive means to read commands or instructions, evaluate those commands, and then print or return those commands. At a user level, there are many different ways to interact with the reading and printing. For example:
 
 
   * The REPL. The `Julia` terminal is the built-in means to interact with `Julia`. A `Julia` Terminal has a command prompt, after which commands are typed and then sent to be evaluated by the `enter` key. The terminal may look something like the following where `2+2` is evaluated:
@@ -83,7 +85,7 @@ $ julia
   (_)     | (_) (_)    |
    _ _   _| |_  __ _   |  Type "?" for help, "]?" for Pkg help.
   | | | | | | |/ _` |  |
-  | | |_| | | | (_| |  |  Version 1.7.0 (2021-11-30)
+  | | |_| | | | (_| |  |  Version 1.11.1 (2024-10-16)
  _/ |\__'_|_|_|\__'_|  |  Official https://julialang.org/ release
 |__/                   |
 
@@ -104,8 +106,8 @@ The `Pluto` interface has some idiosyncrasies that need explanation:
 
   * Cells can only have one command within them. Multiple-command cells must be contained in a `begin` block or a `let` block.
   * By default, the cells are *reactive*. This means when a variable in one cell is changed, then any references to that variable are also updated – like a spreadsheet. This is fantastic for updating several computations at once. However it means variable names can not be repeated within a page. Pedagogically, it is convenient to use variable names and function names (e.g., `x` and `f`) repeatedly, but this is only possible *if* they are within a `let` block or a function body.
-  * To not repeat names, but to be able to reference a value from cell-to-cell,  some Unicode variants are used within a page. Visually these look familiar, but typing the names requires some understanding of Unicode input. The primary usages is *bold italic* (e.g., `\bix[tab]` or `\bif[tab]`) or *bold face* (e.g. `\bfx[tab]` or `\bff[tab]`).
-  * The notebooks snapshot the packages they depend on, which is great for reproducibility, but may mean older versions are silently used.
+  * To not repeat names, but to be able to reference a value from cell-to-cell,  some Unicode variants may be used within a page. Visually these look familiar, but typing the names requires some understanding of Unicode input. The primary usages is *bold italic* (e.g., `\bix[tab]` or `\bif[tab]`) or *bold face* (e.g. `\bfx[tab]` or `\bff[tab]`).
+  * The notebooks snapshot the packages they depend on, which is great for reproducibility, but may lead to older versions of the packages being silently used.
 
 
 ## Augmenting base `Julia`
@@ -152,7 +154,7 @@ This command instructs `Julia` to look at its *general registry* for the `Calcul
 
 :::{.callout-note}
 ## Note
-In a terminal setting, there is a package mode, entered by typing `]` as the leading character and exited by entering `<backspace>` at a blank line. This mode allows direct access to `Pkg` with a simpler syntax. The command above would be just `add CalculusWithJulia`.)
+In a terminal setting, there is a package mode, entered by typing `]` as the leading character and exited by entering `<backspace>` at a blank line. This mode allows direct access to `Pkg` with a simpler syntax. The command above would be just `add CalculusWithJulia`. As well, when a package is not installed, calling `using SomePackage` will prompt the user if they wish to install the package in the current environment.)
 
 :::
 
@@ -167,11 +169,11 @@ For these notes, the following packages, among others, are used:
 
 ```{julia}
 #| eval: false
-Pkg.add("CalculusWithJulia") # for some simplifying functions and a few packages (SpecialFunctions, ForwardDiff)
-Pkg.add("Plots")  # for basic plotting
-Pkg.add("SymPy")  # for symbolic math
-Pkg.add("Roots")  # for solving  `f(x)=0`
-Pkg.add("QuadGk") # for integration
+Pkg.add("CalculusWithJulia") # for some convenience functions and a few packages (SpecialFunctions, ForwardDiff)
+Pkg.add("Plots")       # for basic plotting
+Pkg.add("SymPy")       # for symbolic math
+Pkg.add("Roots")       # for numerically solving  `f(x)=0` and `f(x)=g(x)`
+Pkg.add("QuadGk")      # for 1-dimensional numeric integration
 Pkg.add("HQuadrature") # for higher-dimensional integration
 ```
 
@@ -236,7 +238,7 @@ Integer operations may silently overflow, producing odd answers, at first glance
 2^64
 ```
 
-(Though the output is predictable, if overflow is taken into consideration appropriately.)
+(Though the output is predictable, knowing why requires understanding of how the hardware implements these operations.)
 
 
 When different types of numbers are mixed, `Julia` will usually promote the values to a common type before the operation:
@@ -249,7 +251,10 @@ When different types of numbers are mixed, `Julia` will usually promote the valu
 `Julia` will first add `2` and `1//2` promoting `2` to rational before doing so. Then add the result, `5//2` to `0.5` by promoting `5//2` to the floating point number `2.5` before proceeding.
 
 
-`Julia` uses a special type to store a handful of irrational constants such as `pi`. The special type allows these constants to be treated without round off, until they mix with other floating point numbers. There are some functions that require these be explicitly promoted to floating point. This can be done by calling `float`.
+`Julia` uses a special type to store a handful of irrational constants such as `pi`. The special type allows these constants to be treated without round off, until they mix with other floating point numbers. An irrational value for `e` is not exported; the `CalculusWithJulia` exports a floating point value `e=exp(1)`.
+
+
+There are some functions that require these be explicitly promoted to floating point. This can be done by calling `float`.
 
 
 The standard mathematical operations are implemented by `+`, `-`, `*`, `/`, `^`. Parentheses are used for grouping.
@@ -273,6 +278,9 @@ Values will be promoted to a common type (or type `Any` if none exists). For exa
 ```
 
 (Vectors are used as a return type from some functions, as such, some familiarity is needed.)
+
+
+Other common container types are variables of vectors (higher-dimensional arrarys, offset arrays, etc.)  tuples (for heterogeneous, immutable, indexed values); named tuples (which add a name to each value in a tuple); and dictionaries (for associative relationships between a key and a value).
 
 
 Regular arithmetic sequences can be defined by either:
@@ -325,7 +333,7 @@ u + a_really_long_name + a0 - b0 + α
 Within `Pluto`, names are idiosyncratic: within the global scope, only a single usage is possible per notebook; functions and variables can be freely renamed; structures can be redefined or renamed; ...
 
 
-Outside of `Pluto`, names may be repurposed, even with values of different types (`Julia` is a dynamic language), save for (generic) function names, which have some special rules and can only be redefined as another function. Generic functions are central to `Julia`'s design. Generic functions use a method table to dispatch on, so once a name is assigned to a generic function, it can not be used as a variable name; the reverse is also true.
+Outside of `Pluto`, names may be repurposed, even with values of different types (`Julia` is a dynamic language), save for (generic) function names, which have some special rules and can only be redefined as another method for the function. Generic functions are central to `Julia`'s design. Generic functions use a method table to dispatch on, so once a name is assigned to a generic function, it can not be used as a variable name; the reverse is also true.
 
 
 ## Functions
@@ -362,7 +370,7 @@ log
 Besides `^`, there are `sqrt` and `cbrt` for powers. In addition basic functions for exponential and  logarithmic functions:
 
 
-```{verbatim}
+```
 sqrt, cbrt
 exp
 log          # base e
@@ -375,7 +383,7 @@ log10, log2, # also log(b, x)
 The `6` standard trig functions are implemented; their implementation for degree arguments; their inverse functions; and the hyperbolic analogs.
 
 
-```{verbatim}
+```
 sin, cos, tan, csc, sec, cot
 asin, acos, atan, acsc, asec, acot
 sinh, cosh, tanh, csch, sech, coth
@@ -385,7 +393,7 @@ asinh, acosh, atanh, acsch, asech, acoth
 If degrees are preferred, the following are defined to work with arguments in degrees:
 
 
-```{verbatim}
+```
 sind, cosd, tand, cscd, secd, cotd
 ```
 
@@ -444,7 +452,7 @@ a = 4
 f(3)  # now 2 * 4 + 3
 ```
 
-User-defined functions can have $0$, $1$ or more arguments:
+User-defined functions can have $0$, $1$ or more positional arguments:
 
 
 ```{julia}
@@ -454,7 +462,7 @@ area(w, h) = w*h
 Julia makes different *methods* for *generic* function names, so function definitions whose argument specification is different are for different uses, even if the name is the same. This is *polymorphism*. The practical use is that it means users need only remember a much smaller set of function names, as attempts are made to give common expectations to the same name. (That is, `+` should be used only for "add" ing objects, however defined.)
 
 
-Functions can be defined with *keyword* arguments that may have defaults specified:
+Functions can also be defined with *keyword* arguments that may have defaults specified:
 
 
 ```{julia}
@@ -465,11 +473,13 @@ f(1, m=10)                   # uses m=10, b=0  -> 10 * 1 + 0
 f(1, m=10, b=5)              # uses m=10, b=5  -> 10 * 1 + 5
 ```
 
+Keyword arguments are not considered for dispatch.
+
 Longer functions can be defined using the `function` keyword, the last command executed is returned:
 
 
 ```{julia}
-function 𝒇(x)
+function f(x)
   y = x^2
   z = y - 3
   z
@@ -534,7 +544,7 @@ sin.(xs)     # gives back [sin(1), sin(2), sin(3), sin(4), sin(5)]
 For "infix" operators, the dot precedes the operator, as in this example instructing pointwise multiplication of each element in `xs`:
 
 
-```{juila}
+```{julia}
 xs .* xs
 ```
 
@@ -566,8 +576,9 @@ With `Plots` loaded, we can plot a function by passing the function object by na
 plot(sin, 0, 2pi) # plot a function - by name - over an interval [a,b]
 ```
 
-!!! note 	This is in the form of **the** basic pattern employed: `verb(function_object, arguments...)`. The verb in this example is `plot`, the object `sin`, the arguments `0, 2pi` to specify `[a,b]` domain to plot over.
-
+::: {.callout-note}
+This is in the form of **the** basic pattern employed: `verb(function_object, arguments...)`. The verb in this example is `plot`, the object `sin`, the arguments `0, 2pi` to specify `[a,b]` domain to plot over.
+:::
 
 Plotting more than one function over `[a,b]` is achieved through the `plot!` function, which modifies the existing plot (`plot` creates a new one) by adding a new layer:
 
@@ -578,6 +589,8 @@ plot!(cos, 0, 2pi)
 plot!(zero, 0, 2pi) # add the line y=0
 ```
 
+(There are alternatives to plot functions or other traces all at once.)
+
 Individual points are added with `scatter` or `scatter!`:
 
 
@@ -587,7 +600,7 @@ plot!(cos, 0, 2pi)
 scatter!([pi/4, pi+pi/4], [sin(pi/4), sin(pi + pi/4)])
 ```
 
-(The extra argument `legend=false` suppresses the automatic legend drawing. There are many other useful arguments to adjust a graphic. For example, passing `markersize=10` to the `scatter!` command would draw the points larger than the default.)
+(The extra argument `legend=false` suppresses the automatic legend drawing. There are many other useful keyword arguments to adjust attributes of a trace of a graphic. For example, passing `markersize=10` to the `scatter!` command would draw the points larger than the default.)
 
 
 Plotting an *anonymous* function is a bit more immediate than the two-step approach of defining a named function then calling `plot` with this as an argument:
@@ -607,6 +620,20 @@ ys = [sin(2x) + sin(3x) + sin(4x) for x in xs]
 plot(xs, ys)
 ```
 
+There are different plotting interfaces. Though not shown, all of these `plot` commands produce a plot of `f`, though with minor differences:
+
+```{julia}
+#| eval: false
+xs = range(a, b, length=251)
+ys = f.(xs)
+plot(f, a, b)                   # recipe for a function
+plot(xs, f)                     # alternate recipe
+plot(xs, ys)                    # plot coordinates as two vectors
+plot([(x,f(x)) for x in xs])    # plot a vector o points
+```
+
+The choice should depend on convenience.
+
 ## Equations
 
 
@@ -623,7 +650,7 @@ In `Julia` the equals sign is **only** for *assignment* and *mutation*. The *lef
 ## Symbolic math
 
 
-Symbolic math is available through an add-on package `SymPy` (among others).  Once loaded, symbolic variables are created with the macro `@syms`:
+Symbolic math is available through an add-on package `SymPy` (among others).  Once loaded, symbolic variables in `SymPy` are created with the macro `@syms`:
 
 
 ```{julia}

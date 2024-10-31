@@ -533,7 +533,7 @@ sqrt(11^2 + 12^2)
 ##### Example
 
 
-A formula from statistics to compute the variance of a binomial random variable for parameters $p$ and $n$ is $\sqrt{n p (1-p)}$. Compute this value for $p=1/4$ and $n=10$.
+A formula from statistics to compute the variance of a binomial random variable with parameters $p$ and $n$ is $\sqrt{n p (1-p)}$. Compute this value for $p=1/4$ and $n=10$.
 
 
 ```{julia}
@@ -568,20 +568,54 @@ Not all computations on a calculator are valid. For example, the Google calculat
 
 In `Julia`, there is a richer set of error types. The value `0/0` will in fact not be an error, but rather a value `NaN`. This is a special floating point value indicating "not a number" and is the result for various operations.  The output of $\sqrt{-1}$ (computed via `sqrt(-1)`) will indicate a domain error:
 
+```{julia}
+#| error: true
+sqrt(-1)
+```
+
+Other calls may result in an overflow error:
 
 ```{julia}
 #| error: true
 factorial(1000)
 ```
 
-How `Julia` handles overflow is a study in tradeoffs. For integer operations that demand high performance, `Julia` does not check for overflow. So, for example, if we are not careful strange answers can be had. Consider the difference here between powers of 2:
+How `Julia` handles overflow is a study in tradeoffs. For integer operations that demand high performance, `Julia` does not check for overflow. So, for example, if we are not careful strange answers can be had. Consider the difference here between these powers of 2:
 
 
 ```{julia}
-2^62, 2^63
+2^62, 2^63, 2^64
 ```
 
-On a machine with $64$-bit integers, the first of these two values is correct, the second, clearly wrong, as the answer given is negative. This is due to overflow. The cost of checking is considered too high, so no error is thrown. The user is expected to have a sense that they need to be careful when their values are quite large. (Or the user can use floating point numbers, which though not always exact, can represent much bigger values and are exact for a reasonably wide range of integer values.)
+On a machine with $64$-bit integers, the first of these two values is correct, the third is clearly "wrong," and the second clearly "wrong," as the answer given is negative.
+
+Wrong is in quotes, as though they are mathematically incorrect, computationally they are correct. The last two are due to overflow. The cost of checking is considered too high, so no error is thrown and the values represent what happens at the machine level.
+
+The user is expected to have a sense that they need to be careful when their values are quite large. But the better recommendation is that the user use floating point numbers, which as easy as typing `2.0^63`. Though not always exact, floating point values can represent a much bigger range values and are exact for a reasonably wide range of integer values.
+
+
+::: {.callout-note}
+## Bit-level details
+
+We can see in the following, using using the smaller 8-bit type, what goes on internally with successive powers of `2`: the bit pattern is found by shifting the previous one over to the left, consistent with what happens at the bit level when multiplying by `2`:
+
+```
+[bitstring(Int8(2)^i) for i in 1:8]
+```
+
+The last line is similar to what happens to `2^64` which is also `0`, as seen. The second to last line requires some understanding of how  integers are represented internally. Of the 8 bits, the last 7 represent which powers of `2` (`2^6`, `2^5`, ..., `2^1`, `2^0`) are included. The first `1` represents `-2^7`. So all zeros, as we see `2^8` is, means `0`, but `"10000000"` means `-2^7`. The largest *positive* number would be represented as `"01111111"` or ``2^6 + 2^5 + \cdots + 2^1 + 2^0 = 2^7 - 1``. These values can be seen using `typemin` and `typemax`:
+
+```{julia}
+typemin(Int8), typemax(Int8)
+```
+For 64-bit, these are:
+
+```{julia}
+typemin(Int), typemax(Int)
+```
+
+And we see, `2^63` is also just `typemin(Int)`.
+:::
 
 
 :::{.callout-warning}

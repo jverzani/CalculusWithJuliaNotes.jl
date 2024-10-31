@@ -28,7 +28,7 @@ nothing
 The Google calculator has a button `Ans` to refer to the answer to the previous evaluation. This is a form of memory. The last answer is stored in a specific place in memory for retrieval when `Ans` is used. In some calculators, more advanced memory features are possible. For some, it is possible to push values onto a stack of values for them to be referred to at a later time. This proves useful for complicated expressions, say, as the expression can be broken into smaller intermediate steps to be computed. These values can then be appropriately combined. This strategy is a good one, though the memory buttons can make its implementation a bit cumbersome.
 
 
-With `Julia`, as with other programming languages, it is very easy to refer to past evaluations. This is done by *assignment* whereby a computed value stored in memory is associated with a name. The name can be used to look up the value later. Assignment does not change the value of the object being assigned, it only introduces a reference to it.
+With `Julia`, as with other programming languages, it is very easy to refer to past evaluations. This is done by *assignment* whereby a computed value stored in memory is associated with a name (sometimes thought of as symbol or label). The name can be used to look up the value later. Assignment does not change the value of the object being assigned, it only introduces a reference to it.
 
 
 Assignment in `Julia` is handled by the equals sign and takes the general form `variable_name = value`. For example, here we assign values to the variables `x` and `y`
@@ -49,7 +49,7 @@ x
 Just typing a variable name (without a trailing semicolon) causes the assigned value to be displayed.
 
 
-Variable names can be reused, as here, where we redefine `x`:
+Variable names can be reused (or reassigned), as here, where we redefine `x`:
 
 
 ```{julia}
@@ -115,7 +115,7 @@ By defining a new variable `a` to represent a value that is repeated a few times
 
 A [grass swale](https://stormwater.pca.state.mn.us/index.php?title=Design_criteria_for_dry_swale_(grass_swale)) is a design to manage surface water flow resulting from a storm. Swales detain, filter, and infiltrate runoff limiting erosion in the process.
 
-![Swale cross section](precalc/figures/swale.png)
+![Swale cross section](figures/swale.png)
 
 There are a few mathematical formula that describe the characteristics of swale:
 
@@ -155,7 +155,7 @@ n, S = 0.025, 2/90
 A = (b + d/tan(theta)) *  d
 P = b + 2d/sin(theta)
 R = A / P
-Q = R^(2/3) * S^(1/2) * A / n
+Q = R^(2/3) * S^(1/2) / n * A
 ```
 
 
@@ -198,7 +198,7 @@ This is completely unlike the mathematical equation $x = x^2$ which is typically
 ##### Example
 
 
-Having `=` as assignment is usefully exploited when modeling sequences. For example, an application of Newton's method might end up with this expression:
+Having `=` as assignment is usefully exploited when modeling sequences. For example, an application of Newton's method might end up with this mathematical expression:
 
 
 $$
@@ -208,7 +208,7 @@ $$
 As a mathematical expression, for each $i$ this defines a new value for $x_{i+1}$ in terms of a known value $x_i$. This can be used to recursively generate a sequence, provided some starting point is known, such as $x_0 = 2$.
 
 
-The above might be written instead with:
+The above might be written instead using assignment with:
 
 
 ```{julia}
@@ -220,11 +220,19 @@ x = x - (x^2 - 2) / (2x)
 
 Repeating this last line will generate new values of `x` based on the previous one - no need for subscripts. This is exactly what the mathematical notation indicates is to be done.
 
+::: {.callout-note}
+## Use of =
+
+The distinction between ``=`` versus `=` is important and one area where common math notation and common computer notation diverge. The mathematical ``=`` indicates *equality*, and is often used with equations and also for assignment. Later, when symbolic math is introduced, the `~` symbol will be used to indicate an equation, though this is by convention and not part of base `Julia`. The computer syntax use of `=` is for *assignment* and *re-assignment*. Equality is tested with `==` and `===`.
+
+:::
 
 ## Context
 
 
-The binding of a value to a variable name happens within some context. For our simple illustrations, we are assigning values, as though they were typed at the command line. This stores the binding in the `Main` module. `Julia` looks for variables in this module when it encounters an expression and the value is substituted. Other uses, such as when variables are defined within a function, involve different contexts which may not be visible within the `Main` module.
+The binding of a value to a variable name happens within some context. When a variable is assigned or referenced, the scope of the variable -- the region of code where it is accessible -- is taken into consideration.
+
+For our simple illustrations, we are assigning values, as though they were typed at the command line. This stores the binding in the `Main` module. `Julia` looks for variables in this module when it encounters an expression and the value is substituted. Other uses, such as when variables are defined within a function, involve different contexts which may not be visible within the `Main` module.
 
 
 :::{.callout-note}
@@ -235,14 +243,16 @@ The `varinfo` function will list the variables currently defined in the main wor
 
 :::{.callout-warning}
 ## Warning
-**Shooting oneselves in the foot.** `Julia` allows us to locally redefine variables that are built in, such as the value for `pi` or the function object assigned to `sin`. For example, this is a perfectly valid command `sin=3`. However, it will overwrite the typical value of `sin` so that `sin(3)` will be an error. At the terminal, the binding to `sin` occurs in the `Main` module. This shadows that value of `sin` bound in the `Base` module. Even if redefined in `Main`, the value in base can be used by fully qualifying the name, as in `Base.sin(pi)`. This uses the notation `module_name.variable_name` to look up a binding in a module.
+**Shooting oneselves in the foot.** `Julia` allows us to locally redefine variables that are built in, such as the value for `pi` or the function object assigned to `sin`. This is called shadowing. For example, this is a perfectly valid command `sin=3`. However, it will overwrite the typical value of `sin` so that `sin(3)` will be an error. At the terminal, the binding to `sin` occurs in the `Main` module. This shadows that value of `sin` bound in the `Base` module. Even if redefined in `Main`, the value in base can be used by fully qualifying the name, as in `Base.sin(pi)`. This uses the notation `module_name.variable_name` to look up a binding in a module.
 
 :::
 
 ## Variable names
 
 
-`Julia` has a very wide set of possible [names](https://docs.julialang.org/en/stable/manual/variables/#Allowed-Variable-Names-1) for variables. Variables are case sensitive and their names can include many [Unicode](http://en.wikipedia.org/wiki/List_of_Unicode_characters) characters. Names must begin with a letter or an appropriate Unicode value (but not a number). There are some reserved words, such as `try` or `else` which can not be assigned to. However, many built-in names can be locally overwritten. Conventionally, variable names are lower case. For compound names, it is not unusual to see them squished together, joined with underscores, or written in camelCase.
+`Julia` has a very wide set of possible [names](https://docs.julialang.org/en/stable/manual/variables/#Allowed-Variable-Names-1) for variables. Variables are case sensitive and their names can include many [Unicode](http://en.wikipedia.org/wiki/List_of_Unicode_characters) characters. Names must begin with a letter or an appropriate Unicode value (but not a number). There are some reserved words, such as `try` or `else` which can not be assigned to. However, many built-in names can be locally overwritten (shadowed).
+
+Conventionally, variable names are lower case. For compound names, it is not unusual to see them squished together, joined with underscores, or written in camelCase.
 
 
 ```{julia}
@@ -273,16 +283,18 @@ For example, we could have defined `theta` (`\theta[tab]`) and `v0` (`v\_0[tab]`
 ```
 
 :::{.callout-note}
-## Unicode
-These notes can be presented as HTML files *or* as `Pluto` notebooks. They often use Unicode alternatives to avoid the `Pluto` requirement of a single use of assigning to a variable name in a notebook without placing the assignment in a `let` block or a function body.
-
-:::
-
-:::{.callout-note}
 ## Emojis
 There is even support for tab-completion of [emojis](https://github.com/JuliaLang/julia/blob/master/stdlib/REPL/src/emoji_symbols.jl) such as `\:snowman:[tab]` or `\:koala:[tab]`
 
 :::
+
+
+:::{.callout-note}
+## Unicode
+These notes often use Unicode alternatives for some variable. Originally this was to avoid a requirement of  `Pluto` of a single use of assigning to a variable name in a notebook without placing the assignment in a `let` block or a function body. Now, they are just for clarity through distinction.
+
+:::
+
 
 ##### Example
 
@@ -322,7 +334,7 @@ a, b = 1, 2
 a, b = b, a
 ```
 
-#### Example, finding the slope
+### Example, finding the slope
 
 
 Find the slope of the line connecting the points $(1,2)$ and $(4,6)$. We begin by defining the values and then applying the slope formula:
@@ -335,6 +347,7 @@ m = (y1 - y0) / (x1 - x0)
 ```
 
 Of course, this could be computed directly with `(6-2) / (4-1)`, but by using familiar names for the values we can be certain we apply the formula properly.
+
 
 
 ## Questions

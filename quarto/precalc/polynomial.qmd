@@ -28,7 +28,7 @@ Polynomials are a particular class of expressions that are simple enough to have
 Here we discuss some vocabulary and basic facts related to polynomials and show how the add-on `SymPy` package can be used to model polynomial expressions within `SymPy`. `SymPy` provides a Computer Algebra System (CAS) for `Julia`. In this case, by leveraging a mature `Python` package [SymPy](https://www.sympy.org/). Later we will discuss the `Polynomials` package for polynomials.
 
 
-For our purposes, a *monomial* is simply a non-negative integer power of $x$ (or some other indeterminate symbol) possibly multiplied by a scalar constant.  For example, $5x^4$ is a monomial, as are constants, such as $-2=-2x^0$ and the symbol itself, as $x = x^1$. In general, one may consider restrictions on where the constants can come from, and consider more than one symbol, but we won't pursue this here, restricting ourselves to the case of a single variable and real coefficients.
+For our purposes, a *monomial* is simply a non-negative integer power of $x$ (or some other indeterminate symbol) possibly multiplied by a scalar constant.  For example, $5x^4$ is a monomial, as are constants, such as $-2$ (it being $-2x^0$) and the symbol $x$ itself (it begin  $x^1$. In general, one may consider restrictions on where the constants can come from, and consider more than one symbol, but we won't pursue this here, restricting ourselves to the case of a single variable and real coefficients.
 
 
 A *polynomial* is a sum of monomials. After combining terms with same powers, a non-zero polynomial may be written uniquely as:
@@ -158,7 +158,7 @@ The above shows that multiple symbols can be defined at once. The annotation `x:
 
 :::{.callout-note}
 ## Note
-Macros in `Julia` are just transformations of the syntax into other syntax. The `@` indicates they behave differently than regular function calls.
+Macros in `Julia` are just transformations of the syntax into other syntax. The leading `@` indicates they behave differently than regular function calls.
 
 :::
 
@@ -235,7 +235,7 @@ To illustrate, to do the task above for the polynomial $-16x^2 + 100$ we could h
 p(x => (x-1)^2)
 ```
 
-This "call" notation takes pairs (designated by `a=>b`) where the left-hand side is the variable to substitute for, and the right-hand side the new value. The value to substitute can depend on the variable, as illustrated; be a different variable; or be a numeric value, such as $2$:
+This "call" notation takes pairs (designated by `a=>b`) where the left-hand side is the variable to substitute for, and the right-hand side the new value. (This mirrors a similar use with `replace`.) The value to substitute can depend on the variable, as illustrated; be a different variable; or be a numeric value, such as $2$:
 
 
 ```{julia}
@@ -264,15 +264,15 @@ Suppose we have the polynomial $p = ax^2 + bx +c$. What would it look like if we
 
 ```{julia}
 @syms E F
-p₂ = a*x^2 + b*x + c
-p₂(x => x-E) + F
+p = a*x^2 + b*x + c
+p(x => x-E) + F
 ```
 
 And expanded this becomes:
 
 
 ```{julia}
-expand(p₂(x => x-E) + F)
+expand(p(x => x-E) + F)
 ```
 
 ### Conversion of symbolic numbers to Julia numbers
@@ -287,7 +287,17 @@ p = -16x^2 + 100
 y = p(2)
 ```
 
-The value, $36$ is still symbolic, but clearly an integer. If we are just looking at the output, we can easily translate from the symbolic value to an integer, as they print similarly. However the conversion to an integer, or another type of number, does not happen automatically.  If a number is needed to pass along to another `Julia` function, it may need to be converted. In general, conversions between different types are handled through various methods of `convert`. However, with `SymPy`, the `N` function will attempt to do the conversion for you:
+The value, $36$ is still symbolic, but clearly an integer. If we are just looking at the output, we can easily translate from the symbolic value to an integer, as they print similarly. However the conversion to an integer, or another type of number, does not happen automatically.  If a number is needed to pass along to another `Julia` function, it may need to be converted. In general, conversions between different types are handled through various methods of `convert`.
+
+For real numbers, an easy to call conversion is available through the `float` method:
+
+```{julia}
+float(y)
+```
+
+
+
+The use of the generic `float` method returns a floating point number. `SymPy` objects have their own internal types. To preserve these on conversion to a related `Julia` value, the `N` function from  `SymPy` is useful:
 
 
 ```{julia}
@@ -296,7 +306,7 @@ p = -16x^2 + 100
 N(p(2))
 ```
 
-Where `convert(T,x)` requires a specification of the type to convert `x` to, `N` attempts to match the data type used by SymPy to store the number. As such, the output type of `N` may vary (rational, a BigFloat, a float, etc.) For getting more digits of accuracy, a precision can be passed to `N`. The following command will take the symbolic value for $\pi$, `PI`, and produce about $60$ digits worth as a `BigFloat` value:
+Where `convert(T, x)` requires a specification of the type to convert `x` to, `N` attempts to match the data type used by SymPy to store the number. As such, the output type of `N` may vary (rational, a BigFloat, a float, etc.) For getting more digits of accuracy, a precision can be passed to `N`. The following command will take the symbolic value for $\pi$, `PI`, and produce about $60$ digits worth as a `BigFloat` value:
 
 
 ```{julia}
@@ -329,7 +339,7 @@ pp = lambdify(p)
 pp(2)
 ```
 
-The `lambdify` function uses the name of the similar `SymPy` function which is named after Pythons convention of calling anoynmous function "lambdas." The use above is straightforward. Only slightly more complicated is the use when there are multiple symbolic values. For example:
+The `lambdify` function uses the name of the similar `SymPy` function which is named after Python's convention of calling anoynmous function "lambdas." The use above is straightforward. Only slightly more complicated is the use when there are multiple symbolic values. For example:
 
 
 ```{julia}
@@ -366,7 +376,7 @@ This graph illustrates the key features of polynomial graphs:
 
   * there may be values for `x` where the graph crosses the $x$ axis (real roots of the polynomial);
   * there may be peaks and valleys (local maxima and local minima)
-  * except for constant polynomials, the ultimate behaviour for large values of $\lvert x\rvert$ is either both sides of the graph going to positive infinity, or negative infinity, or as in this graph one to the positive infinity and one to negative infinity. In particular, there is no *horizontal asymptote*.
+  * except for constant polynomials, the ultimate behaviour for large values of $|x|$ is either both sides of the graph going to positive infinity, or negative infinity, or as in this graph one to the positive infinity and one to negative infinity. In particular, there is no *horizontal asymptote*.
 
 
 To investigate this last point, let's consider the case of the monomial $x^n$. When $n$ is even, the following animation shows that larger values of $n$ have greater growth once outside of $[-1,1]$:
@@ -390,7 +400,7 @@ plotly()
 ImageFile(imgfile, caption)
 ```
 
-Of course, this is expected, as, for example, $2^2 < 2^4 < 2^6 < \cdots$. The general shape of these terms is similar - $U$ shaped, and larger powers dominate the smaller powers as $\lvert x\rvert$ gets big.
+Of course, this is expected, as, for example, $2^2 < 2^4 < 2^6 < \cdots$. The general shape of these terms is similar - $U$ shaped, and larger powers dominate the smaller powers as $|x|$ gets big.
 
 
 For odd powers of $n$, the graph of the monomial $x^n$ is no longer $U$ shaped, but rather constantly increasing. This graph of $x^5$ is typical:
@@ -443,7 +453,7 @@ $$
 x^5 \cdot (2 - \frac{1}{x^4} + \frac{1}{x^5}).
 $$
 
-For large $\lvert x\rvert$, the last two terms in the product on the right get close to $0$, so this expression is *basically* just $2x^5$ - the leading term.
+For large $|x|$, the last two terms in the product on the right get close to $0$, so this expression is *basically* just $2x^5$ - the leading term.
 
 
 ---
@@ -523,7 +533,7 @@ The `SymPy` function `expand` will perform these algebraic manipulations without
 expand((x-1)*(x-2)*(x-3))
 ```
 
-Factoring a polynomial is several weeks worth of lessons, as there is no one-size-fits-all algorithm to follow. There are some tricks that are taught: for example factoring differences of perfect squares, completing the square, the rational root theorem, $\dots$. But in general the solution is not automated. The `SymPy` function `factor` will find all rational factors (terms like $(qx-p)$), but will leave terms that do not have rational factors alone. For example:
+Factoring a polynomial is several weeks worth of lessons, as there is no one-size-fits-all algorithm available to teach to algebra students. There are some tricks that are taught: for example factoring differences of perfect squares, completing the square, the rational root theorem, $\dots$. But in general the solution is not automated without some more advanced techniques. The `SymPy` function `factor` will find all rational factors (terms like $(qx-p)$), but will leave terms that do not have rational factors alone. For example:
 
 
 ```{julia}
@@ -563,7 +573,7 @@ However, *polynomial functions* are easily represented by `Julia`, for example,
 f(x) = -16x^2 + 100
 ```
 
-The distinction is subtle, the expression is turned into a function just by adding the `f(x) =` preface. But to `Julia` there is a big distinction. The function form never does any computation until after a value of $x$ is passed to it. Whereas symbolic expressions can be manipulated quite freely before any numeric values are specified.
+The distinction is subtle, the expression is turned into a function just by adding the "`f(x) =`" preface. But to `Julia` there is a big distinction. The function form never does any computation until after a value of $x$ is passed to it. Whereas symbolic expressions can be manipulated quite freely before any numeric values are specified.
 
 
 It is easy to create a symbolic expression from a function - just evaluate the function on a symbolic value:
@@ -581,7 +591,7 @@ p = f(x)
 p(2)
 ```
 
-For many uses, the distinction is unnecessary to make, as the many functions will work with any callable expression. One such is `plot` – either `plot(f, a, b)` or `plot(f(x),a, b)` will produce the same plot using the `Plots` package.
+For many uses, the distinction is unnecessary to make, as the many functions will work with any callable expression. For `Plots` there is a recipe – either `plot(f, a, b)` or `plot(f(x), a, b)` will produce the same plot using the `Plots` package.
 
 
 ## Questions

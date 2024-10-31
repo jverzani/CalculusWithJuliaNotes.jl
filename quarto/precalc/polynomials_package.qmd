@@ -93,7 +93,7 @@ This variable is a `Polynomial` object, so can be manipulated as a polynomial; w
 r = (x-2)^2 * (x-1) * (x+1)
 ```
 
-The product is expanded for storage by `Polynomials`, which may not be desirable for some uses. A new variable can produced by calling `variable()`; so we could have constructed `p` by:
+The product is expanded for storage by `Polynomials`, which may not be desirable for some uses. A new variable can be produced by calling `variable()`; so we could have constructed `p` by:
 
 
 ```{julia}
@@ -106,7 +106,7 @@ A polynomial in factored form, as `r` above is, can be constructed from its root
 
 
 ```{julia}
-fromroots([2,2,1,-1])
+fromroots([2, 2, 1, -1])
 ```
 
 The `fromroots` function is basically the [factor theorem](https://en.wikipedia.org/wiki/Factor_theorem) which links the factored form of the polynomial with the roots of the polynomial: $(x-k)$ is a factor of $p$ if and only if $k$ is a root of $p$. By combining a factor of the type $(x-k)$ for each specified root, the polynomial can be constructed by multiplying its factors. For example, using `prod` and a generarator, we would have:
@@ -115,7 +115,7 @@ The `fromroots` function is basically the [factor theorem](https://en.wikipedia.
 ```{julia}
 #| hold: true
 x = variable()
-prod(x - k for k in [2,2,1,-1])
+prod(x - k for k in [2, 2, 1, -1])
 ```
 
 The `Polynomials` package has different ways to represent polynomials, and a factored form can also be used. For example, the `fromroots` function constructs polynomials from the specified roots and `FactoredPolynomial` leaves these in a factored form:
@@ -156,11 +156,11 @@ Polynomial objects have a plot recipe defined – plotting from the `Plots` pack
 plot(r, legend=false)  # suppress the legend
 ```
 
-The choice of domain is heuristically identified; and it can be manually adjusted, as with:
+The choice of domain is heuristically identified; it can be manually adjusted, as with:
 
 
 ```{julia}
-plot(r, 1.5, 2.5, legend=false)
+plot(r, 1.5, 2.5; legend=false)
 ```
 
 ## Roots
@@ -204,6 +204,13 @@ x = variable()
 p = (x-1)^5
 Polynomials.Multroot.multroot(p)
 ```
+
+Converting to the `FactoredPolynomial` type also does this work:
+
+```{julia}
+convert(FactoredPolynomial, p)
+```
+
 
 Floating point error can also prevent the finding of real roots. For example, this polynomial has $3$ real roots, but `roots` finds but $1$, as the two nearby ones are identified as complex:
 
@@ -251,21 +258,22 @@ A line, $y=mx+b$ can be a linear polynomial or a constant depending on $m$, so w
 Knowing we can succeed, we approach the problem of $3$ points, say $(x_0, y_0)$, $(x_1,y_1)$, and $(x_2, y_2)$. There is a polynomial $p = a\cdot x^2 + b\cdot x + c$ with $p(x_i) = y_i$. This gives $3$ equations for the $3$ unknown values $a$, $b$, and $c$:
 
 
-
+$$
 \begin{align*}
 a\cdot x_0^2 + b\cdot x_0 + c &= y_0\\
 a\cdot x_1^2 + b\cdot x_1 + c &= y_1\\
 a\cdot x_2^2 + b\cdot x_2 + c &= y_2\\
 \end{align*}
+$$
 
 
-Solving this with `SymPy` is tractable. A comprehension is used below to create the $3$ equations; the `zip` function is a simple means to iterate over $2$ or more iterables simultaneously:
+Solving this with `SymPy` is tractable. A generator is used below to create the $3$ equations; the `zip` function is a simple means to iterate over $2$ or more iterables simultaneously:
 
 
 ```{julia}
 SymPy.@syms a b c xs[0:2] ys[0:2]
-eqs = [a*xi^2 + b*xi + c ~ yi for (xi,yi) in zip(xs, ys)]
-abc = SymPy.solve(eqs, [a,b,c])
+eqs = tuple((a*xi^2 + b*xi + c ~ yi for (xi,yi) in zip(xs, ys))...)
+abc = SymPy.solve(eqs, (a,b,c))
 ```
 
 As can be seen, the terms do get quite unwieldy when treated symbolically. Numerically, the `fit` function from the `Polynomials` package will return the interpolating polynomial. To compare,
@@ -294,8 +302,8 @@ A related problem, that will arise when finding iterative means to solve for zer
 ```{julia}
 #| hold: true
 SymPy.@syms a b c xs[0:2] ys[0:2]
-eqs = [a*yi^2 + b*yi + c ~ xi for (xi, yi) in zip(xs,ys)]
-abc = SymPy.solve(eqs, [a,b,c])
+eqs = tuple((a*yi^2 + b*yi + c ~ xi for (xi, yi) in zip(xs,ys))...)
+abc = SymPy.solve(eqs, (a,b,c))
 abc[c]
 ```
 
@@ -306,8 +314,8 @@ We can graphically see the result for the specific values of `xs` and `ys` as fo
 #| hold: true
 #| echo: false
 SymPy.@syms a b c xs[0:2] ys[0:2]
-eqs = [a*yi^2 + b*yi + c ~ xi for (xi, yi) in zip(xs,ys)]
-abc = SymPy.solve(eqs, [a,b,c])
+eqs = tuple((a*yi^2 + b*yi + c ~ xi for (xi, yi) in zip(xs,ys))...)
+abc = SymPy.solve(eqs, (a,b,c))
 abc[c]
 
 𝒙s, 𝒚s = [1,2,3], [3,1,2]
@@ -390,12 +398,13 @@ radioq(choices, answ, keep_order=true)
 Consider the polynomial $p(x) = a_1 x - a_3 x^3 + a_5 x^5$ where
 
 
-
+$$
 \begin{align*}
 a_1 &= 4(\frac{3}{\pi} - \frac{9}{16}) \\
 a_3 &= 2a_1 -\frac{5}{2}\\
 a_5 &= a_1 - \frac{3}{2}.
 \end{align*}
+$$
 
 
   * Form the polynomial `p` by first computing the $a$s and forming `p=Polynomial([0,a1,0,-a3,0,a5])`
@@ -546,12 +555,13 @@ This last answer is why $p$ is called an *interpolating* polynomial and this que
 The Chebyshev ($T$) polynomials are polynomials which use a different basis from the standard basis. Denote the basis elements $T_0$, $T_1$, ... where we have $T_0(x) = 1$, $T_1(x) = x$, and for bigger indices $T_{i+1}(x) = 2xT_i(x) - T_{i-1}(x)$. The first others are then:
 
 
-
+$$
 \begin{align*}
 T_2(x) &= 2xT_1(x) - T_0(x) = 2x^2 - 1\\
 T_3(x) &= 2xT_2(x) - T_1(x) = 2x(2x^2-1) - x = 4x^3 - 3x\\
 T_4(x) &= 2xT_3(x) - T_2(x) = 2x(4x^3-3x) - (2x^2-1) = 8x^4 - 8x^2 + 1
 \end{align*}
+$$
 
 
 With these definitions what is the polynomial associated to the coefficients $[0,1,2,3]$ with this basis?
