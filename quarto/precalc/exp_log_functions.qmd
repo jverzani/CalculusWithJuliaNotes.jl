@@ -8,7 +8,8 @@ This section uses the following add-on packages:
 
 ```{julia}
 using CalculusWithJulia
-using Plots; plotly()
+using Plots
+plotly()
 ```
 
 
@@ -27,7 +28,7 @@ The family of exponential functions is defined by $f(x) = a^x, -\infty< x < \inf
 For a given $a$, defining $a^n$ for positive integers is straightforward, as it means multiplying $n$ copies of $a.$ From this, for *integer powers*, the key properties of exponents: $a^x \cdot a^y = a^{x+y}$, and $(a^x)^y = a^{x \cdot y}$ are immediate consequences. For example with  $x=3$ and $y=2$:
 
 
-
+$$
 \begin{align*}
 a^3 \cdot a^2 &= (a\cdot a \cdot a) \cdot (a \cdot a) \\
               &= (a \cdot a \cdot a \cdot a \cdot a) \\
@@ -36,7 +37,7 @@ a^3 \cdot a^2 &= (a\cdot a \cdot a) \cdot (a \cdot a) \\
         &= (a\cdot a \cdot a \cdot a\cdot a \cdot a) \\
 		&= a^6 = a^{3\cdot 2}.
 \end{align*}
-
+$$
 
 For $a \neq 0$, $a^0$ is defined to be $1$.
 
@@ -167,7 +168,7 @@ Later we will see an easy way to certify this statement.
 ##### The mathematical constant $e$
 
 
-Euler's number, $e$, may be defined several ways. One way is to define $e^x$ by the limit $(1+x/n)^n$. Then $e=e^1$. The value is an irrational number. This number turns up to be the natural base to use for many problems arising in Calculus.  In `Julia` there are a few mathematical constants that get special treatment, so that when needed, extra precision is available. The value `e` is not immediately assigned to this value, rather `ℯ` is. This is typed `\euler[tab]`. The label `e` is thought too important for other uses to reserve the name for representing a single number. However, users can issue the command `using Base.MathConstants` and `e` will be available to represent this number. When the `CalculusWithJulia` package is loaded, the value `e` is defined to be the floating point number returned by `exp(1)`. This loses the feature of arbitrary precision, but has other advantages.
+Euler's number, $e$, may be defined several ways. One way is to define $e^x$ by the limit as $n$ grows infinitely large of $(1+x/n)^n$. Then $e=e^1$. The value is an irrational number. This number turns up to be the natural base to use for many problems arising in calculus.  In `Julia` there are a few mathematical constants that get special treatment, so that when needed, extra precision is available. The value `e` is not immediately assigned to this value, rather `ℯ` is. This is typed `\euler[tab]`. The label `e` is thought too important for other uses to reserve the name for representing a single number. However, users can issue the command `using Base.MathConstants` and `e` will be available to represent this number. When the `CalculusWithJulia` package is loaded, the value `e` is defined to be the floating point number returned by `exp(1)`. This loses the feature of arbitrary precision, but has other advantages.
 
 
 A [cute](https://www.mathsisfun.com/numbers/e-eulers-number.html) appearance of $e$ is in this problem: Let $a>0$. Cut $a$ into $n$ equal pieces and then multiply them. What $n$ will produce the largest value? Note that the formula is $(a/n)^n$ for a given $a$ and $n$.
@@ -215,32 +216,32 @@ co2_1970 = [(1860, 293), (1870, 293), (1880, 294), (1890, 295), (1900, 297),
 co2_2021 = [(1960, 318), (1970, 325), (1980, 338), (1990, 358), (2000, 370),
         (2010, 390), (2020, 415)]
 
-xs,ys = unzip(co2_1970)
-plot(xs, ys, legend=false)
+plot(co2_1970, legend=false)  # vector of points interface
+plot!(co2_2021)
 
-𝒙s, 𝒚s = unzip(co2_2021)
-plot!(𝒙s, 𝒚s)
+exp_model(;r, x0, P0) = x -> P0 * exp(r * (x - x0))
 
 r = 0.002
-x₀, P₀ = 1960, 313
-plot!(x -> P₀ * exp(r * (x - x₀)), 1950, 1990, linewidth=5, alpha=0.25)
+x0, P0 = 1960, 313
+plot!(exp_model(; r, x0, P0), 1950, 1990, linewidth=5, alpha=0.25)
 
-𝒓 = 0.005
-𝒙₀, 𝑷₀ = 2000,  370
-plot!(x -> 𝑷₀ * exp(𝒓 * (x - 𝒙₀)), 1960, 2020, linewidth=5, alpha=0.25)
+r = 0.005
+x0, P0 = 2000,  370
+
+plot!(exp_model(; r, x0, P0), 1960, 2020, linewidth=5, alpha=0.25)
 ```
 
-(The `unzip` function is from the `CalculusWithJulia` package and will be explained in a subsequent section.) We can see that the projections from the year $1970$ hold up fairly well.
 
+We can see that the projections from the year $1970$ hold up fairly well.
 
-On this plot we added two *exponential* models. at $1960$ we added a *roughly* $0.2$ percent per year growth (a rate mentioned in an accompanying caption) and at $2000$ a roughly $0.5$ percent per year growth. The former barely keeping up with the data.
+On this plot we added two *exponential* models. at $1960$ we added a *roughly* $0.2$ percent per year growth (a rate mentioned in an accompanying caption) and at $2000$ a roughly $0.5$ percent per year growth. The former barely keeping up with the data. (To do so, we used a parameterized function making for easier code reuse.)
 
 
 The word **roughly** above could be made exact. Suppose we knew that between $1960$ and $1970$ the rate went from $313$ to $320$. If this followed an exponential model, then $r$ above would satisfy:
 
 
 $$
-P_{1970} = P_{1960} e^{r * (1970 - 1960)}
+P_{1970} = P_{1960} e^{r \cdot (1970 - 1960)}
 $$
 
 or on division $320/313 = e^{r\cdot 10}$. Solving for $r$ can be done – as explained next – and yields $0.002211\dots$.
@@ -271,6 +272,7 @@ xs = range(-2, stop=2, length=100)
 ys = f.(xs)
 plot(xs, ys,  color=:blue, label="2ˣ")           # plot f
 plot!(ys, xs, color=:red, label="f⁻¹")           # plot f^(-1)
+
 xs = range(1/4, stop=4, length=100)
 plot!(xs, log2.(xs), color=:green, label="log₂") # plot log2
 ```
@@ -306,10 +308,10 @@ The half-life of a radioactive material is the time it takes for half the materi
 The carbon $14$ isotope is a naturally occurring isotope on Earth, appearing in trace amounts. Unlike Carbon $12$ and $13$ it decays, in this case with a half life of $5730$ years (plus or minus $40$ years). In a [technique](https://en.wikipedia.org/wiki/Radiocarbon_dating) due to Libby, measuring the amount of Carbon 14 present in an organic item can indicate the time since death. The amount of Carbon $14$ at death is essentially that of the atmosphere, and this amount decays over time. So, for example, if roughly half the carbon $14$ remains, then the death occurred about $5730$ years ago.
 
 
-A formula for the amount of carbon $14$ remaining $t$ years after death would be $P(t) = P_0 \cdot 2^{-t/5730}$.
+A formula for the expected amount of carbon $14$ remaining $t$ years after death would be $P(t) = P_0 \cdot 2^{-t/5730}$.
 
 
-If $1/10$ of the original carbon $14$ remains, how old is the item? This amounts to solving $2^{-t/5730} = 1/10$. We have: $-t/5730 = \log_2(1/10)$ or:
+If $1/10$ of the original carbon $14$ remains, how old is the item? This amounts to solving $2^{-t/5730} = 1/10$. We have after applying the inverse function: $-t/5730 = \log_2(1/10)$, or:
 
 
 ```{julia}
@@ -382,19 +384,16 @@ a^{(\log_b(x)/\log_b(b))} = (b^{\log_b(a)})^{(\log_b(x)/\log_b(a))} =
 b^{\log_b(a) \cdot \log_b(x)/\log_b(a) } = b^{\log_b(x)} = x.
 $$
 
-In short, we have these three properties of logarithmic functions:
+In short, we have these three properties of logarithmic functions when $a, b$ are positive bases; $u,v$ are positive numbers; and $x$ is any real number:
 
 
-If $a, b$ are positive bases; $u,v$ are positive numbers; and $x$ is any real number then:
-
-
-
+$$
 \begin{align*}
 \log_a(uv) &= \log_a(u) + \log_a(v),    \\
 \log_a(u^x) &= x \log_a(u), \text{ and} \\
 \log_a(u) &= \log_b(u)/\log_b(a).
 \end{align*}
-
+$$
 
 ##### Example
 

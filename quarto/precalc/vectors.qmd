@@ -87,12 +87,13 @@ For the motion in the above figure, the object's $x$ and $y$ values change accor
 It is common to work with *both* formulas at once. Mathematically, when graphing, we naturally pair off two values using Cartesian coordinates (e.g., $(x,y)$). Another means of combining related values is to use a *vector*. The notation for a vector varies, but to distinguish them from a point we will use $\langle x,~ y\rangle$. With this notation, we can use it to represent the position, the velocity, and the acceleration at time $t$ through:
 
 
-
+$$
 \begin{align*}
 \vec{x} &= \langle x_0 + v_{0x}t,~ -(1/2) g t^2 + v_{0y}t  + y_0 \rangle,\\
 \vec{v} &= \langle v_{0x},~ -gt + v_{0y} \rangle, \text{ and }\\
 \vec{a} &= \langle 0,~ -g \rangle.
 \end{align*}
+$$
 
 
 
@@ -358,7 +359,13 @@ fibs = [1, 1, 2, 3, 5, 8, 13]
 Later we will discuss different ways to modify the values of a vector to create new ones, similar to how scalar multiplication does.
 
 
-As mentioned, vectors in  `Julia`  are comprised of elements of a similar type, but the type is not limited to numeric values. For example, a vector of strings might be useful for text processing, a vector of Boolean values can naturally arise, some applications are even naturally represented in terms of vectors of vectors (such as happens when plotting a collection points). Look at the output of these two vectors:
+As mentioned, vectors in  `Julia`  are comprised of elements of a similar type, but the type is not limited to numeric values. Some examples:,
+* a vector of strings might be useful for text processing, For example, the `WordTokenizers.jl` package takes text and produces tokens from the words.
+* a vector of Boolean values can naturally arise and is widely used within Julia's `DataFrames.jl` package.
+* some applications are even naturally represented in terms of vectors of vectors (such as happens when plotting a collection points).
+
+
+Look at the output of these two vectors, in particular how the underlying type of the components is described on printing.
 
 
 ```{julia}
@@ -368,6 +375,8 @@ As mentioned, vectors in  `Julia`  are comprised of elements of a similar type, 
 ```{julia}
 [true, false, true]		# vector of Bool values
 ```
+
+
 
 Finally, we mention that if `Julia` has values of different types it will promote them to a common type if possible. Here we combine three types of numbers, and see that each is promoted to `Float64`:
 
@@ -441,7 +450,7 @@ vs[2] = 10
 vs
 ```
 
-The assignment `vs[2]` is different than the initial assignment `vs=[1,2]` in that, `vs[2]=10` **modifies** the container that `vs` points to, whereas `v=[1,2]` **replaces** the binding for `vs`. The indexed assignment is then more memory efficient when vectors are large. This point is also of interest when passing vectors to functions, as a function may modify components of the vector passed to it, though can't replace the container itself.
+The assignment `vs[2]` is different than the initial assignment `vs=[1,2]` in that, `vs[2]=10` **modifies** the container that `vs` points to, whereas `vs=[1,2]` **replaces** any binding for `vs`. The indexed assignment is  more memory efficient when vectors are large. This point is also of interest when passing vectors to functions, as a function may modify components of the vector passed to it, though can't replace the container itself.
 
 
 ## Some  useful  functions for working with vectors.
@@ -520,7 +529,7 @@ append!(v1, [6,8,7])
 These two functions modify or mutate the values stored within the vector `𝒗` that passed as an argument. In the `push!` example above, the value `5` is added to the vector of $4$ elements. In `Julia`, a convention is to name mutating functions with a trailing exclamation mark. (Again, these do not mutate the binding of `𝒗` to the container, but do mutate the contents of the container.) There are functions with mutating and non-mutating definitions, an example is `sort` and `sort!`.
 
 
-If only a mutating function is available, like `push!`, and this is not desired a copy of the vector can be made. It is not enough to copy by assignment, as with `w = 𝒗`. As both `w` and `𝒗` will be bound to the same memory location. Rather, you call `copy` to make a new container with copied contents, as in `w = copy(𝒗)`.
+If only a mutating function is available, like `push!`, and this is not desired a copy of the vector can be made. It is not enough to copy by assignment, as with `w = 𝒗`. As both `w` and `𝒗` will be bound to the same memory location. Rather, you call `copy` (or sometimes `deepcopy`) to make a new container with copied contents, as in `w = copy(𝒗)`.
 
 
 Creating new vectors of a given size is common for programming, though not much use will be made here. There are many different functions to do so: `ones` to make a vector of ones, `zeros` to make a vector of zeros, `trues` and `falses` to make Boolean vectors of a given size, and `similar` to make a similar-sized vector (with no particular values assigned).
@@ -610,7 +619,7 @@ This shows many of the manipulations that can be made with vectors. Rather than 
 
 :::{.callout-note}
 ## Note
-The `map` function is very much related to broadcasting and similarly named functions are found in many different programming languages. (The "dot" broadcast is mostly limited to `Julia` and mirrors on a similar usage of a dot in `MATLAB`.) For those familiar with other programming languages, using `map` may seem more natural. Its syntax is `map(f, xs)`.
+The `map` function is very much related to broadcasting and similarly named functions are found in many different programming languages. (The "dot" broadcast is mostly limited to `Julia` and mirrors a similar usage of a dot in `MATLAB`.) For those familiar with other programming languages, using `map` may seem more natural. Its syntax is `map(f, xs)`.
 
 :::
 
@@ -631,18 +640,18 @@ Comprehension notation is similar. The above could be created in `Julia` with:
 
 
 ```{julia}
-𝒙s = [1,2,3,4,5]
-[x^3 for x in 𝒙s]
+xs = [1,2,3,4,5]
+[x^3 for x in xs]
 ```
 
 Something similar can be done more succinctly:
 
 
 ```{julia}
-𝒙s .^ 3
+xs .^ 3
 ```
 
-However, comprehensions have a value when more complicated expressions are desired as they work with an expression of `𝒙s`, and not a pre-defined or user-defined function.
+However, comprehensions have a value when more complicated expressions are desired as they work with an expression of `xs`, and not a pre-defined or user-defined function.
 
 
 Another typical example of set notation might include a condition, such as, the numbers divisible by $7$ between $1$ and $100$. Set notation might be:
@@ -680,21 +689,21 @@ The first task is to create the data. We will soon see more convenient ways to g
 ```{julia}
 a, b, n = -1, 1, 7
 d = (b-a) // (n-1)
-𝐱s = [a, a+d, a+2d, a+3d, a+4d, a+5d, a+6d]  # 7 points
+xs = [a, a+d, a+2d, a+3d, a+4d, a+5d, a+6d]  # 7 points
 ```
 
 To get the corresponding $y$ values, we can use a compression (or define a function and broadcast):
 
 
 ```{julia}
-𝐲s = [x^2 for x in 𝐱s]
+ys = [x^2 for x in xs]
 ```
 
 Vectors can be compared together by combining them into a separate container, as follows:
 
 
 ```{julia}
-[𝐱s 𝐲s]
+[xs ys]
 ```
 
 (If there is a space between objects they are horizontally combined. In our construction of vectors using `[]` we used a comma for vertical combination. More generally we should use a `;` for vertical concatenation.)
@@ -711,8 +720,41 @@ The style generally employed here is to use plural variable names for a collecti
 
 ## Other container types
 
+We end this section with some general comments that are for those interested in a bit more, but in general aren't needed to understand most all of what follows later.
 
-Vectors in `Julia` are a container, one of many different types. Another useful type for programming purposes are *tuples*. If a vector is formed by placing comma-separated values within a `[]` pair (e.g., `[1,2,3]`), a tuple is formed by placing comma-separated values within a `()` pair.  A tuple of length $1$ uses a convention of a trailing comma to distinguish it from a parenthesized expression (e.g. `(1,)` is a tuple, `(1)` is just the value `1`).
+Vectors in `Julia` are a container for values. Vectors are
+one of many different types of containers. The `Julia` manual uses the word "collection" to refer to a container of values that has properties like a vector.
+Here we briefly review some alternate container types that are common in Julia and find use in these notes.
+
+First, here are some of the properties of a *vector*:
+
+* Vectors are *homogeneous*. That is, the container holding the vectors all have a common type. This type might be an abstract type, but for high performance, concrete types (like 64-bit floating point or 64-bit integers) are more typical.
+
+* Vectors are $1$-dimensional.
+
+* Vectors are ordered and *indexable* by their order. In Julia, the default indexing for vectors is $1$-based (starting) with one, with numeric access to the first, second, third, ..., last entries.
+
+* Vectors are *mutable*. That is, their elements may be changed; the container may be grown or shrunk
+
+* Vectors are *iterable*. That is, their values can be accessed one-by-one in various manners.
+
+These  properties may not all be desirable for one reason or the other and `Julia` has developed a large number of alternative container types of which we describe a few here.
+
+### Arrays
+
+Vectors are $1$-dimensional, but there are desires for other dimensions. Vectors are a implemented as a special case of a more general array type. Arrays are of dimension $N$ for various non-negative values of $N$. A common, and somewhat familiar, mathematical use of a $2$-dimensional array is a matrix.
+
+Arrays can have their entries accessed by dimension and within that dimension their components. By default these are $1$-based, but other offsets are possible through the `OffetArrays.jl` package. A matrix can refer to its values either by row and column indices or, as a matrix has linear indexing by a single index.
+
+For large collections of data with many entries being $0$ a sparse array is beneficial for less memory intensive storage. These are implemented in the `SparseArrays.jl` package.
+
+There are numerous array types available. `Julia` has a number of *generic* methods for working with different arrays. An example would be `eachindex`, which provides an iterator interface to the underlying array access by index in an efficient manner.
+
+### Tuples
+
+Tuples are fixed-length containers where there is no expectation or enforcement of their having a common type. Tuples just combine values together in an *immutable* container. Like vectors they can be accessed by index (also $1$-based). Unlike vectors, the containers are *immutable* - elements can not be changed and the length of the container may not change. This has benefits for performance purposes. (For fixed length, mutable containers that have the benefits of tuples and vectors, the `StaticArrays.jl` package is available).
+
+While a vector is formed by placing comma-separated values within a `[]` pair (e.g., `[1,2,3]`), a tuple is formed by placing comma-separated values within a `()` pair.  A tuple of length $1$ uses a convention of a trailing comma to distinguish it from a parenthesized expression (e.g. `(1,)` is a tuple, `(1)` is just the value `1`).
 
 :::{.callout-note}
 ## Well, actually...
@@ -721,10 +763,7 @@ Technically, the tuple is formed just by the use of commas, which separate diffe
 :::
 
 
-Tuples are used in programming, as they don't typically require allocated memory to be used so they can be faster. Internal usages are for function arguments and function return types. Unlike vectors, tuples can be heterogeneous collections. (When commas are used to combine more than one output into a cell, a tuple is being used.) (Also, a big technical distinction is that tuples are also different from vectors and other containers in that tuple types are *covariant* in their parameters, not *invariant*.)
-
-
-Unlike vectors, tuples can have names which can be used for referencing a value, similar to indexing but possibly more convenient. Named tuples are similar to *dictionaries* which are used to associate a key (like a name) with a value.
+There are *named tuples* where each component has an associated name. Like a tuple these can be indexed by number and unlike regular tuples also by name.
 
 
 For example, here a named tuple is constructed, and then its elements referenced:
@@ -732,8 +771,75 @@ For example, here a named tuple is constructed, and then its elements referenced
 
 ```{julia}
 nt = (one=1, two="two", three=:three)  # heterogeneous values (Int, String, Symbol)
-nt.one, nt[2], nt[end]                  # named tuples have name or index access
+nt.one, nt[2], nt[end]                 # named tuples have name or index access
 ```
+
+
+::: {.callout-note}
+## Named tuple and destructuring
+
+A *named* tuple is a container that allows access by index *or* by name. They are easily constructed. For example:
+
+```{julia}
+nt = (x0 = 1, x1 = 4, y0 = 2, y1 = 6)
+```
+
+The values in a named tuple can be accessed using the "dot" notation:
+
+```{julia}
+nt.x1
+```
+
+Alternatively, the index notation -- using a *symbol* for the name -- can be used:
+
+```{julia}
+nt[:x1]
+```
+
+Named tuples are employed to pass parameters to functions. To find the slope, we could do:
+
+```{julia}
+(nt.y1 - nt.y0) / (nt.x1 - nt.x0)
+```
+
+
+However, more commonly used is destructuring, where named variables are extracted by name when the left hand side matches the right hand side:
+
+```{julia}
+(;x0, x1) = nt # only extract what is desired
+x1 - x0
+```
+
+(This works for named tuples and other iterable containers in `Julia`. It also works the other way, if `x0` and `x1` are defined then `(;x0, x1)` creates a named tuple with those values.)
+
+:::
+
+
+### Associative arrays
+
+Named tuples associate a name (in this case a symbol) to a value. More generally an associative array associates to each key a value, where the keys and values may be of different types.
+
+The `pair` notation, `key => value`, is used to make one association. A *dictionary* is used to have a container of associations. For example, this constructs a simple dictionary associating a spelled out name with a numeric value:
+
+```{julia}
+d = Dict("one" => 1, "two" => 2, "three" => 3)
+```
+
+The print out shows the keys are of type `String`, the values of type `Int64`, in this case. There are a number of different means to construct dictionaries.
+
+
+The values in a dictionary can be accessed by name:
+
+
+```{julia}
+d["two"]
+```
+
+Named tuples are associative arrays where the keys are restricted to symbols. There are other types of associative arrays, specialized cases of the `AbstractDict` type with performance benefits for specific use cases. In these notes, dictionaries appear as output in some function calls.
+
+Unlike vectors and tuples, named tuples and dictionaries are not currently supported by broadcasting. This causes no loss in usefulness, as the values can easily be iterated over, but the convenience of the dot notation is lost.
+
+
 
 ## Questions
 
@@ -881,6 +987,7 @@ From [transum.org](http://www.transum.org/Maths/Exam/Online_Exercise.asp?Topic=V
 ```{julia}
 #| hold: true
 #| echo: false
+let
 p = plot(xlim=(0,10), ylim=(0,5), legend=false, framestyle=:none)
 for j in (-3):10
     plot!(p, [j, j + 5], [0, 5*sqrt(3)], color=:blue, alpha=0.5)
@@ -906,7 +1013,8 @@ annotate!(p, [(2, 3/2*sqrt(3) -delta, L"a"),
               ])
 
 
-p
+    p
+end
 ```
 
 The figure shows $5$ vectors.

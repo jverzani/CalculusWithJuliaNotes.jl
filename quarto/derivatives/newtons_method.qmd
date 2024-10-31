@@ -178,15 +178,18 @@ x4, f(x4), f(x3)
 
 We see now that $f(x_4)$ is within machine tolerance of $0$, so we call $x_4$ an *approximate zero* of $f(x)$.
 
+::: {.callout-note icon=false}
+## Newton's method
 
-> **Newton's method:** Let $x_0$ be an initial guess for a zero of $f(x)$. Iteratively define $x_{i+1}$ in terms of the just generated $x_i$ by:
->
-> $$
-> x_{i+1} = x_i - f(x_i) / f'(x_i).
-> $$
->
-> Then for reasonable functions and reasonable initial guesses, the sequence of points converges to a zero of $f$.
+Let $x_0$ be an initial guess for a zero of $f(x)$. Iteratively define $x_{i+1}$ in terms of the just generated $x_i$ by:
 
+$$
+x_{i+1} = x_i - f(x_i) / f'(x_i).
+$$
+
+Then for reasonable functions and reasonable initial guesses, the sequence of points converges to a zero of $f$.
+
+:::
 
 
 On the computer, we know that actual convergence will likely never occur, but accuracy to a certain tolerance can often be achieved.
@@ -206,7 +209,12 @@ In practice, the algorithm is implemented not by repeating the update step a fix
 
 :::{.callout-note}
 ## Note
-Newton looked at this same example in 1699 (B.T. Polyak, *Newton's method and its use in optimization*, European Journal of Operational Research. 02/2007; 181(3):1086-1096.) though his technique was slightly different as he did not use the derivative, *per se*, but rather an approximation based on the fact that his function was a polynomial (though identical to the derivative). Raphson (1690) proposed the general form, hence the usual name of the Newton-Raphson method.
+
+Newton looked at this same example in 1699 (B.T. Polyak, *Newton's method and its use in optimization*, European Journal of Operational Research. 02/2007; 181(3):1086-1096.; and Deuflhard *Newton Methods for Nonlinear Problems: Affine Invariance and Adaptive Algorithms*) though his technique was slightly different as he did not use the derivative, *per se*, but rather an approximation based on the fact that his function was a polynomial.
+
+We can read that he guessed the answer was ``2 + p``, as there is a sign change between $2$ and $3$. Newton put this guess into the polynomial to get after simplification ``p^3 + 6p^2 + 10p - 1``. This has an **approximate** zero found by solving the linear part ``10p-1 = 0``.  Taking ``p = 0.1`` he then can say the answer looks like ``2 + p + q`` and repeat to get ``q^3 + 6.3\cdot q^2 + 11.23 \cdot q + 0.061 = 0``. Again taking just the linear part estimates `q = 0.005431...`.  After two steps the estimate is `2.105431...`. This can be continued by expressing the answer as ``2 + p + q + r`` and then solving for an estimate for ``r``.
+
+Raphson (1690) proposed a simplification avoiding the computation of new polynomials, hence the usual name of the Newton-Raphson method. Simpson introduced derivatives into the formulation and systems of equations.
 
 :::
 
@@ -392,6 +400,24 @@ x, f(x)
 To machine tolerance the answer is a zero, even though the exact answer is irrational and all finite floating point values can be represented as rational numbers.
 
 
+##### Example non-polynomial
+
+The first example by Newton of applying the method to a non-polynomial function was solving an equation from astronomy: $x - e \sin(x) = M$, where $e$ is an eccentric anomaly and $M$ a mean anomaly. Newton used polynomial approximations for the trigonometric functions, here we can solve directly.
+
+Let $e = 1/2$ and $M = 3/4$. With $f(x) = x - e\sin(x) - M$ then $f'(x) = 1 - e cos(x)$. Starting at 1, Newton's method for 3 steps becomes:
+
+```{julia}
+ec, M = 0.5, 0.75
+f(x) = x - ec * sin(x) - M
+fp(x) =  1 - ec * cos(x)
+x = 1
+x = x - f(x) / fp(x)
+x = x - f(x) / fp(x)
+x = x - f(x) / fp(x)
+x, f(x)
+```
+
+
 ##### Example
 
 
@@ -428,7 +454,6 @@ end
 ```
 
 So it takes $8$ steps to get an increment that small and about `10` steps to get to full convergence.
-
 
 ##### Example division as multiplication
 
@@ -686,7 +711,7 @@ $$
 For this value, we have
 
 
-
+$$
 \begin{align*}
 x_{i+1} - \alpha
 &= \left(x_i  - \frac{f(x_i)}{f'(x_i)}\right) - \alpha\\
@@ -696,6 +721,7 @@ x_{i+1} - \alpha
 \right)\\
 &=  \frac{1}{2}\frac{f''(\xi)}{f'(x_i)} \cdot(x_i - \alpha)^2.
 \end{align*}
+$$
 
 
 That is

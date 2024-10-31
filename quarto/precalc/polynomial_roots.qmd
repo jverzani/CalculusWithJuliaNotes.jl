@@ -288,33 +288,35 @@ Finding roots with `SymPy` can also be done through its `solve` function, a func
 
 
 ```{julia}
-solve(x^2 + 2x - 3)
+solve(x^2 + 2x - 3 ~ 0, x)
 ```
 
-The answer is a vector of values that when substituted in for the free variable `x` produce $0.$ The call to `solve` does not have an equals sign. To solve a more complicated expression of the type $f(x) = g(x),$ one can solve $f(x) - g(x) = 0,$ use the `Eq` function, or use `f ~ g`.
+The answer is a vector of values that when substituted in for the free variable `x` produce $0.$
+
+We use the `~` notation to define an equation to pass to `solve`. This convention is not necessary here, as `SymPy` will assume an expression passed to solve is an equation set to `0`, but is pedagogically useful. Equations do not have an equals sign, which is reserved for assignment. To solve a more complicated expression of the type $f(x) = g(x),$ one can solve $f(x) - g(x) = 0,$ use the `Eq` function, or use `f ~ g`.
 
 
-When the expression to solve has more than one free variable, the variable to solve for should be explicitly stated with a second argument. For example, here we show that `solve` is aware of the quadratic formula:
+When the expression to solve has more than one free variable, the variable to solve for should be explicitly stated with a second argument. (The specification above is unnecessary.) For example, here we show that `solve` is aware of the quadratic formula:
 
 
 ```{julia}
 @syms a b::real c::positive
-solve(a*x^2 + b*x + c, x)
+solve(a*x^2 + b*x + c ~ 0, x)
 ```
 
 The `solve` function will respect assumptions made when a variable is defined through `symbols` or `@syms`:
 
 
 ```{julia}
-solve(a^2 + 1)     # works, as a can be complex
+solve(a^2 + 1 ~ 0, a)     # works, as a can be complex
 ```
 
 ```{julia}
-solve(b^2 + 1)     # fails, as b is assumed real
+solve(b^2 + 1 ~ 0, b)     # fails, as b is assumed real
 ```
 
 ```{julia}
-solve(c + 1)       # fails, as c is assumed positive
+solve(c + 1 ~ 0, c)       # fails, as c is assumed positive
 ```
 
 Previously, it was mentioned that `factor` only factors polynomials with integer coefficients over rational roots. However, `solve` can be used to factor. Here is an example:
@@ -328,7 +330,7 @@ Nothing is found, as the roots are $\pm \sqrt{2}$, irrational numbers.
 
 
 ```{julia}
-rts = solve(x^2 - 2)
+rts = solve(x^2 - 2 ~ 0, x)
 prod(x-r for r in rts)
 ```
 
@@ -337,7 +339,7 @@ Solving cubics and quartics can be done exactly using radicals. For example, her
 
 ```{julia}
 @syms y # possibly complex
-solve(y^4 - 2y - 1)
+solve(y^4 - 2y - 1 ~ 0, y)
 ```
 
 Third- and fourth-degree polynomials can be solved in general, with increasingly more complicated answers. The following finds one of the answers for a general third-degree polynomial:
@@ -347,7 +349,7 @@ Third- and fourth-degree polynomials can be solved in general, with increasingly
 #| hold: true
 @syms a[0:3]
 p = sum(a*x^(i-1) for (i,a) in enumerate(a))
-rts = solve(p, x)
+rts = solve(p ~ 0, x)
 rts[1]   # there are three roots
 ```
 
@@ -355,7 +357,7 @@ Some fifth degree polynomials are solvable in terms of radicals, however, `solve
 
 
 ```{julia}
-solve(x^5 - x + 1)
+solve(x^5 - x + 1 ~ 0, x)
 ```
 
 (Though there is no formula involving only radicals like the quadratic equation, there is a formula for the roots in terms of a function called the [Bring radical](http://en.wikipedia.org/wiki/Bring_radical).)
@@ -399,7 +401,7 @@ The `solve` function can be used to get numeric approximations to the roots. It 
 
 ```{julia}
 #| hold: true
-rts = solve(x^5 - x + 1 ~ 0)
+rts = solve(x^5 - x + 1 ~ 0, x)
 N.(rts)     # note the `.(` to broadcast over all values in rts
 ```
 
@@ -411,25 +413,25 @@ Here we see another example:
 
 ```{julia}
 ex = x^7 -3x^6 +  2x^5 -1x^3 +  2x^2 + 1x^1  - 2
-solve(ex)
+solve(ex ~ 0, x)
 ```
 
 This finds two of the seven possible roots, the remainder of the real roots can be found numerically:
 
 
 ```{julia}
-N.(solve(ex))
+N.(solve(ex ~ 0, x))
 ```
 
 ### The solveset function
 
 
-SymPy is phasing in the `solveset` function to replace `solve`. The main reason being that `solve` has too many different output types (a vector, a dictionary, ...). The output of `solveset` is always a set. For tasks like this, which return a finite set, we use the `elements` function to access the individual answers. To illustrate:
+SymPy is phasing in the `solveset` function to replace `solve`. The main reason being that `solve` has too many different output types (a vector, a dictionary, ...). The output of `solveset` is always a set. For tasks like this, which return a finite set, we use the `collect` function to access the individual answers. To illustrate:
 
 
 ```{julia}
 p = 8x^4 - 8x^2  + 1
-p_rts = solveset(p)
+p_rts = solveset(p ~ 0, x)
 ```
 
 The `p_rts` object, a `Set`, does not allow indexed access to its elements. For that `collect` will work to return a vector:
@@ -443,7 +445,7 @@ To get the numeric approximation, we can broadcast:
 
 
 ```{julia}
-N.(solveset(p))
+N.(solveset(p ~ 0, x))
 ```
 
 (There is no need to call `collect` -- though you can -- as broadcasting over a set falls back to broadcasting over the iteration of the set and in this case returns a vector.)
@@ -497,7 +499,7 @@ in fact there are three, two are *very* close together:
 
 
 ```{julia}
-N.(solve(h))
+N.(solve(h ~ 0, x))
 ```
 
 :::{.callout-note}
@@ -545,7 +547,7 @@ For another example, if we looked at $f(x) = x^5 - 100x^4 + 4000x^3 - 80000x^2 +
 
 ```{julia}
 j =  x^5 - 100x^4 + 4000x^3 - 80000x^2 + 799999x - 3199979
-N.(solve(j))
+N.(solve(j ~ 0, x))
 ```
 
 ### Cauchy's bound on the magnitude of the real roots.

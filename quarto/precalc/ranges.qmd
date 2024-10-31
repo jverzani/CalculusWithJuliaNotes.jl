@@ -66,7 +66,7 @@ Rather than express sequences by the $a_0$, $h$, and $n$, `Julia` uses the start
 1:10
 ```
 
-But wait, nothing different printed? This is because `1:10` is efficiently stored. Basically, a recipe to generate the next number from the previous number is created and `1:10` just stores the start and end point and that recipe is used to generate the set of all values. To expand the values, you have to ask for them to be `collect`ed (though this typically isn't needed in practice):
+But wait, nothing different printed? This is because `1:10` is efficiently stored. Basically, a recipe to generate the next number from the previous number is created and `1:10` just stores the start and end points (the step size is implicit in how this is stored) and that recipe is used to generate the set of all values. To expand the values, you have to ask for them to be `collect`ed (though this typically isn't needed in practice, as values are usually *iterated* over):
 
 
 ```{julia}
@@ -168,11 +168,13 @@ Now we concentrate on some more general styles to modify a sequence to produce a
 
 ### Filtering
 
+The act of throwing out elements of a collection based on some condition is called *filtering*.
+
 
 For example, another way to get the values between $0$ and $100$ that are multiples of $7$ is to start with all $101$ values and throw out those that don't match. To check if a number is divisible by $7$, we could use the `rem` function. It gives the remainder upon division. Multiples of `7` match `rem(m, 7) == 0`. Checking for divisibility by seven is unusual enough there is nothing built in for that, but checking for division by $2$ is common, and for that, there is a built-in function `iseven`.
 
 
-The act of throwing out elements of a collection based on some condition is called *filtering*. The `filter` function does this in `Julia`; the basic syntax being `filter(predicate_function, collection)`. The "`predicate_function`" is one that returns either `true` or `false`, such as `iseven`. The output of `filter` consists of the new collection of values - those where the predicate returns `true`.
+The `filter` function does this in `Julia`; the basic syntax being `filter(predicate_function, collection)`. The "`predicate_function`" is one that returns either `true` or `false`, such as `iseven`. The output of `filter` consists of the new collection of values - those where the predicate returns `true`.
 
 
 To see it used, lets start with the numbers between `0` and `25` (inclusive) and filter out those that are even:
@@ -210,7 +212,7 @@ Let's return to the case of the set of even numbers between $0$ and $100$. We ha
   * The set of numbers $\{2k: k=0, \dots, 50\}$.
 
 
-While `Julia` has a special type for dealing with sets, we will use a vector for such a set. (Unlike a set, vectors can have repeated values, but as vectors are more widely used, we demonstrate them.) Vectors are described more fully in a previous section, but as a reminder, vectors are constructed using square brackets: `[]` (a special syntax for [concatenation](http://docs.julialang.org/en/latest/manual/arrays/#concatenation)). Square brackets are used in different contexts within `Julia`, in this case we use them to create a *collection*. If we separate single values in our collection by commas (or semicolons), we will create a vector:
+While `Julia` has a special type for dealing with sets, we will use a vector for such a set. (Unlike a set, vectors can have repeated values, but, as vectors are more widely used, we demonstrate them.) Vectors are described more fully in a previous section, but as a reminder, vectors are constructed using square brackets: `[]` (a special syntax for [concatenation](http://docs.julialang.org/en/latest/manual/arrays/#concatenation)). Square brackets are used in different contexts within `Julia`, in this case we use them to create a *collection*. If we separate single values in our collection by commas (or semicolons), we will create a vector:
 
 
 ```{julia}
@@ -277,20 +279,24 @@ A typical pattern would be to generate a collection of numbers and then apply a 
 sum([2^i for i in 1:10])
 ```
 
-Conceptually this is easy to understand, but computationally it is a bit inefficient. The generator syntax allows this type of task to be done more efficiently. To use this syntax, we just need to drop the `[]`:
+Conceptually this is easy to understand: one step generates the numbers, the other adds them up. Computationally it is a bit inefficient. The generator syntax allows this type of task to be done more efficiently. To use this syntax, we just need to drop the `[]`:
 
 
 ```{julia}
 sum(2^i for i in 1:10)
 ```
 
-(The difference being no intermediate object is created to store the collection of all values specified by the generator.)
+The difference being no intermediate object is created to store the collection of all values specified by the generator. Not all functions allow generators as arguments, but most common reductions do.
 
 
 ### Filtering generated expressions
 
 
-Both comprehensions and generators allow for filtering through the keyword `if`. The following shows *one* way to add the prime numbers in $[1,100]$:
+Both comprehensions and generators allow for filtering through the keyword `if`.  The basic pattern is
+
+`[expr for variable in collection if expr]`
+
+The following shows *one* way to add the prime numbers in $[1,100]$:
 
 
 ```{julia}
@@ -298,6 +304,10 @@ sum(p for p in 1:100 if isprime(p))
 ```
 
 The value on the other side of `if` should be an expression that evaluates to either `true` or `false` for a given `p` (like a predicate function, but here specified as an expression). The value returned by `isprime(p)` is such.
+
+::: {.callout-note}
+In these notes we primarily use functions rather than expressions for various actions. We will see creating a function is not much more difficult than specifying an expression, though there is additional notation necessary. Generators are one very useful means to use expressions, symbolic math will be seen as another.
+:::
 
 
 In this example, we use the fact that `rem(k, 7)` returns the remainder found from dividing `k` by `7`, and so is `0` when `k` is a multiple of `7`:
@@ -323,7 +333,7 @@ This example of Stefan Karpinski's comes from a [blog](http://julialang.org/blog
 First, a simple question: using pennies, nickels, dimes, and quarters how many different ways can we generate one dollar? Clearly $100$ pennies, or $20$ nickels, or $10$ dimes, or $4$ quarters will do this, so the answer is at least four, but how much more than four?
 
 
-Well, we can use a comprehension to enumerate the possibilities. This example illustrates how comprehensions and generators can involve one or more variable for the iteration.
+Well, we can use a comprehension to enumerate the possibilities. This example illustrates how comprehensions and generators can involve one or more variable for the iteration. By judiciously choosing what is iterated over, the entire set can be described.
 
 
 First, we either have $0,1,2,3$, or $4$ quarters, or $0$, $25$ cents, $50$ cents, $75$ cents, or a dollar's worth. If we have, say, $1$ quarter, then we need to make up $75$ cents with the rest. If we had $3$ dimes, then we need to make up $45$ cents out of nickels and pennies, if we then had $6$ nickels, we know we must need $15$ pennies.
@@ -333,22 +343,42 @@ The following expression shows how counting this can be done through enumeration
 
 
 ```{julia}
-ways = [(q, d, n, p) for q = 0:25:100 for d = 0:10:(100 - q) for n = 0:5:(100 - q - d) for p = (100 - q - d - n)]
+ways = [(q, d, n, p)
+        for q = 0:25:100
+        for d = 0:10:(100 - q)
+        for n = 0:5:(100 - q - d)
+        for p = (100 - q - d - n)]
 length(ways)
 ```
 
-We see $242$ cases, each distinct. The first $3$ are:
+There are $242$ distinct cases. The first three are:
 
 
 ```{julia}
 ways[1:3]
 ```
 
-The generating expression reads naturally. It introduces the use of multiple `for` statements, each subsequent one depending on the value of the previous (working left to right). Now suppose, we want to ensure that the amount in pennies is less than the amount in nickels, etc. We could use `filter` somehow to do this for our last answer, but using `if` allows for filtering while the events are generating. Here our condition is simply expressed: `q > d > n > p`:
+The generating expression reads naturally. It introduces the use of multiple `for` statements, each subsequent one depending on the value of the previous (working left to right).
+
+The cashier might like to know the number of coins, not the dollar amount:
+
+```{julia}
+[amt ./ [25, 10, 5, 1] for amt in ways[1:3]]
+```
+
+There are various ways to get integer values, and not floating point values. One way is to call `round`. Here though, we use the integer division operator, `div`, through its infix operator `÷`:
+
+```{julia}
+[amt .÷ [25, 10, 5, 1] for amt in ways[1:3]]
+```
+
+
+Now suppose, we want to ensure that the amount in pennies is less than the amount in nickels, etc. We could use `filter` somehow to do this for our last answer, but using `if` allows for filtering while the events are generating. Here our condition is simply expressed: `q > d > n > p`:
 
 
 ```{julia}
-[(q, d, n, p) for q = 0:25:100
+[(q, d, n, p)
+ for q = 0:25:100
  for d = 0:10:(100 - q)
  for n = 0:5:(100 - q - d)
  for p = (100 - q - d - n)
@@ -523,6 +553,24 @@ radioq(choices, answ)
 
 ###### Question
 
+An arithmetic sequence ($a_0$, $a_1 = a_0 + h$, $a_2=a_0 + 2h, \dots,$ $a_n=a_0 + n\cdot h$) is specified with a starting point ($a_0$), a step size ($h$), and a number of points $(n+1)$. This is not the case with the colon constructor which take a starting point, a step size, and a suggested last value. This is not the case a with the default for the `range` function, with signature `range(start, stop, length)`. However, the documentation for `range` shows that indeed the three values ($a_0$, $h$, and $n$) can be passed in. Which signature (from the docs) would allow this:
+
+```{julia}
+#| echo: false
+choices = [
+    "`range(start, stop, length)`",
+    "`range(start, stop; length, step)`",
+    "`range(start; length, stop, step)`",
+    "`range(;start, length, stop, step)`"]
+answer = 3
+explanation = """
+This is a somewhat vague question, but the use of `range(a0; length=n+1, step=h)` will produce the arithmetic sequence with this parameterization.
+"""
+buttonq(choices, answer; explanation)
+```
+
+###### Question
+
 
 Create the sequence $10, 100, 1000, \dots, 1,000,000$ using a list comprehension. Which of these works?
 
@@ -670,7 +718,7 @@ Let's see if `4137 8947 1175 5804` is a valid credit card number?
 First, we enter it as a value and immediately break the number into its digits:
 
 ```{julia}
-x = 4137_8947_1175_5904  # _ in a number is ignored by parser
+x = 4137_8947_1175_5804  # _ in a number is ignored by parser
 xs = digits(x)
 ```
 
@@ -688,7 +736,7 @@ for i in 1:2:length(xs)
 end
 ```
 
-Number greater than 9, have their digits added, then all the resulting numbers are added. This can be done with a generator:
+Numbers greater than 9, have their digits added, then all the resulting numbers are added. This can be done with a generator:
 
 
 ```{julia}

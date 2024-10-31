@@ -44,14 +44,16 @@ annotate!([(.75, .25, "θ"), (4.0, 1.25, "opposite"), (2, -.25, "adjacent"), (1.
 
 With these, the basic definitions for the primary trigonometric functions are
 
-
-
+::: {.callout-note icon=false}
+## Trigonometric definitions
+$$
 \begin{align*}
 \sin(\theta) &= \frac{\text{opposite}}{\text{hypotenuse}} &\quad(\text{the sine function})\\
 \cos(\theta) &= \frac{\text{adjacent}}{\text{hypotenuse}} &\quad(\text{the cosine function})\\
-\tan(\theta) &= \frac{\text{opposite}}{\text{adjacent}}.  &\quad(\text{the tangent function})
+\tan(\theta) &= \frac{\text{opposite}}{\text{adjacent}}  &\quad(\text{the tangent function})
 \end{align*}
-
+$$
+:::
 
 :::{.callout-note}
 ## Note
@@ -122,11 +124,12 @@ Julia has the $6$ basic trigonometric functions defined through the functions `s
 Two right triangles - the one with equal, $\pi/4$, angles; and the one with angles $\pi/6$ and $\pi/3$ can have the ratio of their sides computed from basic geometry. In particular, this leads to the following values, which are usually committed to memory:
 
 
-
+$$
 \begin{align*}
 \sin(0) &= 0, \quad \sin(\pi/6) = \frac{1}{2}, \quad \sin(\pi/4) = \frac{\sqrt{2}}{2}, \quad\sin(\pi/3) = \frac{\sqrt{3}}{2},\text{ and } \sin(\pi/2) = 1\\
 \cos(0) &= 1, \quad \cos(\pi/6) =  \frac{\sqrt{3}}{2}, \quad \cos(\pi/4) = \frac{\sqrt{2}}{2}, \quad\cos(\pi/3) = \frac{1}{2},\text{ and } \cos(\pi/2) = 0.
 \end{align*}
+$$
 
 
 Using the circle definition allows these basic values to inform us of values throughout the unit circle.
@@ -144,10 +147,10 @@ The fact that $x^2 + y^2 = 1$ for the unit circle leads to the "Pythagorean iden
 
 
 $$
-\sin(\theta)^2 + \cos(\theta)^2 = 1.
+\sin^2(\theta) + \cos^2(\theta) = 1.
 $$
 
-This basic fact can be manipulated many ways. For example, dividing through by $\cos(\theta)^2$ gives the related identity: $\tan(\theta)^2 + 1 = \sec(\theta)^2$.
+This basic fact can be manipulated many ways. For example, dividing through by $\cos^2(\theta)$ gives the related identity: $\tan^2(\theta) + 1 = \sec^2(\theta)$.
 
 
 `Julia`'s functions can compute values for any angles, including these fundamental ones:
@@ -157,8 +160,15 @@ This basic fact can be manipulated many ways. For example, dividing through by $
 [cos(theta) for theta in [0, pi/6, pi/4, pi/3, pi/2]]
 ```
 
-These are floating point approximations, as can be seen clearly in the last value. Symbolic math can be used if exactness matters:
+To compute $\sin^2(\theta)$, the power is applied to the value of $\sin(\theta)$ and not the `sin` function. (Think of $\sin^2(\theta)$ as $(sin(\theta))^2$:
 
+```{julia}
+theta = pi/8
+sin(theta)^2
+```
+
+
+These values are floating point approximations, as can be seen clearly in the computation of `sin(pi/2)`, which is mathematically $0$. Symbolic math can be usedby using `PI` for `pi` if exactness matters:
 
 ```{julia}
 cos.([0, PI/6, PI/4, PI/3, PI/2])
@@ -167,7 +177,7 @@ cos.([0, PI/6, PI/4, PI/3, PI/2])
 The `sincos` function computes both `sin` and `cos` simultaneously, which can be more performant when both values are needed.
 
 
-```{juila}
+```{julia}
 sincos(pi/3)
 ```
 
@@ -266,11 +276,11 @@ $$
 g(x) = a + b \sin((2\pi n)x)
 $$
 
-That is $g$ is shifted up by $a$ units, scaled vertically by $b$ units and has a period of $1/n$. We see a simple plot here where we can verify the transformation:
+That is a graph of $g$ will be the sine curve shifted up by $a$ units, scaled vertically by $b$ units and has a period of $1/n$. We see a simple plot here where we can verify the transformation:
 
 
 ```{julia}
-g(x;  b=1,n=1) = b*sin(2pi*n*x)
+g(x;  b=1, n=1) = b*sin(2pi*n*x)
 g1(x) = 1 + g(x, b=2, n=3)
 plot(g1, 0, 1)
 ```
@@ -388,51 +398,181 @@ In `Julia`, the functions `sind`, `cosd`, `tand`, `cscd`, `secd`, and `cotd` are
 Consider the point on the unit circle $(x,y) = (\cos(\theta), \sin(\theta))$. In terms of $(x,y)$ (or $\theta$) is there a way to represent the angle found by rotating an additional $\theta$, that is what is $(\cos(2\theta), \sin(2\theta))$?
 
 
-More generally, suppose we have two angles $\alpha$ and $\beta$, can we represent the values of $(\cos(\alpha + \beta), \sin(\alpha + \beta))$ using the values just involving $\beta$ and $\alpha$ separately?
+More generally, suppose we have two angles $\alpha$ and $\beta$, can we represent the values of $(\cos(\alpha + \beta), \sin(\alpha + \beta))$ using the values just involving $\beta$ and $\alpha$ separately? The sum formulas express the sine and cosine of $\alpha + \beta$ in terms of the sines and cosines of $\alpha$ and $\beta$. We show variations on the basic decomposition of a right triangle using sine and cosine to illustrate the resulting formula. According to [Wikipedia](https://en.wikipedia.org/wiki/Trigonometric_functions#Identities) this geometric derivation  has ideas that date to Ptolemy.
 
 
-According to [Wikipedia](https://en.wikipedia.org/wiki/Trigonometric_functions#Identities) the following figure (from [mathalino.com](http://www.mathalino.com/reviewer/derivation-of-formulas/derivation-of-sum-and-difference-of-two-angles)) has ideas that date to Ptolemy:
 
+Suppose both $\alpha$ and $\beta$ are positive with $\alpha + \beta \leq \pi/2$. Then using right triangle geometry we can associate the sine and cosine of $\alpha + \beta$ with distances in this figure:
 
 ```{julia}
 #| echo: false
-# ImageFile(:precalc, "figures/summary-sum-and-difference-of-two-angles.jpg", "Relations between angles")
-nothing
+
+using Plots, LaTeXStrings
+
+# two angles
+α = pi/5
+β = pi/6
+
+## points
+A = (0,0)
+B = (cos(α + β), 0)
+C = (cos(α)*cos(β), 0)
+D = (cos(α + β), sin(α)cos(β))
+E = (cos(α)*cos(β), sin(α)cos(β))
+F = (cos(α + β), sin(α + β))
+
+color1 = :royalblue
+color2 = :forestgreen
+color3 = :brown3
+color4 = :mediumorchid2
+canvas() = plot(axis=([],false), legend=false, aspect_ratio=:equal)
+p1 = canvas()
+plot!(Shape([A,B,F]), fill=(color4, 0.15))
+
+r = 0.10
+dae = sqrt(sum((A.-E).^2))
+daf = sqrt(sum((A.-F).^2))
+dbc = sqrt(sum((B.-C).^2))
+dce = sqrt(sum((C.-E).^2))
+def = sqrt(sum((E.-F).^2))
+dde = sqrt(sum((D.-E).^2))
+ddf = sqrt(sum((D.-F).^2))
+Δ = 0.0
+
+alphabeta = (r*cos(α/2 + β/2), r*sin(α/2 + β/2),
+             text("α + β",:hcenter; rotation=pi/2))
+cosαβ = (B[1]/2, 0, text("cos(α + β)", :top))
+sinαβ = (B[1], F[2]/2, text("sin(α + β)"))
+
+txtpoints = (
+    one = (F[1]/2, F[2]/2, "1",:right),
+    beta=(r*cos(α + β/2), r*sin(α + β/2),
+          text("β", :hcenter)),
+    alpha = (r*cos(α/2), r*sin(α/2),
+             text("α",:hcenter)),
+    alphaa = (F[1] + r*sin(α/2), F[2] - r*cos(α/2) ,
+              text("α"),:hcenter),
+    cosβ = (dae/2*cos(α),dae/2*sin(α) + Δ,
+            text("cos(β)",:hcenter)),
+    sinβ = (B[1] + dbc/2 + Δ/2, D[2] + ddf/2 + Δ/2,
+            text("sin(β)",:bottom)),
+    cosαcosβ = (C[1]/2, 0 - Δ, text("cos(α)cos(β)", :top)),
+    sinαcosβ = (cos(α)*cos(β) - 0.1, dce/2 ,
+                text("sin(α)cos(β)", :hcenter)),
+    cosαsinβ = (D[1] - Δ, D[2] +  ddf/2 ,
+                text("cos(α)sin(β)", :top)),
+    sinαsinβ = (D[1] + dde/2, D[2] + Δ ,
+                text("sin(α)sin(β)", :top)),
+)
+
+# Plot 1
+p1 = canvas()
+plot!(Shape([A,B,F]), fill=(color4, 0.15))
+annotate!([txtpoints[:one], alphabeta, cosαβ, sinαβ])
+plot!([A,B,F,A]; line=(5,:red, 0.25))
+
+
+# Plot 2
+p2 = canvas()
+plot!(Shape([A,E,F]), fill=(color1, 0.15))
+plot!([A,B,F,A]; line=(5,:red, 0.25))
+annotate!(map(s ->getindex(txtpoints,s), [:one, :cosβ, :sinβ, :beta]))
+
+
+# Plot 3
+p3 = canvas()
+plot!(Shape([A,E,F]), fill=(color1, 0.15))
+plot!(Shape([A,C,E]), fill=(color2, 0.15))
+annotate!(map(s ->getindex(txtpoints,s), [:alpha, :cosβ, :cosαcosβ, :sinαcosβ]))
+plot!([A,B,F,A]; line=(5,:red, 0.25))
+annotate!([txtpoints[:beta]])
+
+# Plot 4
+p4 = canvas()
+plot!(Shape([A,E,D, F]), fill=(color1, 0.15))
+plot!(Shape([A,C,E]), fill=(color2, 0.15))
+plot!(Shape([D,E,F]), fill=(color3, 0.15))
+annotate!(map(s ->getindex(txtpoints,s), [:alphaa, :sinβ, :sinαsinβ, :cosαsinβ]))
+plot!([A,B,F,A]; line=(5,:red, 0.25))
+
+# Plot 5
+p5 = canvas()
+plot!(Shape([A,E,D, F]), fill=(color1, 0.15))
+plot!(Shape([A,C,E]), fill=(color2, 0.15))
+plot!(Shape([D,E,F]), fill=(color3, 0.15))
+plot!(Shape([F,B]), fill=(:black, 0.35))
+annotate!(map(s ->getindex(txtpoints,s), collect(keys(txtpoints))))
+
+
+p1
 ```
 
-![Relations between angles](figures/summary-sum-and-difference-of-two-angles.jpg)
+Another right triangle with hypotenuse of length $1$ can be made by isolating the angle $\beta$, as below:
 
-To read this, there are three triangles: the bigger (green with pink part) has hypotenuse $1$ (and adjacent and opposite sides that form the hypotenuses of the other two); the next biggest (yellow) hypotenuse $\cos(\beta)$,  adjacent side (of angle $\alpha$) $\cos(\beta)\cdot \cos(\alpha)$, and opposite side $\cos(\beta)\cdot\sin(\alpha)$; and  the smallest (pink) hypotenuse $\sin(\beta)$, adjacent side (of angle $\alpha$) $\sin(\beta)\cdot \cos(\alpha)$, and opposite side $\sin(\beta)\sin(\alpha)$.
+```{julia}
+#| echo: false
+p2
+```
 
 
-This figure shows the following sum formula for sine and cosine:
+We can make two more right triangles one with hypotenuse $\cos(\beta)$ and one with hypotenuse $\sin(\beta)$; each having an angle $\alpha$, the latter using some geometry, for which we can apply right-triangle trigonometry to find the length of their sides.
 
+```{julia}
+#| echo: false
+plot(p3, p4)
+```
 
+From the left figure and the initial triangle, by comparing the lengths along the $x$ direction, we can see the decomposition:
 
+$$
+\cos(\alpha)\cos(\beta) = \cos(\alpha + \beta) + \sin(\alpha)\sin(\beta)
+$$
+
+Similarly, this relationship comes from considering the vertical lengths:
+
+$$
+\sin(\alpha+\beta) = \sin(\alpha)\cos(\beta) + \cos(\alpha)\sin(\beta)
+$$
+
+These lead to:
+
+::: {.callout-note icon=false}
+## The *sum* formulas for sine and cosine
+
+$$
 \begin{align*}
-\sin(\alpha + \beta) &= \sin(\alpha)\cos(\beta) + \cos(\alpha)\sin(\beta), & (\overline{CE} + \overline{DF})\\
-\cos(\alpha + \beta) &= \cos(\alpha)\cos(\beta) - \sin(\alpha)\sin(\beta). & (\overline{AC} - \overline{DE})
+\sin(\alpha+\beta) &= \sin(\alpha)\cos(\beta) + \cos(\alpha)\sin(\beta) \\
+\cos(\alpha + \beta) &= \cos(\alpha)\cos(\beta) - \sin(\alpha)\sin(\beta)
 \end{align*}
+$$
+:::
 
+Taking $\alpha = \beta$ we immediately get
 
-Using the fact that $\sin$ is an odd function and $\cos$ an even function, related formulas for the difference $\alpha - \beta$ can be derived.
-
-
-Taking $\alpha = \beta$ we immediately get the "double-angle" formulas:
-
-
-
+::: {.callout-note icon=false}
+## The "double-angle" formulas
+$$
 \begin{align*}
 \sin(2\alpha) &= 2\sin(\alpha)\cos(\alpha)\\
-\cos(2\alpha) &= \cos(\alpha)^2 - \sin(\alpha)^2.
+\cos(2\alpha) &= \cos^2(\alpha) - \sin^2(\alpha).
 \end{align*}
+$$
+:::
+
+The latter looks like the Pythagorean identify, but has a minus sign. In fact, the Pythagorean identify is often used to rewrite this, for example $\cos(2\alpha) = 2\cos^2(\alpha) - 1$ or $1 - 2\sin^2(\alpha)$.
 
 
-The latter looks like the Pythagorean identify, but has a minus sign. In fact, the Pythagorean identify is often used to rewrite this, for example $\cos(2\alpha) = 2\cos(\alpha)^2 - 1$ or $1 - 2\sin(\alpha)^2$.
+Applying the above with $\alpha = \beta/2$, we get that $\cos(\beta) = 2\cos^2(\beta/2) -1$. Similarly, using the Pythagorean identity a formula for sine can be done; when rearranged these yield the "half-angle" formulas:
 
-
-Applying the above with $\alpha = \beta/2$, we get that $\cos(\beta) = 2\cos(\beta/2)^2 -1$, which rearranged yields the "half-angle" formula: $\cos(\beta/2)^2 = (1 + \cos(\beta))/2$.
-
+::: {.callout-note icon=false}
+## The "half-angle" formula
+$$
+\begin{align*}
+\sin^2(\frac{\beta}{2}) &= \frac{1 - \cos(\beta)}{2}\\
+\cos^2(\frac{\beta}{2}) &= \frac{1 + \cos(\beta)}{2}
+\end{align*}
+$$
+:::
 
 ##### Example
 
@@ -440,18 +580,19 @@ Applying the above with $\alpha = \beta/2$, we get that $\cos(\beta) = 2\cos(\be
 Consider the expressions $\cos((n+1)\theta)$ and $\cos((n-1)\theta)$. These can be re-expressed as:
 
 
-
+$$
 \begin{align*}
 \cos((n+1)\theta) &= \cos(n\theta + \theta) = \cos(n\theta) \cos(\theta) - \sin(n\theta)\sin(\theta), \text{ and}\\
 \cos((n-1)\theta) &= \cos(n\theta - \theta) = \cos(n\theta) \cos(-\theta) - \sin(n\theta)\sin(-\theta).
 \end{align*}
+$$
 
 
 But $\cos(-\theta) = \cos(\theta)$, whereas $\sin(-\theta) = -\sin(\theta)$. Using this, we add the two formulas above to get:
 
 
 $$
-\cos((n+1)\theta) = 2\cos(n\theta) \cos(\theta)  - \cos((n-1)\theta).
+\cos((n+1)\theta) = 2 \cos(\theta) \cos(n\theta)  - \cos((n-1)\theta).
 $$
 
 That is the angle for a multiple of $n+1$ can be expressed in terms of the angle with a multiple of $n$ and $n-1$. This can be used recursively to find expressions for $\cos(n\theta)$ in terms of polynomials in $\cos(\theta)$.
@@ -554,11 +695,11 @@ The approximation error is about $2.7$ percent.
 ##### Example
 
 
-The AMS has an interesting column on [rainbows](http://www.ams.org/publicoutreach/feature-column/fcarc-rainbows) the start of which uses some formulas from the previous example. Click through to see a ray of light passing through a spherical drop of water, as analyzed by Descartes. The deflection of the ray occurs when the incident light hits the drop of water, then there is an *internal* deflection of the light, and finally when the light leaves, there is another deflection. The total deflection (in radians) is $D = (i-r) + (\pi - 2r) + (i-r) = \pi + 2i - 4r$. However, the incident angle $i$ and the refracted angle $r$ are related by Snell's law: $\sin(i) = n \sin(r)$. The value $n$ is the index of refraction and is $4/3$ for water. (It was $3/2$ for glass in the previous example.) This gives
+The AMS has an interesting column on [rainbows](http://www.ams.org/publicoutreach/feature-column/fcarc-rainbows) the start of which uses some formulas from the previous example. Click through to see a ray of light passing through a spherical drop of water, as analyzed by Descartes. The deflection of the ray occurs when the incident light hits the drop of water, then there is an *internal* deflection of the light, and finally when the light leaves, there is another deflection. The total deflection (in radians) is $d = (i-r) + (\pi - 2r) + (i-r) = \pi + 2i - 4r$. However, the incident angle $i$ and the refracted angle $r$ are related by Snell's law: $\sin(i) = n \sin(r)$. The value $n$ is the index of refraction and is $4/3$ for water. (It was $3/2$ for glass in the previous example.) This gives
 
 
 $$
-D = \pi + 2i - 4 \arcsin(\frac{1}{n} \sin(i)).
+d = \pi + 2i - 4 \arcsin(\frac{1}{n} \sin(i)).
 $$
 
 Graphing this for incident angles between $0$ and $\pi/2$ we have:
@@ -567,8 +708,8 @@ Graphing this for incident angles between $0$ and $\pi/2$ we have:
 ```{julia}
 #| hold: true
 n = 4/3
-D(i) = pi + 2i - 4 * asin(sin(i)/n)
-plot(D, 0, pi/2)
+d(i) = pi + 2i - 4 * asin(sin(i)/n)
+plot(d, 0, pi/2)
 ```
 
 Descartes was interested in the minimum value of this graph, as it relates to where the light concentrates. This is roughly at $1$ radian or about $57$ degrees:
@@ -588,17 +729,17 @@ Consider again this equation derived with the sum-and-difference formula:
 
 
 $$
-\cos((n+1)\theta) = 2\cos(n\theta) \cos(\theta)  - \cos((n-1)\theta).
+\cos((n+1)\theta) = 2 \cos(\theta) \cos(n\theta)  - \cos((n-1)\theta).
 $$
 
-Let $T_n(x) = \cos(n \arccos(x))$. Calling $\theta = \arccos(x)$ for $-1 \leq x \leq 1$ we get a relation between these functions:
+Let $T_n(x) = \cos(n \arccos(x))$. Note $T_1(x) = \cos(x)$. By identifying $\theta$ with $\arccos(x)$ for $-1 \leq x \leq 1$, we get a relation between these functions:
 
 
 $$
 T_{n+1}(x) = 2x T_n(x) - T_{n-1}(x).
 $$
 
-We can simplify a few: For example, when $n=0$ we see immediately that $T_0(x) = 1$, the constant function. Whereas with $n=1$ we get $T_1(x) = \cos(\arccos(x)) = x$. Things get more interesting as we get bigger $n$, for example using the equation above we get $T_2(x) = 2xT_1(x) - T_0(x) = 2x\cdot x - 1 = 2x^2 - 1$. Continuing, we'd get $T_3(x) = 2 x T_2(x) - T_1(x) = 2x(2x^2 - 1) - x = 4x^3 -3x$.
+We can simplify a few of the above : For example, when $n=0$ we see immediately that $T_0(x) = 1$, the constant function. We used above that for $n=1$ we get $T_1(x) = \cos(\arccos(x)) = x$. Things get more interesting as we get bigger $n$, for example using the equation above we get $T_2(x) = 2xT_1(x) - T_0(x) = 2x\cdot x - 1 = 2x^2 - 1$. Continuing, we'd get $T_3(x) = 2 x T_2(x) - T_1(x) = 2x(2x^2 - 1) - x = 4x^3 -3x$.
 
 
 A few things become clear from the above two representations:
@@ -621,7 +762,7 @@ plot!(abs ∘ q, -1,1, label="|q|")
 ## Hyperbolic trigonometric functions
 
 
-Related to the trigonometric functions are the hyperbolic trigonometric functions. Instead of associating a point $(x,y)$ on the unit circle with an angle $\theta$, we associate a point $(x,y)$ on the unit *hyperbola* ($x^2 - y^2 = 1$). We define the hyperbolic sine ($\sinh$) and hyperbolic cosine ($\cosh$) through $(\cosh(\theta), \sinh(\theta)) = (x,y)$.
+Related to the trigonometric functions are the hyperbolic trigonometric functions. Instead of associating a point $(x,y)$ on the unit circle with an angle $\theta,$ we associate a point $(x,y)$ on the unit *hyperbola* ($x^2 - y^2 = 1$). We define the hyperbolic sine ($\sinh$) and hyperbolic cosine ($\cosh$) through $(\cosh(\theta), \sinh(\theta)) = (x,y)$.
 
 
 ```{julia}
@@ -671,11 +812,12 @@ end
 These values are more commonly expressed using the exponential function as:
 
 
-
+$$
 \begin{align*}
 \sinh(x) &= \frac{e^x - e^{-x}}{2}\\
 \cosh(x) &= \frac{e^x + e^{-x}}{2}.
 \end{align*}
+$$
 
 
 The hyperbolic tangent is then the ratio of $\sinh$ and $\cosh$. As well, three inverse hyperbolic functions can be defined.
@@ -791,7 +933,7 @@ numericq(val)
 ###### Question
 
 
-For any positive integer $n$ the equation $\cos(x) - nx = 0$ has a solution in $[0, \pi/2]$. Graphically estimate the value when $n=10$.
+For any positive integer $n$ the equation $\cos(x) - nx = 0$ has a solution in $[0, \pi/2].$ Graphically estimate the value when $n=10.$
 
 
 ```{julia}

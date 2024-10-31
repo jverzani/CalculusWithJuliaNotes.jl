@@ -54,7 +54,7 @@ ss = sin + sqrt
 ss(4)
 ```
 
-Doing this works, as Julia treats functions as first class objects, lending itself to [higher](https://en.wikipedia.org/wiki/Higher-order_programming) order programming. However, this definition in general is kind of limiting, as functions in mathematics and Julia can be much more varied than just the univariate functions we have defined addition for. We won't pursue this further.
+Doing this works, as Julia treats functions as first class objects, lending itself to [higher](https://en.wikipedia.org/wiki/Higher-order_programming) order programming. However, this definition in general is kind of limiting, as functions in mathematics and Julia can be much more varied than just the univariate functions we have defined addition for. Further, users shouldn't be modifying base methods on types they don't control, as that can lead to really unexpected and undesirable behaviours. This is called *type piracy*. We won't pursue this possibility further. Rather we will define new function by what they do to their values, such as `h(x) = f(x) + g(x)`.
 
 
 ### Composition of functions
@@ -95,7 +95,7 @@ plot!(gf, label="g∘f")
 
 :::{.callout-note}
 ## Note
-Unlike how the basic arithmetic operations are treated, `Julia` defines the infix Unicode operator `\circ[tab]` to represent composition of functions, mirroring mathematical notation. This infix operations takes in two functions and returns an anonymous function. It can be useful and will mirror standard mathematical usage up to issues with precedence rules.
+Unlike how the basic arithmetic operations are treated, `Julia` defines the infix Unicode operator `\circ[tab]` to represent composition of functions, mirroring mathematical notation. This infix operations takes in two functions and returns a composed function. It can be useful and will mirror standard mathematical usage up to issues with precedence rules.
 
 :::
 
@@ -109,15 +109,16 @@ $$
 (f \circ g)(x) = (e^x - x)^2 + 2(e^x - x) - 1.
 $$
 
-It can be helpful to think of the argument to $f$ as a "box" that gets filled in by $g$:
+It can be helpful to think of the argument to $f$ as a "box" that gets filled in by $g(x)$:
 
 
-
+$$
 \begin{align*}
 g(x)       &=e^x - x\\
 f(\square) &= (\square)^2 + 2(\square) - 1\\
 f(g(x))    &= (g(x))^2   + 2(g(x)) - 1 = (e^x - x)^2 + 2(e^x - x) - 1.
 \end{align*}
+$$
 
 
 Here we look at a few compositions:
@@ -171,46 +172,46 @@ To illustrate, let's define a hat-shaped function as follows:
 
 
 ```{julia}
-𝒇(x) = max(0, 1 - abs(x))
+f(x) = max(0, 1 - abs(x))
 ```
 
 A plot over the interval $[-2,2]$ is shown here:
 
 
 ```{julia}
-plot(𝒇, -2,2)
+plot(f, -2,2)
 ```
 
 The same graph of $f$ and its image shifted up by $2$ units would be given by:
 
 
 ```{julia}
-plot(𝒇, -2, 2, label="f")
-plot!(up(𝒇, 2), label="up")
+plot(f, -2, 2, label="f")
+plot!(up(f, 2), label="up")
 ```
 
 A graph of $f$ and its shift over by $2$ units would be given  by:
 
 
 ```{julia}
-plot(𝒇, -2, 4, label="f")
-plot!(over(𝒇, 2), label="over")
+plot(f, -2, 4, label="f")
+plot!(over(f, 2), label="over")
 ```
 
 A graph of $f$ and it being stretched by $2$ units would be given by:
 
 
 ```{julia}
-plot(𝒇, -2, 2, label="f")
-plot!(stretch(𝒇, 2), label="stretch")
+plot(f, -2, 2, label="f")
+plot!(stretch(f, 2), label="stretch")
 ```
 
 Finally, a graph of $f$ and it being scaled by $2$ would be given by:
 
 
 ```{julia}
-plot(𝒇, -2, 2, label="f")
-plot!(scale(𝒇, 2), label="scale")
+plot(f, -2, 2, label="f")
+plot!(scale(f, 2), label="scale")
 ```
 
 Scaling by $2$ shrinks the non-zero domain, scaling by $1/2$ would stretch it. If this is not intuitive, the definition `x-> f(x/c)` could have been used, which would have opposite behaviour for scaling.
@@ -226,16 +227,16 @@ A shift right by $2$ and up by $1$ is achieved through
 
 
 ```{julia}
-plot(𝒇, -2, 4, label="f")
-plot!(up(over(𝒇,2), 1), label="over and up")
+plot(f, -2, 4, label="f")
+plot!(up(over(f,2), 1), label="over and up")
 ```
 
-Shifting and scaling can be confusing. Here we graph `scale(over(𝒇,2),1/3)`:
+Shifting and scaling can be confusing. Here we graph `scale(over(f,2),1/3)`:
 
 
 ```{julia}
-plot(𝒇, -1,9, label="f")
-plot!(scale(over(𝒇,2), 1/3), label="over and scale")
+plot(f, -1,9, label="f")
+plot!(scale(over(f,2), 1/3), label="over and scale")
 ```
 
 This graph is over by $6$ with a width of $3$ on each side of the center. Mathematically, we have $h(x) = f((1/3)\cdot x - 2)$
@@ -245,8 +246,8 @@ Compare this to the same operations in opposite order:
 
 
 ```{julia}
-plot(𝒇, -1, 5, label="f")
-plot!(over(scale(𝒇, 1/3), 2), label="scale and over")
+plot(f, -1, 5, label="f")
+plot!(over(scale(f, 1/3), 2), label="scale and over")
 ```
 
 This graph first scales the symmetric graph, stretching from $-3$ to $3$, then shifts over right by $2$. The resulting function is $f((1/3)\cdot (x-2))$.
@@ -265,9 +266,9 @@ We can view this as a composition of "scale" by $1/a$, then  "over" by $b$,  and
 ```{julia}
 #| hold: true
 a = 2; b = 5
-𝒉(x) = stretch(over(scale(𝒇, 1/a), b), 1/a)(x)
-plot(𝒇, -1, 8, label="f")
-plot!(𝒉, label="h")
+h(x) = stretch(over(scale(f, 1/a), b), 1/a)(x)
+plot(f, -1, 8, label="f")
+plot!(h, label="h")
 ```
 
 (This transformation keeps the same amount of area in the triangles, can you tell from the graph?)
@@ -324,12 +325,6 @@ delta = (newyork(185) - datetime) * 60
 This is off by a fair amount - almost $12$ minutes. Clearly a trigonometric model, based on the assumption of circular motion of the earth around the sun, is not accurate enough for precise work, but it does help one understand how summer days are longer than winter days and how the length of a day changes fastest at the spring and fall equinoxes.
 
 
-##### Example: a growth model in fisheries
-
-
-The von Bertalanffy growth [equation](https://en.wikipedia.org/wiki/Von_Bertalanffy_function) is $L(t) =L_\infty \cdot (1 - e^{k\cdot(t-t_0)})$. This family of functions can be viewed as a transformation of the exponential function $f(t)=e^t$. Part is a scaling and shifting (the $e^{k \cdot (t - t_0)}$) along with some shifting and stretching. The various parameters have physical importance which can be measured: $L_\infty$ is a carrying capacity for the species or organism, and $k$ is a rate of growth. These parameters may be estimated from data by finding the "closest" curve to a given data set.
-
-
 ##### Example: the pipeline operator
 
 
@@ -347,6 +342,44 @@ pi/2 |> g |> f
 ```
 
 The output of the preceding expression is passed as the input to the next.  This notation is especially convenient when the enclosing function is not the main focus.  (Some programming languages have more developed [fluent interfaces](https://en.wikipedia.org/wiki/Fluent_interface) for chaining function calls. Julia has more powerful chaining macros provided in packages, such as `DataPipes.jl` or `Chain.jl`.)
+
+##### Example: a growth model in fisheries
+
+
+The von Bertalanffy growth [equation](https://en.wikipedia.org/wiki/Von_Bertalanffy_function) is $L(t) =L_\infty \cdot (1 - e^{k\cdot(t-t_0)})$. This family of functions can be viewed as a transformation of the exponential function $f(t)=e^t$. Part is a scaling and shifting (the $e^{k \cdot (t - t_0)}$) along with some shifting and stretching. The various parameters have physical importance which can be measured: $L_\infty$ is a carrying capacity for the species or organism, and $k$ is a rate of growth. These parameters may be estimated from data by finding the "closest" curve to a given data set.
+
+##### Example: Representing data visually.
+
+Suppose we have a data set like the following:^[Which comes from the "Palmer Penguins" data set]
+
+|flipper length | bill length | body mass | gender | species |
+|---------------|-------------|-----------|--------|:--------|
+| 38.8          | 18.3        | 3701      | male   | Adelie  |
+| 48.8          | 18.4        | 3733      | male   | Chinstrap |
+| 47.5          | 15.0        | 5076      | male   | Gentoo |
+
+We might want to plot on an $x-y$ axis flipper length versus bill length but also indicate body size with a large size marker for bigger sizes.
+
+We could do so by transforming a marker: scaling by size, then shifting it to an `x-y` position; then plotting. Something like this:
+
+```{julia}
+flipper  = [38.8, 48.8, 47.5]
+bill     = [18.3, 18.4, 15.0]
+bodymass = [3701, 4733, 5076]
+
+shape = Shape(:star5)
+p = plot(; legend=false)
+for (x,y,sz) in zip(flipper, bill, bodymass)
+    sz = (sz - 2000) ÷ 1000
+
+    new_shape = Plots.translate(Plots.scale(shape, sz, sz), x, y);
+
+    plot!(p, new_shape; fill=(:red, 0.25), stroke=(:black, 2))
+end
+p
+```
+
+While some of the commands in this example are unfamiliar and won't be explained further, the use of `translate` and `scale` for shapes is very similar to how transformations for functions are being described (Though this `translate` function combines `up` and `over`; and this `scale` function allows different values depending on direction.) In the above, the function names are qualified, as they are not exported by the `Plots.jl` package. More variables from the data set could be encoded through colors, different shapes etc. allowing very data-rich graphics.
 
 
 ### Operators
@@ -392,14 +425,14 @@ To see that it works, we take a typical function
 
 
 ```{julia}
-𝐟(k) = 1 + k^2
+f(k) = 1 + k^2
 ```
 
 and check:
 
 
 ```{julia}
-D(𝐟)(3), 𝐟(3) - 𝐟(3-1)
+D(f)(3), f(3) - f(3-1)
 ```
 
 That the two are the same value is no coincidence. (Again, pause for a second to make sure you understand why `D(f)(3)` makes sense. If this is unclear, you could name the function `D(f)` and then call this with a value of `3`.)
@@ -416,7 +449,7 @@ To check if this works as expected, compare these two values:
 
 
 ```{julia}
-S(𝐟)(4), 𝐟(1) + 𝐟(2) + 𝐟(3) + 𝐟(4)
+S(f)(4), f(1) + f(2) + f(3) + f(4)
 ```
 
 So one function adds, the other subtracts. Addition and subtraction are somehow inverse to each other so should "cancel" out. This holds for these two operations as well, in the following sense: subtracting after adding leaves the function alone:
@@ -424,7 +457,7 @@ So one function adds, the other subtracts. Addition and subtraction are somehow 
 
 ```{julia}
 k = 10    # some arbitrary value k >= 1
-D(S(𝐟))(k), 𝐟(k)
+D(S(f))(k), f(k)
 ```
 
 Any positive integer value of `k` will give the same answer (up to overflow). This says the difference of the accumulation process is just the last value to accumulate.
@@ -434,7 +467,7 @@ Adding after subtracting also leaves the function alone, save for a vestige of $
 
 
 ```{julia}
-S(D(𝐟))(15),  𝐟(15) - 𝐟(0)
+S(D(f))(15),  f(15) - f(0)
 ```
 
 That is the accumulation of differences is just the difference of the end values.
@@ -597,9 +630,11 @@ Consider this expression
 
 
 $$
-\left(f(1) - f(0)\right) + \left(f(2) - f(1)\right) + \cdots + \left(f(n) - f(n-1)\right) =
--f(0) + f(1) - f(1) + f(2) - f(2) + \cdots + f(n-1) - f(n-1) + f(n) =
-f(n) - f(0).
+\begin{align*}
+\left(f(1) - f(0)\right) &+ \left(f(2) - f(1)\right) + \cdots + \left(f(n) - f(n-1)\right) \\
+&= -f(0) + f(1) - f(1) + f(2) - f(2) + \cdots + f(n-1) - f(n-1) + f(n) \\
+&=f(n) - f(0).
+\end{align*}
 $$
 
 Referring to the definitions of `D` and `S` in the example on operators, which relationship does this support:

@@ -153,7 +153,7 @@ This decomposition breaks the rational expression into two pieces: $x-4$ and $40
 plot(apart(h) - (x - 4), 10, 100)
 ```
 
-Similarly, a plot over $[-100, -10]$ would show decay towards $0$, though in that case from below. Combining these two facts then, it is now no surprise that the graph of the rational function $f(x)$ should approach a straight line, in this case $y=x-4$ as $x \rightarrow \pm \infty$.
+Similarly, a plot over $[-100, -10]$ would show decay towards $0$, though in that case from below. Combining these two facts then, it is now no surprise that the graph of the rational function $f(x)$ should approach a straight line, in this case $y=x-4$, as $x \rightarrow \pm \infty$.
 
 
 We can easily do most of this analysis without needing a computer or algebra. First, we should know the four eventual shapes of a polynomial, that the graph of $y=mx$ is a line with slope $m$, the graph of $y = c$ is a constant line at height $c$, and the graph of $y=c/x^m$, $m > 0$ will decay towards $0$ as $x \rightarrow \pm\infty$. The latter should be clear, as $x^m$ gets big, so its reciprocal goes towards $0$.
@@ -358,8 +358,8 @@ We can avoid the vertical asymptotes in our viewing window. For example we could
 
 
 ```{julia}
-𝒇(x) = (x-1)^2 * (x-2) / ((x+3)*(x-3) )
-plot(𝒇, -2.9, 2.9)
+f(x) = (x-1)^2 * (x-2) / ((x+3)*(x-3) )
+plot(f, -2.9, 2.9)
 ```
 
 This backs off by $\delta = 0.1$. As we have that $3 - 2.9$ is $\delta$ and $1/\delta$ is 10, the $y$ axis won't get too large, and indeed it doesn't.
@@ -373,7 +373,7 @@ We can also clip the `y` axis. The `plot` function can be passed an argument `yl
 
 ```{julia}
 #| hold: true
-plot(𝒇, -5, 5, ylims=(-20, 20))
+plot(f, -5, 5, ylims=(-20, 20))
 ```
 
 This isn't ideal, as the large values are still computed, just the viewing window is clipped. This leaves the vertical asymptotes still effecting the graph.
@@ -386,7 +386,7 @@ This was discussed in an earlier section where the `rangeclamp` function was int
 
 
 ```{julia}
-plot(rangeclamp(𝒇, 30), -25, 25)  # rangeclamp is in the CalculusWithJulia package
+plot(rangeclamp(f, 30), -25, 25)  # rangeclamp is in the CalculusWithJulia package
 ```
 
 We can see the general shape of $3$ curves broken up by the vertical asymptotes. The two on the side heading off towards the line $x-4$ and the one in the middle. We still can't see the precise location of the zeros, but that wouldn't be the case with most graphs that show asymptotic behaviors. However, we can clearly tell where to "zoom in" were those of interest.
@@ -464,28 +464,28 @@ In the following, we import some functions from the `Polynomials` package. We av
 import Polynomials: Polynomial, variable, lowest_terms, fromroots, coeffs
 ```
 
-The `Polynomials` package has support for rational functions. The `//` operator can be used to create rational expressions:
+The `Polynomials` package has support for rational functions. The `//` operator can be used to create rational expressions from polynomial expressions:
 
 
 ```{julia}
-𝒙 = variable()
-𝒑 = (𝒙-1)*(𝒙-2)^2
-𝒒 = (𝒙-2)*(𝒙-3)
-𝒑𝒒 = 𝒑 // 𝒒
+x = variable()
+p = (x-1)*(x-2)^2
+q = (x-2)*(x-3)
+pq = p // q
 ```
 
 A rational expression is a formal object; a rational function the viewpoint that this object will be evaluated by substituting  values for the indeterminate. Rational expressions made within `Polynomials` are evaluated just like functions:
 
 
 ```{julia}
-𝒑𝒒(4)  # p(4)/q(4)
+pq(4)  # p(4)/q(4)
 ```
 
 The rational expressions are not in lowest terms unless requested through the `lowest_terms` method:
 
 
 ```{julia}
-lowest_terms(𝒑𝒒)
+lowest_terms(pq)
 ```
 
 For polynomials as simple as these, this computation is not a problem, but there is the very real possibility that the lowest term computation may be incorrect. Unlike `SymPy` which factors symbolically, `lowest_terms` uses a numeric algorithm and does not, as would be done by hand or with `SymPy`, factor the polynomial and then cancel common factors.
@@ -512,7 +512,7 @@ Similarly, we can divide a polynomial by the polynomial $1$, which in `Julia` is
 
 
 ```{julia}
-pp = 𝒑 // one(𝒑)
+pp = p // one(p)
 ```
 
 And as with rational numbers, `p` is recovered by `numerator`:
@@ -532,7 +532,7 @@ For the polynomial `pq` above, we have from observation that $1$ and $2$ will be
 
 
 ```{julia}
-plot(𝒑𝒒)
+plot(pq)
 ```
 
 To better see the zeros, a plot over a narrower interval, say $[0,2.5]$, would be encouraged; to better see the slant asymptote, a plot over a wider interval, say $[-10,10]$, would be encouraged.
@@ -608,8 +608,8 @@ We can verify this does what we want through example with the previously defined
 
 
 ```{julia}
-𝐩 = Polynomial([1, 2, 3, 4, 5])
-𝐪 = mobius_transformation(𝐩, 4, 6)
+p = Polynomial([1, 2, 3, 4, 5])
+q = mobius_transformation(p, 4, 6)
 ```
 
 As contrasted with
@@ -619,9 +619,9 @@ As contrasted with
 #| hold: true
 a, b = 4, 6
 
-pq = 𝐩 // one(𝐩)
+pq = p // one(p)
 x = variable(pq)
-d = Polynomials.degree(𝐩)
+d = Polynomials.degree(p)
 numerator(lowest_terms( (x + 1)^d * pq((a*x + b)/(x + 1))))
 ```
 
@@ -699,22 +699,22 @@ More challenging problems can be readily handled by this package. The following 
 
 
 ```{julia}
-𝒔 = Polynomial([0,1]) # also just variable(Polynomial{Int})
-𝒖 = -1 + 254*𝒔 - 16129*𝒔^2 + 𝒔^15
+s = Polynomial([0,1]) # also just variable(Polynomial{Int})
+u = -1 + 254*s - 16129*s^2 + s^15
 ```
 
 has three real roots, two of which are clustered very close to each other:
 
 
 ```{julia}
-𝒔𝒕 = ANewDsc(coeffs(𝒖))
+st = ANewDsc(coeffs(u))
 ```
 
 and
 
 
 ```{julia}
-refine_roots(𝒔𝒕)
+refine_roots(st)
 ```
 
 The SymPy package (`sympy.real_roots`) can accurately identify the three roots but it can take a **very** long time. The `Polynomials.roots` function from the `Polynomials` package identifies the cluster as complex valued. Though the implementation in `RealPolynomialRoots` doesn't handle such large polynomials, the authors of the algorithm have implementations that can quickly solve polynomials with degrees as high as $10,000$.
