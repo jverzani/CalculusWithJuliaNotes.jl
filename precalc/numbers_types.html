@@ -790,7 +790,7 @@ window.Quarto = {
 <p>Calculators typically have just one type of number - floating point values. These model the real numbers. <code>Julia</code>, on the other hand, has a rich type system, and within that has many different number types. There are types that model each of the four main systems above, and within each type, specializations for how these values are stored.</p>
 <p>Most of the details will not be of interest to all, and will be described later.</p>
 <p>For now, let’s consider the number <span class="math inline">\(1\)</span>. It can be viewed as either an integer, rational, real, or complex number. To construct “<span class="math inline">\(1\)</span>” in each type within <code>Julia</code> we have these different styles:</p>
-<div id="b6c66d49" class="cell" data-execution_count="7">
+<div id="f1c73d82" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1</span>, <span class="fl">1.0</span>, <span class="fl">1</span><span class="op">//</span><span class="fl">1</span>, <span class="fl">1</span> <span class="op">+</span> <span class="fl">0im</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="7">
 <pre><code>(1, 1.0, 1//1, 1 + 0im)</code></pre>
@@ -819,8 +819,8 @@ Warning
 </div>
 <p>Similarly, each type is printed slightly differently.</p>
 <p>The key distinction is between integers and floating points. While floating point values include integers, and so can be used exclusively on the calculator, the difference is that an integer is guaranteed to be an exact value, whereas a floating point value, while often an exact representation of a number is also often just an <em>approximate</em> value. This can be an advantage – floating point values can model a much wider range of numbers.</p>
-<p>Now in nearly all cases the differences are not noticeable. Take for instance this simple calculation involving mixed types.</p>
-<div id="c7b4335d" class="cell" data-execution_count="8">
+<p>In nearly all cases the differences are not noticeable. Take for instance this simple calculation involving mixed types.</p>
+<div id="2730e24b" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1</span> <span class="op">+</span> <span class="fl">1.25</span> <span class="op">+</span> <span class="fl">3</span><span class="op">//</span><span class="fl">2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="8">
 <pre><code>3.75</code></pre>
@@ -829,7 +829,7 @@ Warning
 <p>The sum of an integer, a floating point number and rational number returns a floating point number without a complaint.</p>
 <p>This is because behind the scenes, <code>Julia</code> will often “promote” a type to match, so for example to compute <code>1 + 1.25</code> the integer <code>1</code> will be promoted to a floating point value and the two values are then added. Similarly, with <code>2.25 + 3//2</code>, where the fraction is promoted to the floating point value <code>1.5</code> and addition is carried out.</p>
 <p>As floating point numbers may be approximations, some values are not quite what they would be mathematically:</p>
-<div id="64a6a522" class="cell" data-execution_count="9">
+<div id="74b31a5d" class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sqrt</span>(<span class="fl">2</span>) <span class="op">*</span> <span class="fu">sqrt</span>(<span class="fl">2</span>) <span class="op">-</span> <span class="fl">2</span>, <span class="fu">sin</span>(<span class="fl">1</span>pi), <span class="fl">1</span><span class="op">/</span><span class="fl">10</span> <span class="op">+</span> <span class="fl">1</span><span class="op">/</span><span class="fl">5</span> <span class="op">-</span> <span class="fl">3</span><span class="op">/</span><span class="fl">10</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="9">
 <pre><code>(4.440892098500626e-16, 1.2246467991473532e-16, 5.551115123125783e-17)</code></pre>
@@ -837,31 +837,41 @@ Warning
 </div>
 <p>These values are <em>very</em> small numbers, but not exactly <span class="math inline">\(0\)</span>, as they are mathematically.</p>
 <hr>
-<p>The only common issue is with powers. <code>Julia</code> tries to keep a predictable output from the input types (not their values). Here are the two main cases that arise where this can cause unexpected results:</p>
+<p>The only common issue is with powers. We saw this previously when discussing a distinction between <code>2^64</code> and <code>2.0^64.</code>Julia` tries to keep a predictable output from the input types (not their values). Here are the two main cases that arise where this can cause unexpected results:</p>
 <ul>
 <li>integer bases and integer exponents can <em>easily</em> overflow. Not only <code>m^n</code> is always an integer, it is always an integer with a fixed storage size computed from the sizes of <code>m</code> and <code>n</code>. So the powers can quickly get too big. This can be especially noticeable on older <span class="math inline">\(32\)</span>-bit machines, where too big is <span class="math inline">\(2^{32} = 4,294,967,296\)</span>. On <span class="math inline">\(64\)</span>-bit machines, this limit is present but much bigger.</li>
 </ul>
 <p>Rather than give an error though, <code>Julia</code> gives seemingly arbitrary answers, as can be seen in this example on a <span class="math inline">\(64\)</span>-bit machine:</p>
-<div id="95b59d16" class="cell" data-execution_count="10">
+<div id="ca2ec776" class="cell" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fl">2</span><span class="op">^</span><span class="fl">62</span>, <span class="fl">2</span><span class="op">^</span><span class="fl">63</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="10">
 <pre><code>(4611686018427387904, -9223372036854775808)</code></pre>
 </div>
 </div>
-<p>(They aren’t arbitrary, rather integer arithmetic is implemented as modular arithmetic.)</p>
-<p>This could be worked around, as it is with some programming languages, but it isn’t, as it would slow down this basic computation. So, it is up to the user to be aware of cases where their integer values can grow to big. The suggestion is to use floating point numbers in this domain, as they have more room, at the cost of sometimes being approximate values.</p>
+<p>(They aren’t arbitrary, as explained previosly.)</p>
+<p>This could be worked around, as it is with some programming languages, but it isn’t, as it would slow down this basic computation. So, it is up to the user to be aware of cases where their integer values can grow to big. The suggestion is to use floating point numbers in this domain, as they have more room, at the cost of sometimes being approximate values for fairly large values.</p>
 <ul>
 <li>the <code>sqrt</code> function will give a domain error for negative values:</li>
 </ul>
-<div id="5f883944" class="cell" data-execution_count="11">
+<div id="5afd1a65" class="cell" data-execution_count="11">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sqrt</span>(<span class="op">-</span><span class="fl">1.0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-error">
 <pre><code>LoadError: DomainError with -1.0:
-sqrt was called with a negative real argument but will only return a complex result if called with a complex argument. Try sqrt(Complex(x)).</code></pre>
+sqrt was called with a negative real argument but will only return a complex result if called with a complex argument. Try sqrt(Complex(x)).
+DomainError with -1.0:
+sqrt was called with a negative real argument but will only return a complex result if called with a complex argument. Try sqrt(Complex(x)).
+
+Stacktrace:
+ [1] throw_complex_domainerror(f::Symbol, x::Float64)
+   @ Base.Math ./math.jl:33
+ [2] sqrt(x::Float64)
+   @ Base.Math ./math.jl:608
+ [3] top-level scope
+   @ In[11]:1</code></pre>
 </div>
 </div>
 <p>This is because for real-valued inputs <code>Julia</code> expects to return a real-valued output. Of course, this is true in mathematics until the complex numbers are introduced. Similarly in <code>Julia</code> - to take square roots of negative numbers, start with complex numbers:</p>
-<div id="0425fd8a" class="cell" data-execution_count="12">
+<div id="f2647ffe" class="cell" data-execution_count="12">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sqrt</span>(<span class="op">-</span><span class="fl">1.0</span> <span class="op">+</span> <span class="fl">0im</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="12">
 <pre><code>0.0 + 1.0im</code></pre>
@@ -889,8 +899,9 @@ sqrt was called with a negative real argument but will only return a complex res
 </section>
 <section id="floating-point-numbers" class="level3" data-number="3.1.2">
 <h3 data-number="3.1.2" class="anchored" data-anchor-id="floating-point-numbers"><span class="header-section-number">3.1.2</span> Floating point numbers</h3>
-<p><a href="http://en.wikipedia.org/wiki/Floating_point">Floating point</a> numbers are a computational model for the real numbers. For floating point numbers, <span class="math inline">\(64\)</span> bits are used by default for both <span class="math inline">\(32\)</span>- and <span class="math inline">\(64\)</span>-bit systems, though other storage sizes can be requested. This gives a large ranging - but still finite - set of real numbers that can be represented. However, there are infinitely many real numbers just between <span class="math inline">\(0\)</span> and <span class="math inline">\(1\)</span>, so there is no chance that all can be represented exactly on the computer with a floating point value. Floating point then is <em>necessarily</em> an approximation for all but a subset of the real numbers. Floating point values can be viewed in normalized <a href="http://en.wikipedia.org/wiki/Scientific_notation">scientific notation</a> as <span class="math inline">\(a\cdot 2^b\)</span> where <span class="math inline">\(a\)</span> is the <em>significand</em> and <span class="math inline">\(b\)</span> is the <em>exponent</em>. Save for special values, the significand <span class="math inline">\(a\)</span> is normalized to satisfy <span class="math inline">\(1 \leq \lvert a\rvert &lt; 2\)</span>, the exponent can be taken to be an integer, possibly negative.</p>
+<p><a href="http://en.wikipedia.org/wiki/Floating_point">Floating point</a> numbers are a computational model for the real numbers. For floating point numbers, <span class="math inline">\(64\)</span> bits are used by default for both <span class="math inline">\(32\)</span>- and <span class="math inline">\(64\)</span>-bit systems, though other storage sizes can be requested. This gives a large range - but still finite - set of real numbers that can be represented. However, there are infinitely many real numbers just between <span class="math inline">\(0\)</span> and <span class="math inline">\(1\)</span>, so there is no chance that all can be represented exactly on the computer with a floating point value. Floating point then is <em>necessarily</em> an approximation for all but a subset of the real numbers. Floating point values can be viewed in normalized <a href="http://en.wikipedia.org/wiki/Scientific_notation">scientific notation</a> as <span class="math inline">\(a\cdot 2^b\)</span> where <span class="math inline">\(a\)</span> is the <em>significand</em> and <span class="math inline">\(b\)</span> is the <em>exponent</em>. Save for special values, the significand <span class="math inline">\(a\)</span> is normalized to satisfy <span class="math inline">\(1 \leq \lvert a\rvert &lt; 2\)</span>, the exponent can be taken to be an integer, possibly negative.</p>
 <p>As per IEEE Standard 754, the <code>Float64</code> type gives 52 bits to the precision (with an additional implied one), 11 bits to the exponent and the other bit is used to represent the sign. Positive, finite, floating point numbers have a range approximately between <span class="math inline">\(10^{-308}\)</span> and <span class="math inline">\(10^{308}\)</span>, as 308 is about <span class="math inline">\(\log_{10} 2^{1023}\)</span>. The numbers are not evenly spread out over this range, but, rather, are much more concentrated closer to <span class="math inline">\(0\)</span>.</p>
+<p>The use of 32-bit floating point values is common, as some widley used computer chips expect this. These values have a narrower range of possible values.</p>
 <div class="callout callout-style-default callout-warning callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -916,38 +927,50 @@ More on floating point numbers
 <section id="scientific-notation" class="level4">
 <h4 class="anchored" data-anchor-id="scientific-notation">Scientific notation</h4>
 <p>Floating point numbers may print in a familiar manner:</p>
-<div id="6c8d478f" class="cell" data-execution_count="13">
+<div id="5511bf47" class="cell" data-execution_count="13">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> <span class="fl">1.23</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="13">
 <pre><code>1.23</code></pre>
 </div>
 </div>
 <p>or may be represented in scientific notation:</p>
-<div id="1d6d194a" class="cell" data-execution_count="14">
+<div id="825b1f7f" class="cell" data-execution_count="14">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fl">6.022</span> <span class="op">*</span> <span class="fl">10.0</span><span class="op">^</span><span class="fl">23</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="14">
 <pre><code>6.0219999999999996e23</code></pre>
 </div>
 </div>
 <p>The special coding <code>aeb</code> (or if the exponent is negative <code>ae-b</code>) is used to represent the number <span class="math inline">\(a \cdot 10^b\)</span> (<span class="math inline">\(1 \leq a &lt; 10\)</span>). This notation can be used directly to specify a floating point value:</p>
-<div id="cd666426" class="cell" data-execution_count="15">
+<div id="f519ffe9" class="cell" data-execution_count="15">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>avogadro <span class="op">=</span> <span class="fl">6.022e23</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="15">
 <pre><code>6.022e23</code></pre>
 </div>
 </div>
-<p>Here <code>e</code> is decidedly <em>not</em> the Euler number, rather syntax to separate the exponent from the mantissa.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Not <code>e</code>
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Here <code>e</code> is decidedly <em>not</em> the Euler number, rather <strong>syntax</strong> to separate the exponent from the mantissa.</p>
+</div>
+</div>
 <p>The first way of representing this number required using <code>10.0</code> and not <code>10</code> as the integer power will return an integer and even for 64-bit systems is only valid up to <code>10^18</code>. Using scientific notation avoids having to concentrate on such limitations.</p>
 <section id="example" class="level5">
 <h5 class="anchored" data-anchor-id="example">Example</h5>
 <p>Floating point values in scientific notation will always be normalized. This is easy for the computer to do, but tedious to do by hand. Here we see:</p>
-<div id="e2752c64" class="cell" data-execution_count="16">
+<div id="2fe86984" class="cell" data-execution_count="16">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fl">4e30</span> <span class="op">*</span> <span class="fl">3e40</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="16">
 <pre><code>1.2000000000000001e71</code></pre>
 </div>
 </div>
-<div id="e0d64fdd" class="cell" data-execution_count="17">
+<div id="b699c710" class="cell" data-execution_count="17">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fl">3e40</span> <span class="op">/</span> <span class="fl">4e30</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="17">
 <pre><code>7.5e9</code></pre>
@@ -958,7 +981,7 @@ More on floating point numbers
 <section id="example-32-bit-floating-point" class="level5">
 <h5 class="anchored" data-anchor-id="example-32-bit-floating-point">Example: 32-bit floating point</h5>
 <p>In some uses, such as using a GPU, <span class="math inline">\(32\)</span>-bit floating point (single precision) is also common. These values may be specified with an <code>f</code> in place of the <code>e</code> in scientific notation:</p>
-<div id="3319eeee" class="cell" data-execution_count="18">
+<div id="f7a9394f" class="cell" data-execution_count="18">
 <div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1.23f0</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="18">
 <pre><code>1.23f0</code></pre>
@@ -970,21 +993,21 @@ More on floating point numbers
 <section id="special-values-inf--inf-nan" class="level4">
 <h4 class="anchored" data-anchor-id="special-values-inf--inf-nan">Special values: Inf, -Inf, NaN</h4>
 <p>The coding of floating point numbers also allows for the special values of <code>Inf</code>, <code>-Inf</code> to represent positive and negative infinity. As well, a special value <code>NaN</code> (“not a number”) is used to represent a value that arises when an operation is not closed (e.g., <span class="math inline">\(0.0/0.0\)</span> yields <code>NaN</code>). (Technically <code>NaN</code> has several possible “values,” a point ignored here.) Except for negative bases, the floating point numbers with the addition of <code>Inf</code> and <code>NaN</code> are closed under the operations <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, and <code>^</code>. Here are some computations that produce <code>NaN</code>:</p>
-<div id="0d6c2355" class="cell" data-execution_count="19">
+<div id="c7dd20c9" class="cell" data-execution_count="19">
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fl">0</span><span class="op">/</span><span class="fl">0</span>, <span class="cn">Inf</span><span class="op">/</span><span class="cn">Inf</span>, <span class="cn">Inf</span> <span class="op">-</span> <span class="cn">Inf</span>, <span class="fl">0</span> <span class="op">*</span> <span class="cn">Inf</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="19">
 <pre><code>(NaN, NaN, NaN, NaN)</code></pre>
 </div>
 </div>
 <p>Whereas, these produce an infinity</p>
-<div id="e66778d1" class="cell" data-execution_count="20">
+<div id="39696c6b" class="cell" data-execution_count="20">
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1</span><span class="op">/</span><span class="fl">0</span>, <span class="cn">Inf</span> <span class="op">+</span> <span class="cn">Inf</span>, <span class="fl">1</span> <span class="op">*</span> <span class="cn">Inf</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="20">
 <pre><code>(Inf, Inf, Inf)</code></pre>
 </div>
 </div>
 <p>Finally, these are mathematically undefined, but still yield a finite value with <code>Julia</code>:</p>
-<div id="633e069f" class="cell" data-execution_count="21">
+<div id="57febc93" class="cell" data-execution_count="21">
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fl">0</span><span class="op">^</span><span class="fl">0</span>, <span class="cn">Inf</span><span class="op">^</span><span class="fl">0</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="21">
 <pre><code>(1, 1.0)</code></pre>
@@ -998,14 +1021,14 @@ More on floating point numbers
 <li>For real and rational numbers, between any two numbers <span class="math inline">\(a &lt; b\)</span>, there is another real number in between. This is not so for floating point numbers which have a finite precision. (Julia has some functions for working with this distinction.)</li>
 <li>Floating point numbers are approximations for most values, even simple rational ones like <span class="math inline">\(1/3\)</span>. This leads to oddities such as this value not being <span class="math inline">\(0\)</span>:</li>
 </ul>
-<div id="875745b7" class="cell" data-execution_count="22">
+<div id="3373ce99" class="cell" data-execution_count="22">
 <div class="sourceCode cell-code" id="cb31"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sqrt</span>(<span class="fl">2</span>)<span class="fu">*sqrt</span>(<span class="fl">2</span>) <span class="op">-</span> <span class="fl">2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="22">
 <pre><code>4.440892098500626e-16</code></pre>
 </div>
 </div>
 <p>It is no surprise that an irrational number, like <span class="math inline">\(\sqrt{2}\)</span>, can’t be represented <strong>exactly</strong> within floating point, but it is perhaps surprising that simple numbers can not be, so <span class="math inline">\(1/3\)</span>, <span class="math inline">\(1/5\)</span>, <span class="math inline">\(\dots\)</span> are approximated. Here is a surprising-at-first consequence:</p>
-<div id="b13be024" class="cell" data-execution_count="23">
+<div id="c7a2449e" class="cell" data-execution_count="23">
 <div class="sourceCode cell-code" id="cb33"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1</span><span class="op">/</span><span class="fl">10</span> <span class="op">+</span> <span class="fl">2</span><span class="op">/</span><span class="fl">10</span> <span class="op">==</span> <span class="fl">3</span><span class="op">/</span><span class="fl">10</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="23">
 <pre><code>false</code></pre>
@@ -1015,16 +1038,16 @@ More on floating point numbers
 <ul>
 <li>Floating point addition is not necessarily associative, that is the property <span class="math inline">\(a + (b+c) = (a+b) + c\)</span> may not hold exactly. For example:</li>
 </ul>
-<div id="d8733d2e" class="cell" data-execution_count="24">
+<div id="086e85bf" class="cell" data-execution_count="24">
 <div class="sourceCode cell-code" id="cb35"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1</span><span class="op">/</span><span class="fl">10</span> <span class="op">+</span> (<span class="fl">2</span><span class="op">/</span><span class="fl">10</span> <span class="op">+</span> <span class="fl">3</span><span class="op">/</span><span class="fl">10</span>) <span class="op">==</span> (<span class="fl">1</span><span class="op">/</span><span class="fl">10</span> <span class="op">+</span> <span class="fl">2</span><span class="op">/</span><span class="fl">10</span>) <span class="op">+</span> <span class="fl">3</span><span class="op">/</span><span class="fl">10</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="24">
 <pre><code>false</code></pre>
 </div>
 </div>
 <ul>
-<li>For real numbers subtraction of similar-sized numbers is not exceptional, for example <span class="math inline">\(1 - \cos(x)\)</span> is positive if <span class="math inline">\(0 &lt; x &lt; \pi/2\)</span>, say. This will not be the case for floating point values. If <span class="math inline">\(x\)</span> is close enough to <span class="math inline">\(0\)</span>, then <span class="math inline">\(\cos(x)\)</span> and <span class="math inline">\(1\)</span> will be so close, that they will be represented by the same floating point value, <code>1.0</code>, so the difference will be zero:</li>
+<li>Mathematically, or real numbers, subtraction of similar-sized numbers is not exceptional, for example <span class="math inline">\(1 - \cos(x)\)</span> is positive if <span class="math inline">\(0 &lt; x &lt; \pi/2\)</span>, say. This will not be the case for floating point values. If <span class="math inline">\(x\)</span> is close enough to <span class="math inline">\(0\)</span>, then <span class="math inline">\(\cos(x)\)</span> and <span class="math inline">\(1\)</span> will be so close, that they will be represented by the same floating point value, <code>1.0</code>, so the difference will be zero:</li>
 </ul>
-<div id="6f0656da" class="cell" data-execution_count="25">
+<div id="b3de72dd" class="cell" data-execution_count="25">
 <div class="sourceCode cell-code" id="cb37"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1.0</span> <span class="op">-</span> <span class="fu">cos</span>(<span class="fl">1e-8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="25">
 <pre><code>0.0</code></pre>
@@ -1034,37 +1057,37 @@ More on floating point numbers
 </section>
 <section id="rational-numbers" class="level3" data-number="3.1.3">
 <h3 data-number="3.1.3" class="anchored" data-anchor-id="rational-numbers"><span class="header-section-number">3.1.3</span> Rational numbers</h3>
-<p>Rational numbers can be used when the exactness of the number is more important than the speed or wider range of values offered by floating point numbers. In <code>Julia</code> a rational number is comprised of a numerator and a denominator, each an integer of the same type, and reduced to lowest terms. The operations of addition, subtraction, multiplication, and division will keep their answers as rational numbers. As well, raising a rational number to a positive, integer value will produce a rational number.</p>
+<p>Rational numbers can be used when the exactness of the number is more important than the speed or wider range of values offered by floating point numbers. In <code>Julia</code> a rational number is comprised of a numerator and a denominator, each an integer of the same type, and reduced to lowest terms. The operations of addition, subtraction, multiplication, and division will keep their answers as rational numbers. As well, raising a rational number to an integer value will produce a rational number.</p>
 <p>As mentioned, these are constructed using double slashes:</p>
-<div id="62f207ca" class="cell" data-execution_count="26">
+<div id="392f0b78" class="cell" data-execution_count="26">
 <div class="sourceCode cell-code" id="cb39"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1</span><span class="op">//</span><span class="fl">2</span>, <span class="fl">2</span><span class="op">//</span><span class="fl">1</span>, <span class="fl">6</span><span class="op">//</span><span class="fl">4</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="26">
 <pre><code>(1//2, 2//1, 3//2)</code></pre>
 </div>
 </div>
 <p>Rational numbers are exact, so the following are identical to their mathematical counterparts:</p>
-<div id="8ff989e4" class="cell" data-execution_count="27">
+<div id="658bb123" class="cell" data-execution_count="27">
 <div class="sourceCode cell-code" id="cb41"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1</span><span class="op">//</span><span class="fl">10</span> <span class="op">+</span> <span class="fl">2</span><span class="op">//</span><span class="fl">10</span> <span class="op">==</span> <span class="fl">3</span><span class="op">//</span><span class="fl">10</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="27">
 <pre><code>true</code></pre>
 </div>
 </div>
 <p>and associativity:</p>
-<div id="84b8b105" class="cell" data-execution_count="28">
+<div id="9d9b5d18" class="cell" data-execution_count="28">
 <div class="sourceCode cell-code" id="cb43"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>(<span class="fl">1</span><span class="op">//</span><span class="fl">10</span> <span class="op">+</span> <span class="fl">2</span><span class="op">//</span><span class="fl">10</span>) <span class="op">+</span> <span class="fl">3</span><span class="op">//</span><span class="fl">10</span> <span class="op">==</span> <span class="fl">1</span><span class="op">//</span><span class="fl">10</span> <span class="op">+</span> (<span class="fl">2</span><span class="op">//</span><span class="fl">10</span> <span class="op">+</span> <span class="fl">3</span><span class="op">//</span><span class="fl">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="28">
 <pre><code>true</code></pre>
 </div>
 </div>
 <p>Here we see that the type is preserved under the basic operations:</p>
-<div id="4130f20b" class="cell" data-execution_count="29">
+<div id="00123d1e" class="cell" data-execution_count="29">
 <div class="sourceCode cell-code" id="cb45"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>(<span class="fl">1</span><span class="op">//</span><span class="fl">2</span> <span class="op">+</span> <span class="fl">1</span><span class="op">//</span><span class="fl">3</span> <span class="op">*</span> <span class="fl">1</span><span class="op">//</span><span class="fl">4</span> <span class="op">/</span> <span class="fl">1</span><span class="op">//</span><span class="fl">5</span>) <span class="op">^</span> <span class="fl">6</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="29">
 <pre><code>1771561//2985984</code></pre>
 </div>
 </div>
 <p>For powers, a non-integer exponent is converted to floating point, so this operation is defined, though will always return a floating point value:</p>
-<div id="9e351e66" class="cell" data-execution_count="30">
+<div id="9dd77772" class="cell" data-execution_count="30">
 <div class="sourceCode cell-code" id="cb47"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>(<span class="fl">1</span><span class="op">//</span><span class="fl">2</span>)<span class="op">^</span>(<span class="fl">1</span><span class="op">//</span><span class="fl">2</span>)   <span class="co"># the first parentheses are necessary as `^` will be evaluated before `//`.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="30">
 <pre><code>0.7071067811865476</code></pre>
@@ -1073,7 +1096,7 @@ More on floating point numbers
 <section id="example-different-types-of-real-numbers" class="level5">
 <h5 class="anchored" data-anchor-id="example-different-types-of-real-numbers">Example: different types of real numbers</h5>
 <p>This table shows what attributes are implemented for the different types.</p>
-<div id="d9a6d94d" class="cell" data-execution_count="31">
+<div id="4e856e1c" class="cell" data-execution_count="31">
 <div class="cell-output cell-output-display cell-output-markdown" data-execution_count="31">
 <table class="caption-top table table-sm table-striped small">
 <colgroup>
@@ -1142,7 +1165,7 @@ More on floating point numbers
 <section id="complex-numbers" class="level3" data-number="3.1.4">
 <h3 data-number="3.1.4" class="anchored" data-anchor-id="complex-numbers"><span class="header-section-number">3.1.4</span> Complex numbers</h3>
 <p>Complex numbers in <code>Julia</code> are stored as two numbers, a real and imaginary part, each some type of <code>Real</code> number. The special constant <code>im</code> is used to represent <span class="math inline">\(i=\sqrt{-1}\)</span>. This makes the construction of complex numbers fairly standard:</p>
-<div id="d2b00f40" class="cell" data-execution_count="32">
+<div id="a0c5ca3f" class="cell" data-execution_count="32">
 <div class="sourceCode cell-code" id="cb49"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1</span> <span class="op">+</span> <span class="fl">2im</span>, <span class="fl">3</span> <span class="op">+</span> <span class="fl">4.0im</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="32">
 <pre><code>(1 + 2im, 3.0 + 4.0im)</code></pre>
@@ -1150,7 +1173,7 @@ More on floating point numbers
 </div>
 <p>(These two aren’t exactly the same, the <code>3</code> is promoted from an integer to a float to match the <code>4.0</code>. Each of the components must be of the same type of number.)</p>
 <p>Mathematically, complex numbers are needed so that certain equations can be satisfied. For example <span class="math inline">\(x^2 = -2\)</span> has solutions <span class="math inline">\(-\sqrt{2}i\)</span> and <span class="math inline">\(\sqrt{2}i\)</span> over the complex numbers. Finding this in <code>Julia</code> requires some attention, as we have both <code>sqrt(-2)</code> and <code>sqrt(-2.0)</code> throwing a <code>DomainError</code>, as the <code>sqrt</code> function expects non-negative real arguments. However first creating a complex number does work:</p>
-<div id="2e21f41e" class="cell" data-execution_count="33">
+<div id="a495dac4" class="cell" data-execution_count="33">
 <div class="sourceCode cell-code" id="cb51"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sqrt</span>(<span class="op">-</span><span class="fl">2</span> <span class="op">+</span> <span class="fl">0im</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="33">
 <pre><code>0.0 + 1.4142135623730951im</code></pre>
@@ -1158,7 +1181,7 @@ More on floating point numbers
 </div>
 <p>For complex arguments, the <code>sqrt</code> function will return complex values (even if the answer is a real number).</p>
 <p>This means, if you wanted to perform the quadratic equation for any real inputs, your computations might involve something like the following:</p>
-<div id="07746cd0" class="cell" data-execution_count="34">
+<div id="f8257241" class="cell" data-execution_count="34">
 <div class="sourceCode cell-code" id="cb53"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>a,b,c <span class="op">=</span> <span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">3</span>  <span class="co">## x^2 + 2x + 3</span></span>
 <span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>discr <span class="op">=</span> b<span class="op">^</span><span class="fl">2</span> <span class="op">-</span> <span class="fl">4</span>a<span class="op">*</span>c</span>
 <span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>(<span class="op">-</span>b <span class="op">+</span> <span class="fu">sqrt</span>(discr <span class="op">+</span> <span class="fl">0im</span>))<span class="op">/</span>(<span class="fl">2</span>a), (<span class="op">-</span>b <span class="op">-</span> <span class="fu">sqrt</span>(discr <span class="op">+</span> <span class="fl">0im</span>))<span class="op">/</span>(<span class="fl">2</span>a)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1215,21 +1238,21 @@ a^n=a \cdot a \cdot a \cdots a \text{ (n times); }  a, n \text{ are integers } n
 <section id="question" class="level6">
 <h6 class="anchored" data-anchor-id="question">Question</h6>
 <p>The number created by <code>pi/2</code> is?</p>
-<div id="019e4609" class="cell" data-hold="true" data-execution_count="36">
+<div id="971b486d" class="cell" data-hold="true" data-execution_count="36">
 <div class="cell-output cell-output-display" data-execution_count="36">
 <script>
-var ID = "gUL1S2WO"
+var ID = "uzbJmOuz"
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="gUL1S2WO" data-controltype="" onsubmit="return false;">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="uzbJmOuz" data-controltype="" onsubmit="return false;">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_gUL1S2WO" correct="-1" attempts="0">
+      <div class="form" id="controls_uzbJmOuz" correct="-1" attempts="0">
         <div style="padding-top: 5px">
     <fieldset style="border:0px">
 <legend style="display: none" aria-label="Select an item">Select an item</legend>
 <div class="form-check">
-    <label class="form-check-label" for="radio_gUL1S2WO_1">
-      <input class="form-check-input" type="radio" name="radio_gUL1S2WO" id="radio_gUL1S2WO_1" value="1">
+    <label class="form-check-label" for="radio_uzbJmOuz_1">
+      <input class="form-check-input" type="radio" name="radio_uzbJmOuz" id="radio_uzbJmOuz_1" value="1">
       
       <span class="label-body px-1">
         Integer
@@ -1237,8 +1260,8 @@ var ID = "gUL1S2WO"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_gUL1S2WO_2">
-      <input class="form-check-input" type="radio" name="radio_gUL1S2WO" id="radio_gUL1S2WO_2" value="2">
+    <label class="form-check-label" for="radio_uzbJmOuz_2">
+      <input class="form-check-input" type="radio" name="radio_uzbJmOuz" id="radio_uzbJmOuz_2" value="2">
       
       <span class="label-body px-1">
         Rational
@@ -1246,8 +1269,8 @@ var ID = "gUL1S2WO"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_gUL1S2WO_3">
-      <input class="form-check-input" type="radio" name="radio_gUL1S2WO" id="radio_gUL1S2WO_3" value="3">
+    <label class="form-check-label" for="radio_uzbJmOuz_3">
+      <input class="form-check-input" type="radio" name="radio_uzbJmOuz" id="radio_uzbJmOuz_3" value="3">
       
       <span class="label-body px-1">
         Floating point
@@ -1255,8 +1278,8 @@ var ID = "gUL1S2WO"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_gUL1S2WO_4">
-      <input class="form-check-input" type="radio" name="radio_gUL1S2WO" id="radio_gUL1S2WO_4" value="4">
+    <label class="form-check-label" for="radio_uzbJmOuz_4">
+      <input class="form-check-input" type="radio" name="radio_uzbJmOuz" id="radio_uzbJmOuz_4" value="4">
       
       <span class="label-body px-1">
         Complex
@@ -1264,8 +1287,8 @@ var ID = "gUL1S2WO"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_gUL1S2WO_5">
-      <input class="form-check-input" type="radio" name="radio_gUL1S2WO" id="radio_gUL1S2WO_5" value="5">
+    <label class="form-check-label" for="radio_uzbJmOuz_5">
+      <input class="form-check-input" type="radio" name="radio_uzbJmOuz" id="radio_uzbJmOuz_5" value="5">
       
       <span class="label-body px-1">
         None, an error occurs
@@ -1277,13 +1300,13 @@ var ID = "gUL1S2WO"
     
         </div>
       </div>
-      <div id="gUL1S2WO_message" style="padding-bottom: 15px"></div>
+      <div id="uzbJmOuz_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 <script>
-document.getElementById('controls_gUL1S2WO').addEventListener("quizquestion_answer", (e) => {
-          var o = document.getElementById('controls_gUL1S2WO')
+document.getElementById('controls_uzbJmOuz').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_uzbJmOuz')
           var atts = Number(o.getAttribute("attempts"))
           o.setAttribute("correct",  e.detail.correct);
           o.setAttribute("attempts", atts + 1)
@@ -1291,14 +1314,14 @@ document.getElementById('controls_gUL1S2WO').addEventListener("quizquestion_answ
 </script>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_gUL1S2WO"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_uzbJmOuz"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 3;
-    var msgBox = document.getElementById('gUL1S2WO_message');
+    var msgBox = document.getElementById('uzbJmOuz_message');
     
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_gUL1S2WO")
+    var explanation = document.getElementById("explanation_uzbJmOuz")
     if (explanation != null) {
        explanation.style.display = "none";
     }
@@ -1308,7 +1331,7 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_gUL1S2WO")
+    var explanation = document.getElementById("explanation_uzbJmOuz")
     if (explanation != null) {
        explanation.style.display = "block";
     }
@@ -1327,21 +1350,21 @@ rb.addEventListener("change", function() {
 <section id="question-1" class="level6">
 <h6 class="anchored" data-anchor-id="question-1">Question</h6>
 <p>The number created by <code>2/2</code> is?</p>
-<div id="7c6b55ec" class="cell" data-hold="true" data-execution_count="37">
+<div id="eb340ec4" class="cell" data-hold="true" data-execution_count="37">
 <div class="cell-output cell-output-display" data-execution_count="37">
 <script>
-var ID = "iycE06Ur"
+var ID = "vKYqYQpr"
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="iycE06Ur" data-controltype="" onsubmit="return false;">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="vKYqYQpr" data-controltype="" onsubmit="return false;">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_iycE06Ur" correct="-1" attempts="0">
+      <div class="form" id="controls_vKYqYQpr" correct="-1" attempts="0">
         <div style="padding-top: 5px">
     <fieldset style="border:0px">
 <legend style="display: none" aria-label="Select an item">Select an item</legend>
 <div class="form-check">
-    <label class="form-check-label" for="radio_iycE06Ur_1">
-      <input class="form-check-input" type="radio" name="radio_iycE06Ur" id="radio_iycE06Ur_1" value="1">
+    <label class="form-check-label" for="radio_vKYqYQpr_1">
+      <input class="form-check-input" type="radio" name="radio_vKYqYQpr" id="radio_vKYqYQpr_1" value="1">
       
       <span class="label-body px-1">
         Integer
@@ -1349,8 +1372,8 @@ var ID = "iycE06Ur"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_iycE06Ur_2">
-      <input class="form-check-input" type="radio" name="radio_iycE06Ur" id="radio_iycE06Ur_2" value="2">
+    <label class="form-check-label" for="radio_vKYqYQpr_2">
+      <input class="form-check-input" type="radio" name="radio_vKYqYQpr" id="radio_vKYqYQpr_2" value="2">
       
       <span class="label-body px-1">
         Rational
@@ -1358,8 +1381,8 @@ var ID = "iycE06Ur"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_iycE06Ur_3">
-      <input class="form-check-input" type="radio" name="radio_iycE06Ur" id="radio_iycE06Ur_3" value="3">
+    <label class="form-check-label" for="radio_vKYqYQpr_3">
+      <input class="form-check-input" type="radio" name="radio_vKYqYQpr" id="radio_vKYqYQpr_3" value="3">
       
       <span class="label-body px-1">
         Floating point
@@ -1367,8 +1390,8 @@ var ID = "iycE06Ur"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_iycE06Ur_4">
-      <input class="form-check-input" type="radio" name="radio_iycE06Ur" id="radio_iycE06Ur_4" value="4">
+    <label class="form-check-label" for="radio_vKYqYQpr_4">
+      <input class="form-check-input" type="radio" name="radio_vKYqYQpr" id="radio_vKYqYQpr_4" value="4">
       
       <span class="label-body px-1">
         Complex
@@ -1376,8 +1399,8 @@ var ID = "iycE06Ur"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_iycE06Ur_5">
-      <input class="form-check-input" type="radio" name="radio_iycE06Ur" id="radio_iycE06Ur_5" value="5">
+    <label class="form-check-label" for="radio_vKYqYQpr_5">
+      <input class="form-check-input" type="radio" name="radio_vKYqYQpr" id="radio_vKYqYQpr_5" value="5">
       
       <span class="label-body px-1">
         None, an error occurs
@@ -1389,13 +1412,13 @@ var ID = "iycE06Ur"
     
         </div>
       </div>
-      <div id="iycE06Ur_message" style="padding-bottom: 15px"></div>
+      <div id="vKYqYQpr_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 <script>
-document.getElementById('controls_iycE06Ur').addEventListener("quizquestion_answer", (e) => {
-          var o = document.getElementById('controls_iycE06Ur')
+document.getElementById('controls_vKYqYQpr').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_vKYqYQpr')
           var atts = Number(o.getAttribute("attempts"))
           o.setAttribute("correct",  e.detail.correct);
           o.setAttribute("attempts", atts + 1)
@@ -1403,14 +1426,14 @@ document.getElementById('controls_iycE06Ur').addEventListener("quizquestion_answ
 </script>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_iycE06Ur"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_vKYqYQpr"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 3;
-    var msgBox = document.getElementById('iycE06Ur_message');
+    var msgBox = document.getElementById('vKYqYQpr_message');
     
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_iycE06Ur")
+    var explanation = document.getElementById("explanation_vKYqYQpr")
     if (explanation != null) {
        explanation.style.display = "none";
     }
@@ -1420,7 +1443,7 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_iycE06Ur")
+    var explanation = document.getElementById("explanation_vKYqYQpr")
     if (explanation != null) {
        explanation.style.display = "block";
     }
@@ -1439,21 +1462,21 @@ rb.addEventListener("change", function() {
 <section id="question-2" class="level6">
 <h6 class="anchored" data-anchor-id="question-2">Question</h6>
 <p>The number created by <code>2//2</code> is?</p>
-<div id="cd4f8dbf" class="cell" data-hold="true" data-execution_count="38">
+<div id="f350dc08" class="cell" data-hold="true" data-execution_count="38">
 <div class="cell-output cell-output-display" data-execution_count="38">
 <script>
-var ID = "yZXvxr5o"
+var ID = "3cfTwbzy"
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="yZXvxr5o" data-controltype="" onsubmit="return false;">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="3cfTwbzy" data-controltype="" onsubmit="return false;">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_yZXvxr5o" correct="-1" attempts="0">
+      <div class="form" id="controls_3cfTwbzy" correct="-1" attempts="0">
         <div style="padding-top: 5px">
     <fieldset style="border:0px">
 <legend style="display: none" aria-label="Select an item">Select an item</legend>
 <div class="form-check">
-    <label class="form-check-label" for="radio_yZXvxr5o_1">
-      <input class="form-check-input" type="radio" name="radio_yZXvxr5o" id="radio_yZXvxr5o_1" value="1">
+    <label class="form-check-label" for="radio_3cfTwbzy_1">
+      <input class="form-check-input" type="radio" name="radio_3cfTwbzy" id="radio_3cfTwbzy_1" value="1">
       
       <span class="label-body px-1">
         Integer
@@ -1461,8 +1484,8 @@ var ID = "yZXvxr5o"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_yZXvxr5o_2">
-      <input class="form-check-input" type="radio" name="radio_yZXvxr5o" id="radio_yZXvxr5o_2" value="2">
+    <label class="form-check-label" for="radio_3cfTwbzy_2">
+      <input class="form-check-input" type="radio" name="radio_3cfTwbzy" id="radio_3cfTwbzy_2" value="2">
       
       <span class="label-body px-1">
         Rational
@@ -1470,8 +1493,8 @@ var ID = "yZXvxr5o"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_yZXvxr5o_3">
-      <input class="form-check-input" type="radio" name="radio_yZXvxr5o" id="radio_yZXvxr5o_3" value="3">
+    <label class="form-check-label" for="radio_3cfTwbzy_3">
+      <input class="form-check-input" type="radio" name="radio_3cfTwbzy" id="radio_3cfTwbzy_3" value="3">
       
       <span class="label-body px-1">
         Floating point
@@ -1479,8 +1502,8 @@ var ID = "yZXvxr5o"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_yZXvxr5o_4">
-      <input class="form-check-input" type="radio" name="radio_yZXvxr5o" id="radio_yZXvxr5o_4" value="4">
+    <label class="form-check-label" for="radio_3cfTwbzy_4">
+      <input class="form-check-input" type="radio" name="radio_3cfTwbzy" id="radio_3cfTwbzy_4" value="4">
       
       <span class="label-body px-1">
         Complex
@@ -1488,8 +1511,8 @@ var ID = "yZXvxr5o"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_yZXvxr5o_5">
-      <input class="form-check-input" type="radio" name="radio_yZXvxr5o" id="radio_yZXvxr5o_5" value="5">
+    <label class="form-check-label" for="radio_3cfTwbzy_5">
+      <input class="form-check-input" type="radio" name="radio_3cfTwbzy" id="radio_3cfTwbzy_5" value="5">
       
       <span class="label-body px-1">
         None, an error occurs
@@ -1501,13 +1524,13 @@ var ID = "yZXvxr5o"
     
         </div>
       </div>
-      <div id="yZXvxr5o_message" style="padding-bottom: 15px"></div>
+      <div id="3cfTwbzy_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 <script>
-document.getElementById('controls_yZXvxr5o').addEventListener("quizquestion_answer", (e) => {
-          var o = document.getElementById('controls_yZXvxr5o')
+document.getElementById('controls_3cfTwbzy').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_3cfTwbzy')
           var atts = Number(o.getAttribute("attempts"))
           o.setAttribute("correct",  e.detail.correct);
           o.setAttribute("attempts", atts + 1)
@@ -1515,14 +1538,14 @@ document.getElementById('controls_yZXvxr5o').addEventListener("quizquestion_answ
 </script>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_yZXvxr5o"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_3cfTwbzy"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 2;
-    var msgBox = document.getElementById('yZXvxr5o_message');
+    var msgBox = document.getElementById('3cfTwbzy_message');
     
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_yZXvxr5o")
+    var explanation = document.getElementById("explanation_3cfTwbzy")
     if (explanation != null) {
        explanation.style.display = "none";
     }
@@ -1532,7 +1555,7 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_yZXvxr5o")
+    var explanation = document.getElementById("explanation_3cfTwbzy")
     if (explanation != null) {
        explanation.style.display = "block";
     }
@@ -1551,21 +1574,21 @@ rb.addEventListener("change", function() {
 <section id="question-3" class="level6">
 <h6 class="anchored" data-anchor-id="question-3">Question</h6>
 <p>The number created by <code>1 + 1//2 + 1/3</code> is?</p>
-<div id="59c90d50" class="cell" data-hold="true" data-execution_count="39">
+<div id="3a0e54ef" class="cell" data-hold="true" data-execution_count="39">
 <div class="cell-output cell-output-display" data-execution_count="39">
 <script>
-var ID = "DHV9lRp1"
+var ID = "wpXykg9F"
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="DHV9lRp1" data-controltype="" onsubmit="return false;">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="wpXykg9F" data-controltype="" onsubmit="return false;">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_DHV9lRp1" correct="-1" attempts="0">
+      <div class="form" id="controls_wpXykg9F" correct="-1" attempts="0">
         <div style="padding-top: 5px">
     <fieldset style="border:0px">
 <legend style="display: none" aria-label="Select an item">Select an item</legend>
 <div class="form-check">
-    <label class="form-check-label" for="radio_DHV9lRp1_1">
-      <input class="form-check-input" type="radio" name="radio_DHV9lRp1" id="radio_DHV9lRp1_1" value="1">
+    <label class="form-check-label" for="radio_wpXykg9F_1">
+      <input class="form-check-input" type="radio" name="radio_wpXykg9F" id="radio_wpXykg9F_1" value="1">
       
       <span class="label-body px-1">
         Integer
@@ -1573,8 +1596,8 @@ var ID = "DHV9lRp1"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_DHV9lRp1_2">
-      <input class="form-check-input" type="radio" name="radio_DHV9lRp1" id="radio_DHV9lRp1_2" value="2">
+    <label class="form-check-label" for="radio_wpXykg9F_2">
+      <input class="form-check-input" type="radio" name="radio_wpXykg9F" id="radio_wpXykg9F_2" value="2">
       
       <span class="label-body px-1">
         Rational
@@ -1582,8 +1605,8 @@ var ID = "DHV9lRp1"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_DHV9lRp1_3">
-      <input class="form-check-input" type="radio" name="radio_DHV9lRp1" id="radio_DHV9lRp1_3" value="3">
+    <label class="form-check-label" for="radio_wpXykg9F_3">
+      <input class="form-check-input" type="radio" name="radio_wpXykg9F" id="radio_wpXykg9F_3" value="3">
       
       <span class="label-body px-1">
         Floating point
@@ -1591,8 +1614,8 @@ var ID = "DHV9lRp1"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_DHV9lRp1_4">
-      <input class="form-check-input" type="radio" name="radio_DHV9lRp1" id="radio_DHV9lRp1_4" value="4">
+    <label class="form-check-label" for="radio_wpXykg9F_4">
+      <input class="form-check-input" type="radio" name="radio_wpXykg9F" id="radio_wpXykg9F_4" value="4">
       
       <span class="label-body px-1">
         Complex
@@ -1600,8 +1623,8 @@ var ID = "DHV9lRp1"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_DHV9lRp1_5">
-      <input class="form-check-input" type="radio" name="radio_DHV9lRp1" id="radio_DHV9lRp1_5" value="5">
+    <label class="form-check-label" for="radio_wpXykg9F_5">
+      <input class="form-check-input" type="radio" name="radio_wpXykg9F" id="radio_wpXykg9F_5" value="5">
       
       <span class="label-body px-1">
         None, an error occurs
@@ -1613,13 +1636,13 @@ var ID = "DHV9lRp1"
     
         </div>
       </div>
-      <div id="DHV9lRp1_message" style="padding-bottom: 15px"></div>
+      <div id="wpXykg9F_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 <script>
-document.getElementById('controls_DHV9lRp1').addEventListener("quizquestion_answer", (e) => {
-          var o = document.getElementById('controls_DHV9lRp1')
+document.getElementById('controls_wpXykg9F').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_wpXykg9F')
           var atts = Number(o.getAttribute("attempts"))
           o.setAttribute("correct",  e.detail.correct);
           o.setAttribute("attempts", atts + 1)
@@ -1627,14 +1650,14 @@ document.getElementById('controls_DHV9lRp1').addEventListener("quizquestion_answ
 </script>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_DHV9lRp1"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_wpXykg9F"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 3;
-    var msgBox = document.getElementById('DHV9lRp1_message');
+    var msgBox = document.getElementById('wpXykg9F_message');
     
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_DHV9lRp1")
+    var explanation = document.getElementById("explanation_wpXykg9F")
     if (explanation != null) {
        explanation.style.display = "none";
     }
@@ -1644,7 +1667,7 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_DHV9lRp1")
+    var explanation = document.getElementById("explanation_wpXykg9F")
     if (explanation != null) {
        explanation.style.display = "block";
     }
@@ -1663,21 +1686,21 @@ rb.addEventListener("change", function() {
 <section id="question-4" class="level6">
 <h6 class="anchored" data-anchor-id="question-4">Question</h6>
 <p>The number created by <code>2^3</code> is?</p>
-<div id="8f923488" class="cell" data-hold="true" data-execution_count="40">
+<div id="7dc70c67" class="cell" data-hold="true" data-execution_count="40">
 <div class="cell-output cell-output-display" data-execution_count="40">
 <script>
-var ID = "1sgmRwzN"
+var ID = "hxqgbF6y"
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="1sgmRwzN" data-controltype="" onsubmit="return false;">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="hxqgbF6y" data-controltype="" onsubmit="return false;">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_1sgmRwzN" correct="-1" attempts="0">
+      <div class="form" id="controls_hxqgbF6y" correct="-1" attempts="0">
         <div style="padding-top: 5px">
     <fieldset style="border:0px">
 <legend style="display: none" aria-label="Select an item">Select an item</legend>
 <div class="form-check">
-    <label class="form-check-label" for="radio_1sgmRwzN_1">
-      <input class="form-check-input" type="radio" name="radio_1sgmRwzN" id="radio_1sgmRwzN_1" value="1">
+    <label class="form-check-label" for="radio_hxqgbF6y_1">
+      <input class="form-check-input" type="radio" name="radio_hxqgbF6y" id="radio_hxqgbF6y_1" value="1">
       
       <span class="label-body px-1">
         Integer
@@ -1685,8 +1708,8 @@ var ID = "1sgmRwzN"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_1sgmRwzN_2">
-      <input class="form-check-input" type="radio" name="radio_1sgmRwzN" id="radio_1sgmRwzN_2" value="2">
+    <label class="form-check-label" for="radio_hxqgbF6y_2">
+      <input class="form-check-input" type="radio" name="radio_hxqgbF6y" id="radio_hxqgbF6y_2" value="2">
       
       <span class="label-body px-1">
         Rational
@@ -1694,8 +1717,8 @@ var ID = "1sgmRwzN"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_1sgmRwzN_3">
-      <input class="form-check-input" type="radio" name="radio_1sgmRwzN" id="radio_1sgmRwzN_3" value="3">
+    <label class="form-check-label" for="radio_hxqgbF6y_3">
+      <input class="form-check-input" type="radio" name="radio_hxqgbF6y" id="radio_hxqgbF6y_3" value="3">
       
       <span class="label-body px-1">
         Floating point
@@ -1703,8 +1726,8 @@ var ID = "1sgmRwzN"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_1sgmRwzN_4">
-      <input class="form-check-input" type="radio" name="radio_1sgmRwzN" id="radio_1sgmRwzN_4" value="4">
+    <label class="form-check-label" for="radio_hxqgbF6y_4">
+      <input class="form-check-input" type="radio" name="radio_hxqgbF6y" id="radio_hxqgbF6y_4" value="4">
       
       <span class="label-body px-1">
         Complex
@@ -1712,8 +1735,8 @@ var ID = "1sgmRwzN"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_1sgmRwzN_5">
-      <input class="form-check-input" type="radio" name="radio_1sgmRwzN" id="radio_1sgmRwzN_5" value="5">
+    <label class="form-check-label" for="radio_hxqgbF6y_5">
+      <input class="form-check-input" type="radio" name="radio_hxqgbF6y" id="radio_hxqgbF6y_5" value="5">
       
       <span class="label-body px-1">
         None, an error occurs
@@ -1725,13 +1748,13 @@ var ID = "1sgmRwzN"
     
         </div>
       </div>
-      <div id="1sgmRwzN_message" style="padding-bottom: 15px"></div>
+      <div id="hxqgbF6y_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 <script>
-document.getElementById('controls_1sgmRwzN').addEventListener("quizquestion_answer", (e) => {
-          var o = document.getElementById('controls_1sgmRwzN')
+document.getElementById('controls_hxqgbF6y').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_hxqgbF6y')
           var atts = Number(o.getAttribute("attempts"))
           o.setAttribute("correct",  e.detail.correct);
           o.setAttribute("attempts", atts + 1)
@@ -1739,14 +1762,14 @@ document.getElementById('controls_1sgmRwzN').addEventListener("quizquestion_answ
 </script>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_1sgmRwzN"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_hxqgbF6y"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 1;
-    var msgBox = document.getElementById('1sgmRwzN_message');
+    var msgBox = document.getElementById('hxqgbF6y_message');
     
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_1sgmRwzN")
+    var explanation = document.getElementById("explanation_hxqgbF6y")
     if (explanation != null) {
        explanation.style.display = "none";
     }
@@ -1756,7 +1779,7 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_1sgmRwzN")
+    var explanation = document.getElementById("explanation_hxqgbF6y")
     if (explanation != null) {
        explanation.style.display = "block";
     }
@@ -1775,21 +1798,21 @@ rb.addEventListener("change", function() {
 <section id="question-5" class="level6">
 <h6 class="anchored" data-anchor-id="question-5">Question</h6>
 <p>The number created by <code>sqrt(im)</code> is?</p>
-<div id="b8c2afd5" class="cell" data-hold="true" data-execution_count="41">
+<div id="b1b7805a" class="cell" data-hold="true" data-execution_count="41">
 <div class="cell-output cell-output-display" data-execution_count="41">
 <script>
-var ID = "85gB2V7P"
+var ID = "RJpw3oul"
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="85gB2V7P" data-controltype="" onsubmit="return false;">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="RJpw3oul" data-controltype="" onsubmit="return false;">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_85gB2V7P" correct="-1" attempts="0">
+      <div class="form" id="controls_RJpw3oul" correct="-1" attempts="0">
         <div style="padding-top: 5px">
     <fieldset style="border:0px">
 <legend style="display: none" aria-label="Select an item">Select an item</legend>
 <div class="form-check">
-    <label class="form-check-label" for="radio_85gB2V7P_1">
-      <input class="form-check-input" type="radio" name="radio_85gB2V7P" id="radio_85gB2V7P_1" value="1">
+    <label class="form-check-label" for="radio_RJpw3oul_1">
+      <input class="form-check-input" type="radio" name="radio_RJpw3oul" id="radio_RJpw3oul_1" value="1">
       
       <span class="label-body px-1">
         Integer
@@ -1797,8 +1820,8 @@ var ID = "85gB2V7P"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_85gB2V7P_2">
-      <input class="form-check-input" type="radio" name="radio_85gB2V7P" id="radio_85gB2V7P_2" value="2">
+    <label class="form-check-label" for="radio_RJpw3oul_2">
+      <input class="form-check-input" type="radio" name="radio_RJpw3oul" id="radio_RJpw3oul_2" value="2">
       
       <span class="label-body px-1">
         Rational
@@ -1806,8 +1829,8 @@ var ID = "85gB2V7P"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_85gB2V7P_3">
-      <input class="form-check-input" type="radio" name="radio_85gB2V7P" id="radio_85gB2V7P_3" value="3">
+    <label class="form-check-label" for="radio_RJpw3oul_3">
+      <input class="form-check-input" type="radio" name="radio_RJpw3oul" id="radio_RJpw3oul_3" value="3">
       
       <span class="label-body px-1">
         Floating point
@@ -1815,8 +1838,8 @@ var ID = "85gB2V7P"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_85gB2V7P_4">
-      <input class="form-check-input" type="radio" name="radio_85gB2V7P" id="radio_85gB2V7P_4" value="4">
+    <label class="form-check-label" for="radio_RJpw3oul_4">
+      <input class="form-check-input" type="radio" name="radio_RJpw3oul" id="radio_RJpw3oul_4" value="4">
       
       <span class="label-body px-1">
         Complex
@@ -1824,8 +1847,8 @@ var ID = "85gB2V7P"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_85gB2V7P_5">
-      <input class="form-check-input" type="radio" name="radio_85gB2V7P" id="radio_85gB2V7P_5" value="5">
+    <label class="form-check-label" for="radio_RJpw3oul_5">
+      <input class="form-check-input" type="radio" name="radio_RJpw3oul" id="radio_RJpw3oul_5" value="5">
       
       <span class="label-body px-1">
         None, an error occurs
@@ -1837,13 +1860,13 @@ var ID = "85gB2V7P"
     
         </div>
       </div>
-      <div id="85gB2V7P_message" style="padding-bottom: 15px"></div>
+      <div id="RJpw3oul_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 <script>
-document.getElementById('controls_85gB2V7P').addEventListener("quizquestion_answer", (e) => {
-          var o = document.getElementById('controls_85gB2V7P')
+document.getElementById('controls_RJpw3oul').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_RJpw3oul')
           var atts = Number(o.getAttribute("attempts"))
           o.setAttribute("correct",  e.detail.correct);
           o.setAttribute("attempts", atts + 1)
@@ -1851,14 +1874,14 @@ document.getElementById('controls_85gB2V7P').addEventListener("quizquestion_answ
 </script>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_85gB2V7P"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_RJpw3oul"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 4;
-    var msgBox = document.getElementById('85gB2V7P_message');
+    var msgBox = document.getElementById('RJpw3oul_message');
     
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_85gB2V7P")
+    var explanation = document.getElementById("explanation_RJpw3oul")
     if (explanation != null) {
        explanation.style.display = "none";
     }
@@ -1868,7 +1891,7 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_85gB2V7P")
+    var explanation = document.getElementById("explanation_RJpw3oul")
     if (explanation != null) {
        explanation.style.display = "block";
     }
@@ -1887,21 +1910,21 @@ rb.addEventListener("change", function() {
 <section id="question-6" class="level6">
 <h6 class="anchored" data-anchor-id="question-6">Question</h6>
 <p>The number created by <code>2^(-1)</code> is?</p>
-<div id="baa44efd" class="cell" data-hold="true" data-execution_count="42">
+<div id="d96e58f6" class="cell" data-hold="true" data-execution_count="42">
 <div class="cell-output cell-output-display" data-execution_count="42">
 <script>
-var ID = "eu9K0zZR"
+var ID = "dcvsbewL"
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="eu9K0zZR" data-controltype="" onsubmit="return false;">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="dcvsbewL" data-controltype="" onsubmit="return false;">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_eu9K0zZR" correct="-1" attempts="0">
+      <div class="form" id="controls_dcvsbewL" correct="-1" attempts="0">
         <div style="padding-top: 5px">
     <fieldset style="border:0px">
 <legend style="display: none" aria-label="Select an item">Select an item</legend>
 <div class="form-check">
-    <label class="form-check-label" for="radio_eu9K0zZR_1">
-      <input class="form-check-input" type="radio" name="radio_eu9K0zZR" id="radio_eu9K0zZR_1" value="1">
+    <label class="form-check-label" for="radio_dcvsbewL_1">
+      <input class="form-check-input" type="radio" name="radio_dcvsbewL" id="radio_dcvsbewL_1" value="1">
       
       <span class="label-body px-1">
         Integer
@@ -1909,8 +1932,8 @@ var ID = "eu9K0zZR"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_eu9K0zZR_2">
-      <input class="form-check-input" type="radio" name="radio_eu9K0zZR" id="radio_eu9K0zZR_2" value="2">
+    <label class="form-check-label" for="radio_dcvsbewL_2">
+      <input class="form-check-input" type="radio" name="radio_dcvsbewL" id="radio_dcvsbewL_2" value="2">
       
       <span class="label-body px-1">
         Rational
@@ -1918,8 +1941,8 @@ var ID = "eu9K0zZR"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_eu9K0zZR_3">
-      <input class="form-check-input" type="radio" name="radio_eu9K0zZR" id="radio_eu9K0zZR_3" value="3">
+    <label class="form-check-label" for="radio_dcvsbewL_3">
+      <input class="form-check-input" type="radio" name="radio_dcvsbewL" id="radio_dcvsbewL_3" value="3">
       
       <span class="label-body px-1">
         Floating point
@@ -1927,8 +1950,8 @@ var ID = "eu9K0zZR"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_eu9K0zZR_4">
-      <input class="form-check-input" type="radio" name="radio_eu9K0zZR" id="radio_eu9K0zZR_4" value="4">
+    <label class="form-check-label" for="radio_dcvsbewL_4">
+      <input class="form-check-input" type="radio" name="radio_dcvsbewL" id="radio_dcvsbewL_4" value="4">
       
       <span class="label-body px-1">
         Complex
@@ -1936,8 +1959,8 @@ var ID = "eu9K0zZR"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_eu9K0zZR_5">
-      <input class="form-check-input" type="radio" name="radio_eu9K0zZR" id="radio_eu9K0zZR_5" value="5">
+    <label class="form-check-label" for="radio_dcvsbewL_5">
+      <input class="form-check-input" type="radio" name="radio_dcvsbewL" id="radio_dcvsbewL_5" value="5">
       
       <span class="label-body px-1">
         None, an error occurs
@@ -1949,13 +1972,13 @@ var ID = "eu9K0zZR"
     
         </div>
       </div>
-      <div id="eu9K0zZR_message" style="padding-bottom: 15px"></div>
+      <div id="dcvsbewL_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 <script>
-document.getElementById('controls_eu9K0zZR').addEventListener("quizquestion_answer", (e) => {
-          var o = document.getElementById('controls_eu9K0zZR')
+document.getElementById('controls_dcvsbewL').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_dcvsbewL')
           var atts = Number(o.getAttribute("attempts"))
           o.setAttribute("correct",  e.detail.correct);
           o.setAttribute("attempts", atts + 1)
@@ -1963,14 +1986,14 @@ document.getElementById('controls_eu9K0zZR').addEventListener("quizquestion_answ
 </script>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_eu9K0zZR"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_dcvsbewL"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 3;
-    var msgBox = document.getElementById('eu9K0zZR_message');
+    var msgBox = document.getElementById('dcvsbewL_message');
     
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_eu9K0zZR")
+    var explanation = document.getElementById("explanation_dcvsbewL")
     if (explanation != null) {
        explanation.style.display = "none";
     }
@@ -1980,7 +2003,7 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_eu9K0zZR")
+    var explanation = document.getElementById("explanation_dcvsbewL")
     if (explanation != null) {
        explanation.style.display = "block";
     }
@@ -1999,21 +2022,21 @@ rb.addEventListener("change", function() {
 <section id="question-7" class="level6">
 <h6 class="anchored" data-anchor-id="question-7">Question</h6>
 <p>The “number” created by <code>1/0</code> is?</p>
-<div id="0d1d6160" class="cell" data-hold="true" data-execution_count="43">
+<div id="dd73692c" class="cell" data-hold="true" data-execution_count="43">
 <div class="cell-output cell-output-display" data-execution_count="43">
 <script>
-var ID = "6GcMs9QB"
+var ID = "drvQKrVV"
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="6GcMs9QB" data-controltype="" onsubmit="return false;">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="drvQKrVV" data-controltype="" onsubmit="return false;">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_6GcMs9QB" correct="-1" attempts="0">
+      <div class="form" id="controls_drvQKrVV" correct="-1" attempts="0">
         <div style="padding-top: 5px">
     <fieldset style="border:0px">
 <legend style="display: none" aria-label="Select an item">Select an item</legend>
 <div class="form-check">
-    <label class="form-check-label" for="radio_6GcMs9QB_1">
-      <input class="form-check-input" type="radio" name="radio_6GcMs9QB" id="radio_6GcMs9QB_1" value="1">
+    <label class="form-check-label" for="radio_drvQKrVV_1">
+      <input class="form-check-input" type="radio" name="radio_drvQKrVV" id="radio_drvQKrVV_1" value="1">
       
       <span class="label-body px-1">
         Integer
@@ -2021,8 +2044,8 @@ var ID = "6GcMs9QB"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_6GcMs9QB_2">
-      <input class="form-check-input" type="radio" name="radio_6GcMs9QB" id="radio_6GcMs9QB_2" value="2">
+    <label class="form-check-label" for="radio_drvQKrVV_2">
+      <input class="form-check-input" type="radio" name="radio_drvQKrVV" id="radio_drvQKrVV_2" value="2">
       
       <span class="label-body px-1">
         Rational
@@ -2030,8 +2053,8 @@ var ID = "6GcMs9QB"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_6GcMs9QB_3">
-      <input class="form-check-input" type="radio" name="radio_6GcMs9QB" id="radio_6GcMs9QB_3" value="3">
+    <label class="form-check-label" for="radio_drvQKrVV_3">
+      <input class="form-check-input" type="radio" name="radio_drvQKrVV" id="radio_drvQKrVV_3" value="3">
       
       <span class="label-body px-1">
         Floating point
@@ -2039,8 +2062,8 @@ var ID = "6GcMs9QB"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_6GcMs9QB_4">
-      <input class="form-check-input" type="radio" name="radio_6GcMs9QB" id="radio_6GcMs9QB_4" value="4">
+    <label class="form-check-label" for="radio_drvQKrVV_4">
+      <input class="form-check-input" type="radio" name="radio_drvQKrVV" id="radio_drvQKrVV_4" value="4">
       
       <span class="label-body px-1">
         Complex
@@ -2048,8 +2071,8 @@ var ID = "6GcMs9QB"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_6GcMs9QB_5">
-      <input class="form-check-input" type="radio" name="radio_6GcMs9QB" id="radio_6GcMs9QB_5" value="5">
+    <label class="form-check-label" for="radio_drvQKrVV_5">
+      <input class="form-check-input" type="radio" name="radio_drvQKrVV" id="radio_drvQKrVV_5" value="5">
       
       <span class="label-body px-1">
         None, an error occurs
@@ -2061,13 +2084,13 @@ var ID = "6GcMs9QB"
     
         </div>
       </div>
-      <div id="6GcMs9QB_message" style="padding-bottom: 15px"></div>
+      <div id="drvQKrVV_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 <script>
-document.getElementById('controls_6GcMs9QB').addEventListener("quizquestion_answer", (e) => {
-          var o = document.getElementById('controls_6GcMs9QB')
+document.getElementById('controls_drvQKrVV').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_drvQKrVV')
           var atts = Number(o.getAttribute("attempts"))
           o.setAttribute("correct",  e.detail.correct);
           o.setAttribute("attempts", atts + 1)
@@ -2075,14 +2098,14 @@ document.getElementById('controls_6GcMs9QB').addEventListener("quizquestion_answ
 </script>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_6GcMs9QB"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_drvQKrVV"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 3;
-    var msgBox = document.getElementById('6GcMs9QB_message');
+    var msgBox = document.getElementById('drvQKrVV_message');
     
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_6GcMs9QB")
+    var explanation = document.getElementById("explanation_drvQKrVV")
     if (explanation != null) {
        explanation.style.display = "none";
     }
@@ -2092,7 +2115,7 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_6GcMs9QB")
+    var explanation = document.getElementById("explanation_drvQKrVV")
     if (explanation != null) {
        explanation.style.display = "block";
     }
@@ -2111,21 +2134,21 @@ rb.addEventListener("change", function() {
 <section id="question-8" class="level6">
 <h6 class="anchored" data-anchor-id="question-8">Question</h6>
 <p>Is <code>(2 + 6) + 7</code> equal to <code>2 + (6 + 7)</code>?</p>
-<div id="a2473043" class="cell" data-hold="true" data-execution_count="44">
+<div id="71d48432" class="cell" data-hold="true" data-execution_count="44">
 <div class="cell-output cell-output-display" data-execution_count="44">
 <script>
-var ID = "Q1E9dCaa"
+var ID = "nyfIxwnd"
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="Q1E9dCaa" data-controltype="" onsubmit="return false;">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="nyfIxwnd" data-controltype="" onsubmit="return false;">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_Q1E9dCaa" correct="-1" attempts="0">
+      <div class="form" id="controls_nyfIxwnd" correct="-1" attempts="0">
         <div style="padding-top: 5px">
     <fieldset style="border:0px">
 <legend style="display: none" aria-label="Select an item">Select an item</legend>
 <div class="form-check">
-    <label class="form-check-label" for="radio_Q1E9dCaa_1">
-      <input class="form-check-input" type="radio" name="radio_Q1E9dCaa" id="radio_Q1E9dCaa_1" value="1">
+    <label class="form-check-label" for="radio_nyfIxwnd_1">
+      <input class="form-check-input" type="radio" name="radio_nyfIxwnd" id="radio_nyfIxwnd_1" value="1">
       
       <span class="label-body px-1">
         Yes
@@ -2133,8 +2156,8 @@ var ID = "Q1E9dCaa"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_Q1E9dCaa_2">
-      <input class="form-check-input" type="radio" name="radio_Q1E9dCaa" id="radio_Q1E9dCaa_2" value="2">
+    <label class="form-check-label" for="radio_nyfIxwnd_2">
+      <input class="form-check-input" type="radio" name="radio_nyfIxwnd" id="radio_nyfIxwnd_2" value="2">
       
       <span class="label-body px-1">
         No
@@ -2146,13 +2169,13 @@ var ID = "Q1E9dCaa"
     
         </div>
       </div>
-      <div id="Q1E9dCaa_message" style="padding-bottom: 15px"></div>
+      <div id="nyfIxwnd_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 <script>
-document.getElementById('controls_Q1E9dCaa').addEventListener("quizquestion_answer", (e) => {
-          var o = document.getElementById('controls_Q1E9dCaa')
+document.getElementById('controls_nyfIxwnd').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_nyfIxwnd')
           var atts = Number(o.getAttribute("attempts"))
           o.setAttribute("correct",  e.detail.correct);
           o.setAttribute("attempts", atts + 1)
@@ -2160,14 +2183,14 @@ document.getElementById('controls_Q1E9dCaa').addEventListener("quizquestion_answ
 </script>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_Q1E9dCaa"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_nyfIxwnd"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 1;
-    var msgBox = document.getElementById('Q1E9dCaa_message');
+    var msgBox = document.getElementById('nyfIxwnd_message');
     
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_Q1E9dCaa")
+    var explanation = document.getElementById("explanation_nyfIxwnd")
     if (explanation != null) {
        explanation.style.display = "none";
     }
@@ -2177,7 +2200,7 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_Q1E9dCaa")
+    var explanation = document.getElementById("explanation_nyfIxwnd")
     if (explanation != null) {
        explanation.style.display = "block";
     }
@@ -2196,21 +2219,21 @@ rb.addEventListener("change", function() {
 <section id="question-9" class="level6">
 <h6 class="anchored" data-anchor-id="question-9">Question</h6>
 <p>Is <code>(2/10 + 6/10) + 7/10</code> equal to <code>2/10 + (6/10 + 7/10)</code>?</p>
-<div id="372f2620" class="cell" data-hold="true" data-execution_count="45">
+<div id="945f87c7" class="cell" data-hold="true" data-execution_count="45">
 <div class="cell-output cell-output-display" data-execution_count="45">
 <script>
-var ID = "gGyzFGLu"
+var ID = "qCYQHtZR"
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="gGyzFGLu" data-controltype="" onsubmit="return false;">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="qCYQHtZR" data-controltype="" onsubmit="return false;">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_gGyzFGLu" correct="-1" attempts="0">
+      <div class="form" id="controls_qCYQHtZR" correct="-1" attempts="0">
         <div style="padding-top: 5px">
     <fieldset style="border:0px">
 <legend style="display: none" aria-label="Select an item">Select an item</legend>
 <div class="form-check">
-    <label class="form-check-label" for="radio_gGyzFGLu_1">
-      <input class="form-check-input" type="radio" name="radio_gGyzFGLu" id="radio_gGyzFGLu_1" value="1">
+    <label class="form-check-label" for="radio_qCYQHtZR_1">
+      <input class="form-check-input" type="radio" name="radio_qCYQHtZR" id="radio_qCYQHtZR_1" value="1">
       
       <span class="label-body px-1">
         Yes
@@ -2218,8 +2241,8 @@ var ID = "gGyzFGLu"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_gGyzFGLu_2">
-      <input class="form-check-input" type="radio" name="radio_gGyzFGLu" id="radio_gGyzFGLu_2" value="2">
+    <label class="form-check-label" for="radio_qCYQHtZR_2">
+      <input class="form-check-input" type="radio" name="radio_qCYQHtZR" id="radio_qCYQHtZR_2" value="2">
       
       <span class="label-body px-1">
         No
@@ -2231,13 +2254,13 @@ var ID = "gGyzFGLu"
     
         </div>
       </div>
-      <div id="gGyzFGLu_message" style="padding-bottom: 15px"></div>
+      <div id="qCYQHtZR_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 <script>
-document.getElementById('controls_gGyzFGLu').addEventListener("quizquestion_answer", (e) => {
-          var o = document.getElementById('controls_gGyzFGLu')
+document.getElementById('controls_qCYQHtZR').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_qCYQHtZR')
           var atts = Number(o.getAttribute("attempts"))
           o.setAttribute("correct",  e.detail.correct);
           o.setAttribute("attempts", atts + 1)
@@ -2245,14 +2268,14 @@ document.getElementById('controls_gGyzFGLu').addEventListener("quizquestion_answ
 </script>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_gGyzFGLu"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_qCYQHtZR"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 2;
-    var msgBox = document.getElementById('gGyzFGLu_message');
+    var msgBox = document.getElementById('qCYQHtZR_message');
     
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_gGyzFGLu")
+    var explanation = document.getElementById("explanation_qCYQHtZR")
     if (explanation != null) {
        explanation.style.display = "none";
     }
@@ -2262,7 +2285,7 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_gGyzFGLu")
+    var explanation = document.getElementById("explanation_qCYQHtZR")
     if (explanation != null) {
        explanation.style.display = "block";
     }
@@ -2281,25 +2304,25 @@ rb.addEventListener("change", function() {
 <section id="question-10" class="level6">
 <h6 class="anchored" data-anchor-id="question-10">Question</h6>
 <p>The following <em>should</em> compute <code>2^(-1)</code>, which if entered directly will return <code>0.5</code>. Does it?</p>
-<div id="4b8c9a1d" class="cell" data-execution_count="46">
+<div id="1d2d2eb0" class="cell" data-execution_count="46">
 <div class="sourceCode cell-code" id="cb55"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>a, b <span class="op">=</span> <span class="fl">2</span>, <span class="op">-</span><span class="fl">1</span></span>
 <span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>a<span class="op">^</span>b</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="b5055c7c" class="cell" data-hold="true" data-execution_count="47">
+<div id="2698a594" class="cell" data-hold="true" data-execution_count="47">
 <div class="cell-output cell-output-display" data-execution_count="46">
 <script>
-var ID = "uy7pjkyr"
+var ID = "K2fd1mgd"
 </script>
-<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="uy7pjkyr" data-controltype="" onsubmit="return false;">
+<form class="mx-2 my-3 mw-100" name="WeaveQuestion" data-id="K2fd1mgd" data-controltype="" onsubmit="return false;">
   <div class="form-group ">
     <div class="controls">
-      <div class="form" id="controls_uy7pjkyr" correct="-1" attempts="0">
+      <div class="form" id="controls_K2fd1mgd" correct="-1" attempts="0">
         <div style="padding-top: 5px">
     <fieldset style="border:0px">
 <legend style="display: none" aria-label="Select an item">Select an item</legend>
 <div class="form-check">
-    <label class="form-check-label" for="radio_uy7pjkyr_1">
-      <input class="form-check-input" type="radio" name="radio_uy7pjkyr" id="radio_uy7pjkyr_1" value="1">
+    <label class="form-check-label" for="radio_K2fd1mgd_1">
+      <input class="form-check-input" type="radio" name="radio_K2fd1mgd" id="radio_K2fd1mgd_1" value="1">
       
       <span class="label-body px-1">
         Yes
@@ -2307,8 +2330,8 @@ var ID = "uy7pjkyr"
     </label>
 </div>
 <div class="form-check">
-    <label class="form-check-label" for="radio_uy7pjkyr_2">
-      <input class="form-check-input" type="radio" name="radio_uy7pjkyr" id="radio_uy7pjkyr_2" value="2">
+    <label class="form-check-label" for="radio_K2fd1mgd_2">
+      <input class="form-check-input" type="radio" name="radio_K2fd1mgd" id="radio_K2fd1mgd_2" value="2">
       
       <span class="label-body px-1">
         No
@@ -2320,13 +2343,13 @@ var ID = "uy7pjkyr"
     
         </div>
       </div>
-      <div id="uy7pjkyr_message" style="padding-bottom: 15px"></div>
+      <div id="K2fd1mgd_message" style="padding-bottom: 15px"></div>
     </div>
   </div>
 </form>
 <script>
-document.getElementById('controls_uy7pjkyr').addEventListener("quizquestion_answer", (e) => {
-          var o = document.getElementById('controls_uy7pjkyr')
+document.getElementById('controls_K2fd1mgd').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_K2fd1mgd')
           var atts = Number(o.getAttribute("attempts"))
           o.setAttribute("correct",  e.detail.correct);
           o.setAttribute("attempts", atts + 1)
@@ -2334,14 +2357,14 @@ document.getElementById('controls_uy7pjkyr').addEventListener("quizquestion_answ
 </script>
 
 <script text="text/javascript">
-document.querySelectorAll('input[name="radio_uy7pjkyr"]').forEach(function(rb) {
+document.querySelectorAll('input[name="radio_K2fd1mgd"]').forEach(function(rb) {
 rb.addEventListener("change", function() {
     var correct = rb.value == 2;
-    var msgBox = document.getElementById('uy7pjkyr_message');
+    var msgBox = document.getElementById('K2fd1mgd_message');
     
   if(correct) {
     msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'><span> 👍&nbsp; Correct </span></div>";
-    var explanation = document.getElementById("explanation_uy7pjkyr")
+    var explanation = document.getElementById("explanation_K2fd1mgd")
     if (explanation != null) {
        explanation.style.display = "none";
     }
@@ -2351,7 +2374,7 @@ rb.addEventListener("change", function() {
 
   } else {
     msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'><span>👎&nbsp; Incorrect </span></div>";
-    var explanation = document.getElementById("explanation_uy7pjkyr")
+    var explanation = document.getElementById("explanation_K2fd1mgd")
     if (explanation != null) {
        explanation.style.display = "block";
     }
@@ -2372,17 +2395,19 @@ rb.addEventListener("change", function() {
 <h6 class="anchored" data-anchor-id="question-11">Question</h6>
 <p>In <a href="https://www.newscientist.com/article/2112537-smallest-sliver-of-time-yet-measured-sees-electrons-fleeing-atom/">NewScientist</a> we learn “For the first time, physicists have measured changes in an atom to the level of zeptoseconds, or trillionths of a billionth of a second – the smallest division of time yet observed.”</p>
 <p>That is</p>
-<div id="1458908a" class="cell" data-execution_count="48">
+<div id="6e7c695d" class="cell" data-execution_count="48">
 <div class="sourceCode cell-code" id="cb56"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1e-9</span> <span class="op">/</span> <span class="fl">1e12</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="47">
 <pre><code>1.0000000000000001e-21</code></pre>
 </div>
 </div>
 <p>Finding the value through division introduces a floating point deviation. Which of the following values will directly represent a zeptosecond?</p>
-<div id="e697b3b7" class="cell" data-execution_count="49">
+<div id="793fbc3f" class="cell" data-execution_count="49">
 <div class="cell-output cell-output-display" data-execution_count="48">
 <div class="ansi-escaped-output">
-<pre>QuizQuestions.Buttonq(Cmd[`<span style="text-decoration:underline">1/10^21</span>`, `<span style="text-decoration:underline">1e-21</span>`], ["incorrect", "correct"], "", "", "The scientific notation is correct. Due to integer overflow `10^21` is not the same number as `10.0^21`.", (GREEN = "#FF0000AA", RED = "#00AA33AA", BLUE = nothing))</pre>
+<pre>⃞   <span class="ansi-cyan-fg">1/10^21</span>
+⃞   <span class="ansi-cyan-fg">1e-21</span>
+</pre>
 </div>
 </div>
 </div>
