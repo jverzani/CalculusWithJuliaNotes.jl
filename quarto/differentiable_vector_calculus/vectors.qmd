@@ -224,6 +224,208 @@ The two dimensions are different so for each value of `xs` the vector of `ys` is
 
 At times using the "apply" notation: `x |> f`, in place of using `f(x)` is useful, as it can move the wrapping function to the right of the expression. To broadcast,  `.|>` is available.
 
+## Aside: simplifying calculations using containers and higher-order functions
+
+Storing data in a container, be it a vector or a tuple, can seem at first more complicated, but in fact can lead to much simpler computations.
+
+A simple example might be to add up a sequence of numbers. A direct way might be:
+
+```{julia}
+x1, x2, x3, x4, x5, x6 = 1, 2, 3, 4, 5, 6
+x1 + x2 + x3 + x4 + x5 + x6
+```
+ 
+Someone doesn't need to know `Julia`'s syntax to guess what this computes, save for the idiosyncratic tuple assignment used, which could have been bypassed at the cost of even more typing.
+
+A more efficient means to do, as each component isn't named, this would be to store the data in a container:
+
+```{julia}
+xs =  [1, 2, 3, 4, 5, 6] # as a vector
+sum(xs)
+```
+
+Sometimes tuples are used for containers. The difference to `sum` is not noticeable (though a different code path for the computation is taken behind the scenes):
+
+```{julia}
+xs =  (1, 2, 3, 4, 5, 6)
+sum(xs)
+```
+
+(Tuples and vectors are related, but tuples don't have built-in arithmetic defined. Several popular packages, such as `Plots`, draw a distinction between the two basic containers, but most generic functions just need to be able to iterate over the values.)
+
+The `sum` function has a parallel `prod` function for finding the product of the entries:
+
+```{julia}
+prod(xs)
+```
+
+Both `sum` and `prod` will error if the container is empty.
+
+These two functions are *reductions*. There are others, such as `maximum` and `minimum`. They reduce the dimensionality of the container, in this case from a vector to a scalar. When applied to higher-dimensional containers, dimenensions to reduce over are specified. The higher-order `reduce` function can be used as a near alternate to `sum`:
+
+```{julia}
+reduce(+, xs; init=0)  # sum(xs)
+```
+
+or 
+
+```{julia}
+reduce(*, xs; init=1)  # prod(xs)
+```
+
+The functions (`+` and `*`) are binary operators and are serially passed the running value (or `init`) and the new term from the iterator.
+
+The initial value above is the unit for the operation (which could be found programmatically by `zero(eltype(xs))` or `one(eltype(xs))` where the type is useful for better performance).
+
+The `foldl` and `foldr` functions are similar to `reduce` only left (and right) associativity is guaranteed. This example uses the binary, infix `Pair` operator, `=>`, to illustrate the difference:
+
+```{julia}
+foldl(=>, xs)
+```
+
+and
+
+```{julia}
+foldr(=>, xs)
+```
+
+Next, we do a slightly more complicated problem. 
+
+Recall the distance formula between two points, also called the *norm*. It is written here with the square root on the other side: $d^2 = (x_1-y_1)^2 + (x_0 - y_0)^2$. This computation can be usefully generalized to higher dimensional points (with $n$ components each). 
+
+This first example shows how the value for $d^2$ can be found using broadcasting and `sum`:
+
+```{julia}
+xs = [1, 2, 3, 4, 5]
+ys = [1, 3, 5, 7, 3]
+
+sum((xs - ys).^2)
+```
+
+
+This formula is a sum after applying an operation to the paired off values. Using a generator that sum would look like:
+
+```{julia}
+sum((xi - yi)^2 for (xi, yi) in zip(xs, ys))
+```
+
+The `zip` function, used above, produces an iterator over tuples of the paired off values in the two (or more) containers passed to it. 
+
+
+This pattern -- where a reduction follows a function's application to the components -- is implemented in `mapreduce`. 
+
+
+```{julia}
+f(xy) = (xy[1] - xy[2])^2
+mapreduce(f, +, zip(xs, ys))
+```
+
+In the generator example above, the components of the tuple are destructured into `(xi, yi)`; in the function `f` above $1$-based indexing is used to access the first and second components.
+
+The `mapreduce` function can take more than one iterator to reduce over, When used this way, the function takes multiple arguments. Unlike the above example, where `f` was first defined and then used, we use an anonymous function below, to make the example a one-liner:
+
+```{julia}
+mapreduce((xi,yi) -> (xi-yi)^2, +, xs, ys)
+```
+
+
+(The `mapreduce` form is more performant than broadcasting where the vectors are traversed more times.)
+
+
+### Extracting pieces of a container
+
+At times, extracting all but the first or last value can be of interest. For example, a polygon comprised of $n$ points (the vertices), might be stored using a vector for the $x$ and $y$ values with an additional point that mirrors the first. Here are the points:
+
+```{julia}
+xs = [1, 3, 4, 2]  
+ys = [1, 1, 2, 3]
+pts = zip(xs, ys)  # recipe for [(x1,y1), (x2,y2), (x3,y3), (x4,y4)]
+```
+
+To *add* the additional point we might just use `push!`:
+
+```{julia}
+push!(xs, first(xs))
+push!(ys, first(ys))
+```
+
+(Though this approach won't work with `pts`, only with mutable containers.)
+
+The `first` and `last` methods refer to the specific elements in the indexed collection. To get the rest of the values can be done a few ways. For example, this pattern peels off the first and leaves a new container to hold the rest:
+
+```{julia}
+a, bs... = xs
+a, bs
+```
+
+The splatting operation for `bs....` is usually seen inside a function, so this is a bit unusual. The `Iterators.peel` method also can also do this task (the `Iterators` module and its methods are not exported, so `peel` is necessarily qualified if not imported):
+
+```{julia}
+a, bs = Iterators.peel(xs)
+bs
+```
+
+
+The `bs` are represented with an iterator and can be collected to yield the values, though often this is unnecessary and possibly a costly step:
+
+```{julia}
+collect(bs), sum(bs)
+```
+
+The iterators shown here are *lazy* and only construct a recipe to produce the points one after another. Reductions like `sum` and `prod` can use this recipe to produce an answer without needing to realize in memory at one time the entire collection of values being represented.
+
+The `Iterators.rest` method can be used to take the rest of the container starting a given index. This command also finds the `bs` above:
+
+```{julia}
+bs = Iterators.rest(xs, 2)
+collect(bs)
+```
+
+The `Iterators.take` method can be used to take values at the beginning of a container. This command takes all but the last value of `xs`:
+
+```{julia}
+as = Iterators.take(xs, length(xs) - 1)
+collect(as)
+```
+
+The `take` method could be used to remove the padded value from the `xs` and `ys`. Between `Iterators.take` and `Iterators.rest` the iterable object can be split into a head and tail.
+
+##### Example: Riemann sums
+
+In the computation of a Riemann sum, the interval $[a,b]$ is partitioned using $n+1$ points $a=x_0 < x_1 < \cdots < x_{n-1} < x_n = b$. 
+
+```{julia}
+a, b, n = 0, 1, 4
+xs = range(a, b, n+1) # n + 1 points gives n subintervals [xᵢ, xᵢ₊₁]
+```
+
+To grab these points as adjacent pairs can be done by combining the first $n$ points and the last $n$ points, as follows:
+
+```{julia}
+partitions = zip(Iterators.take(xs, n), Iterators.rest(xs, 1))
+collect(partitions)
+```
+
+A left-hand Riemann sum for `f` could then be done with:
+
+```{julia}
+f(x) = x^2
+sum(f ∘ first, partitions)
+```
+
+This uses a few things: like `mapreduce`, `sum` allows a function to
+be applied to each element in the `partitions` collection. (Indeed, the default method to compute `sum(xs)` for an arbitrary container resolves to `mapreduce(identity, add_sum, xs)` where `add_sum` is basically `+`.) 
+
+In this case, the
+values come as tuples to the function to apply to each component.
+The function above uses `first` to find the left-endpoint value and then calls `f`. The composition (through `∘`) implements this.
+
+Alternatively, `zip` can be avoided with:
+
+```{julia}
+mapreduce((l, r) -> l^2, +, Iterators.take(xs, n), Iterators.rest(xs, 1))
+```
+
 
 ## The dot product
 

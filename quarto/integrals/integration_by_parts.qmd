@@ -27,56 +27,90 @@ So far we have seen that the *derivative* rules lead to *integration rules*. In 
 
 
   * The sum rule $[au(x) + bv(x)]' = au'(x) + bv'(x)$ gives rise to an integration rule: $\int (au(x) + bv(x))dx = a\int u(x)dx + b\int v(x))dx$. (That is, the linearity of the derivative means the integral has linearity.)
+
   * The chain rule $[f(g(x))]' = f'(g(x)) g'(x)$ gives $\int_a^b f(g(x))g'(x)dx=\int_{g(a)}^{g(b)}f(x)dx$. That is, substitution reverses the chain rule.
 
 
 Now we turn our attention to the implications of the *product rule*: $[uv]' = u'v + uv'$. The resulting technique is called integration by parts.
 
+::: {.callout-note}
+## Integration by parts
 
-The following illustrates integration by parts of the integral $(uv)'$ over $[a,b]$ [original](http://en.wikipedia.org/wiki/Integration_by_parts#Visualization).
+By the fundamental theorem of calculus:
+
+$$
+[u(x)\cdot v(x)]\big|_a^b = \int_a^b [u(x) v(x)]' dx = \int_a^b u'(x) \cdot v(x) dx + \int_a^b u(x) \cdot v'(x) dx.
+$$
+
+Or,
+
+$$
+\int_a^b u(x) v'(x) dx = [u(x)v(x)]\big|_a^b - \int_a^b v(x) u'(x)dx.
+$$
+:::
+
+
+The following visually illustrates integration by parts:
 
 
 ```{julia}
 #| echo: false
+#| label: fig-integration-by-parts
+#| fig-cap: "Integration by parts figure ([original](http://en.wikipedia.org/wiki/Integration_by_parts#Visualization))"
 let
-    ## parts picture
-    u(x) = sin(x*pi/2)
-    v(x) = x
-    xs = range(0, stop=1, length=50)
-    a,b = 1/4, 3/4
-    p = plot(u, v, 0, 1, legend=false)
-    plot!(p, zero, 0, 1)
-    scatter!(p, [u(a), u(b)], [v(a), v(b)], color=:orange, markersize=5)
+## parts picture
+u(x) = sin(x*pi/2)
+v(x) = x
+xs = range(0, stop=1, length=50)
+a,b = 1/4, 3/4
 
-    plot!(p, [u(a),u(a),0, 0, u(b),u(b),u(a)],
-          [0, v(a), v(a), v(b), v(b), 0, 0],
-          linetype=:polygon, fillcolor=:orange, alpha=0.25)
-    annotate!(p, [(0.65, .25, "A"), (0.4, .55, "B")])
-    annotate!(p, [(u(a),v(a) + .08, "(u(a),v(a))"), (u(b),v(b)+.08, "(u(b),v(b))")])
+p = plot(u, v, 0, 1, legend=false, axis=([], false))
+plot!([0, u(1)], [0,0], line=(:black, 3))
+plot!([0, 0], [0, v(1) ], line=(:black, 3))
+plot!(p, zero, 0, 1)
+
+xs′ = range(a, b, length=50)
+plot!(Shape(vcat(u.(xs′), reverse(u.(xs′))),
+            vcat(zero.(xs′), v.(reverse(xs′)))),
+      fill=(:red, 0.15),
+      xlims=(-0.07, 1)
+      )
+plot!(Shape([0,u(a),u(a),0],[0,0,v(a),v(a)]), fill=(:royalblue, 0.5))
+scatter!(p, [u(a), u(b)], [v(a), v(b)], color=:mediumorchid3, markersize=5)
+plot!(p, [u(a),u(a),0, 0, u(b),u(b),u(a)],
+      [0, v(a), v(a), v(b), v(b), 0, 0],
+      linetype=:polygon, fill=(:brown3, 0.25))
+
+annotate!(p, [(0.65, .25, "A"),
+              (0.4, .55, "B"),
+              (u(a),v(a) + .08, "(u(a),v(a))"),
+              (u(b),v(b)+.08, "(u(b),v(b))"),
+              (u(a),0, "u(a)",:top),
+              (u(b),0, "u(b)",:top),
+              (0, v(a), "v(a) ",:right),
+              (0, v(b), "v(b) ",:right)
+              ])
 end
 ```
 
-The figure is a parametric plot of $(u,v)$ with the points $(u(a), v(a))$ and $(u(b), v(b))$ marked. The difference $u(b)v(b) - u(a)v(a) = u(x)v(x) \mid_a^b$ is shaded.  This area breaks into two pieces, $A$ and $B$, partitioned by the curve. If $u$ is increasing and the curve is parameterized by $t \rightarrow u^{-1}(t)$, then $A=\int_{u^{-1}(a)}^{u^{-1}(b)} v(u^{-1}(t))dt$. A $u$-substitution with $t = u(x)$ changes this into the integral $\int_a^b v(x) u'(x) dx$. Similarly, for increasing $v$, it can be seen that $B=\int_a^b u(x) v'(x) dx$. This suggests a relationship between the integral of $u v'$, the integral of $u' v$ and the value $u(b)v(b) - u(a)v(a)$.
+@fig-integration-by-parts shows a parametric plot of $(u(t),v(t))$ for $a \leq t \leq b$..
 
+The total shaded area, a rectangle, is $u(b)v(b)$, the area of $A$ and $B$ combined is just $u(b)v(b) - u(a)v(a)$ or $[u(x)v(x)]\big|_a^b$. We will show that that $A$ is $\int_a^b v(x)u'(x)dx$ and $B$ is $\int_a^b u(x)v'(x)dx$ giving the formula
 
-In terms of formulas, by the fundamental theorem of calculus:
-
-
-$$
-u(x)\cdot v(x)\big|_a^b = \int_a^b [u(x) v(x)]' dx = \int_a^b u'(x) \cdot v(x) dx + \int_a^b u(x) \cdot v'(x) dx.
-$$
-
-This is re-expressed as
-
+We can compute $A$  by a change of variables with $x=u^{-1}(t)$ (so $u'(x)dx = dt$):
 
 $$
-\int_a^b u(x) \cdot v'(x) dx = u(x) \cdot v(x)\big|_a^b -  \int_a^b v(x) \cdot u'(x) dx,
+\begin{align*}
+A &= \int_{u(a)}^{u(b)} v(u^{-1}(t)) dt   & \text{let } x = u^{-1}(t) \text{ or }u(x) = t \\
+  &= \int_{u^{-1}(u(a))}^{u^{-1}(u(b))} v(x) u'(x) dx \\
+  &= \int_a^b v(x) u'(x) dx.
+\end{align*}
 $$
 
-Or, more informally, as $\int udv = uv - \int v du$.
+$B$ is similar with the roles of $u$ and $v$ reversed.
 
 
-This can sometimes be confusingly written as:
+Informally, the integration by parts formula is sometimes seen as $\int udv = uv - \int v du$, as well can be somewhat confusingly written as:
 
 
 $$
@@ -86,8 +120,7 @@ $$
 (The confusion coming from the fact that the indefinite integrals are only defined up to a constant.)
 
 
-How does this help? It allows us to differentiate parts of an integral in hopes it makes the result easier to integrate.
-
+How does this formula help? It allows us to differentiate parts of an integral in hopes it makes the result easier to integrate.
 
 An illustration can clarify.
 

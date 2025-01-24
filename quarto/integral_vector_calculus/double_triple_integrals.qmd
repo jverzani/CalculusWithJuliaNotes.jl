@@ -13,6 +13,7 @@ plotly()
 using QuadGK
 using SymPy
 using HCubature
+import ImplicitIntegration
 ```
 
 ---
@@ -785,6 +786,120 @@ Compare to
 ```{julia}
 sin(1)/2
 ```
+
+### Integrating over implicitly defined regions
+
+To use `HCubature` to find an integral over some region, that region is transformed into a rectanguler region and the Jacobian is used to modify the integrand. The `ImplicitIntegration` package allows the region to be implicitly defined (it need not be rectangular) and uses an algorithm to integrate over the region as given. It can integrate regions of the form $\phi(x) \leq 0$, that is it computes:
+
+$$
+\iint_{(x,y): \phi(x,y) \leq 0} f(x,y) dx dy.
+$$
+
+It can also integrate over over boundaries of the form $\phi(x) = 0$. The latter can be visualized through `implicit_plot`.
+
+The main function from `ImplicitIntegration` is `integrate`. The package is imported below to avoid naming conflicts with `SymPy`'s `integrate` function:
+
+```{julia}
+import ImplicitIntegration
+```
+
+The unit circle (with radius $r=1$) can be parameterized with:
+
+```{julia}
+r = 1.0
+phi(x) = sqrt(sum(xi^2 for xi in x)) - r
+x0s, x1s = (-1.0, -1.0), (1.0, 1.0)
+```
+
+When a point is inside the disk centered at the origin of radius $r$, $\phi$ will be negative. The `phi` function takes a container describing a point.
+
+
+We can visualize this region, with `plot_implicit`, though we need to make a function that takes two arguments to specify $x$ and $y$ and
+rework the specification of the viewing window, as `ImplicitEquations.integrate` expects limits to be specified in a manner that readily accommodates higher dimensions, and the plotting function uses a more mathematical specification.
+
+```{julia}
+𝑖(xs...) = xs   # turn (x,y) arguments into a container
+xlims, ylims = collect(zip(x0s, x1s))
+
+implicit_plot(phi∘𝑖; xlims, ylims, legend=false)
+scatter!([pt for pt ∈ tuple.(range(xlims..., 40), range(ylims...,40)')
+          if phi(pt) < 0],
+         marker=(1,:blue))
+
+```
+
+
+
+
+
+The area of the unit circle is identified by integrating a function that is constantly $1$ over the region. This is computed by:
+
+```{julia}
+res = ImplicitIntegration.integrate(x -> 1.0, phi, x0s, x1s)
+```
+
+The result, `res`, is a structure containing details of the algorithm. The `val` property contains the result.
+
+This compares, approximately, the computed value to the known value ($\pi \cdot r^2$):
+
+```{julia}
+res.val ≈ pi * r^2
+```
+
+To find the *perimeter* we use the fact that it is the surface of the disc:
+
+```{julia}
+res = ImplicitIntegration.integrate(x -> 1.0, phi, x0s, x1s; surface=true)
+res.val ≈ 2pi * r
+```
+
+For two-dimensional regions, this provides an alternate means to calculate arc-lengths.
+
+
+Extending the above, we can find the surface area of the upper hemisphere of the unit sphere. To do this, we integrate a different function over $\phi$, one that describes the sphere. This being the following
+
+```{julia}
+f(x) = sqrt(sum(xi^2 for xi in x))   # or LinearAlgebra.norm
+res = ImplicitIntegration.integrate(f, phi, x0s, x1s; surface=true)
+res.val ≈ (1/2) * 4pi * r^2
+```
+
+The volume would be similarly done, only without the `surface` call:
+
+
+```{julia}
+f(x) = sqrt(sum(xi^2 for xi in x))
+res = ImplicitIntegration.integrate(f, phi, x0s, x1s;)
+res.val ≈ (1/2) * 4/3 * pi * r^2
+```
+
+Of course more complicated functions could be used.
+
+Now consider a more complicated region over $[-2\pi, 2\pi] \times [-2\pi, 2\pi]$:
+
+```{julia}
+function phi(x)
+    x1,x2 = x
+    x1*cos(x2)*cos(x1*x2) + x2*cos(x1)*cos(x1*x2) + x1*x2*cos(x1)*cos(x2)
+end
+x0s, x1s = (-2pi, -2pi),  (2pi, 2pi)
+
+xlims, ylims = collect(zip(x0s, x1s))
+implicit_plot(phi∘𝑖; xlims, ylims, legend=false)
+scatter!([pt for pt ∈ tuple.(range(xlims..., 40), range(ylims...,40)')
+          if phi(pt) < 0],
+         marker=(1,:blue))
+```
+
+In a slightly tricky way, a grid of points is created to indicate where `phi` is negative.
+
+The area of the negative part of this function can be found by integrating the constant function with value $1$:
+
+```{julia}
+res = ImplicitIntegration.integrate(x -> 1.0, phi, x0s, x1s)
+(val=res.val, proportion=res.val / (4pi)^2)
+```
+
 
 ## Triple integrals
 
@@ -1678,9 +1793,9 @@ The Jacobian can be computed to be $\rho^2\sin(\phi)$.
 
 ```{julia}
 #| hold: true
-@syms ρ theta phi
-G(ρ, theta, phi) = ρ * [sin(phi)*cos(theta), sin(phi)*sin(theta), cos(phi)]
-det(G(ρ, theta, phi).jacobian([ρ, theta, phi])) |> simplify |> abs
+@syms ρ θ ϕ
+G(ρ, θ, ϕ) = ρ * [sin(ϕ)*cos(θ), sin(ϕ)*sin(θ), cos(ϕ)]
+det(G(ρ, θ, ϕ).jacobian([ρ, θ, ϕ])) |> simplify |> abs
 ```
 
 ##### Example

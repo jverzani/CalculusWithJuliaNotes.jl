@@ -11,6 +11,7 @@ using CalculusWithJulia
 using Plots
 plotly()
 using SymPy
+using Roots
 using TaylorSeries
 using DualNumbers
 ```
@@ -183,18 +184,30 @@ In each of these  cases, a more complicated non-linear function is well approxim
 ```{julia}
 #| hold: true
 #| echo: false
+#| label: fig-tangent-dy-dx
+#| fig-cap: "Graph with tangent line layered on"
 f(x) = sin(x)
 a, b = -1/4, pi/2
 
-p = plot(f, a, b, legend=false);
+p = plot(f, a, b, legend=false,
+         line=(3, :royalblue),
+         axis=([], false)
+         );
+
 plot!(p, x->x, a, b);
 plot!(p, [0,1,1], [0, 0, 1], color=:brown);
+
 plot!(p, [1,1], [0, sin(1)], color=:green, linewidth=4);
-annotate!(p, collect(zip([1/2, 1+.075, 1/2-1/8], [.05, sin(1)/2, .75], ["Δx", "Δy", "m=dy/dx"])));
+
+scatter!([0], [0], marker=(5, :mediumorchid3))
+annotate!(p, [(0, f(0), text("(c,f(c))", :bottom,:right))])
+annotate!(p, collect(zip([1/2, 1+.075, 1/2-1/8],
+                         [.05, sin(1)/2, .75],
+                         ["Δx", "Δy", "m=dy/dx"])));
 p
 ```
 
-The plot shows the tangent line with slope $dy/dx$ and the actual change in $y$, $\Delta y$, for some specified $\Delta x$. The small gap above the sine curve is the error were the value of the sine approximated using the drawn tangent line. We can see that approximating the value of $\Delta y = \sin(c+\Delta x) - \sin(c)$ with the often easier to compute $(dy/dx) \cdot \Delta x = f'(c)\Delta x$ - for small enough values of $\Delta x$ -  is not going to be too far off provided $\Delta x$ is not too large.
+The plot in @fig-tangent-dy-dx shows a tangent line with slope $dy/dx$ and the actual change in $y$, $\Delta y$, for some specified $\Delta x$ at a point $(c,f(c))$. The small gap above the sine curve is the error were the value of the sine approximated using the drawn tangent line. We can see that approximating the value of $\Delta y = \sin(c+\Delta x) - \sin(c)$ with the often easier to compute $(dy/dx) \cdot \Delta x = f'(c)\Delta x$ - for small enough values of $\Delta x$ -  is not going to be too far off provided $\Delta x$ is not too large.
 
 
 This approximation is known as linearization. It can be used both in theoretical computations and in practical applications. To see how effective it is, we look at some examples.
@@ -642,6 +655,151 @@ x = Dual(1, 1)
 ```
 
 We can see the derivative again reflects the chain rule, it being given by `1/x * xp` where `xp` acts like `dx` (from assignments `%5` and `%4`). Comparing the two outputs, we see only the assignment to `%5` differs, it reflecting the derivative of the function.
+
+## Curvature
+
+The curvature of a function will be a topic in a later section on differentiable vector calculus, but the concept of linearization can be used to give an earlier introduction.
+
+
+The tangent line linearizes the function, it begin the best linear approximation to the graph of the function at the point. The slope of the tangent line is the limi of the slopes of different secant lines. Consider now, the orthogonal concept, the *normal line* at a point. This is a line perpendicular to the tangent line that goes through the point on the curve.
+
+At a point $(c,f(c))$ the slope of the normal line is $-1/f'(c)$.
+
+Following [Kirby C. Smith](https://doi.org/10.2307/2687102), consider two nearby points on the curve of $f$ and suppose we take the two normal lines at $x=c$ and $x=c+h$. These two curves will intersect if the lines are not parallel. To ensure this, assueme that in some neighborhood of $c$,  $f'(c)$ is increasing.
+
+The two normal lines are:
+
+$$
+\begin{align*}
+y &= f(c) - \frac{1}{f'(c)}(x-c)\\
+y &= f(c+h) - \frac{1}{f'(c+h)}(x-(c+h))\\
+\end{align*}
+$$
+
+Rearranging, we have
+
+$$
+\begin{align*}
+-f'(c)(y-f(c) &= x-c\\
+-f'(c+h)(y-f(c+h)) &= x-(c+h)
+\end{align*}
+$$
+
+
+Call $R$ the intersection point of the two normal lines:
+
+```{julia}
+#| echo: false
+using Roots
+let
+	f(x) = x^4
+	fp(x) = 4x^3
+	c = 1/4
+	h = 1/4
+	nlc(x) = f(c) - 1/fp(c) * (x - c)
+	nlch(x) = f(c+h) - 1/fp(c+h) * (x-(c+h))
+	canvas() = plot(axis=([],false), legend=false, aspect_ratio=:equal)
+	canvas()
+	plot!(f, 0, 3/4; line=(3,))
+	plot!(nlc; ylim=(-1/4, 1))
+	plot!(nlch;  ylim=(-1/4, 1))
+	Rx = find_zero(x -> nlc(x) - nlch(x), (-10, 10))
+	scatter!([c,c+h], f.([c, c+h]))
+	scatter!([Rx], [nlc(Rx)])
+	annotate!([(c, f(c), "(c,f(c))",:top),
+	           (c+h, f(c+h), "(c+h, f(c+h))",:bottom),
+               (Rx,  nlc(Rx), "R",:left)])
+end
+```
+
+
+
+What happens to $R$ as $h \rightarrow 0$?
+
+We can symbolically solve to see:
+
+```{julia}
+@syms 𝑓() 𝑓p() 𝑓pp() x y c ℎ
+n1 = -𝑓p(c)*(y-𝑓(c)) ~ x - c
+n2 = -𝑓p(c+ℎ)*(y-𝑓(c+ℎ)) ~ x - (c+ℎ)
+R = solve((n1, n2), (x, y))
+```
+
+
+Taking limits of each term as $h$ goes to zero we have after some notation-simplfying substitution:
+
+```{julia}
+R = Dict(k => limit(R[k], ℎ=>0) for k in (x,y))
+Rx = R[x](limit((𝑓(c+ℎ)-𝑓(c))/ℎ, ℎ=>0) => 𝑓p(c),
+          limit((𝑓p(c+ℎ)-𝑓p(c))/ℎ, ℎ=>0) => 𝑓pp(c))
+```
+
+
+and
+
+```{julia}
+Ry = R[y](limit((𝑓(c+ℎ)-𝑓(c))/ℎ, ℎ=>0) => 𝑓p(c),
+          limit((𝑓p(c+ℎ)-𝑓p(c))/ℎ, ℎ=>0) => 𝑓pp(c))
+```
+
+The squared distance, $r^2$, of $R$ to $(c,f(c))$ is then:
+
+```{julia}
+simplify((Rx-c)^2 + (Ry-𝑓(c))^2)
+```
+
+Or
+
+$$
+r^2 = \frac{(f'(c)^2 + 1)^3}{f''(c)^2}.
+$$
+
+
+This formula for $r$ is known as the radius of curvature of $f$ -- the radius of the *circle* that best approximates the function at the point. That is, this value reflects the curvature of $f$ supplementing the tangent line or best *linear* approximation to the graph of $f$ at the point.
+
+```{julia}
+#| echo: false
+let
+	f(x) = x^4
+	fp(x) = 4x^3
+	fpp(x) = 12x^2
+	c = 1/4
+	h = 1/4
+	nlc(x) = f(c) - 1/fp(c) * (x - c)
+	nlch(x) = f(c+h) - 1/fp(c+h) * (x-(c+h))
+	canvas() = plot(axis=([],false), legend=false, aspect_ratio=:equal)
+	canvas()
+	plot!(f, -1/4, 3/4; line=(3,))
+	tl(x) = f(c) + f'(c)*(x-c)
+	plot!(tl, ylim=(-1/4, 3/2); line=(2, :dot))
+
+
+	Rx, Ry = c - fp(c)^3 / fpp(c) - fp(c)/fpp(c), f(c) + (fp(c)^2+1)/fpp(c)
+	r = (fp(c)^2 + 1)^(3/2) / abs(fpp(c))
+
+	scatter!([c], f.([c]))
+	scatter!([Rx], [nlc(Rx)])
+	annotate!([(c, f(c), "(c,f(c))",:top),
+		(Rx,  nlc(Rx), "R",:left)])
+
+
+	Delta = pi/10
+	theta = range(3pi/2 - Delta, 2pi - 3Delta, length=100)
+	xs, ys = cos.(theta), sin.(theta)
+
+
+	plot!(Rx .+ r.*xs, Ry .+ r.*ys)
+
+	x0s, y0s = [Rx,Rx .+ r * first(xs)],[Ry,Ry .+ r * first(ys)]
+	xns, yns = [Rx,Rx .+ r * last(xs)],[Ry,Ry .+ r * last(ys)]
+	xcs, ycs = [Rx,c],[Ry,f(c)]
+	sty = (2, :0.25, :dash)
+	plot!(x0s, y0s; line=sty);
+	plot!(xcs, ycs; line=sty);
+	plot!(xns, yns; line=sty)
+
+end
+```
 
 
 ## Questions
