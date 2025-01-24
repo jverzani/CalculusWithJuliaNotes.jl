@@ -224,40 +224,49 @@ Raphson (1690) proposed a simplification avoiding the computation of new polynom
 ##### Example: visualizing convergence
 
 
-This  graphic demonstrates the method and the rapid convergence:
+@fig-newtons-method demonstrates the method and the rapid convergence:
 
 
 ```{julia}
 #| echo: false
-function newtons_method_graph(n, f, a, b, c)
+nothing
+function newtons_method_graph(n, f, a, b, c; label=false)
 
     xstars = [c]
     xs = [c]
     ys = [0.0]
 
-    plt = plot(f, a, b, legend=false, size=fig_size)
+    plt = plot(f, a, b, legend=false, size=fig_size,
+               line = (:royalblue, 3),
+               axis = ([], false)
+               )
     plot!(plt, [a, b], [0,0], color=:black)
 
 
     ts = range(a, stop=b, length=50)
     for i in 1:n
         x0 = xs[end]
-        x1 = x0 - f(x0)/D(f)(x0)
+        x1 = x0 - f(x0)/f'(x0)
         push!(xstars, x1)
             append!(xs, [x0, x1])
         append!(ys, [f(x0), 0])
     end
     plot!(plt, xs, ys, color=:orange)
     scatter!(plt, xstars, 0*xstars, color=:orange, markersize=5)
+    if label
+        subs = collect("₁₂₃₄₅₆₇₈₉")
+        labs = ["x$(subs[i])" for i in eachindex(xstars)]
+        annotate!(collect(zip(xstars, 0*xstars, labs,[:bottom for _ in xstars])))
+    end
     plt
 end
-nothing
 ```
 
 ```{julia}
 #| hold: true
 #| echo: false
 #| cache: true
+#| label: fig-newtons-method
 ### {{{newtons_method_example}}}
 gr()
 caption = """
@@ -270,7 +279,7 @@ n = 6
 fn, a, b, c = x->log(x), .15, 2, .2
 
 anim = @animate for i=1:n
-    newtons_method_graph(i-1, fn, a, b, c)
+    newtons_method_graph(i-1, fn, a, b, c; label=true)
 end
 
 imgfile = tempname() * ".gif"

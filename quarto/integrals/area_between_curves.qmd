@@ -26,12 +26,14 @@ $$
 \int_a^b (f(x) - g(x)) dx
 $$
 
-can be interpreted as the "signed" area between $f(x)$ and $g(x)$ over $[a,b]$. If on this interval $[a,b]$ it is true that $f(x) \geq g(x)$, then this would just be the area, as seen in this figure. The rectangle in the figure has area: $(f(a)-g(a)) \cdot (b-a)$ which could be a term in a left Riemann sum of the integral of $f(x) - g(x)$:
+can be interpreted as the "signed" area between $f(x)$ and $g(x)$ over $[a,b]$. If on this interval $[a,b]$ it is true that $f(x) \geq g(x)$, then this would just be the area, as seen in this figure. The rectangle in the figure has area: $(f(x_i)-g(x_i)) \cdot (x_{i+1}-x_i)$ for some $x_i, x_{i+1}$ suggestive of a term in a left Riemann sum of the integral of $f(x) - g(x)$:
 
 
 ```{julia}
 #| hold: true
 #| echo: false
+#| label: fig-area-between-f-g
+#| fig-cap: "Area between two functions"
 f1(x) = x^2
 g1(x) = sqrt(x)
 a,b = 1/4, 3/4
@@ -42,9 +44,9 @@ ts = vcat(f1.(xs), g1.(reverse(xs)))
 
 plot(f1, 0, 1, legend=false)
 plot!(g1)
-plot!(ss, ts, fill=(0, :red))
-plot!(xs, f1.(xs), linewidth=5, color=:green)
-plot!(xs, g1.(xs), linewidth=5, color=:green)
+plot!(ss, ts, fill=(0, :forestgreen, 0.25))
+plot!(xs, f1.(xs), linewidth=5, color=:royalblue)
+plot!(xs, g1.(xs), linewidth=5, color=:royalblue)
 
 
 plot!(xs, f1.(xs), legend=false, linewidth=5, color=:blue)
@@ -53,7 +55,7 @@ u,v = .4, .5
 plot!([u,v,v,u,u], [f1(u), f1(u), g1(u), g1(u), f1(u)], color=:black, linewidth=3)
 ```
 
-For the figure, we have $f(x) = \sqrt{x}$, $g(x)= x^2$ and $[a,b] = [1/4, 3/4]$. The shaded area is then found by:
+In @fig-area-between-f-g we have $f(x) = \sqrt{x}$, $g(x)= x^2$ and $[a,b] = [1/4, 3/4]$. The shaded area is then found by:
 
 
 $$
@@ -156,12 +158,14 @@ summation(1/(n+1)/(n+2), (n, 1, oo))
 ##### Example
 
 
-Verify [Archimedes'](http://en.wikipedia.org/wiki/The_Quadrature_of_the_Parabola) finding that the area of the parabolic segment is $4/3$rds that of the triangle joining $a$, $(a+b)/2$ and $b$.
+Verify [Archimedes'](http://en.wikipedia.org/wiki/The_Quadrature_of_the_Parabola) finding that the area of the parabolic segment is $4/3$rds that of the triangle joining $a$, $(a+b)/2$ and $b$. @fig-area-between-f-g clearly shows the bigger parabolic segment area.
 
 
 ```{julia}
 #| hold: true
 #| echo: false
+#| label: fig-archimedes-triangle
+#| fig-cap: "Area of parabolic segment and triangle"
 f(x) = 2 - x^2
 a,b = -1, 1/2
 c = (a + b)/2
@@ -169,10 +173,15 @@ xs = range(-sqrt(2), stop=sqrt(2), length=50)
 rxs = range(a, stop=b, length=50)
 rys = map(f, rxs)
 
-
-plot(f, a, b, legend=false, linewidth=3)
+plot(f, a, b, legend=false,
+     line=(3, :royalblue),
+     axis=([], false)
+     )
+plot!([a,b], [f(a),f(b)], line=(3, :royalblue))
 xs = [a,c,b,a]
-plot!(xs, f.(xs), linewidth=3)
+triangle = Shape(xs, f.(xs))
+plot!(triangle, fill=(:forestgreen, 3, 0.25))
+
 ```
 
 For concreteness, let $f(x) = 2-x^2$ and $[a,b] = [-1, 1/2]$, as in the figure. Then the area of the triangle can be computed through:
@@ -515,6 +524,81 @@ a, b = 0, 1
 quadgk(y -> f(y) - g(y), a, b)[1]
 ```
 
+## The area enclosed in a simple polygon
+
+A simple polygon is comprised of several non-intersecting line segments, save for the last segment ends where the first begins. These have an orientation, which we take to be counterclockwise. Polygons, as was seen when computing areas related to Archimedes efforts, can be partioned into simple geometric shapes, for which known areas apply.
+
+### The trapezoid formula
+
+In this example, we see how trapezoids can be used to find the interior area encolosed by a simply polygon, avoiding integration.
+
+The trapezoid formula to compute the area of a simple polygon is
+
+$$
+A = - \sum_{i=1}^n \frac{y_{i+1} + y_i}{2} \cdot (x_{i+1} - x_i).
+$$
+
+Where the polygon is described by points $(x_1,y_1), (x_2,y_2), \cdots, (x_n, y_n), (x_{n+1}, y_{n+1})$ *with* $(x_1,y_1) = (x_{n+1}, y_{n+1})$.
+
+Each term describes the area of a trapezoid, possibly signed.
+
+This figure illustrates for a simple case:
+
+```{julia}
+using Plots
+xs = [1, 3, 4, 2, 1]  # n = 4 to give 5=n+1 values
+ys = [1, 1, 2, 3, 1]
+p = plot(xs, ys; line=(3, :black), ylims=(0,4), legend=false)
+scatter!(p, xs,  ys; marker=(7, :circle))
+```
+
+Going further, we draw the four trapezoids using different colors depending on the sign of the `xs[i+1] - xs[[i]` terms:
+
+```{julia}
+for i in 1:4
+    col = xs[i+1] - xs[i] > 0 ? :yellow : :blue
+    S = Shape([(xs[i],0), (xs[i+1],0), (xs[i+1],ys[i+1]), (xs[i], ys[i])])
+    plot!(p, S, fill=(col, 0.25))
+end
+p
+```
+
+The yellow trapezoids appear to be colored green, as they completely overlap with parts of the blue trapezoids and blue and yellow make green. As the signs of the differences of the $x$ values is different, these areas add to $0$ in the sum, leaving just the area of the interior when the sum is computed.
+
+For this particular figure, the enclosed area is
+
+```{julia}
+- sum((ys[i+1] + ys[i]) / 2 * (xs[i+1] - xs[i]) for i in 1:length(xs)-1)
+```
+
+### The triangle formula
+
+Similarly, we can create triangles to partition the polygon. The *signed* area of a triangle with vertices $(0,0), (x_i, y_i), (x_{i+1}, y_{i+1})$ can be computed by $\frac{1}{2} \cdot (x_i \cdot y_{i+1} - x_{i+1}\cdot  y_i)$. (A formula that can be derived from a related one for the area of a parallelogram.
+
+Visualizing, as before, we have the shape and the triangles after centering around the origin:
+
+```{julia}
+S = Shape(xs, ys)
+c = Plots.center(S) # find centroid of the polygon
+xs, ys = xs .- c[1], ys .- c[2]
+
+p = plot(xs, ys; line=(3, :black),  legend=false)
+scatter!(p, xs,  ys; marker=(7, :circle))
+for i in 1:4
+    col = xs[i]*ys[i+1] - xs[i+1]*ys[i] > 0 ? :yellow : :blue
+    S = Shape([(0,0), (xs[i],ys[i]), (xs[i+1],ys[i+1])])
+    plot!(p, S, fill=(col, 0.25))
+end
+p
+```
+
+Here the triangles are all yellow, as each has a positive area to contribute to the following sum:
+
+```{julia}
+(1/2) * sum(xs[i]*ys[i+1] - xs[i+1]*ys[i] for i in 1:4)
+```
+
+
 ## Questions
 
 
@@ -833,3 +917,56 @@ nothing
 
 ![Roberval, avoiding a trignoometric integral, instead used symmetry to show that the area under the companion curve was half the area of the rectangle, which in this figure is $2\pi$.
 ](./figures/companion-curve-bisects-rectangle.png)
+
+
+###### Question
+
+```{julia}
+#| echo: false
+#| label: fig-cavalieri-example
+#| fig-cap: "Cavalieri example"
+let
+squareplus(x, b=2) = x/2 + sqrt(x^2 + b)/2
+TeLU(x) = x * tanh(exp(x))
+Δ(x) = squareplus(x) - TeLU(x)
+
+a,b = -3, 3
+xs = range(a, b, 10)
+
+c = 3
+Shift(f,c) = x -> c + f(x)
+p = plot(Shift(squareplus, c), a, b;
+         legend=false,
+         line=(3, :royalblue),
+         axis=([], false))
+plot!(Shift(TeLU, c),
+      line=(3, :royalblue)
+      )
+
+
+plot!(Δ, line=(3, :forestgreen))
+plot!(zero, line=(3, :forestgreen))
+
+n = 20
+xs = range(a, b, n+1)
+for i in 1:n
+    S = Shape([xs[i],xs[i]],
+              [0, Δ(xs[i])])
+    plot!(Plots.translate(S, 0, TeLU(xs[i]) + c), fill=(:royalblue, 0.25))
+    plot!(S, fill=(:forestgreen, 0.25))
+end
+    p
+end
+```
+
+@fig-cavalieri-example shows on same scale the graphs of $f(x)$ and $g(x)$ and the graphs of $f(x) - g(x)$ and $0$ (the lower figure). Twenty lines were drawn with height $f(x) - g(x)$ on the lower figure and these were translated to the upper figure by an amount $g(x)$. All to illustrate that any parallel line in the $y$ direction intersects the two figures with the same length.
+
+What does this imply:
+
+```{julia}
+#| echo: false
+choices = ["The two enclosed areas should be equal",
+           "The two enclosed areas are clearly different, as they do not overap"],
+radioq(choices, 1)
+```
+           "

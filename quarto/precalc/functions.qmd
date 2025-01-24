@@ -129,7 +129,7 @@ x = -40
 y = 5/9 * (x - 32)
 ```
 
-will evaluate the right-hand side with the value of `x` bound at the time of assignment to `y`, whereas assignment to a function
+will evaluate the expression on the right-hand side with the value of `x` bound at the time of assignment to `y`, whereas assignment to a function
 
 
 ```{julia}
@@ -144,7 +144,7 @@ will create a function object with a value of `x` determined at a later time - t
 Within `Julia`, we make note of the distinction between a function object versus a function call. In the definition `f(x)=cos(x)`, the variable `f` refers to a function object, whereas the expression `f(pi)` is a function call. This mirrors the math notation where an $f$ is used when properties of a function are being emphasized (such as $f \circ g$ for composition) and $f(x)$ is used when the values related to the function are being emphasized (such as saying "the plot of the equation $y=f(x)$).
 
 
-Distinguishing these three related but different concepts (equations, function objects, and function calls) is important when modeling on the computer.
+Distinguishing these three related but different concepts -- equations and expressions, function objects, and function calls -- is important when modeling mathematics on the computer.
 
 
 ### Cases
@@ -548,6 +548,13 @@ v0, theta
 The *big* advantage of bundling parameters into a container is consistency – the function is always called in an identical manner regardless of the number of parameters (or variables).
 
 
+::: {.callout-note}
+## Avoid global variables
+
+Referring to a global parameter is common in math, but has a significant performance impact in `Julia`. Save for the simplest usage, it is much better to pass parameters to the function through one of several means that too rely on the value of the global state.
+
+:::
+
 ## Multiple dispatch
 
 
@@ -576,7 +583,7 @@ Multiple dispatch is very common in mathematics. For example, we learn different
 
 :::
 
-`Julia` is similarly structured.  `Julia` terminology would be to call the operation "`+`" a *generic function* and the different implementations *methods* of "`+`". This allows the user to just need to know a smaller collection of generic concepts yet still have the power of detail-specific implementations.  To see how many different methods are defined in the base `Julia` language for the `+` operator, we can use the command `methods(+)`. As there are so many ($\approx 200$) and that number is growing, we illustrate how many different logarithm methods are implemented for "numbers:"
+`Julia` is similarly structured.  `Julia` terminology would be to call the operation "`+`" a *generic function* and the different implementations *methods* of "`+`". This allows the user to just need to know a smaller collection of generic concepts yet still have the power of detail-specific implementations.  To see how many different methods are defined in the base `Julia` language for the `+` operator, we can use the command `methods(+)`. As there are so many (well over $200$ when `Julia` is started), we illustrate how many different logarithm methods are implemented for "numbers:"
 
 
 ```{julia}
@@ -599,7 +606,7 @@ twotox(x::Complex) = (2.0 + 0.0im)^x
 
 This is for illustration purposes -- the latter two are actually already done through `Julia`'s *promotion* mechanism -- but we see that `twotox` will return a rational number when `x` is an integer unlike `Julia` which, when `x` is non-negative will return an integer and will otherwise will error or return a float (when `x` is a numeric literal, like `2^(-3)`).
 
-The key to reading the above is the type annotation acts like a gatekeeper allowing in only variables of that type.
+The key to reading the above is the type annotation acts like a gatekeeper allowing in only variables of that type or a subtype of that type.
 
 For example, the number `2` is parsed as a 64-bit integer (typically) and has concrete type `Int64` which is a subtype of `Integer`. So `twotox(2)` will use the first definition, and return a rational number. Whereas, the number `2.0` is parsed as a floating point number with concrete type `Float64` which is a subtype of `Real`, not `Integer`, so `twotox(2.0)` will use the second method defined above.
 
@@ -1279,6 +1286,82 @@ choices = ["Just use `f = h - g`",
 answ = 1
 radioq(choices, answ)
 ```
+
+###### Question
+
+
+Nasa has some learning materials on [stars](https://spacemath.gsfc.nasa.gov/stars.html) including one that describes how to count the number of stars brighter than some level. This formula is from [https://spacemath.gsfc.nasa.gov/stars/6Page103.pdf](https://spacemath.gsfc.nasa.gov/stars/6Page103.pdf):
+
+$$
+\log_{10}(N(m)) = -0.0003 m^3 + 0.0019 m^2 + 0.484 m -3.82, \quad 4.0 \leq m \leq 25.0.
+$$
+
+Where $N(m)$ counts the number of stars brighter than magnitude $m$ *per* square degree of space.
+
+A [square degree](https://en.wikipedia.org/wiki/Square_degree) is a unit of a solid angle. An entire sphere has a solid angle of $4\pi$ and $4\pi \cdot (180/\pi)^2$ square degrees.
+
+
+With this we can answer agequestions, such as:
+
+> How many stars can we see in the sky?
+
+Star [magnitude](https://en.wikipedia.org/wiki/Magnitude_(astronomy)) measures the brightness of celestial objects, with the sun on a log scale so that  a magnitude $1$ star is $100$ times brighter than a magnitude $6$ star. The sun has a value around $-27$, Sirius (the brightest visible star) around $-1.46), Venus around $-5$. We will take a magnitude of $6$ or brighter  for visibility. (magnitudes less than $6$). The value of $N(6)$ is then
+
+```{julia}
+q(m) = -0.0003*m^3 + 0.0019*m^2 + 0.484*m - 3.82
+N(m) = 10.0^(q(m))
+n_6 = N(6)
+```
+
+The number of square degrees in the sky is
+
+```{julia}
+total_square_degrees = 4pi * (180/pi)^2
+```
+
+So the formula estimates this many visible stars in the entire sky:
+
+```{julia}
+n_6 * total_square_degrees
+```
+
+With a telescope, it is estimated that stars with brightness at magnitude $10.0$ can be seen. How many stars are visible in the sky with such a telescope?
+
+```{julia}
+#| echo: false
+val = N(10) * total_square_degrees
+atol = 10
+numericq(val, atol)
+```
+
+A photograph is taken of a faint star cluster covering 5 square-degrees of space. The cluster contains stars of magnitude between $11.0$ and $15.0$. The stars seen in the photograph number $5237$. The astronomer estimates there are $5237$ *minus* the expected number of stars in this cluster. What did she estimate?
+
+```{julia}
+#| echo: false
+expected_count = (N(15.0) - N(11.0)) * 5
+actual_count = 5237
+cluster = actual_count - expected_count
+atol = 2
+hint = """
+The total expected number of stars in the one degree is `N(15.0) - N(11.0)`.
+The count is then `5237 - 5*(N(15.0) - N(11.0))`.
+"""
+numericq(cluster, atol; hint)
+```
+
+
+If a star of magnitude $5$ difference is $100$ times brighter, what is the scale of the logarithm?
+
+```{julia}
+#| echo: false
+explanation = raw"""
+The base $a$ solve $\log_a(x + 5) / \log_a(x) = 100$. The logs can be combined and then $a$ can be solved for.
+"""
+choices = [raw"$5$",raw"$\sqrt[5]{100}$", raw"$\sqrt{100}$"]
+answer = 2
+buttonq(choices, answer; explanation)
+```
+
 
 ###### Question
 
