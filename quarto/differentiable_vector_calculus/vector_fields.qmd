@@ -839,6 +839,311 @@ Taking $\partial/\partial{a_i}$ gives equations $2a_i\sigma_i^2 + \lambda = 0$, 
 For the special case of a common variance, $\sigma_i=\sigma$, the above simplifies to $a_i = 1/n$ and the estimator is $\sum X_i/n$, the familiar sample mean, $\bar{X}$.
 
 
+##### Example: The mean value theorem
+
+[Perturbing the Mean Value Theorem: Implicit Functions, the Morse Lemma, and Beyond](https://www.jstor.org/stable/48661587) by Lowry-Duda, and Wheeler presents an interesting take on the mean-value theorem by asking if the endpoint $b$ moves continuously, does the value $c$ move continuously?
+
+Fix the left-hand endpoint, $a_0$, and consider:
+
+$$
+F(b,c) = \frac{f(b) - f(a_0)}{b-a_0} - f'(c).
+$$
+
+Solutions to $F(b,c)=0$ satisfy the mean value theorem for $f$.
+Suppose $(b_0,c_0)$ is one such solution.
+By using the implicit function theorem, the question of finding a $C(b)$ such that $C$ is continuous near $b_0$ and satisfied $F(b, C(b)) =0$  for $b$ near $b_0$ can be characterized.
+
+To analyze this question, Lowry-Duda and Wheeler fix a set of points $a_0 = 0$, $b_0=3$ and consider functions $f$ with $f(a_0) = f(b_0) = 0$. Similar to how Rolle's theorem easily proves the mean value theorem, this choice imposes no loss of generality.
+
+Suppose further that $c_0 = 1$, where $c_0$ solves the mean value theorem:
+
+$$
+f'(c_0) = \frac{f(b_0) - f(a_0)}{b_0 - a_0}.
+$$
+
+
+Again, this is no loss of generality. By construction $(b_0, c_0)$ is a zero of the just defined $F$.
+
+We are interested in the shape of the level set $F(b,c) = 0$ which reveals other solutions $(b,c)$. For a given $f$, a contour plot, with $b>c$, can reveal this shape.
+
+To find a source of examples for such functions, polynomials are considered, beginning with these constraints:
+
+$$
+f(a_0) = 0, f(b_0) = 0, f(c_0) = 1, f'(c_0) = 0
+$$
+
+With four conditions, we might guess a cubic parabola with four unknowns should fit. We use `SymPy` to identify the coefficients.
+
+```{julia}
+a₀, b₀, c₀ = 0, 3, 1
+@syms x
+@syms a[0:3]
+p = sum(aᵢ*x^(i-1) for (i,aᵢ) ∈ enumerate(a))
+dp = diff(p,x)
+p, dp
+```
+
+The constraints are specified as follows; `solve` has no issue with this system of equations.
+
+```{julia}
+eqs = (p(x=>a₀) ~ 0,
+       p(x=>b₀) ~ 0,
+       p(x=>c₀) ~ 1,
+       dp(x=>c₀) ~ 0)
+d = solve(eqs, a)
+q = p(d...)
+```
+
+We can plot $q$ and emphasize the three points with:
+
+```{julia}
+xlims = (-0.5, 3.5)
+plot(q; xlims, legend=false)
+scatter!([a₀, b₀, c₀], [0,0,1]; marker=(5, 0.25))
+```
+
+
+We now make a plot of the level curve $F(x,y)=0$ using `contour` and the constraint that $b>c$ to graphically identify $C(b)$:
+
+```{julia}
+dq = diff(q, x)
+λ(b,c) = b > c ? (q(b) - q(a₀)) / (b - a₀) - dq(c) : -Inf
+bs = cs = range(0.5,3.5, 100)
+plot(; legend=false)
+contour!(bs, cs, λ;  levels=[0])
+plot!(identity; line=(1, 0.25))
+scatter!([b₀], [c₀]; marker=(5, 0.25))
+```
+
+The curve that passes through the point $(3,1)$ is clearly continuous, and following it, we see continuous changes in $b$ result in continuous changes in $c$.
+
+
+
+Following a behind-the-scenes blog post by [Lowry-Duda](https://davidlowryduda.com/choosing-functions-for-mvt-abscissa/) we wrap some of the  above into a function to find a polynomial given a set of conditions on values for its self or its derivatives at a point.
+
+```{julia}
+function _interpolate(conds; x=x)
+    np1 = length(conds)
+    n = np1 - 1
+    as = [Sym("a$i") for i in 0:n]
+    p = sum(as[i+1] * x^i for i in 0:n)
+    # set p⁽ᵏ⁾(xᵢ) = v
+    eqs = Tuple(diff(p, x, k)(x => xᵢ) ~ v for (xᵢ, k, v) ∈ conds)
+    soln = solve(eqs, as)
+    p(soln...)
+end
+
+# sets p⁽⁰⁾(a₀) = 0, p⁽⁰⁾(b₀) = 0, p⁽⁰⁾(c₀) = 1, p⁽¹⁾(c₀) = 0
+basic_conditions = [(a₀,0,0), (b₀,0,0), (c₀,0,1), (c₀,1,0)]
+_interpolate(basic_conditions; x)
+```
+
+Before moving on, polynomial interpolation can suffer from the Runge phenomenon, where there can be severe oscillations between the points. To tamp these down, an additional *control* point is added which is adjusted to minimize the size of the derivative through the value $\int \| f'(x) \|^2 dx$ (the $L_2$ norm of the derivative):
+
+```{julia}
+function interpolate(conds)
+    @syms x, D
+    # set f'(2) = D, then adjust D to minimize L₂ below
+    new_conds = vcat(conds, [(2, 1, D)])
+    p = _interpolate(new_conds; x)
+
+    # measure size of p with ∫₀⁴f'(x)^2 dx
+    dp = diff(p, x)
+    L₂ = integrate(dp^2, (x, 0, 4))
+    dL₂ = diff(L₂, D)
+    soln = first(solve(dL₂ ~ 0, D)) # critical point to minimum L₂
+
+    p(D => soln)
+end
+q = interpolate(basic_conditions)
+```
+
+We also make a plotting function to show both `q` and the level curve of `F`:
+
+```{julia}
+function plot_q_level_curve(q; title="", layout=[1;1])
+    x = only(free_symbols(q)) # fish out x
+    dq = diff(q, x)
+
+    xlims = ylims = (-0.5, 4.5)
+
+    p₁ = plot(; xlims, ylims, title,
+              legend=false, aspect_ratio=:equal)
+    plot!(p₁, q; xlims, ylims)
+    scatter!(p₁, [a₀, b₀, c₀], [0,0,1]; marker=(5, 0.25))
+
+    λ(b,c) = b > c ? (q(b) - q(a₀)) / (b - a₀) - dq(c) : -Inf
+    bs = cs = range(xlims..., 100)
+
+    p₂ = plot(; xlims, ylims, legend=false, aspect_ratio=:equal)
+    contour!(p₂, bs, cs, λ;  levels=[0])
+    plot!(p₂, identity; line=(1, 0.25))
+    scatter!(p₂, [b₀], [c₀]; marker=(5, 0.25))
+
+    plot(p₁, p₂; layout)
+end
+```
+
+
+```{julia}
+plot_q_level_curve(q; layout=(1,2))
+```
+
+Like previously, this highlights the presence of a continuous function in $b$ yielding $c$.
+
+This is not the only possibility. Another such from their paper (Figure 3) looks like the following where some additional constraints are added ($f''(c_0) = 0, f'''(c_0)=3, f'(b_0)=-3$):
+
+```{julia}
+new_conds = [(c₀, 2, 0), (c₀, 3, 3),  (b₀, 1, -3)]
+q = interpolate(vcat(basic_conditions, new_conds))
+
+plot_q_level_curve(q;layout=(1,2))
+```
+
+For this shape, if $b$ increases away from $b_0$, the secant line connecting $(a_0,0)$ and $(b, f(b)$ will have a negative slope, but there are no points nearby $x=c_0$ where the derivative has a tangent line with negative slope, so the continuous function is only on the left side of $b_0$. Mathematically, as $f$ is increasing $c_0$ -- as $f'''(c_0) = 3  > 0$ -- and $f$ is decreasing at $f(b_0)$ -- as $f'(b_0) = -1 < 0$, the signs alone suggest the scenario. The contour plot reveals, not one, but two one-sided functions of $b$ giving $c$.
+
+----
+
+Now to characterize all possibilities.
+
+Suppose $F(x,y)$ is differentiable. Then $F(x,y)$ has this approximation (where $F_x$ and $F_y$ are the partial derivatives):
+
+$$
+F(x,y) \approx F(x_0,y_0) + F_x(x_0,y_0) (x - x_0) + F_y(x_0,y_0) (y-y_0)
+$$
+
+If $(x_0,y_0)$ is a zero of $F$, then the above can be solved for $y$ assuming $F_y$ does not vanish:
+
+$$
+y \approx y_0  - \frac{F_x(x_0, y_0)}{F_y(x_0, y_0)} \cdot (x - x_0)
+$$
+
+The main tool used in the authors' investigation is the implicit function theorem. The implicit function theorem states there is some function continuously describing $y$, not just approximately, under the above assumption of $F_y$ not vanishing.
+
+
+Again, with $F(b,c) = (f(b) - f(a_0)) / (b -a_0) - f'(c)$ and assuming $f$ has at least two continuous derivatives, then:
+
+$$
+\begin{align*}
+F(b_0,c_0) &= 0,\\
+F_c(b_0, c_0) &= -f''(c_0).
+\end{align*}
+$$
+
+Assuming $f''(c_0)$ is *non*-zero, then this proves that if $b$ moves continuously, a corresponding solution to the mean value theorem will as well, or there is a continuous function $C(b)$ with $F(b,C(b)) = 0$.
+
+Further, they establish if $f'(b_0) \neq f'(c_0)$ then there is a continuous $B(c)$ near $c_0$ such that $F(B(c),c) = 0$; and that there are no other nearby solutions to $F(b,c)=0$ near $(b_0, c_0)$.
+
+
+This leaves for consideration the possibilities when $f''(c_0) = 0$ and $f'(b_0) = f'(c_0)$.
+
+One such possibility looks like:
+
+```{julia}
+new_conds = [(c₀, 2, 0), (c₀, 3, 3),  (b₀, 1, 0), (b₀, 2, 3)]
+q = interpolate(vcat(basic_conditions, new_conds))
+plot_q_level_curve(q;layout=(1,2))
+```
+
+This picture shows more than one possible choice for a continuous function, as the contour plot has this looping intersection point at $(b_0,c_0)$.
+
+
+To characterize possible behaviors, the authors recall the [Morse lemma](https://en.wikipedia.org/wiki/Morse_theory) applied to functions $f:R^2 \rightarrow R$ with vanishing gradient, but non-vanishing Hession. This states that after some continuous change of coordinates, $f$ looks like $\pm u^2 \pm v^2$. Only this one-dimensional Morse lemma (and a generalization) is required for this analysis:
+
+> if $g(x)$ is three-times continuously differentiable with $g(x_0) = g'(x_0) = 0$ but $g''(x_0) \neq 0$ then *near* $x_0$ $g(x)$ can be transformed through a continuous change of coordinates to look like $\pm u^2$, where the sign is the sign of the second derivative of $g$.
+
+That is, locally the function can be continuously transformed into a parabola opening up or down depending on the sign of the second derivative. Their proof starts with Taylor's remainder theorem to find a candidate for the change of coordinates and shows with the implicit function theorem this is a viable change.
+
+
+Setting:
+$$
+\begin{align*}
+g_1(b) &= (f(b) - f(a_0))/(b - a_0) - f'(c_0)\\
+g_2(c) &= f'(c) - f'(c_0).
+\end{align*}
+$$
+
+Then $F(c, b) = g_1(b) - g_2(c)$.
+
+By construction,  $g_2(c_0) = 0$ and $g_2^{(k)}(c_0) = f^{(k+1)}(c_0)$,
+Adjusting $f$ to have a vanishing second -- but not third -- derivative at $c_0$ means $g_2$ will satisfy the assumptions of the lemma assuming $f$ has at least four continuous derivatives (as all our example polynomials do).
+
+As for $g_1$, we have by construction $g_1(b_0) = 0$. By differentiation we get a pattern for some constants $c_j = (j+1)\cdot(j+2)\cdots \cdot k$ with $c_k = 1$.
+
+$$
+g^{(k)}(b) = k! \cdot \frac{f(a_0) - f(b)}{(a_0-b)^{k+1}} - \sum_{j=1}^k c_j \frac{f^{(j)}(b)}{(a_0 - b)^{k-j+1}}. 
+$$
+
+Of note that when $f(a_0) = f(b_0) = 0$ that if $f^{(k)}(b_0)$ is the first non-vanishing derivative of $f$ at $b_0$ that $g^{(k)}(b_0) = f^{(k)}(b_0)/(b_0 - a_0)$ (they have the same sign).
+
+
+In particular, if $f(a_0) = f(b_0) = 0$ and $f'(b_0)=0$ and $f''(b_0)$ is non-zero, the lemma applies to $g_1$, again assuming $f$ has at least four continuous derivatives.
+
+Let $\sigma_1 = \text{sign}(f''(b_0))$ and $\sigma_2 = \text{sign}(f'''(c_0))$, then we have $F(b,c) = \sigma_1 u^2 - \sigma_2 v^2$ after some change of variables. The authors conclude:
+
+* If $\sigma_1$ and $\sigma_2$ have different signs, then $F(b,c) = 0$ is like $u^2 = - v^2$ which has only one isolated solution, as the left hand side and right hand sign will have different signs except when $0$.
+* If $\sigma_1$ and $\sigma_2$ have the same sign, then $F(b,c) = 0$ is like $u^2 = v^2$ which has two solutions $u = \pm v$.
+
+Applied to the problem at hand:
+
+* if $f''(b_0)$ and $f'''(c_0)$ have different signs, the $c_0$ can not be extended to a continuous function near $b_0$.
+* if the two have the same sign, then there are two such functions possible.
+
+```{julia}
+conds₁ = [(b₀,1,0), (b₀,2,3), (c₀,2,0), (c₀,3,-3)]
+conds₂ = [(b₀,1,0), (b₀,2,3), (c₀,2,0), (c₀,3, 3)]
+
+q₁ = interpolate(vcat(basic_conditions, conds₁))
+q₂ = interpolate(vcat(basic_conditions, conds₂))
+
+p₁ = plot_q_level_curve(q₁)
+p₂ = plot_q_level_curve(q₂)
+
+plot(p₁, p₂; layout=(1,2))
+```
+
+There are more possibilities, as pointed out in the article.
+
+Say a function, $h$, has *a zero of order $k$ at $x_0$* if the first $k-1$ derivatives of $h$ are zero at $x_0$, but that $h^{(k)}(x_0) \neq 0$. Now suppose $f$ has order $k$ at $b_0$ and order $l$ at $c_0$. Then $g_1$ will be order $k$ at $b_0$ and $g_2$ will have order $l-1$ at $c_0$. In the above, we had orders $2$ and $3$ respectively.
+
+A generalization of the Morse lemma to the function, $h$ having a zero of order $k$ at $x_0$ is $h(x) = \pm u^k$ where if $k$ is odd either sign is possible and if $k$ is even, then the sign is that of $h^{(k)}(x_0)$.
+
+With this, we get the following possibilities for $f$ with a zero of order $k$ at $b_0$ and $l$ at $c_0$:
+
+* If $l$ is even, then there is one continuous solution near $(b_0,c_0)$
+
+* If $l$ is odd and $k$ is even and $f^{(k)}(b_0)$ and $f^{(l)}(c_0)$ have the *same* sign, then there are two continuous solutions
+
+* If $l$ is odd and $k$ is even and $f^{(k)}(b_0)$ and $f^{(l)}(c_0)$ have  *opposite* signs, the $(b_0, c_0)$ is an isolated solution.
+
+* If $l$ is add and $k$ is odd, then there are two continuous solutions, but only defined in a a one-sided neighborhood of $b_0$ where $f^{(k)}(b_0) f^{(l)}(c_0) (b - b_0) > 0$.
+
+
+To visualize these four cases, we take $(l=2,k=1)$, $(l=3, k=2)$ (twice) and $(l=3, k=3)$.
+
+```{julia}
+condsₑ    = [(c₀,2,3), (b₀,1,-3)]
+condsₒₑ₊₊ = [(c₀,2,0), (c₀,3, 10), (b₀,1,0), (b₀,2,10)]
+condsₒₑ₊₋ = [(c₀,2,0), (c₀,3,-20), (b₀,1,0), (b₀,2,20)]
+condsₒₒ   = [(c₀,2,0), (c₀,3,-20), (b₀,1,0), (b₀,2, 0), (b₀,3, 20)]
+
+qₑ    = interpolate(vcat(basic_conditions, condsₑ))
+qₒₑ₊₊ = interpolate(vcat(basic_conditions, condsₒₑ₊₊))
+qₒₑ₊₋ = interpolate(vcat(basic_conditions, condsₒₑ₊₋))
+qₒₒ   = interpolate(vcat(basic_conditions, condsₒₒ))
+
+p₁ = plot_q_level_curve(qₑ;    title = "(e,.)")
+p₂ = plot_q_level_curve(qₒₑ₊₊; title = "(o,e,same)")
+p₃ = plot_q_level_curve(qₒₑ₊₋; title = "(o,e,different)")
+p₄ = plot_q_level_curve(qₒₒ;   title = "(o,o)")
+
+plot(p₁, p₂, p₃, p₄; layout=(1,4))
+```
+
+
+This handles most cases, but leaves the possibility that a function with infinite vanishing derivatives to consider. We steer the interested reader to the article for thoughts on that.
+
+
 ## Questions
 
 

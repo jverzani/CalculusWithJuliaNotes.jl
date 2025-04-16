@@ -79,7 +79,7 @@ R(0) &= 0\\
 \end{align*}
 $$
 
-In `Julia` we define these, `N` to model the total population, and `u0` to be the proportions.
+In `Julia` we define these parameter values and `N` to model the total population and `u0` to be represent the proportions.
 
 
 ```{julia}
@@ -94,7 +94,7 @@ An *estimated* set of values for $k$ and $b$ are $k=1/3$, coming from the averag
 Okay, the mathematical modeling is done; now we try to solve for the unknown functions using `DifferentialEquations`.
 
 
-To warm up, if $b=0$ then $i'(t) = -k   \cdot i(t)$ describes the infected. (There is no circulation of people in this case.) The solution would be achieved through:
+To warm up, if $b=0$ then $i'(t) = -k   \cdot i(t)$ describes the infected. (There is no circulation of people in this case.) This is a single ODE. The solution would be achieved through:
 
 
 ```{julia}
@@ -102,10 +102,12 @@ To warm up, if $b=0$ then $i'(t) = -k   \cdot i(t)$ describes the infected. (The
 k = 1/3
 
 f(u,p,t) = -k * u  # solving  u′(t) = - k u(t)
+
+uᵢ0= I0/N
 time_span = (0.0, 20.0)
 
-prob = ODEProblem(f, I0/N, time_span)
-sol = solve(prob, Tsit5(), reltol=1e-8, abstol=1e-8)
+prob = ODEProblem(f, uᵢ0, time_span)
+sol = solve(prob, Tsit5(); reltol=1e-8, abstol=1e-8)
 
 plot(sol)
 ```
@@ -120,7 +122,7 @@ $$
 \frac{di}{dt} = -k   \cdot i(t) = F(i(t), k, t)
 $$
 
-where $F$ depends on the current value ($i$),  a parameter ($k$), and the time ($t$). We did not utilize $p$ above for the parameter, as it was easy not to, but could have, and will in the following. The time variable $t$ does not appear by itself in our equation, so only `f(u, p, t) = -k * u` was used, `u` the generic name for a solution which in this case is $i$.
+where $F$ depends on the current value ($i$),  a parameter ($k$), and the time ($t$). We did not utilize $p$ above for the parameter, as it was easy not to, but could have, and will in the following. The time variable $t$ does not appear by itself in our equation, so only `f(u, p, t) = -k * u` was used, `u` the generic name for a solution which in this case was labeled with an  $i$.
 
 
 The problem we set up needs an initial value (the $u0$) and a time span to solve over. Here we want time to model real time, so use floating point values.
@@ -167,7 +169,7 @@ The `sir!` function has the trailing `!` indicating – by convention – it *mu
 
 :::
 
-With the update function defined, the problem is setup and a solution found with in the same manner:
+With the update function defined, the problem is setup and a solution is found using the same manner as before:
 
 
 ```{julia}
@@ -193,7 +195,7 @@ p = (k=1/2, b=2) # change b from 1/2 to 2 -- more daily contact
 prob = ODEProblem(sir!, u0, time_span, p)
 sol = solve(prob, Tsit5())
 
-plot(sol)
+plot(sol; legend=:right)
 ```
 
 The graphs are somewhat similar, but the steady state is reached much more quickly and nearly everyone became infected.
@@ -252,7 +254,7 @@ end
 p
 ```
 
-The 3-dimensional graph with `plotly` can have its viewing angle adjusted with the mouse. When looking down on the $x-y$ plane, which code `b` and `k`, we can see the rapid growth along a line related to $b/k$.
+(A 3-dimensional graph with `plotly` or `Makie` can have its viewing angle adjusted with the mouse. When looking down on the $x-y$ plane, which code `b` and `k`, we can see the rapid growth along a line related to $b/k$.)
 
 
 Smith and Moore point out that  $k$  is roughly the reciprocal of the number of days an individual is sick enough to infect others. This can be estimated during a breakout. However, they go on to note that there is no direct way to observe  $b$,  but there is an indirect way.
@@ -382,7 +384,7 @@ SOL = solve(trajectory_problem, Tsit5(); p = ps, callback=cb)
 plot(t -> SOL(t)[1], t -> SOL(t)[2], TSPAN...; legend=false)
 ```
 
-Finally, we note that the `ModelingToolkit` package provides symbolic-numeric computing. This allows the equations to be set up symbolically, as in `SymPy` before being passed off to `DifferentialEquations` to solve numerically. The above example with no wind resistance could be translated into the following:
+Finally, we note that the `ModelingToolkit` package provides symbolic-numeric computing. This allows the equations to be set up symbolically, as has been illustrated with `SymPy`, before being passed off to `DifferentialEquations` to solve numerically. The above example with no wind resistance could be translated into the following:
 
 
 ```{julia}
