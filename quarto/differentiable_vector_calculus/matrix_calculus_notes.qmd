@@ -1,17 +1,14 @@
 # Matrix Calculus
 
-XXX Add in examples from paper XXX
-optimization? large number of parameters? ,...
+This section illustrates a more general setting for taking derivatives, that unifies the different expositions taken prior.
 
-
-Mention numerator layout from  https://en.wikipedia.org/wiki/Matrix_calculus#Layout_conventions
-
-::: {.callout-note}
+::: {.callout-note  appearance="minimal"}
 ## Based on Bright, Edelman, and Johnson's notes
 
-This section samples material from the notes [Matrix Calculus (for Machine Learning and Beyond)](https://arxiv.org/abs/2501.14787) by Paige Bright, Alan Edelman, and Steven G. Johnson. These notes cover material taught in a course at MIT. Support materials for their course in `Julia` are available at [https://github.com/mitmath/matrixcalc/tree/main](https://github.com/mitmath/matrixcalc/tree/main). For more details and examples, please refer to the source.
+This section has essentially  no original contribution, as it basically samples material from the notes [Matrix Calculus (for Machine Learning and Beyond)](https://arxiv.org/abs/2501.14787) by Paige Bright, Alan Edelman, and Steven G. Johnson. Their notes cover material taught in a course at MIT. Support materials for their course in `Julia` are available at [https://github.com/mitmath/matrixcalc/tree/main](https://github.com/mitmath/matrixcalc/tree/main). For more details and examples, please refer to the source.
 :::
 
+## Review
 
 We have seen several "derivatives" of a function, based on the number of inputs and outputs. The first one was for functions $f: R \rightarrow R$.
 
@@ -21,7 +18,9 @@ $$
 \lim_{h \rightarrow 0}\frac{f(c + h) - f(c)}{h}.
 $$
 
-The derivative as a function of $x$ using this rule for any $x$ in the domain.  Common notation is:
+The derivative as a function of $x$ uses this rule for any $x$ in the domain.
+
+Common notation is:
 
 $$
 f'(x) = \frac{dy}{dx} = \lim_{h \rightarrow 0}\frac{f(x + h) - f(x)}{h}
@@ -48,28 +47,64 @@ $$
 df = f(x+dx) - f(x) = f'(x) dx.
 $$
 
-We will see all the derivatives encountered so far can be similarly expressed.
-
 In the above, $df$ and $dx$ are differentials, made rigorous by a limit, which hides the higher order terms.
 
+We will see all the derivatives encountered so far can be similarly expressed as this last characterization.
 
-In these notes the limit has been defined, with suitable modification, for functions of vectors (multiple values) with scalar or vector outputs.
-
+### Univariate, vector-valued
 
 For example, when $f: R \rightarrow R^m$ was a vector-valued function the derivative was defined similarly through a limit of $(f(t + \Delta t) - f(t))/{\Delta t}$, where each component needed to have a limit. This can be rewritten through $f(t + dt) - f(t) = f'(t) dt$, again using differentials to avoid the higher order terms.
 
+### Multivariate, scalar-valued
 When $f: R^n \rightarrow R$ is a scalar-valued function with vector inputs, differentiability was defined by a gradient existing with $f(c+h) - f(c) - \nabla{f}(c) \cdot h$ being $\mathscr{o}(\|h\|)$. In other words $df = f(c + dh) - f(c) = \nabla{f}(c) \cdot dh$. The gradient has the same shape as $c$, a column vector. If we take the row vector (e.g. $f'(c) = \nabla{f}(c)^T$) then again we see $df = f(c+dh) - f(c) = f'(c) dh$, where the last term uses matrix multiplication of a row vector times a column vector.
 
+
+### Multivariate, vector-valued
 Finally, when $f:R^n \rightarrow R^m$, the Jacobian was defined and characterized by
 $\| f(x + dx) - f(x) - J_f(x)dx \|$ being $\mathscr{o}(\|dx\|)$. Again, we can express this through $df = f(x + dx) - f(x) = f'(x)dx$ where $f'(x) = J_f(x)$.
 
 
-In writing $df = f(x + dx) - f(x) = f'(x) dx$ generically, some underlying facts are left implicit: $dx$ has the same shape as $x$ (so can be added); $f'(x) dx$ may mean usual multiplication or matrix multiplication; and there is an underlying concept of distance and size that allows the above to be rigorous. This may be an abolute value or a norm.
+### Vector spaces
 
-Further, various differentiation rules apply such as the sum, product, and chain rules.
+The generalization of the derivative involves linear operators which are defined for vector spaces.
 
+A [vector space](https://en.wikipedia.org/wiki/Vector_space) is a set of mathematical objects which can be added together and also multiplied by a scalar. Vectors of similar size, as previously discussed, are the typical example, with vector addition and scalar multiplication already defined. Matrices of similar size (and some subclasses) also form a vector space.
 
-The @BrightEdelmanJohnson notes cover differentiation of functions in this uniform manner and then extend the form by treating derivatives as *linear operators*.
+Additionally, many other set of objects form vector spaces. Certain families of functions form examples such as: polynomial functions of degree $n$ or less; continuous functions, or functions with a certain number of derivatives. The last two are infinite dimensional; our focus here is on finite dimensional vector spaces.
+
+Let's take differentiable functions as an example. These form a vector space as the derivative of a linear combination of differentiable functions is defined through the simplest derivative rule: $[af(x) + bg(x)]' = a[f(x)]' + b[g(x)]'$. If $f$ and $g$ are differentiable, then so is $af(x)+bg(x)$.
+
+A finite vector space is described by a *basis* -- a minimal set of vectors needed to describe the space, after consideration of linear combinations. For some typical vector spaces, this is the set of special vectors with $1$ as one of the entries, and $0$ otherwise.
+
+A key fact about a basis for a finite vector space is every vector in the vector space can be expressed *uniquely* as a linear combination of the basis vectors. The set of numbers used in the linear combination, along with an order to the basis, means an element in a finite vector space can be associated with a unique coordinate vector.
+
+Vectors and matrices have properties that are generalizations of the real numbers. As vectors and matrices form vector spaces, the concept of addition of vectors and matrices is defined, as is scalar multiplication. Additionally, we have seen:
+
+* The dot product between two vectors of the same length is defined easily ($v\cdot w = \Sigma_i v_i w_i$). It is coupled with the length as $\|v\|^2 = v\cdot v$.
+
+* Matrix multiplication is defined for two properly sized matrices. If $A$ is $m \times k$ and $B$ is $k \times n$ then $AB$ is a $m\times n$ matrix with $(i,j)$ term given by the dot product of the $i$th row of $A$ (viewed as a vector) and the $j$th column of $B$ (viewed as a vector). Matrix multiplication is associative but *not* commutative. (E.g. $(AB)C = A(BC)$ but $AB$ and $BA$ need not be equal, or even defined, as the shapes may not match up.)
+
+* A square matrix $A$ has an *inverse* $A^{-1}$ if $AA^{-1} = A^{-1}A = I$, where $I$ is the identity matrix (a matrix which is zero except on its diagonal entries, which are all $1$). Square matrices may or may not have an inverse. A matrix without an inverse is called *singular*.
+
+* Viewing a vector as a matrix is possible. The association chosen here is common and is through a *column* vector.
+
+* The *transpose* of a matrix comes by permuting the rows and columns. The transpose of a column vector is a row vector, so $v\cdot w = v^T w$, where we use a  superscript $T$ for the transpose. The transpose of a product, is the product of the transposes -- reversed: $(AB)^T = B^T A^T$; the tranpose of a transpose is an identity operation: $(A^T)^T = A$; the inverse of a transpose is the tranpose of the inverse: $(A^{-1})^T = (A^T)^{-1}$.
+
+* Matrices for which $A = A^T$ are called symmetric.
+
+* The *adjoint* of a matrix is related to the transpose, only complex conjugates are also taken. When a matrix has real components, the adjoint and transpose are identical operations.
+
+* The trace of a square matrix is just the sum of its diagonal terms
+
+* The determinant of a square matrix is involved to compute, but was previously seen to have a relationship to the volume of a certain parallellpiped.
+
+These operations have different inputs and outputs: the determinant and trace take a (square) matrix and return a scalar; the inverse takes a square matrix and returns a square matrix (when defined); the transpose and adjoint take a rectangular matrix and return a rectangular matrix.
+
+In addition to these, there are a few other key operations on matrices described in the following.
+
+### Linear operators
+
+The @BrightEdelmanJohnson notes cover differentiation of functions in this uniform manner extending the form by treating derivatives more generally as *linear operators*.
 
 
 A [linear operator](https://en.wikipedia.org/wiki/Operator_(mathematics)) is a mathematical object which satisfies
@@ -78,45 +113,29 @@ $$
 f[\alpha v + \beta w] = \alpha f[v] + \beta f[w].
 $$
 
-where the $\alpha$ and $\beta$ are scalars, and $v$ and $w$ possibly not and come from a *vector space*. Regular multiplication and matrix multiplication are familiar linear operations, but there are many others.
+where the $\alpha$ and $\beta$ are scalars, and $v$ and $w$ come from a *vector space*.
+
+Taking the real numbers as a vector space, then regular multiplication is a linear operation, as $c \cdot (ax + by) = a\cdot(cx) + b\cdot(cy)$ using the distributive and commutative properties.
+
+Taking $n$-dimensional vectors as vector space, matrix multiplication by an $n \times n$ matrix on the left will be a linear operator as $M(av + bw) = a(Mv) + b(Mw)$, using distribution and the commutative properties of scalar multiplication.
+
+We saw differential functions form a vector space, the derivative is a linear operator, as $[af(x) + bg(x)]' = af'(x) + bg'(x)$.
+
+
+::: {.callout-note  appearance="minimal"}
+## The use of `[]`
 
 The referenced notes identify $f'(x) dx$ as $f'(x)[dx]$, the latter emphasizing $f'(x)$ acts on $dx$ and the notation is not commutative (e.g., it is not $dx f'(x)$). The use of $[]$ is to indicate that $f'(x)$ "acts" on $dx$ in a linear manner. It may be multiplication, matrix multiplication, or something else. Parentheses are not used which might imply function application or multiplication.
+:::
 
 
+## The derivative as a linear operator
 
+We take the view that a derivative is a linear operator where $df = f(x+dx) + f(x) = f'(x)[dx]$.
 
+In writing $df = f(x + dx) - f(x) = f'(x)[dx]$ generically, some underlying facts are left implicit: $dx$ has the same shape as $x$ (so can be added)  and there is an underlying concept of distance and size that allows the above to be made rigorous. This may be an abolute value or a norm.
 
-Linear operators are related to vector spaces.
-
-A [vector space](https://en.wikipedia.org/wiki/Vector_space) is a set of mathematical objects which can be added together and also multiplied by a scalar. Vectors of similar size, as previously discussed, are the typical example, with vector addition and scalar multiplication previously discussed topics. Matrices of similar size (and some subclasses) also form a vector space. Additionally, many other set of objects form vector spaces. An example might be polynomial functions of degree $n$ or less; continuous functions, or functions with a certain number of derivatives.
-
-Take differentiable functions as an example, then the simplest derivative rules $[af(x) + bg(x)]' = a[f(x)]' + b[g(x)]'$ show the linearity of the derivative in this setting.
-
-A finite vector space is described by a *basis* -- a minimal set of vectors needed to describe the space, after consideration of linear combinations. For some typical vector spaces, this the set of special vectors with $1$ as one of the entries, and $0$ otherwise.
-
-A key fact about a basis for a finite vector space is every vector in the vector space can be expressed *uniquely* as a linear combination of the basis vectors.
-
-Vectors and matrices have properties that are generalizations of the real numbers. As vectors and matrices form vector spaces, the concept of addition of vectors and matrices is defined, as is scalar multiplication. Additionally, we have seen:
-
-* The dot product between two vectors of the same length is defined easily ($v\cdot w = \Sigma_i v_i w_i$). It is coupled with the length as $\|v\|^2 = v\cdot v$.
-
-* Matrix multiplication is defined for two properly sized matrices. If $A$ is $m \times k$ and $B$ is $k \times n$ then $AB$ is a $m\times n$ matrix with $(i,j)$ term given by the dot product of the $i$th row of $A$ (viewed as a vector) and the $j$th column of $B$ (viewed as a vector). Matrix multiplication is associative but *not* commutative. (E.g. $(AB)C = A(BC)$ but $AB$ and $BA$ need not be equal, or even defined, as the shapes may not match up).
-
-* A square matrix $A$ has an *inverse* $A^{-1}$ if $AA^{-1} = A^{-1}A = I$, where $I$ is the identity matrix (a matrix which is zero except on its diagonal entries, which are all $1$). Square matrices may or may not have an inverse. A matrix without an inverse is called *singular*.
-
-* Viewing a vector as a matrix is possible. The association is typically through a *column* vector.
-
-* The *transpose* of a matrix comes by permuting the rows and columns. The transpose of a column vector is a row vector, so $v\cdot w = v^T w$, where we use a  superscript $T$ for the transpose. The transpose of a product, is the product of the transposes -- reversed: $(AB)^T = B^T A^T$; the tranpose of a transpose is an identity operation: $(A^T)^T = A$; the inverse of a transpose is the tranpose of the inverse: $(A^{-1})^T = (A^T)^{-1}$.
-
-* The *adjoint* of a matrix is related to the transpose, only complex conjugates are also taken.
-
-* Matrices for which $A = A^T$ are called symmetric.
-
-* A few of the operations on matrices are the transpose and the inverse. These return a matrix, when defined. There is also the determinant and the trace, which return a scalar from a matrix. The trace is just the sum of the diagonal; the determinant is more involved to compute, but was previously seen to have a relationship to the volume of a certain parallellpiped. There are a few other operations described in the following.
-
-.
-
-## Scalar-valued functions of a vector
+##### Example: directional derivatives
 
 Suppose $f: R^n \rightarrow R$, a scalar-valued function of a vector. Then the directional derivative at $x$ in the direction $v$ was defined for a scalar $\alpha$ by:
 
@@ -128,10 +147,10 @@ $$
 This rate of change in the direction of $v$ can be expressed through the linear operator $f'(x)$ via
 
 $$
-f(x + d\alpha v) - f(x) = f'(x) [d\alpha v] = d\alpha f'(x)[v],
+df = f(x + d\alpha v) - f(x) = f'(x) [d\alpha v] = d\alpha f'(x)[v],
 $$
 
-using linearity to move the scalar part outside the $[]$. This connects the partial derivative at $x$ in the direction of $v$ with $f'(x)$:
+using linearity to move the scalar multiplication by  $d\alpha$ outside the action of the linear operator. This connects the partial derivative at $x$ in the direction of $v$ with $f'(x)$:
 
 $$
 \frac{\partial}{\partial \alpha}f(x + \alpha v) \mid_{\alpha = 0} =
@@ -139,28 +158,25 @@ f'(x)[v].
 $$
 
 
-Not only does this give a connection in notation with the derivative, it naturally illustrates how the derivative as a linear operator can act on non-infinitesimal values.
+Not only does this give a connection in notation with the derivative, it naturally illustrates how the derivative as a linear operator can act on non-infinitesimal values, in this case on $v$.
 
-Previously, we wrote $\nabla f \cdot v$ for the directional derivative, where the gradient is a column vector. The above uses the identification
-$f' = (\nabla f)^T$.
+Previously, we wrote $\nabla f \cdot v$ for the directional derivative, where the gradient is a column vector.
 
-For $f: R^n \rightarrow R$ we have
+The above uses the identification $f' = (\nabla f)^T$.
+For $f: R^n \rightarrow R$ we have $df = f(x + dx) - f(x) = f'(x) [dx]$ is a scalar, so if $dx$ is a column vector, $f'(x)$ is a row vector with the same number of components (just as $\nabla f$ is a column vector with the same number of components). The operation $f'(x)[dx]$ is just matrix multiplication, which is a linear operation.
 
-$$
-df = f(x + dx) - f(x) = f'(x) [dx]
-$$
+##### Example: derivative of a matrix expression
 
-is a scalar, so if $dx$ is a column vector, $f'(x)$ is a row vector with the same number of components (just as $\nabla f$ is a column vector with the same number of components).
+@BrightEdelmanJohnson include this example to show that the computation of derivatives using components can be avoided. Consider $f(x) = x^T A x$ where $x$ is a vector in $R^n$ and $A$ is an $n\times n$ matrix. This type of expression is common.
 
-##### Examples
 
-@BrightEdelmanJohnson include this example to show that the computation of derivatives using components can be avoided. Consider $f(x) = x^T A x$ where $x$ is a vector in $R^n$ and $A$ is an $n\times n$ matrix. Then $f: R^n \rightarrow R$ and its derivative can be computed:
+Then $f: R^n \rightarrow R$ and its derivative can be computed:
 
 $$
 \begin{align*}
 df &= f(x + dx) - f(x)\\
 &= (x + dx)^T A (x + dx) - x^TAx \\
-&= x^TAx + dx^TA x + x^TAx + dx^T A dx - x^TAx\\
+&= \textcolor{blue}{x^TAx} + dx^TA x + \textcolor{blue}{x^TAx} + \textcolor{red}{dx^T A dx} - \textcolor{blue}{x^TAx}\\
 &= dx^TA x + x^TAdx \\
 &= (dx^TAx)^T + x^TAdx \\
 &= x^T A^T dx + x^T A dx\\
@@ -169,9 +185,9 @@ df &= f(x + dx) - f(x)\\
 $$
 
 The term $dx^t A dx$ is dropped, as it is higher order (goes to zero faster), it containing two $dx$ terms.
-In the second to last step, an identity operation (taking the transpose of the scalar quantity) is taken to simplify the algebra. Finally, as $df = f'(x)[dx]$ the identity of $f'(x) =  x^T(A^T+A)$ is made, or taking transposes $\nabla f = (A + A^T)x$.
+In the second to last step, an identity operation (taking the transpose of the scalar quantity) is taken to simplify the algebra. Finally, as $df = f'(x)[dx]$ the identity of $f'(x) =  x^T(A^T+A)$ is made, or taking transposes $\nabla f(x) = (A + A^T)x$.
 
-Compare the elegance above, with the component version, even though simplified, it still requires a specification of the size to carry the following out:
+Compare the elegance above with the component version, even though simplified, which still requires a specification of the size to carry the following out:
 
 ```{julia}
 using SymPy
@@ -193,7 +209,7 @@ all(a == b for (a,b) ∈ zip(grad_u, grad_u_1))
 ```
 
 
-----
+##### Example: derivative of matrix application
 
 For $f: R^n \rightarrow R^m$,  @BrightEdelmanJohnson give an example of computing the Jacobian without resorting to component wise computations. Let $f(x) = Ax$ with $A$ being a $m \times n$ matrix, it follows that
 
@@ -202,14 +218,18 @@ $$
 df &= f(x + dx) - f(x)\\
 &= A(x + dx) - Ax\\
 &= Adx\\
-&= f'(x) dx.
+&= f'(x)[dx].
 \end{align*}
 $$
 
-The Jacobian is the linear operator $A$ acting on $dx$.
+The Jacobian is the linear operator $A$ acting on $dx$. (Seeing that $Adx = f'(x)[dx]$ implies $f'(x)=A$ comes as this action is true for any $dx$, hence the actions must be the same.)
+
+## Differentation rules
+
+Various differentiation rules are still available such as the sum, product, and chain rules.
 
 
-## Sum and product rules for the derivative
+### Sum and product rules for the derivative
 
 Using the differential notation -- which implicitly ignores higher order terms as they vanish in a limit -- the sum and product rules can be derived.
 
@@ -218,60 +238,60 @@ For the sum rule, let $f(x) = g(x) + h(x)$. Then
 $$
 \begin{align*}
 df &= f(x + dx) - f(x) \\
-&= f'(x) dx\\
+&= f'(x)[dx]\\
 &= \left(g(x+dx) + h(x+dx)\right) - \left(g(x) + h(x)\right)\\
 &= \left(g(x + dx) - g(x)\right) + \left(h(x + dx) - h(x)\right)\\
-&= g'(x)dx + h'(x) dx\\
-&= \left(g'(x) + h'(x)\right) dx
+&= g'(x)[dx] + h'(x)[dx]\\
+&= \left(g'(x) + h'(x)\right)[dx]
 \end{align*}
 $$
 
-Comparing we get $f'(x) = g'(x) + h'(x)$.
+Comparing we get $f'(x)dx = (g'(x) + h'(x))[dx]$ or $f'(x) = g'(x) + h'(x)$.
 
 The sum rule has the same derivation as was done with univariate, scalar functions. Similarly for the product rule.
 
-The product rule has with $f(x) = g(x)h(x)$
+The product rule for $f(x) = g(x)h(x)$ comes as:
 
 $$
 \begin{align*}
 df &= f(x + dx) - f(x) \\
 &= g(x+dx)h(x + dx) - g(x) h(x)\\
 &= \left(g(x) + g'(x)dx\right)\left(h(x) + h'(x) dx\right) - \left(g(x) h(x)\right) \\
-&= g(x)h(x) + g'(x) dx h(x) + g(x) h'(x) dx + g'(x)dx h'(x) dx - g(x) h(x)\\
-&= gh + dg h + gdh + dg dh - gh\\
-	&= dg h + gdh,
+&= \textcolor{blue}{g(x)h(x)} + g'(x) dx h(x) + g(x) h'(x) dx + \textcolor{red}{g'(x)dx h'(x) dx} - \textcolor{blue}{g(x) h(x)}\\
+&= g'(x)dxh(x)  + g(x)h'(x) dx\\
+&= (g'(x)h(x) + g(x)h'(x)) dx
 \end{align*}
 $$
 
 **after** dropping the higher order term and cancelling $gh$ terms of opposite signs in the fourth row.
 
 
-##### Examples
+##### Example
 
-These two rules can be used to show the last two examples:
+These two rules can be used to directly show the last two examples.
 
-First, to differentiate $f(x) = x^TAx$:
-
-$$
-\begin{align*}
-df &= dx^T (Ax) + x^T d(Ax) \\
-&= x^T A^T dx + x^T A dx \\
-&= x^T(A^T + A) dx
-\end{align*}
-$$
-
-Again, taking the transpose of the scalar quantity $x^TAdx$ to simplify the expression.
-
-When $A^T = A$ ($A$ is symmetric) this simplifies to a more familiar looking $2x^TA$, but we see that this requires assumptions not needed in the scalar case.
-
-
-Next, if $f(x) = Ax$ then
+First, if $f(x) = Ax$ and $A$ is a constant, then:
 
 $$
 df = (dA)x + A(dx) = 0x + A dx = A dx,
 $$
 
-$A$ being a constant here.
+Next, to differentiate $f(x) = x^TAx$:
+
+$$
+\begin{align*}
+df &= dx^T (Ax) + x^T d(Ax) \\
+&= (dx^T (Ax))^T + x^T A dx \\
+&= x^T A^T dx + x^T A dx \\
+&= x^T(A^T + A) dx
+\end{align*}
+$$
+
+In the second line the transpose of the scalar quantity $x^TAdx$ it taken to simplify the expression and the first calculation is used.
+
+When $A^T = A$ ($A$ is symmetric) this simplifies to a more familiar looking $2x^TA$, but we see that this requires assumptions not needed in the scalar case.
+
+
 
 ##### Example
 
@@ -303,7 +323,7 @@ $$
 
 They compute the derivative of $f(x) = A(x .* x)$ for some fixed matrix $A$ of the proper size.
 
-We can see that $d (\text{diag}(v)w) = d(\text{diag}(v)) w + \text{diag}(v) dw = (dx) .* w + x .* dw$. So
+We can see by the product rule that $d (\text{diag}(v)w) = d(\text{diag}(v)) w + \text{diag}(v) dw = (dx) .* w + x .* dw$. So
 
 $df = A(dx .* x + x .* dx) = 2A(x .* dx)$, as $.*$ is commutative by its definition.  Writing this as $df = 2A(x .* dx) = 2A(\text{diag}(x) dx) = (2A\text{diag}(x)) dx$, we identify $f'(x) = 2A\text{diag}(x)$.
 
@@ -311,7 +331,12 @@ $df = A(dx .* x + x .* dx) = 2A(x .* dx)$, as $.*$ is commutative by its definit
 This operation is called the [Hadamard product](https://en.wikipedia.org/wiki/Hadamard_product_(matrices)) and it extends to matrices and arrays.
 
 
-## The chain rule
+::: {.callout-note  appearance="minimal"}
+## Numerator layout
+The Wikipedia page on [matrix calculus](https://en.wikipedia.org/wiki/Matrix_calculus#Layout_conventions) has numerous such "identities" for derivatives of different common matrix/vector expressions. As vectors are viewed as column vectors; the "numerator layout" identities apply.
+:::
+
+### The chain rule
 
 Like the product rule, the chain rule is shown by @BrightEdelmanJohnson in this notation with $f(x) = g(h(x))$:
 
@@ -320,12 +345,11 @@ $$
 df &= f(x + dx) - f(x)\\
 &= g(h(x + dx)) - g(h(x))\\
 &= g(h(x) + h'(x)[dx]) - g(h(x))\\
+&= g(h(x)) + g'(h(x))[h'(x)[dx]] - g(h(x))\\
 &= g'(h(x)) [h'(x) [dx]]\\
 &= (g'(h(x)) h'(x)) [dx]
 \end{align*}
 $$
-
-(The limit requires a bit more detail.)
 
 The operator $f'(x)= g'(h(x)) h'(x)$ is a product of matrices.
 
@@ -341,16 +365,18 @@ $$
 
 Multiplying left to right (the first) is called reverse mode; multiplying right to left (the second) is called forward mode. The distinction becomes important when considering the computational cost of the multiplications.
 
-* If $f: R^n \rightarrow R^m$ has $n$ much bigger than $1$ and $m=1$, then it is much faster to do left to right multiplication
-* if $f:R^n \rightarrow R^m$ has $n=1$ and $m$ much bigger than one, the it is faster to do right to left multiplication.
+* If $f: R^n \rightarrow R^m$ has $n$ much bigger than $1$ and $m=1$, then it is much faster to do left to right multiplication (many more inputs than outputs)
+* if $f:R^n \rightarrow R^m$ has $n=1$ and $m$ much bigger than one, the it is faster to do right to left multiplication (many outputs than inputs)
 
 
-The basic idea comes down to the shape of the matrices. When $m=1$, the derviative is a product of matrices of size $n\times j$ $j\times k$ and $k \times 1$ yielding a matrix of size $n \times 1$ matching the function dimension. Matrix multiplication  of an $m \times q$ times $q \times n$ takes an order of $mqn$ operations. The multiplication of left to right is then
+The basic idea comes down to the shape of the matrices. When $m=1$, the derviative is a product of matrices of size $n\times j$, $j\times k$, and $k \times 1$ yielding a matrix of size $n \times 1$ matching the function dimension. Matrix multiplication  of an $m \times q$ matrix times a $q \times n$ matrix takes an order of $mqn$ operations.
 
-The first operation takes $njk$ operation leaving an $n\times k$ matrix, the next multiplication then takes another $nk1$ operations or $njk + nk$ together. Whereas computing from the right to left is first $jk1$ operations leaving a $j \times 1$ matrix. The next operation would take another $nk1$ operations. In totalL
+The operations involved in multiplication of left to right can be quantified. The first operation takes $njk$ operation leaving an $n\times k$ matrix, the next multiplication then takes another $nk1$ operations or $njk + nk$ together.
+
+Whereas computing from the right to left is first $jk1$ operations leaving a $j \times 1$ matrix. The next operation would take another $nk1$ operations. In total:
 
 * left to right is $njk + nk$ = $nk \cdot (1 + j)$.
-* right to left is $jk + j = j\cdot (k+1)$.
+* right to left is $jk + jn = j\cdot (k+n)$.
 
 When $j=k$, say,  we can compare and see the second is a factor less in terms of operations. This can be quite significant in higher dimensions, whereas the dimensions of calculus (where $n$ and $m$ are $3$ or less) it is not an issue.
 
@@ -362,8 +388,8 @@ Using the `BenchmarkTools` package, we can check the time to compute various pro
 ```{julia}
 using BenchmarkTools
 n,j,k,m = 20,15,10,1
-@btime A*(B*C) setup=(A=rand(n,j);B=rand(j,k); C=rand(k,m));
-@btime (A*B)*C setup=(A=rand(n,j);B=rand(j,k); C=rand(k,m));
+@btime A*(B*C) setup=(A=rand(n,j); B=rand(j,k); C=rand(k,m));
+@btime (A*B)*C setup=(A=rand(n,j); B=rand(j,k); C=rand(k,m));
 ```
 
 The latter computation is about 1.5 times slower.
@@ -371,18 +397,15 @@ The latter computation is about 1.5 times slower.
 Whereas the relationship is changed when the first matrix is skinny and the last is not:
 
 ```{julia}
-@btime A*(B*C) setup=(A=rand(m,k);B=rand(k,j); C=rand(j,n));
-@btime (A*B)*C setup=(A=rand(m,k);B=rand(k,j); C=rand(j,n));
+@btime A*(B*C) setup=(A=rand(m,k); B=rand(k,j); C=rand(j,n));
+@btime (A*B)*C setup=(A=rand(m,k); B=rand(k,j); C=rand(j,n));
 ```
 
 ##### Example
 
 In calculus, we have $n$ and $m$ are $1$,$2$,or $3$. But that need not be the case, especially if differentiation is over a parameter space.
 
-XXXX
-(Maybe the ariplain wing, but please, something origi
-
-
+XXX insert example XXX
 
 ## Derivatives of matrix functions
 
@@ -394,14 +417,12 @@ This derivative can be derived directly from the *product rule*:
 
 $$
 \begin{align*}
-f'(A) &= [AA]'\\
-&= A dA + dA A
+df &= d(A^2) = d(AA)\\
+&= dA A + A dA
 \end{align*}
 $$
 
 That is $f'(A)$ is the operator $f'(A)[\delta A] = A \delta A + \delta A A$ and not $2A\delta A$, as $A$ may not commute with $\delta A$.
-
-XXX THIS ISN"T EVEN RIGHT
 
 ### Vectorization of a matrix
 
@@ -409,7 +430,7 @@ Alternatively, we can identify $A$ through its
 components, as a vector in $R^{n^2}$ and then leverage the Jacobian.
 
 One such identification is vectorization -- consecutively stacking the
-column vectors into a vector. In `Julia` the `vec` function does this
+column vectors into a single vector. In `Julia` the `vec` function does this
 operation:
 
 ```{julia}
@@ -507,12 +528,13 @@ The $m\times n$ matrix $A$ and $j \times k$ matrix $B$ has a Kronecker product w
 
 The Kronecker product has a certain algebra, including:
 
-* transposes: $(A \otimes B)^T) = A^T \otimes B^T$
-* multiplication: $(A\otimes B)(C \otimes D) = (AC) \otimes (BD)$
-* inverses:  $(A \otimes B)^{-1} = (A^{-1}) \otimes (B^{-1})$
+* transposes: $(A \otimes B)^T = A^T \otimes B^T$
 * orthogonal: $(A\otimes B)^T = (A\otimes B)$ if both $A$ and $B$ has the same property
-* determinants: $\det(A\otimes B) = \det(A)^m \det(B)^n$, where $A$ is $n\times n$, $B$ is $m \times m$.
-* trace (sum of diagonal): $\text{tr}(A \otimes B) = \text{tr}(A)\text{tr}(B)$.
+* trace (sum of diagonal): $\text{tr}(A \otimes B) = \text{tr}(A)\text{tr}(B)$.* determinants: $\det(A\otimes B) = \det(A)^m \det(B)^n$, where $A$ is $n\times n$, $B$ is $m \times m$.
+* inverses:  $(A \otimes B)^{-1} = (A^{-1}) \otimes (B^{-1})$
+* multiplication: $(A\otimes B)(C \otimes D) = (AC) \otimes (BD)$
+
+
 
 The main equation coupling `vec` and `kron` is the fact that if $A$, $B$, and $C$ have appropriate sizes, then:
 
@@ -524,7 +546,7 @@ Appropriate sizes for $A$, $B$, and $C$ are determined by the various products i
 
 If $A$ is $m \times n$ and $B$ is $r \times s$, then since $BC$ is defined, $C$ has $s$ rows, and since $CA^T$ is defined, $C$ must have $n$ columns, as $A^T$ is $n \times m$, so $C$ must be $s\times n$. Checking this is correct on the other side, $A \times B$ would be size $mr \times ns$ and $\vec{C}$ would be size $sn$, so that product works, size wise.
 
-The referred to notes have an explanation for this formula, but we confirm with an example with $m=n-2$, $r=s=3$:
+The referred to notes have an explanation for this formula, but we confirm with an example with $m=n=2$ and $r=s=3$:
 
 ```{julia}
 @syms A[1:2, 1:2]::real B[1:3, 1:3]::real C[1:3, 1:2]::real
@@ -536,7 +558,7 @@ all(l == r for (l, r) ∈ zip(L, R))
 
 Now to use this relationship to recognize $df = A dA + dA A$ with the Jacobian computed from $\text{vec}{f(a)}$.
 
-We have $\text{vec}(A dA + dA A) = \text{vec}(A dA) + \text{vec}(dA A)$, by obvious linearity of $\text{vec}$. Now inserting an identity matrix, $I$, which is symmteric, we have:
+We have $\text{vec}(A dA + dA A) = \text{vec}(A dA) + \text{vec}(dA A)$, by obvious linearity of $\text{vec}$. Now inserting an identity matrix, $I$, which is symmteric, in a useful spot we have:
 
 $$
 \text{vec}(A dA) = \text{vec}(A dA I^T) = (I \otimes A) \text{vec}(dA),
@@ -545,7 +567,7 @@ $$
 and
 
 $$
-\text{vec}(dA A) = \text{vec}(I dA (A^T)^T) = (A^T \otimes I) \text{vec}(dA)
+\text{vec}(dA A) = \text{vec}(I dA (A^T)^T) = (A^T \otimes I) \text{vec}(dA).
 $$
 
 This leaves
@@ -576,13 +598,14 @@ $$
 
 The above shows how to relate the derivative of a matrix function to
 the Jacobian of a vectorized function, but only for illustration. It
-is decidely not necessary to express the derivative of $f$ in terms of
+is certainly not necessary to express the derivative of $f$ in terms of
 the derivative of its vectorized counterpart.
 
 
-##### Example: derivative of the inverse
+##### Example: derivative of the matrix inverse
 
-What is the derivative of $f(A) = A^{-1}$. When $A$ is a scalar, we related it to the reciprocal of the derivative of $f$ at some other point. The same technique is available. Starting with $I = AA^{-1}$ and noting $dI$ is $0$ we have
+What is the derivative of $f(A) = A^{-1}$? The same technique used to find the derivative of the inverse of a univariate, scalar-valued function is useful.
+Starting with $I = AA^{-1}$ and noting $dI$ is $0$ we have
 
 $$
 \begin{align*}
@@ -602,11 +625,11 @@ $$
 = \left((A^T)^{-1} \otimes A^{-1}\right) \text{vec}(dA).
 $$
 
-##### Example: derivative of the determinant
+##### Example: derivative of the matrix determinant
 
 Let $f(A) = \text{det}(A)$. What is the derivative?
 
-First, the determinant of a square, $n\times n$, matrix $A$ is a scalar summary of $A$ with different means to compute it, but one recursive one in  particular is helpful here:
+First, the determinant of a square, $n\times n$, matrix $A$ is a scalar summary of $A$. There are different means to compute the determinant, but this recursive one in  particular is helpful here:
 
 $$
 \text{det}(A) =  a_{1j}C_{1j} + a_{2j}C_{2j} + \cdots a_{nj}C_{nj}
@@ -626,10 +649,10 @@ as each cofactor in the expansion has no dependence on $A_{ij}$ as the cofactor 
 
 So the gradient is the matrix of cofactors.
 
-@BrightEdelmanJohnson also give a different proof, starting with this observation
+@BrightEdelmanJohnson also give a different proof, starting with this observation:
 
 $$
-\text{det}(I + dA) - \text{det}(I) = \text{tr}(dA)
+\text{det}(I + dA) - \text{det}(I) = \text{tr}(dA).
 $$
 
 Assuming that, then by the fact $\text{det}(AB) = \text{det}(A)\text{det}(B)$:
@@ -638,7 +661,7 @@ $$
 \begin{align*}
 \text{det}(A + A(A^{-1}dA)) - \text{det}(A) &= \text{det}(A)\cdot(\text{det}(I+ A^{-1}dA) - \text{det}(I)) \\
 &= \text{det}(A) \text{tr}(A^{-1}dA)\\
-&= \text{tr}(\text{det}(A)A^{-1}dA)\\
+&= \text{tr}(\text{det}(A)A^{-1}dA).
 \end{align*}
 $$
 
@@ -663,7 +686,7 @@ $$
 g(p) = f(A(p)^{-1} b)
 $$
 
-This might arise from applying a scalar-valued $f$ to the solution of $Ax = b$, where $A$ is parameterized by $p$.
+This might arise from applying a scalar-valued $f$ to the solution of $Ax = b$, where $A$ is parameterized by $p$. The number of parameters might be quite large, so how the resulting computation is organized might effect the computational costs.
 
 The chain rule gives the following computation to find the derivative (or gradient):
 
@@ -671,28 +694,28 @@ $$
 \begin{align*}
 dg
 &= f'(x)[dx]\\
-&= f'(x) [d(A(p)^{1} b)]\\
+&= f'(x) [d(A(p)^{-1} b)]\\
 &= f'(x)[-A(p)^{-1} dA A(p)^{-1} b + 0]\\
-&= -f'(x) A(p)^{-1} dA A(p)^{-1} b.
+&= -\textcolor{red}{f'(x) A(p)^{-1}} dA\textcolor{blue}{A(p)^{-1}[b]}.
 \end{align*}
 $$
 
-By writing $dA = A'(p)[dp]$ and setting $v^T = f'(x)A(p)^{-1}$ this becomes
+By  setting $v^T = f'(x)A(p)^{-1}$ and writing $x = A(p)^{-1}[b]$ this becomes
 
 $$
-dg = -v^T dA A(p)^{-1} b = -v^T dA x
+dg = -v^T dA x.
 $$
 
 This product of three terms can be computed in two directions:
 
- From left to right:
+*From left to right:*
 
  First $v$ is found by solving $v^T = f'(x) A^{-1}$ through
 the solving of
 $v = (A^{-1})^T (f'(x))^T = (A^T)^{-1} \nabla(f)$
 or by solving $A^T v = \nabla f$. This is called the *adjoint* equation.
 
-The partial derivatives in $g$ is related to each partial derivative of $dA$ through:
+The partial derivatives in $p$ of $g$ are related to each partial derivative of $dA$ through:
 
 $$
 \frac{\partial g}{\partial p_k} = -v^T\frac{\partial A}{\partial p_k} x,
@@ -700,7 +723,7 @@ $$
 
 as the scalar factor commutes through. With $v$ and $x$ solved for (via the adjoint equation and from solving $Ax=b$) the partials in $p_k$ are computed with dot products. There are just two costly operations.
 
-From right to left:
+*From right to left:*
 
 The value of $x$ can be solved for, as above, but computing the value of
 
@@ -709,63 +732,16 @@ $$
 -f'(x) \left(A^{-1} \frac{\partial A}{\partial p_k} x \right)
 $$
 
-requires a costly solve for each $p_k$, and $p$ may have many components. As mentioned above, the reverse mode offers advantages when there are many input parameters ($p$) and a single output parameter.
+requires a costly solve of $A^{-1}\frac{\partial A}{\partial p_k} x$ for each $p_k$, and $p$ may have many components. This is the difference: left to right only has the solve of the one adjoint equation.
+
+As mentioned above, the reverse mode offers advantages when there are many input parameters ($p$) and a single output parameter.
+
+
 
 ##### Example
 
 
 Suppose $x(p)$ solves some system of equations $h(x(p),p) = 0$ in $R^n$ ($n$ possibly just $1$) and $g(p) = f(x(p))$ is some non-linear transformation of $x$. What is the derivative of $g$ in $p$?
-
-Suppose the *implicit function theorem* applies to $h(x,p) = 0$, that is -- *locally* -- there is an implicitly defined function  $x(p)$ with a derivative. Moreover by differentiating both sides it can be identified:
-
-$$
-0 = \frac{\partial h}{\partial p} dp + \frac{\partial h}{\partial x} dx
-$$
-
-which can be solved for $dx$ to give
-
-$$
-dx = -\left(\frac{\partial h}{\partial x}\right)^{-1} \frac{\partial h}{\partial p} dp.
-$$
-
-The chain rule then gives
-
-$$
-dg = f'(x) dx = -f'(x) \left(\frac{\partial h}{\partial x}\right)^{-1} \frac{\partial h}{\partial p} dp.
-$$
-
-This can be computed in two directions:
-
-From left to right:
-
-Call $A =\left(\frac{\partial h}{\partial x}\right)^{-1}$. Then define $v$ indirectly through $v^T = f'(x) A^{-1}$. With this:
-$v = (A^{-1})^T (f'(x))^T = (A^T)^{-1} \nabla{f}$
-which is found by solving
-$A^Tv = \nabla{f}$.
-Again, this is the *adjoint* equation.
-
-The value of $dA$ is related to each partial derivative for which
-
-$$
-\frac{\partial g}{\partial p_k} = -v^T\frac{\partial A}{\partial p_k} x,
-$$
-
-as the scalar factor commutes through. With $v$ and $x$ solved for (via the adjoint equation and from solving $Ax=b$) the partials in $p_k$ are computed with dot products.
-
-However, from right to left, the value of $x$ can be solved for, but computing the value of
-
-$$
-\frac{\partial g}{\partial p_k} =
--f'(x)
-\left(A^{-1} \frac{\partial A}{\partial p_k} x \right)
-$$
-
-requires a costly solve for each $p_k$, and $p$ may have many components. The reverse mode offers advantages when there are many input parameters ($p$) and a single output parameter.
-
-##### Example
-
-
-Suppose $x(p)$ solves some system of equations $h(x(p),p) = 0$ in $R^n$ ($n$ possibly just 1$) and $g(p) = f(x(p))$ is some non-linear transformation of $x$. What is the derivative of $g$ in $p$?
 
 Suppose the *implicit function theorem* applies to $h(x,p) = 0$, that is *locally* the response $x(p)$ has a derivative, and moreover by the chain rule
 
@@ -782,16 +758,16 @@ $$
 The chain rule applied to $g(p) = f(x(p))$ then yields
 
 $$
-dg = f'(x) dx = - f'(x) \left(\frac{\partial h}{\partial x}\right)^{-1} \frac{\partial h}{\partial p} dp.
+dg = f'(x) dx = - f'(x) \left(\frac{\partial h}{\partial x}\right)^{-1} \frac{\partial h}{\partial p} dp = -v^T\frac{\partial h}{\partial p} dp,
 $$
 
-Setting
+by setting
 
 $$
-v^T = -f'(x) \left(\frac{\partial h}{\partial x}\right)^{-1}
+v^T = f'(x) \left(\frac{\partial h}{\partial x}\right)^{-1}.
 $$
 
-then $v$ can be solved from taking adjoints (as before). Let $A = \partial h/\partial x$, the $v^T = -f'(x) A^{-1}$ or $v = -(A^{-1})^T (f'(x))^t= -(A^T)^{-1} \nabla f$. As before it would take two solves to get both $g$ and its gradient.
+Here $v$ can be solved for by taking adjoints (as before). Let $A = \partial h/\partial x$, then $v^T = f'(x) A^{-1}$ or $v = (A^{-1})^T (f'(x))^t= (A^T)^{-1} \nabla f$.  That is $v$ solves $A^Tv=\nabla f$. As before it would take two solves to get both $g$ and its gradient.
 
 
 ## Second derivatives, Hessian
@@ -854,57 +830,58 @@ This formula -- $f(x+dx)-f(x) \approx f'(x)dx + dx^T H dx$ -- is valid for any $
 
 By uniqueness, we have under these assumptions that the Hessian is *symmetric* and the expression $dx^T H dx$ is a *bilinear* form, which we can identify as $f''(x)[dx,dx]$.
 
-That the Hessian is symmetric could also be derived under these assumptions by directly computing that the mixed partials can have their order exchanged. But in this framework, as explained by @BrightEdelmanJohnson it is a result of the underlying vector space having an addition that is commutative (e.g. $u+v = v+u$).
+That the Hessian is symmetric could also be derived under these assumptions by directly computing that the mixed partials can have their order exchanged. But in this framework, as explained by @BrightEdelmanJohnson (and shown later) it is a result of the underlying vector space having an addition that is commutative (e.g. $u+v = v+u$).
 
 The mapping $(u,v) \rightarrow u^T A v$ for a matrix $A$ is bilinear. For a fixed $u$, it is linear as it can be viewed as $(u^TA)[v]$ and matrix multiplication is linear. Similarly for a fixed $v$.
 
 @BrightEdelmanJohnson extend this characterization to a broader setting.
-The second derivative can be viewed as expressing first-order change in $f'(x)$, a linear operator. The value $df'$ has the same shape as $f'$, which is a linear operator, so $df'$ acts on vectors, say $dx$, then:
+
+We have for some function $f$
 
 $$
-df'[dx] = f''(x)[dx'][dx] = f''(x)[dx', dx]
+df = f(x + dx) - f(x) = f'(x)[dx]
 $$
 
-The prime in $dx'$ is just notation, not a derivative operation for $dx$.
+Then if $d\tilde{x}$ is another differential change with the same shape as $x$ we can look at the differential of $f'(x)$:
 
-With this view, we can see that $f''(x)$ has two vectors it acts on. By definition it is linear in $dx$. However, as $f'(x)$ is a linear operator and the sum and product rules apply to derivatives, this operator is linear in $dx'$ as well. So $f''(x)$ is bilinear and as mentioned earlier symmetric.
+$$
+d(f') = f'(x + d\tilde{x}) - f'(x) = f''(x)[d\tilde{x}]
+$$
 
-### Polarization
 
-@BrightEdelmanJohnson interpret $f''$ by looking at the image under $f$ of $x + dx + dx'$. If $x$ is a vector, then this has a geometrical picture, from vector addtion, relating $x + dx$, $x+dx'$, and $x + dx + dx'$.
+Now, $d(f')$ has the same shape as $f'$, a linear operator, hence $d(f')$ is also a linear operator. Acting on $dx$, we have
 
-The image for $x +dx$ is to second order  $f(x) + f'(x)[dx] + (1/2)f''(x)[dx, dx]$, similarly $x + dx'$ is to second order $f(x) + f'(x)[dx'] + (1/2)f''(x)[dx', dx']$. The key formula for $f''(x)$ is
+$$
+d(f')[dx] = f''(x)[d\tilde{x}][dx] = f''(x)[d\tilde{x}, dx].
+$$
+
+The last equality a definition. As $f''$ is linear in the the application to $d\tilde{x}$ and also linear in application to $dx$, $f''(x)$ is a bilinear operator.
+
+Moreover, the following shows it is *symmetric*:
 
 $$
 \begin{align*}
-f(x + dx + dx') &= f(x) + f'(x)[dx + dx'] + \frac{1}{2}f''(x)[dx, dx']\\
-&= f(x) + f'(x)[dx] + (1/2)f''(x)[dx, dx]
-&+ f(x) + f'(x)[dx] + (1/2)f''(x)[dx', dx']
-&+ f''(x)[dx, dx']
-\end{align}
+f''(x)[d\tilde{x}][dx] &= (f'(x + d\tilde{x}) - f'(x))[dx]\\
+&= f'(x + d\tilde{x})[dx] - f'(x)[dx]\\
+&= (f(x + d\tilde{x} + dx) - f(x + d\tilde{x})) - (f(x+dx) - f(x))\\
+&= (f(x + dx + d\tilde{x}) - f(x + dx)) - (f(x +  d\tilde{x}) - f(x))\\
+&= f'(x + dx)[d\tilde{x}] - f'(x)[d\tilde{x}]\\
+&= f''(x)[dx][d\tilde{x}]
+\end{align*}
 $$
 
-This gives a means to compute $f''$ in terms of $f''$ acting on diagonal terms, where the two vectors are equal:
+So $f''(x)[d\tilde{x},dx] = f''(x)[dx, d\tilde{x}]$. The key is the commutivity of vector addition to say $dx + d\tilde{x} = d\tilde{x} + dx$ in the third line.
 
-$$
-f''(x)[dx, dx'] = \frac{1}{2} f''(x)[dx+dx',dx+dx'] - f''(x)[dx,dx] - f''(x)[dx',dx']
-$$
+##### Example: Hessian is symmetric
 
-### XXX does this fit in?
+As mentioned earlier, the Hessian is the matrix arising from finding the second derivative of a multivariate, scalar-valued function $f:R^n \rightarrow R$. As a bilinear form on a finite vector space, it can be written as $\tilde{x}^T A x$. As this second derivative is symmetric, and this value above a scalar, it follows that $\tilde{x}^T A x = \tilde{x}^T A^T x$. That is $H = A$ must also be symmetric from general principles.
 
-However, as a description of second-order change in $f$, we recover the initial terms in the Taylor series
-
-$$
-f(x + \delta x) = f(x) + f'(x)\delta x + (1/2) f''(x)[\delta x, \delta x] + \mathscr{o}(||\delta x||^2).
-$$
-
-### Examples
 
 ##### Example: second derivative of $x^TAx$
 
-Consider an expression from earlier $f(x) = x^T A x$ for some constant $A$. Then $f''$ is found by noting that $f' = (\nabla f)^T = x^T(A + A^T)$, or $\nabla f = (A^T + A)x$ and $f'' = H = A^T + A$ is the Jacobian of the gradient.
+Consider an expression from earlier $f(x) = x^T A x$ for some constant $A$.
 
-By rearranging terms, it can be shown that $f(x) = 1/2 x^THx = 1/2 f''[x,x]$.
+We have seen that $f' = (\nabla f)^T = x^T(A+A^T)$. That is $\nabla f = (A^T+A)x$ is linear in $x$. The Jacobian of $\nabla f$ is the Hessian, $H = f'' = A + A^T$.
 
 ##### Example: second derivative of $\text{det}(A)$
 
@@ -939,10 +916,11 @@ $$
 $$
 
 So, after dropping the third-order term, we see:
+
 $$
 \begin{align*}
-f''(A)&[dA,dA'] \\
-&= \text{det}(A)\text{tr}(A^{-1}dA')\text{tr}(A^{-1}dA)
-- \text{det}(A)\text{tr}(A^{-1}dA' A^{-1}dA).
+f''(A)[dA,dA']
+&= \text{det}(A)\text{tr}(A^{-1}dA')\text{tr}(A^{-1}dA)\\
+&\quad - \text{det}(A)\text{tr}(A^{-1}dA' A^{-1}dA).
 \end{align*}
 $$
