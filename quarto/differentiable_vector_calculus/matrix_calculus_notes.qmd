@@ -176,7 +176,7 @@ $$
 \begin{align*}
 df &= f(x + dx) - f(x)\\
 &= (x + dx)^T A (x + dx) - x^TAx \\
-&= \textcolor{blue}{x^TAx} + dx^TA x + \textcolor{blue}{x^TAx} + \textcolor{red}{dx^T A dx} - \textcolor{blue}{x^TAx}\\
+&= \textcolor{blue}{x^TAx} + dx^TA x + x^TAdx + \textcolor{red}{dx^T A dx} - \textcolor{blue}{x^TAx}\\
 &= dx^TA x + x^TAdx \\
 &= (dx^TAx)^T + x^TAdx \\
 &= x^T A^T dx + x^T A dx\\
@@ -246,7 +246,7 @@ df &= f(x + dx) - f(x) \\
 \end{align*}
 $$
 
-Comparing we get $f'(x)dx = (g'(x) + h'(x))[dx]$ or $f'(x) = g'(x) + h'(x)$.
+Comparing we get $f'(x)[dx] = (g'(x) + h'(x))[dx]$ or $f'(x) = g'(x) + h'(x)$. (The last two lines above show how the new linear operator $g'(x) + h'(x)$ is defined on a value, but adding the application for each.
 
 The sum rule has the same derivation as was done with univariate, scalar functions. Similarly for the product rule.
 
@@ -256,10 +256,10 @@ $$
 \begin{align*}
 df &= f(x + dx) - f(x) \\
 &= g(x+dx)h(x + dx) - g(x) h(x)\\
-&= \left(g(x) + g'(x)dx\right)\left(h(x) + h'(x) dx\right) - \left(g(x) h(x)\right) \\
-&= \textcolor{blue}{g(x)h(x)} + g'(x) dx h(x) + g(x) h'(x) dx + \textcolor{red}{g'(x)dx h'(x) dx} - \textcolor{blue}{g(x) h(x)}\\
-&= g'(x)dxh(x)  + g(x)h'(x) dx\\
-&= (g'(x)h(x) + g(x)h'(x)) dx
+&= \left(g(x) + g'(x)[dx]\right)\left(h(x) + h'(x) [dx]\right) - g(x) h(x) \\
+&= \textcolor{blue}{g(x)h(x)} + g'(x) [dx] h(x) + g(x) h'(x) [dx] + \textcolor{red}{g'(x)[dx] h'(x) [dx]} - \textcolor{blue}{g(x) h(x)}\\
+&= \left(g'(x)[dx]\right)h(x)  + g(x)\left(h'(x) [dx]\right)\\
+&= dg h + g dh
 \end{align*}
 $$
 
@@ -369,16 +369,18 @@ Multiplying left to right (the first) is called reverse mode; multiplying right 
 * if $f:R^n \rightarrow R^m$ has $n=1$ and $m$ much bigger than one, the it is faster to do right to left multiplication (many outputs than inputs)
 
 
-The basic idea comes down to the shape of the matrices. When $m=1$, the derviative is a product of matrices of size $n\times j$, $j\times k$, and $k \times 1$ yielding a matrix of size $n \times 1$ matching the function dimension. Matrix multiplication  of an $m \times q$ matrix times a $q \times n$ matrix takes an order of $mqn$ operations.
+The reason comes down to the shape of the matrices. To see, we need to know that matrix multiplication  of an $m \times q$ matrix times a $q \times n$ matrix takes an order of $mqn$ operations.
 
-The operations involved in multiplication of left to right can be quantified. The first operation takes $njk$ operation leaving an $n\times k$ matrix, the next multiplication then takes another $nk1$ operations or $njk + nk$ together.
+When $m=1$, the derviative is a product of matrices of size $n\times j$, $j\times k$, and $k \times 1$ yielding a matrix of size $n \times 1$ matching the function dimension.
+
+The operations involved in multiplication from left to right can be quantified. The first operation takes $njk$ operation leaving an $n\times k$ matrix, the next multiplication then takes another $nk1$ operations or $njk + nk$ together.
 
 Whereas computing from the right to left is first $jk1$ operations leaving a $j \times 1$ matrix. The next operation would take another $nk1$ operations. In total:
 
-* left to right is $njk + nk$ = $nk \cdot (1 + j)$.
+* left to right is $njk + nk$ = $nk \cdot (j + 1)$.
 * right to left is $jk + jn = j\cdot (k+n)$.
 
-When $j=k$, say,  we can compare and see the second is a factor less in terms of operations. This can be quite significant in higher dimensions, whereas the dimensions of calculus (where $n$ and $m$ are $3$ or less) it is not an issue.
+When $j=k$, say, we can compare and see the second is a factor less in terms of operations. This can be quite significant in higher dimensions, whereas the dimensions of calculus (where $n$ and $m$ are $3$ or less) it is not an issue.
 
 
 ##### Example
@@ -401,17 +403,15 @@ Whereas the relationship is changed when the first matrix is skinny and the last
 @btime (A*B)*C setup=(A=rand(m,k); B=rand(k,j); C=rand(j,n));
 ```
 
-##### Example
+----
 
 In calculus, we have $n$ and $m$ are $1$,$2$,or $3$. But that need not be the case, especially if differentiation is over a parameter space.
-
-XXX insert example XXX
 
 ## Derivatives of matrix functions
 
 What is the the derivative of $f(A) = A^2$?
 
-The function $f$ takes a $n\times n$ matrix and returns a matrix of the same size. This innocuous question isn't directly handled, here, by the Jacobian, which is defined for vector-valued functions $f:R^n \rightarrow R^m$.
+The function $f$ takes a $n\times n$ matrix and returns a matrix of the same size.
 
 This derivative can be derived directly from the *product rule*:
 
@@ -422,7 +422,7 @@ df &= d(A^2) = d(AA)\\
 \end{align*}
 $$
 
-That is $f'(A)$ is the operator $f'(A)[\delta A] = A \delta A + \delta A A$ and not $2A\delta A$, as $A$ may not commute with $\delta A$.
+That is $f'(A)$ is the operator $f'(A)[\delta A] = A \delta A + \delta A A$. (This is not $2A\delta A$, as $A$ may not commute with $\delta A$.)
 
 ### Vectorization of a matrix
 
@@ -463,7 +463,7 @@ J = vec(f(A)).jacobian(vec(A)) # jacobian of f̃
 
 We do this via linear algebra first, then see a more elegant manner following the notes.
 
-A basic course in linear algebra shows that any linear operator on a finite vector space can be represented as a matrix. The basic idea is to represent what the operator does to each *basis* element and put these values as columns of the matrix.
+A course in linear algebra shows that any linear operator on a finite vector space can be represented as a matrix. The basic idea is to represent what the operator does to each *basis* element and put these values as columns of the matrix.
 
 
 In this $3 \times 3$ case, the linear operator works on an object with $9$ slots and returns an object with $9$ slots, so the matrix will be $9 \times 9$.
