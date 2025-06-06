@@ -165,7 +165,7 @@ A = simplify(integrate(nl - f(x), (x, q, a)));
 #| code-fold: true
 #| code-summary: "Show the code"
 @syms k::nonnegative
-V = simplify(integrate(PI * (nl - f(x) - k)^2, (x, q, a)));
+V = simplify(integrate(2PI*(nl-f(x))*(a - x + k),(x, q, a)));
 ```
 
 ----
@@ -218,7 +218,7 @@ L = integrate(sqrt(1 + fp(x)^2), (x, q, a));
 
 ----
 
-> 5. The $y$ coordinate of the midpoint ofthe line segment $PQ$
+> 5. The $y$ coordinate of the midpoint of the line segment $PQ$
 
 
 ```{julia}
@@ -300,7 +300,7 @@ end
 #| code-summary: "Show the code"
 # use parametric and  2π ∫ u(t) √(u'(t)^2 + v'(t)^2) dt
 uu(x) = a - x
-vv(x) = f(uu(x))
+vv(x) = f(a - uu(x))
 SA = 2PI * integrate(uu(x) * sqrt(diff(uu(x),x)^2 + diff(vv(x),x)^2), (x, q, a));
 ```
 
@@ -394,11 +394,11 @@ plot!([a₀,q₀,q₀,a₀-f(a₀)/fp(a₀),a₀],
 # v1, v2, v3 = [[x[i]-x[1],y[i]-y[1], 0] for i in 2:4]
 # area = 1//2 * last(cross(v3,v2) + cross(v2, v1)) # 1/2 area of parallelogram
 # print(simplify(area))
-# -(x₁ - x₂)*(y₁ - y₃)/2 + (x₁ - x₃)*(y₁ - y₂)/2 - (x₁ - x₃)*(y₁ - y₄)/2 + (x₁ - x₄)*(y₁ - y₃)/2
+# (x₁ - x₂)*(y₁ - y₃)/2 - (x₁ - x₃)*(y₁ - y₂)/2 + (x₁ - x₃)*(y₁ - y₄)/2 - (x₁ - x₄)*(y₁ - y₃)/2
 tl₀ = a - f(a) / fp(a)
 x₁,x₂,x₃,x₄ = (a,q,q,tl₀)
 y₁, y₂, y₃, y₄ = (f(a), f(q), 0, 0)
-quadrilateral = -(x₁ - x₂)*(y₁ - y₃)/2 + (x₁ - x₃)*(y₁ - y₂)/2 - (x₁ - x₃)*(y₁ - y₄)/2 + (x₁ - x₄)*(y₁ - y₃)/2;
+quadrilateral = (x₁ - x₂)*(y₁ - y₃)/2 - (x₁ - x₃)*(y₁ - y₂)/2 + (x₁ - x₃)*(y₁ - y₄)/2 - (x₁ - x₄)*(y₁ - y₃)/2;
 ```
 ----
 
@@ -415,7 +415,7 @@ article_answers = (1/(2sqrt(2)), 1/2, sqrt(3/10), 0.558480, 0.564641,
 #| echo: false
 # check
 problems = ("1a"=>yvalue, "1b"=>lseg, "1c"=>hd,
-            "2a" => A, "2b" => V,
+            "2a" => A, "2b" => V(k=>1),
             "3" => yₘ,
             "4" => L,
             "5" => mp,
@@ -429,7 +429,7 @@ problems = ("1a"=>yvalue, "1b"=>lseg, "1c"=>hd,
             )
 ≈ₒ(a,b) = isapprox(a, b; atol=1e-5, rtol=sqrt(eps()))
 ∂ = Differential(a)
-solutions = [k => only(solve(∂(p) ~ 0, a)) for (k,p) in problems]
+solutions = [k => (find_zero(∂(p), 0.5)) for (k,p) in problems]
 [(sol=k, correct=(any(isapprox.(s, article_answers; atol=1e-5)))) for (k,s) ∈ solutions]
 nothing
 ```
