@@ -639,21 +639,21 @@ It is hard to tell which would minimize time without more work. To check a case 
 
 
 ```{julia}
-x_straight = t(r1 =>2r0, b=>0, x=>out[1], a=>1, L=>2, r0 => 1)  # for x=L
+x_straight = subs(t, r1 =>2r0, b=>0, x=>out[1], a=>1, L=>2, r0 => 1)  # for x=L
 ```
 
 Compared to the smaller ($x=\sqrt{3}a/3$):
 
 
 ```{julia}
-x_angle = t(r1 =>2r0, b=>0, x=>out[2], a=>1, L=>2, r0 => 1)
+x_angle = subs(t, r1 =>2r0, b=>0, x=>out[2], a=>1, L=>2, r0 => 1)
 ```
 
 What about $x=0$?
 
 
 ```{julia}
-x_bent = t(r1 =>2r0, b=>0, x=>0, a=>1, L=>2, r0 => 1)
+x_bent = subs(t, r1 =>2r0, b=>0, x=>0, a=>1, L=>2, r0 => 1)
 ```
 
 The value of $x=\sqrt{3}a/3$ minimizes time:
@@ -671,7 +671,7 @@ Will this approach always be true?  Consider different parameters, say we switch
 
 ```{julia}
 pts = [0, out...]
-m,i = findmin([t(r1 =>2r0, b=>0, x=>u, a=>2, L=>1, r0 => 1) for u in pts]) # min, index
+m,i = findmin([subs(t, r1 =>2r0, b=>0, x=>u, a=>2, L=>1, r0 => 1) for u in pts]) # min, index
 m, pts[i]
 ```
 
@@ -997,7 +997,7 @@ A rain gutter is constructed from a 30" wide sheet of tin by bending it into thi
 2 * (1/2 * 10*cos(pi/4) * 10 * sin(pi/4)) + 10*sin(pi/4) * 10
 ```
 
-Find a value in degrees that gives the maximum. (The first task is to write the area in terms of $\theta$.
+Find a value in degrees that gives the maximum. (The first task is to write the area in terms of $\theta$.)
 
 
 ```{julia}
@@ -1049,7 +1049,7 @@ plot!(p, [0, 30,30,0], [0,10,30,0], color=:orange)
 annotate!(p, [(x,y,l) for (x,y,l) in zip([15, 5, 31, 31], [1.5, 3.5, 5, 20], ["x=30", "θ", "10", "20"])])
 ```
 
-What value of $x$ gives the largest angle $\theta$? (In degrees.)
+What value of the largest angle $\theta$ that $x$ gives? (In degrees.)
 
 
 ```{julia}
@@ -1094,7 +1094,7 @@ radioq(choices, answ)
 ##### Question
 
 
-Let $x_1$, $x_2$, $x_n$ be a set of unspecified numbers in a data set. Form the expression $s(x) = (x-x_1)^2 + \cdots (x-x_n)^2$. What is the smallest this can be (in $x$)?
+Let $x_1$, $x_2$, $\dots, x_n$ be a set of unspecified numbers in a data set. Form the expression $s(x) = (x-x_1)^2 + \cdots + (x-x_n)^2$. What is the smallest this can be (in $x$)?
 
 
 We approach this using `SymPy` and $n=10$
@@ -1108,7 +1108,7 @@ s(x) = sum((x-xi)^2 for xi in xs)
 cps = solve(diff(s(x), x), x)
 ```
 
-Run the above code. Baseed on the critical points found, what do you guess will be the minimum value in terms of the values $x_1$, $x_2, \dots$?
+Run the above code. Based on the critical points found, what do you guess will be the minimum value in terms of the values $x_1$, $x_2, \dots$?
 
 
 ```{julia}
@@ -1117,7 +1117,7 @@ Run the above code. Baseed on the critical points found, what do you guess will 
 choices=[
 "The mean, or average, of the values",
 "The median, or middle number, of the values",
-L"The square roots of the values squared, $(x_1^2 + \cdots x_n^2)^2$"
+L"The square roots of the values squared, $(x_1^2 + \cdots + x_n^2)^2$"
 ]
 answ = 1
 radioq(choices, answ)
@@ -1126,7 +1126,7 @@ radioq(choices, answ)
 ###### Question
 
 
-Minimize the function $f(x) = 2x + 3/x$ over $(0, \infty)$.
+Find $x$ to minimize the function $f(x) = 2x + 3/x$ over $(0, \infty)$.
 
 
 ```{julia}
@@ -1190,7 +1190,7 @@ The width is:
 w(h) = 12_000 / h
 S(w, h) = (w- 2*8) * (h - 2*32)
 S(h) = S(w(h), h)
-hstar =find_zero(D(S), 500)
+hstar = find_zero(D(S), 200)
 wstar = w(hstar)
 numericq(wstar)
 ```
@@ -1204,7 +1204,7 @@ The height is?
 w(h) = 12_000 / h
 S(w, h) = (w- 2*8) * (h - 2*32)
 S(h) = S(w(h), h)
-hstar =find_zero(D(S), 500)
+hstar = find_zero(D(S), 200)
 numericq(hstar)
 ```
 
@@ -1482,7 +1482,7 @@ a = find_zero(y', 1)
 numericq(a)
 ```
 
-Numerically find the value of $a$ that minimizes the length of the line seqment $PQ$.
+Numerically find the value of $a$ that minimizes the length of the line segment $PQ$.
 
 
 ```{julia}
