@@ -865,20 +865,19 @@ end
 #### Implicitly defined surfaces, $F(x,y,z)=0$
 
 
-To plot the equation $F(x,y,z)=0$, for $F$ a scalar-valued function, again the implicit function theorem says that, under conditions, near any solution $(x,y,z)$, $z$ can be represented as a function of $x$ and $y$, so the graph will look likes surfaces stitched together.  The `Implicit3DPlotting` package takes an approach like `ImplicitPlots` to represent these surfaces. It replaces the `Contour` package computation with a $3$-dimensional alternative provided through the `Meshing` and `GeometryBasics` packages.
+To plot the equation $F(x,y,z)=0$, for $F$ a scalar-valued function, again the implicit function theorem says that, under conditions, near any solution $(x,y,z)$, $z$ can be represented as a function of $x$ and $y$, so the graph will look like surfaces stitched together.
+
+With `Makie`, many implicitly defined surfaces can be adequately represented using `countour` with the attribute `levels=[0]`. We will illustrate this technique.
+
+The `Implicit3DPlotting` package takes an approach like `ImplicitPlots` to represent these surfaces. It replaces the `Contour` package computation with a $3$-dimensional alternative provided through the `Meshing` and `GeometryBasics` packages. This package has a `plot_implicit_surface` function that does something similar to below. We don't illustrate it, as it *currently* doesn't work with the latest version of `Makie`.
+
+To begin, we plot a sphere implicitly as a solution to $F(x,y,z) = x^2 + y^2 + z^2 - 1 = 0$>
+
 
 ```{julia}
-using Implicit3DPlotting
-```
-
-
-This example, plotting an implicitly defined sphere, comes from the documentation of `Implicit3DPlotting`. The `f` to be plotted is a scalar-valued function of a vector:
-
-
-```{julia}
-f(x) = sum(x.^2) - 1
-xlims = ylims = zlims = (-5, 5)
-plot_implicit_surface(f; xlims, ylims, zlims)
+f(x,y,z) = x^2 + y^2 + z^2 - 1
+xs = ys = zs = range(-3/2, 3/2, 100)
+contour(xs, ys, zs, f; levels=[0])
 ```
 
 
@@ -887,11 +886,13 @@ Here we visualize an intersection of a sphere with another figure:
 
 
 ```{julia}
-r₂(x) = sum(x.^2) - 5/4 # a sphere
+r₂(x) = sum(x.^2) - 2 # a sphere
 r₄(x) = sum(x.^4) - 1
-xlims = ylims = zlims = (-2, 2)
-p = plot_implicit_surface(r₂; xlims, ylims, zlims, color=:yellow)
-plot_implicit_surface!(p, r₄; xlims, ylims, zlims, color=:red)
+ϕ(x,y,z) = (x,y,z)
+
+xs = ys = zs = range(-2, 2, 100)
+contour(xs, ys, zs, r₂∘ϕ; levels = [0], colormap=:RdBu)
+contour!(xs, ys, zs, r₄∘ϕ; levels = [0], colormap=:viridis)
 current_figure()
 ```
 
@@ -900,11 +901,12 @@ This example comes from [Wikipedia](https://en.wikipedia.org/wiki/Implicit_surfa
 
 ```{julia}
 f(x,y,z) = 2y*(y^2 -3x^2)*(1-z^2) + (x^2 +y^2)^2 - (9z^2-1)*(1-z^2)
-xlims = ylims = zlims = (-5/2, 5/2)
-plot_implicit_surface(x -> f(x...); xlims, ylims, zlims)
+xs = ys = zs = range(-5/2, 5/2, 100)
+contour(xs, ys, zs, f; levels=[0], colormap=:RdBu)
+
 ```
 
-(This figure does not render well through `contour(xs, ys, zs, f, levels=[0])`, as the hole is not shown.)
+(This figure does not render well though, as the hole is not shown.)
 
 
 For one last example from Wikipedia, we have the Cassini oval which "can be defined as the point set for which the *product* of the distances to $n$ given points is constant." That is:
@@ -915,8 +917,8 @@ function cassini(λ, ps = ((1,0,0), (-1, 0, 0)))
     n = length(ps)
     x -> prod(norm(x .- p) for p ∈ ps) - λ^n
 end
-xlims = ylims = zlims = (-2, 2)
-plot_implicit_surface(cassini(1.05); xlims, ylims, zlims)
+xs = ys = zs = range(-2, 2, 100)
+contour(xs, ys, zs, cassini(0.80) ∘ ϕ; levels=[0], colormap=:RdBu)
 ```
 
 ## Vector fields. Visualizations of $f:R^2 \rightarrow R^2$
