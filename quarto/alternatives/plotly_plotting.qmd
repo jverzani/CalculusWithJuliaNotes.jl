@@ -73,7 +73,6 @@ The `Config` constructor (from the `EasyConfig` package loaded with `PlotlyLight
 
 
 ```{julia}
-#| hold: true
 cfg = Config()
 cfg.key1.key2.key3 = "value"
 cfg
@@ -89,7 +88,6 @@ A basic scatter plot of points $(x,y)$ is created as follows:
 
 
 ```{julia}
-#| hold: true
 xs = 1:5
 ys = rand(5)
 data = Config(x = xs,
@@ -113,7 +111,6 @@ A line plot is very similar, save for a different `mode` specification:
 
 
 ```{julia}
-#| hold: true
 xs = 1:5
 ys = rand(5)
 data = Config(x = xs,
@@ -134,7 +131,6 @@ The line graph plays connect-the-dots with the points specified by paired `x` an
 
 
 ```{julia}
-#| hold: true
 data = Config(
     x=[0,1,nothing,3,4,5],
 	y = [0,1,2,3,4,5],
@@ -149,7 +145,6 @@ More than one graph or layer can appear on a plot. The `data` argument can be a 
 
 
 ```{julia}
-#| hold: true
 data = [Config(x = 1:5,
                y = rand(5),
                type = "scatter",
@@ -177,7 +172,6 @@ For example, here we plot the graphs of both the $\sin(x)$ and $\cos(x)$ over $[
 
 
 ```{julia}
-#| hold: true
 a, b = 0, 2pi
 
 xs, ys = PlotUtils.adapted_grid(sin, (a,b))
@@ -193,7 +187,6 @@ The values for `a` and `b` are used to generate the $x$- and $y$-values. These c
 
 
 ```{julia}
-#| hold: true
 xs, ys = PlotUtils.adapted_grid(x -> x^5 - x - 1, (0, 2))  # answer is (0,2)
 p = Plot([Config(x=xs, y=ys, name="Polynomial"),
          Config(x=xs, y=0 .* ys, name="x-axis", mode="lines", line=Config(width=5))]
@@ -232,7 +225,6 @@ A marker's attributes can be adjusted by values passed to the `marker` key. Labe
 
 
 ```{julia}
-#| hold: true
 data = Config(x = 1:5,
               y = rand(5),
               mode="markers+text",
@@ -251,40 +243,7 @@ The `text` mode specification is necessary to have text be displayed on the char
 #### RGB Colors
 
 
-The `ColorTypes` package is the standard `Julia` package providing an `RGB` type (among others) for specifying red-green-blue colors. To make this work with `Config` and `JSON3` requires some type-piracy (modifying `Base.string` for the `RGB` type) to get, say, `RGB(0.5, 0.5, 0.5)` to output as `"rgb(0.5, 0.5, 0.5)"`.  (RGB values in JavaScript are integers between $0$ and $255$ or floating point values between $0$ and $1$.) A string with this content can be specified. Otherwise, something like the following can be used to avoid the type piracy:
-
-
-```{julia}
-struct rgb
-    r
-    g
-    b
-end
-PlotlyLight.JSON3.StructTypes.StructType(::Type{rgb}) = PlotlyLight.JSON3.StructTypes.StringType()
-Base.string(x::rgb) = "rgb($(x.r), $(x.g), $(x.b))"
-```
-
-With these defined, red-green-blue values can be used for colors. For example to give a range of colors, we might have:
-
-
-```{julia}
-#| hold: true
-cols = [rgb(i,i,i) for i in range(10, 245, length=5)]
-sizes = [12, 16, 20, 24, 28]
-data = Config(x = 1:5,
-              y = rand(5),
-              mode="markers+text",
-              type="scatter",
-              name="scatter plot",
-              text = ["marker $i" for i in 1:5],
-              textposition = "top center",
-              marker = Config(size=sizes, color=cols)
-              )
-Plot(data)
-```
-
-The `opacity` key can be used to control the transparency, with a value between $0$ and $1$.
-
+The `ColorTypes` package is the standard `Julia` package providing an `RGB` type (among others) for specifying red-green-blue colors. To make this work with `Config` and `JSON3` requires some type-piracy (modifying `Base.string` for the `RGB` type) to get, say, `RGB(0.5, 0.5, 0.5)` to output as `"rgb(0.5, 0.5, 0.5)"`.  (RGB values in JavaScript are integers between $0$ and $255$ or floating point values between $0$ and $1$.) A string with this content can be specified.
 
 #### Marker symbols
 
@@ -293,7 +252,6 @@ The `marker_symbol` key can be used to set a marker shape, with the basic values
 
 
 ```{julia}
-#| hold: true
 markers = ["circle", "square", "diamond", "cross", "x", "triangle", "pentagon",
            "hexagram", "star", "diamond", "hourglass", "bowtie", "asterisk",
            "hash", "y", "line"]
@@ -327,7 +285,6 @@ The `shape` attribute determine how the points are connected. The default is `li
 
 
 ```{julia}
-#| hold: true
 shapes = ["linear", "hv", "vh", "hvh", "vhv", "spline"]
 data = [Config(x = 1:5, y = 5*(i-1) .+ [1,3,2,3,1], mode="lines+markers", type="scatter",
                name=shape,
@@ -358,7 +315,6 @@ In the following, to highlight the difference between $f(x) = \cos(x)$ and $p(x)
 
 
 ```{julia}
-#| hold: true
 xs = range(-1, 1, 100)
 data = [
     Config(
@@ -381,7 +337,6 @@ The `toself` declaration is used below to fill in a polygon:
 
 
 ```{julia}
-#| hold: true
 data = Config(
 	x=[-1,1,1,-1,-1], y = [-1,1,-1,1,-1],
 	fill="toself",
@@ -399,7 +354,6 @@ The legend is shown when $2$ or more charts or specified, by default. This can b
 
 
 ```{julia}
-#| hold: true
 data = Config(x=1:5, y=rand(5), type="scatter", mode="markers", name="legend label")
 lyt = Config(title = "Main chart title",
              xaxis = Config(title="x-axis label"),
@@ -416,7 +370,6 @@ The aspect ratio of the chart can be set to be equal through the `scaleanchor` k
 
 
 ```{julia}
-#| hold: true
 ts = range(0, 2pi, length=100)
 data = Config(x = sin.(ts), y = cos.(ts), mode="lines", type="scatter")
 lyt = Config(title = "A circle",
@@ -434,7 +387,6 @@ Text annotations may be specified as part of the layout object. Annotations may 
 
 
 ```{julia}
-#| hold: true
 data = Config(x = [0, 1], y = [0, 1], mode="markers", type="scatter")
 layout = Config(title = "Annotations",
                 xaxis = Config(title="x",
@@ -452,7 +404,7 @@ Plot(data, layout)
 The following example is more complicated use of the elements previously described. It mimics an image from [Wikipedia](https://en.wikipedia.org/wiki/List_of_trigonometric_identities) for trigonometric identities. The use of `LaTeX` does not seem to be supported through the `JavaScript` interface; unicode symbols are used instead. The `xanchor` and `yanchor` keys are used to position annotations away from the default. The `textangle` key is used to rotate text, as desired.
 
 
-```{julia, hold=true}
+```{julia}
 alpha = pi/6
 beta = pi/5
 xₘ = cos(alpha)*cos(beta)
@@ -569,7 +521,6 @@ Earlier, we plotted a two dimensional circle, here we plot the related helix.
 
 
 ```{julia}
-#| hold: true
 helix(t) = [cos(t), sin(t), t]
 
 ts = range(0, 4pi, length=200)
@@ -596,7 +547,6 @@ There is no `quiver` plot for `plotly` using JavaScript. In $2$-dimensions a tex
 
 
 ```{julia}
-#| hold: true
 helix(t) = [cos(t), sin(t), t]
 helix′(t) = [-sin(t), cos(t), 1]
 ts = range(0, 4pi, length=200)
@@ -642,7 +592,6 @@ A contour plot is created by the "contour" trace type. The data is prepared as a
 
 
 ```{julia}
-#| hold: true
 f(x,y) = x^2 - 2y^2
 
 xs = range(0,2,length=25)
@@ -661,7 +610,6 @@ The same `zs` data can be achieved by broadcasting and then collecting as follow
 
 
 ```{julia}
-#| hold: true
 f(x,y) = x^2 - 2y^2
 
 xs = range(0,2,length=25)
@@ -692,7 +640,6 @@ Surfaces defined through a scalar-valued function are drawn quite naturally, sav
 
 
 ```{julia}
-#| hold: true
 peaks(x,y) = 3 * (1-x)^2 * exp(-(x^2) - (y+1)^2) -
     10*(x/5 - x^3 - y^5) * exp(-x^2-y^2) - 1/3 * exp(-(x+1)^2 - y^2)
 
@@ -713,7 +660,6 @@ For parametrically defined surfaces, the $x$ and $y$ values also correspond to m
 
 
 ```{julia}
-#| hold: true
 r, R = 1, 5
 X(theta,phi) = [(r*cos(theta)+R)*cos(phi),
                 (r*cos(theta)+R)*sin(phi),
