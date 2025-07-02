@@ -64,7 +64,88 @@ $$
 
 #### Examples
 
+Find the area between
 
+$$
+\begin{align*}
+f(x) &= \frac{x^3 \cdot (2-x)}{2} \text{ and } \\
+g(x) &= e^{x/3} + (1-\frac{x}{1.7})^6 - 0.6
+\end{align*}
+$$
+
+over the interval $[0.2, 1.7]$. The area is illustrated in the figure below.
+
+```{julia}
+f(x) = x^3*(2-x)/2
+g(x) = exp(x/3) + (1 - (x/1.7))^6 - 0.6
+a, b = 0.2, 1.7
+h(x) = g(x) - f(x)
+answer, _ = quadgk(h, a, b)
+answer
+```
+
+
+::: {#fig-area-between-f-g}
+
+```{julia}
+#| echo: false
+p = let
+    gr()
+	# area between graphs
+	# https://github.com/SigurdAngenent/WisconsinCalculus/blob/master/figures/221/09areabetweengraphs.pdf
+
+	f(x) = 1/6+x^3*(2-x)/2
+	g(x) = 1/6+exp(x/3)+(1-x/1.7)^6-0.6
+	a,b =0.2, 1.7
+	A, B = 0, 2
+	A′, B′ = A + .1, B - .1
+	n = 20
+
+	plot(; empty_style..., aspect_ratio=:equal, xlims=(A,B))
+	plot!(f, A′, B′; fn_style...)
+	plot!(g, A′, B′; fn_style...)
+
+	xp = range(a, b, n)
+	marked = n ÷ 2
+	for i in 1:n-1
+		x0, x1 = xp[i], xp[i+1]
+	  	mpt  = (x0 + x1)/2
+	    R = Shape([x0,x1,x1,x0], [f(mpt),f(mpt),g(mpt),g(mpt)])
+	    color = i == marked ? :gray : :white
+		plot!(R; fill=(color, 0.5), line=(:black, 1))
+	end
+
+	# axis
+	plot!([(A,0),(B,0)]; axis_style...)
+
+	# hightlight
+	x0, x1 = xp[marked], xp[marked+1]
+	_style = (;line=(:gray, 1, :dash))
+	plot!([(a,0), (a, f(a))]; _style...)
+	plot!([(b,0), (b,f(b))]; _style...)
+	plot!([(x0,0), (x0, f(x0))]; _style...)
+	plot!([(x1,0), (x1, f(x1))]; _style...)
+
+	annotate!([
+		(B′, f(B′), text(L"f(x)", 10, :left,:top)),
+		(B′, g(B′), text(L"g(x)", 10, :left, :bottom)),
+		(a, 0, text(L"a=x_0", 10, :top, :left)),
+		(b, 0, text(L"b=x_n", 10, :top, :left)),
+		(x0, 0, text(L"x_i", 10, :top)),
+		(x1, 0, text(L"x_{i+1}", 10, :top,:left))
+	])
+
+	current()
+end
+
+plotly()
+p
+```
+
+Illustration of a Riemann sum approximation to estimate the area between $f(x)$ and $g(x)$ over an interval $[a,b]$. (Figure follows one by @Angenent.)
+:::
+
+##### Example
 Find the area bounded by the line $y=2x$ and the curve $y=2 - x^2$.
 
 
@@ -970,4 +1051,3 @@ choices = ["The two enclosed areas should be equal",
            "The two enclosed areas are clearly different, as they do not overap"]
 radioq(choices, 1)
 ```
-

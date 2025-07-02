@@ -218,34 +218,63 @@ This bounds the expression $\sin(x)/x$ between $1$ and $\cos(x)$ and as $x$ gets
 
 The above bound comes from this figure, for small $x > 0$:
 
+::: {#fig-sin-cos-bound}
 
 ```{julia}
 #| hold: true
 #| echo: false
-gr()
-p = plot(x -> sqrt(1 - x^2), 0, 1, legend=false, aspect_ratio=:equal,
-     linewidth=3, color=:black)
-θ = π/6
-y,x = sincos(θ)
-col=RGBA(0.0,0.0,1.0, 0.25)
-plot!(range(0,x, length=2), zero, fillrange=u->y/x*u, color=col)
-plot!(range(x, 1, length=50), zero, fillrange = u -> sqrt(1 - u^2), color=col)
-plot!([x,x],[0,y], linestyle=:dash, linewidth=3, color=:black)
-plot!([x,1],[y,0], linestyle=:dot, linewidth=3, color=:black)
-plot!([1,1], [0,y/x], linewidth=3, color=:black)
-plot!([0,1], [0,y/x], linewidth=3, color=:black)
-plot!([0,1], [0,0], linewidth=3, color=:black)
-Δ = 0.05
-annotate!([(0,0+Δ,"A"), (x-Δ,y+Δ/4, "B"), (1+Δ/2,y/x, "C"),
-           (1+Δ/2,0+Δ/2,"D")])
-annotate!([(.2*cos(θ/2), 0.2*sin(θ/2), "θ")])
-imgfile = tempname() * ".png"
-savefig(p, imgfile)
-caption = "Triangle ``ABD`` has less area than the shaded wedge, which has less area than triangle ``ACD``. Their respective areas are ``(1/2)\\sin(\\theta)``, ``(1/2)\\theta``, and ``(1/2)\\tan(\\theta)``. The inequality used to show ``\\sin(x)/x`` is bounded below by ``\\cos(x)`` and above by ``1`` comes from a division by ``(1/2) \\sin(x)`` and taking reciprocals.
-"
-plotly()
-ImageFile(imgfile, caption)
+plt = let
+    gr()
+
+    empty_style = (xaxis=([], false),
+                    yaxis=([], false),
+                    framestyle=:origin,
+                    legend=false)
+	axis_style = (arrow=true, side=:head, line=(:gray, 1))
+	text_style = (10,)
+	fn_style =  (;line=(:black, 3))
+	fn2_style =  (;line=(:red, 4))
+	mark_style = (;line=(:gray, 1, :dot))
+	domain_style = (;fill=(:orange, 0.35), line=nothing)
+	range_style = (; fill=(:blue, 0.35), line=nothing)
+
+	plot(; empty_style..., aspect_ratio=:equal)
+    plot!(x -> sqrt(1 - x^2), 0, 1; line=(:black, 2))
+
+
+    θ = π/6
+    y,x = sincos(θ)
+    col=RGBA(0.0,0.0,1.0, 0.25)
+
+    plot!(range(0,x, length=2), zero, fillrange=u->y/x*u, color=col)
+    plot!(range(x, 1, length=50), zero, fillrange = u -> sqrt(1 - u^2), color=col)
+
+	plot!([x,x],[0,y], line=(:dash, 2, :black))
+    plot!([x,1],[y,0], line=(:dot, 2, :black))
+    plot!([1,1], [0,y/x], line=(2, :black))
+    plot!([0,1], [0,y/x], line=(2, :black))
+    plot!([0,1], [0,0], line=(2, :black))
+    Δ = 0.05
+    annotate!([(0,0+Δ, text(L"A", 10)),
+               (x-Δ,y+Δ/4, text(L"B",10)),
+               (1+Δ/2,y/x, text(L"C", 10)),
+               (1+Δ/2,0+Δ/2, text(L"D", 10)),
+              (0.2*cos(θ/2), 0.2*sin(θ/2), text(L"\theta", 12))
+              ])
+    current()
+end
+plt
 ```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+Triangle $\triangle ABD$ has less area than the shaded wedge, which has less area than triangle $\triangle ACD$. Their respective areas are $(1/2)\sin(\theta)$, $(1/2)\theta$, and $(1/2)\tan(\theta)$. The inequality used to show $\sin(x)/x$ is bounded below by $\cos(x)$ and above by $1$ comes from a division by $(1/2) \sin(x)$ and taking reciprocals.
+
+:::
 
 To discuss the case of $(1+x)^{1/x}$ it proved convenient to assume $x = 1/m$ for integer values of $m$. At the time of Cauchy, log tables were available to identify the approximate value of the limit. Cauchy computed the following value from logarithm tables:
 

@@ -32,12 +32,69 @@ If $f$ is continuous on $[a,b]$  with, say, $f(a) < f(b)$, then for any $y$ with
 :::
 
 
+::: {#fig-IVT}
 ```{julia}
 #| hold: true
 #| echo: false
 #| cache: true
 ### {{{IVT}}}
-gr()
+plt = let
+    gr()
+	# IVT
+	empty_style = (xaxis=([], false),
+                    yaxis=([], false),
+                    framestyle=:origin,
+                    legend=false)
+	axis_style = (arrow=true, side=:head, line=(:gray, 1))
+	text_style = (10,)
+	fn_style =  (;line=(:black, 3))
+	fn2_style =  (;line=(:red, 4))
+	mark_style = (;line=(:gray, 1, :dot))
+	domain_style = (;fill=(:orange, 0.35), line=nothing)
+	range_style = (; fill=(:blue, 0.35), line=nothing)
+
+	f(x) = x + sinpi(3x) + 5sin(2x) + 3cospi(2x)
+	a, b = -1, 5
+	xs = range(a, b, 251)
+	ys = f.(xs)
+	y0, y1 = extrema(ys)
+
+	plot(; empty_style...)
+	plot!(f, a, b; fn_style...)
+
+	plot!([a-.2, b + .2],[0,0]; axis_style...)
+	plot!([a-.1, a-.1], [y0-2, y1+2]; axis_style...)
+
+	plot!([(a,0),(a,f(a))]; line=(:black, 1, :dash))
+	plot!([(b,0),(b,f(b))]; line=(:black, 1, :dash))
+
+	m = f(a/2 + b/2)
+	plot!([a, b], [m,m]; line=(:black, 1, :dashdot))
+
+	δx = 0.03
+	plot!(Shape([a,b,b,a], 4*δx*[-1,-1,1,1]);
+		  domain_style...)
+	plot!(Shape((a-.1) .+ 2δx * [-1,1,1,-1], [f(a),f(a),f(b), f(b)]);
+		  range_style...)
+	plot!(Shape((a-.1) .+ δx/2 * [-1,1,1,-1], [y0,y0,y1,y1]);
+		  range_style...)
+
+    zs = find_zeros(f, (a,b))
+    c = zs[2]
+    plot!([(c,0), (c,f(c))]; line=(:black, 1, :dashdot))
+
+	annotate!([
+		(a, 0, text(L"a", 12, :bottom)),
+		(b, 0, text(L"b", 12, :top)),
+        (c, 0, text(L"c", 12, :top)),
+		(a-.1, f(a), text(L"f(a)", 12, :right)),
+		(a-.1, f(b), text(L"f(b)", 12, :right)),
+        (b, m, text(L"y", 12, :left)),
+	])
+end
+plt
+
+#=
 function IVT_graph(n)
     f(x) = sin(pi*x) + 9x/10
     a,b = [0,3]
@@ -76,7 +133,17 @@ with $f(x)=y$.
 
 plotly()
 ImageFile(imgfile, caption)
+=#
 ```
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+Illustration of the intermediate value theorem. The theorem implies that any randomly chosen $y$ value between $f(a)$ and $f(b)$ will have  at least one $c$ in $[a,b]$ with $f(c)=y$. This graphic shows one of several possible values for the given choice of $y$.
+
+:::
 
 In the early years of calculus, the intermediate value theorem was intricately connected with the definition of continuity, now it is a consequence.
 

@@ -108,11 +108,6 @@ Plotting a function is then this simple: `plot(f, xmin, xmax)`.
 
 
 
-:::{.callout-note}
-## Note
-The time to first plot can feel sluggish, but subsequent plots will be speedy. See the technical note at the end of this section for an explanation.
-
-:::
 
 Let's see some other graphs.
 
@@ -193,7 +188,70 @@ Some types we will encounter, such as the one for symbolic values or the special
 
 :::
 
----
+:::{.callout-note}
+## Viewing window
+
+The default style for `Plots.jl` is to use a frame style where the viewing window is emphasized. This is a rectangular region, $[x_0, x_1] \times [y_0, y_1]$, which is seen through the tick labeling, the bounding scales on the left and bottom, and emphasized through the grid.
+
+This choices does *not* show the $x-y$ axes. As such, we might layer on the axes when these are of interest.
+
+To emphasize concepts, we may stylize a function graph, rather than display the basic graphic. For example, in this graphic highlighting the amount the function goes up as it moves from $1$ to $x$:
+
+```{julia}
+gr()
+#| echo: false
+let
+	f(x) = x^2
+
+	empty_style = (xaxis=([], false),
+                    yaxis=([], false),
+                    framestyle=:origin,
+                    legend=false)
+	axis_style = (arrow=true, side=:head, line=(:gray, 1))
+	text_style = (10,)
+	fn_style =  (;line=(:black, 3))
+	fn2_style =  (;line=(:red, 4))
+	mark_style = (;line=(:gray, 1, :dot))
+
+	plot(; empty_style..., aspect_ratio=:equal)
+	a, b = 0, 1.25
+	x = 1.15
+
+	plot!(f, a, b; fn_style...)
+	plot!([-.1, 1.5], [0,0]; axis_style...)
+	plot!([0,0], [-.1, f(1.35)]; axis_style...)
+
+	plot!([1,x,x], [f(1),f(1),f(x)]; line=(:black, 1))
+	plot!([1,1],[0,f(1)]; mark_style...)
+	plot!([x,x],[0,f(1)]; mark_style...)
+	plot!([0,1],[f(1),f(1)]; mark_style...)
+	plot!([0,x],[f(x),f(x)]; mark_style...)
+
+	annotate!([
+	    (1, 0, text(L"1", 10, :top)),
+		(x, 0, text(L"x", 10, :top)),
+		(0, f(1), text(L"1", 10, :right)),
+		(0, f(x), text(L"x^2", 10, :right)),
+		(1, f(1), text(L"P", 10, :right, :bottom)),
+		(x, f(x), text(L"Q", 10, :right, :bottom)),
+		((1 + x)/2, f(1), text(L"\Delta x", 10, :top)),
+		(x, (f(1) + f(x))/2, text(L"\Delta y", 10, :left))
+	])
+    current()
+end
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+:::
+
+
+
+----
 
 
 Making a graph with `Plots` is easy, but producing a graph that is informative can be a challenge, as the choice of a viewing window can make a big difference in what is seen. For example, trying to make a graph of $f(x) = \tan(x)$, as below, will result in a bit of a mess - the chosen viewing window crosses several places where the function blows up:
@@ -697,6 +755,40 @@ plot(f, g, 0, max((R-r)/r, r/(R-r))*2pi)
 ```
 
 In the above, one can fix $R=1$. Then different values for `r` and `rho` will produce different graphs. These graphs will be periodic if $(R-r)/r$ is a rational. (Nothing about these equations requires $\rho < r$.)
+
+
+## Points, lines, polygons
+
+Two basic objects to graph are points and lines.
+
+A point in two-dimensional space has two coordinates, often denoted by $(x,y)$. In `Julia`, the same notation produces a `tuple`. Using square brackets, as in `[x,y]`, produces a vector. Vectors are usually used, as we have seen there are algebraic operations defined for them. However, tuples have other advantages and  are how `Plots` designates a point.
+
+The plot command `plot(xs, ys)` plots the points $(x_1,y_1), \dots, (x_n, y_n)$ and then connects adjacent points with with lines. The command `scatter(xs, ys)` just plots the points.
+
+However, the points might be more naturally specified as coordinate pairs. If tuples are used to pair them off, then `Plots` will plot a vector of tuples as a sequence of points:
+
+```{julia}
+pts = [(1, 0), (1/4, 1/4), (0, 1), (-1/4, 1/4), (-1, 0),
+       (-1/4, -1/4), (0, -1), (1/4, -1/4)]
+scatter(pts; legend=false)
+```
+
+A line segment simply connects two points. While these can be specified as vectors of $x$ and $y$ values, again it may be more convenient to use coordinate pairs to specify the points. Continuing the above, we can connect adjacent points with line segments:
+
+```{julia}
+plot!(pts; line=(:gray, 0.5, :dash))
+```
+
+This uses the shorthand notation of `Plots` to specify `linecolor=:gray, linealpha=0.5, linestyle=:dash`. To plot just a line segment, just specifying two points suffices.
+
+The four-pointed star is not closed off, as there isn't a value from the last point to the first point. A polygon closes itself off. The `Shape` function can take a vector of points or a pair of `xs` and `ys` to specify a polygon. When these are plotted, the arguments to `fill` describe the interior of the polygon, the arguments to `line` the boundary:
+
+
+```{julia}
+plot(Shape(pts); fill=(:gray, 0.25), line=(:black, 2), legend=false)
+scatter!(pts)
+```
+
 
 
 ## Questions

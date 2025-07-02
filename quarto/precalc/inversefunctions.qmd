@@ -30,20 +30,57 @@ Why is this useful? When available, it can help us solve equations. If we can wr
 Let's explore when we can "solve" for an inverse function.
 
 
-Consider the graph of the function $f(x) = 2^x$:
-
+Consider this graph of the function $f(x) = 2^x$
 
 ```{julia}
-#| hold: true
-f(x) = 2^x
-plot(f, 0, 4, legend=false)
-plot!([2,2,0], [0,f(2),f(2)])
+#| echo: false
+p = let
+    gr()
+	empty_style = (xaxis=([], false),
+                    yaxis=([], false),
+                    framestyle=:origin,
+                    legend=false)
+	axis_style = (arrow=true, side=:head, line=(:gray, 1))
+	text_style = (10,)
+	fn_style =  (;line=(:black, 3))
+	fn2_style =  (;line=(:red, 4))
+	mark_style = (;line=(:gray, 1, :dot))
+	domain_style = (;fill=(:orange, 0.35), line=nothing)
+	range_style = (; fill=(:blue, 0.35), line=nothing)
+
+	f(x) = 2^x
+	a, b = 0, 2
+	plot(; empty_style...)
+	xs = range(a, b, 200)
+	ys = f.(xs)
+
+	plot!( xs,  ys; fn_style...)
+	plot!([a-1/4, b+.2], [0,0]; axis_style...)
+	plot!([0, 0], [-.1, f(2.1)]; axis_style...)
+
+	x = 1
+	y = (f(b)+f(a))/2
+	plot!([x,x,0],[0,f(x),f(x)]; line=(:black, 1, :dash), arrow=true, side=:head)
+	plot!([0,log2(y), log2(y)], [y,y,0]; line=(:black,1,:dash), arrow=true, side=:head)
+
+	annotate!([
+	(x, 0, text(L"c", 10, :top)),
+		(0,f(x), text(L"f(c)", 10, :right)),
+		(0, y, text(L"y=f(d)", 10, :right)),
+		(log2(y), 0, text(L"d",  10, :top))
+
+	])
+
+
+end
+plotly()
+p
 ```
 
 The graph of a function is a representation of points $(x,f(x))$, so to *find* $y = f(c)$ from the graph, we begin on the $x$ axis at $c$, move vertically to the graph (the point $(c, f(c))$), and then move horizontally to the $y$ axis, intersecting it at $y = f(c)$. The figure shows this for $c=2$, from which we can read that $f(c)$ is about $4$. This is how an $x$ is associated to a single $y$.
 
 
-If we were to *reverse* the direction, starting at $y = f(c)$ on the $y$ axis and then moving horizontally to the graph, and then vertically to the $x$-axis we end up at a value $c$ with the correct $f(c)$. This allows solving for $x$ knowing $y$ in $y=f(x)$.
+If we were to *reverse* the direction, starting at $y = f(d)$ on the $y$ axis and then moving horizontally to the graph, and then vertically to the $x$-axis we end up at a value $d$ with the correct $f(d)$. This allows solving for $x$ knowing $y$ in $y=f(x)$.
 
 The operation described will form a function **if** the initial movement horizontally is guaranteed to find *no more than one* value on the graph. That is, to have an inverse function, there can not be two $x$ values corresponding to a given $y$ value. This observation is often visualized through the "horizontal line test" - the graph of a function with an inverse function can only intersect a horizontal line at most in one place.
 
@@ -309,6 +346,131 @@ What do we see? In blue, we can see the familiar square root graph along with a 
 
 This is reminiscent of the formula for the slope of a perpendicular line, $-1/m$, but quite different, as this formula implies the two lines have either both positive slopes or both negative slopes, unlike the relationship in slopes between a line and a perpendicular line.
 
+::: {#fig-inverse-normal layout-ncol=1}
+```{julia}
+#| echo: false
+# inverse function slope
+gr()
+p1 = let
+	f(x) = x^2
+	df(x) = 2x
+
+	empty_style = (xaxis=([], false),
+                    yaxis=([], false),
+                    framestyle=:origin,
+                    legend=false)
+	axis_style = (arrow=true, side=:head, line=(:gray, 1))
+	text_style = (10,)
+	fn_style =  (;line=(:black, 3))
+	fn2_style =  (;line=(:red, 4))
+	mark_style = (;line=(:gray, 1, :dot))
+
+	plot(; aspect_ratio=:equal, empty_style...)
+	xs = range(0, 1.25, 100)
+	plot!(xs,f.(xs); fn_style...)
+	plot!(f.(xs), xs; fn2_style...)
+	plot!(identity, -1/4, 2; line=(:gray, 1, :dot))
+
+	#plot!([-.1, 1.35],[0,0]; axis_style...)
+	#plot!([0,0], [-0.1, f(1.3)]; axis_style...)
+
+	c = .4
+	m = df(c)
+	tl(x) = f(c) + df(c)*(x-c)
+	plot!(tl; line=(:black, 1, :dash))
+	d = c + .6
+	p1, p2, p3 = (c, tl(c)), (d, tl(c)), (d, tl(d))
+	q1, q2, q3 = (tl(c),c), (tl(c),d), (tl(d), d)
+
+	plot!([p1, p2, p3]; line=(:black, 1, :dot))
+
+
+	tl1(x) = c + (1/m)*(x - f(c))
+	plot!(tl1; line=(:red, 1, :dash))
+	plot!([q1, q2, q3]; line=(:red, 1, :dot))
+
+	annotate!([
+	  ((c+d)/2, f(c), text(L"\Delta x", 10, :top, :black)),
+		(d, (tl(c)+tl(d))/2, text(L"\Delta y", 10, :left, :black)),
+		(f(c), (c+d)/2, text(L"\Delta x", 10, :right, :red)),
+		((tl(c)+tl(d))/2, d, text(L"\Delta y", 10, :bottom, :red)),
+		(d, tl(d),
+		 	text(L"rise/run = $m = \Delta y / \Delta x$", 10, :top, :left,
+				 rotation= rad2deg(atan(m)))),
+		(tl(d), d,
+		 text(L"rise/run = $\Delta x / \Delta y = 1/m$", 10, :bottom, :left,		rotation=rad2deg(atan(1/m)))),
+        (1.9, 1.9, text(L"y=x", 10, :top, rotation=45))
+
+
+
+	])
+    current()
+end
+
+# normal line
+
+p2 = let
+	f(x) = 4 - (x-2)^2
+	df(x) = -2*(x-2)
+
+	empty_style = (xaxis=([], false),
+                    yaxis=([], false),
+                    framestyle=:origin,
+                    legend=false)
+	axis_style = (arrow=true, side=:head, line=(:gray, 1))
+	text_style = (10,)
+	fn_style =  (;line=(:black, 3))
+	fn2_style =  (;line=(:red, 4))
+	mark_style = (;line=(:gray, 1, :dot))
+
+	plot(; aspect_ratio=:equal, empty_style...,
+         xlims=(1, 2.5), ylims=(3, 4.5))
+	xs = range(.99, 2.01, 100)
+	plot!(xs,f.(xs); fn_style...)
+
+	c = 1.5
+	tl(x) = f(c) + df(c)*(x-c)
+	nl(x) = f(c) - (x-c)/df(c)
+
+	xs = range(1, 2, 10)
+	plot!(xs, tl.(xs); fn2_style...)
+
+	xs = range(.9, 2, 10)
+	plot!(xs, nl.(xs); fn2_style...)
+
+	ylims!((f(.85), nl(.95)))
+
+	o = 1/3
+	plot!([c,c+o, c+o], [tl(c), tl(c), tl(c+o)]; mark_style...)
+	m = (tl(c+o) - tl(c))
+	plot!([c,c,c+m], [nl(c),nl(c + m),nl(c+m)]; mark_style...)
+
+	theta = rad2deg(atan(tl(c+o)-tl(c), o))
+	annotate!([
+	(c + o/2, f(c), text(L"1", :top, 10)),
+	(c + o, (f(c)+f(c+o))/2, text(L"m",  :right, 10)),
+	(c, (nl(c) + nl(c+m))/2, text(L"-1", :right, 10)),
+	(c+m/2, nl(c+m), text(L"m", :top, 10)),
+	(c + o/2, tl(c+o), text(L"rise/run $=m/1$",    10, :top,
+							rotation=theta)),
+	(c + 1.1*o, nl(c+1.1*o), text(L"rise/run $=(-1)/m$", 10, :bottom,
+							rotation=theta-90))
+	])
+    current()
+end
+
+plot(p1, p2)
+```
+
+The inverse function has slope at a corresponding point that is the *reciprocal*; the "normal line" for a function at a point has slope that is the *negative reciprocal* of the "tangent line" at a point.
+
+:::
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
 
 The key here is that the shape of $f(x)$ near $x=c$ is somewhat related to the shape of $f^{-1}(x)$ at $f(c)$. In this case, if we use the tangent line as a fill in for how steep a function is, we see from the relationship that if $f(x)$ is "steep" at $x=c$, then $f^{-1}(x)$ will be "shallow" at $x=f(c)$.
 

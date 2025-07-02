@@ -42,6 +42,101 @@ For these examples, the domain of both $f(x)$ and $g(x)$ is all real values of $
 
 In general the range is harder to identify than the domain, and this is the case for these functions too. For $f(x)$ we may know the $\cos$ function is trapped in $[-1,1]$ and it is intuitively clear than all values in that set are possible. The function $h(x)$ would have range $[0,\infty)$.  The $s(x)$ function is either $-1$ or $1$, so only has two possible values in its range.  What about $g(x)$? It is a parabola that opens upward, so any $y$ values below the $y$ value of its vertex will not appear in the range. In this case, the symmetry indicates that the vertex will be at $(1/2, -1/4)$, so the range is $[-1/4, \infty)$.
 
+::: {#fig-domain-range layout-nrow=2}
+```{julia}
+#| echo: false
+plt = let
+    gr()
+	# domain/range shade
+	λ = 1.2
+	a, b = .1, 3
+	f(x) = (x-1/2) + sin((x-1)^2)
+
+	empty_style = (xaxis=([], false),
+                    yaxis=([], false),
+                    framestyle=:origin,
+                    legend=false)
+	axis_style = (arrow=true, side=:head, line=(:gray, 1))
+	text_style = (10,)
+	fn_style =  (;line=(:black, 3))
+	fn2_style =  (;line=(:red, 4))
+	mark_style = (;line=(:gray, 1, :dot))
+
+	domain_style = (;fill=(:orange, 0.35))
+	range_style = (; fill=(:blue, 0.35))
+
+	xs = range(a,b, 1000)
+	y0,y1 = extrema(f.(xs))
+	Δy = (y1-y0)/60
+	Δx = (b - a)/75
+
+	plot(; aspect_ratio=:equal, empty_style...)
+	plot!([-.25,3.25],[0,0]; axis_style...)
+	plot!([0,0],  [min(-2Δy, y0 - Δy), y1 + 4Δy]; axis_style... )
+
+	plot!(f, a, b; fn_style...)
+	plot!(Shape([a,b,b,a], Δy * [-1,-1,1,1] ); domain_style...)
+	plot!(Shape(Δx*[-1,1,1,-1], [y0,y0,y1,y1]); range_style...)
+
+	plot!([a,a], [0, f(a)]; mark_style...)
+	plot!([b,b], [0, f(b)]; mark_style...)
+	plot!([a, b], [f(a), f(a)]; mark_style...)
+	plot!([a, b], [f(b), f(b)]; mark_style...)
+end
+plot
+```
+
+```{julia}
+#| echo: false
+plt = let
+	a, b = 0, 2pi
+	λ = 1.1
+	Δx, Δy = .033, .1
+	δx = 0.05
+	f(x) = sec(x)
+	g(x) = abs(f(x)) < 5 ? f(x) : NaN
+
+	empty_style = (xaxis=([], false),
+                    yaxis=([], false),
+                    framestyle=:origin,
+                    legend=false)
+	axis_style = (arrow=true, side=:head, line=(:gray, 1))
+	text_style = (10,)
+	fn_style =  (;line=(:black, 3))
+	fn2_style =  (;line=(:red, 4))
+	mark_style = (;line=(:gray, 1, :dot))
+
+	domain_style = (;fill=(:orange, 0.35))
+	range_style = (; fill=(:blue, 0.35))
+
+
+	plot(; empty_style...)
+	plot!(g, a+0.1, b; fn_style...)
+	plot!(λ*[a,b],[0,0]; axis_style...)
+	plot!([0,0], λ*[-5,5+1/2]; axis_style...)
+	vline!([pi/2, 3pi/2]; line=(:gray, :dash))
+
+	plot!(Shape([a,a+pi/2-δx,a+pi/2-δx,a], Δy*[-1,-1,1,1]); domain_style...)
+	plot!(Shape([a+pi/2+δx, a+pi/2+pi-δx,a+pi/2+pi-δx,a+pi/2+δx],
+			  Δy*[-1,-1,1,1]); domain_style...)
+	plot!(Shape([3pi/2 + δx, 2pi, 2pi, 3pi/2+δx],
+			  Δy*[-1,-1,1,1]); domain_style...)
+	plot!(Shape(Δx*[-1,1,1,-1], [-5, -5,-1,-1]); range_style...)
+	plot!(Shape(Δx*[-1,1,1,-1], [ 5,  5,1,1]);  range_style...)
+end
+plot
+```
+
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+The top figure shows the domain and range of the function as highlighted intervals. The bottom figure shows that the domain may be a collection of intervals. (In this case the $\sec$ function is not defined at $\pi/2 + k \pi$ for integer $k$) and the range may be a collection of intervals. (In this case, the $\sec$ function never have a value in $(-1,1)$.
+:::
+
 
 :::{.callout-note}
 ## Note
@@ -90,7 +185,7 @@ Whereas function definitions and usage in `Julia` mirrors standard math notation
 
 :::
 
-### The domain of a function
+### The domain of a function in Julia
 
 
 Functions in `Julia` have an implicit domain, just as they do mathematically. In the case of $f(x)$ and $g(x)$, the right-hand side is defined for all real values of $x$, so the domain is all $x$. For $h(x)$ this isn't the case, of course. Trying to call $h(x)$ when $x < 0$ will give an error:
@@ -347,10 +442,27 @@ In our example, we see that in trying to find an answer to $f(x) = 0$ ( $\sqrt{2
 
 ```{julia}
 #| echo: false
-plot(q, a, b, linewidth=5, legend=false)
-plot!(zero, a, b)
-plot!([a, b], q.([a, b]))
-scatter!([c], [q(c)])
+plt = let
+gr()
+plt = plot(q, a, b, linewidth=5, legend=false)
+plot!(plt, zero, a, b)
+plot!(plt, [a, b], q.([a, b]))
+scatter!(plt, [c], [q(c)]; marker=(:circle,))
+scatter!(plt, [a,b], [q(a), q(b)]; marker=(:square,))
+
+annotate!(plt, [
+(a, 0, text(L"a", 10,:top)),
+(b, 0, text(L"b", 10, :top)),
+(c, 0, text(L"c", 10, :bottom))
+])
+end
+plt
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
 ```
 
 Still,  `q(c)` is not really close to $0$:
@@ -398,6 +510,7 @@ c = secant_intersection(f, a, b)
 
 p = plot(f, a, b, linewidth=5, legend=false)
 plot!(p, zero, a, b)
+scatter!([a,b], [f(a), f(b)]; marker=(:square,))
 
 plot!(p, [a,b], f.([a,b]));
 scatter!(p, [c], [f(c)])
@@ -917,6 +1030,86 @@ raw"``f(x) = \sqrt{x}``"]
 answ = 1
 radioq(choices, answ)
 ```
+
+##### Question
+
+::: {#fig-floor-function}
+
+```{julia}
+#| echo: false
+plt = let
+    gr()
+	empty_style = (xaxis=([], false),
+                    yaxis=([], false),
+                    framestyle=:origin,
+                    legend=false)
+	axis_style = (arrow=true, side=:head, line=(:gray, 1))
+	text_style = (10,)
+	fn_style =  (;line=(:black, 3))
+	fn2_style =  (;line=(:red, 4))
+	mark_style = (;line=(:gray, 1, :dot))
+	domain_style = (;fill=(:orange, 0.35), line=nothing)
+	range_style = (; fill=(:blue, 0.35), line=nothing)
+
+	ts = range(0, 2pi, 100)
+	xys = sincos.(ts)
+	xys = [.1 .* xy for xy in xys]
+
+	plot(; empty_style..., aspect_ratio=:equal)
+	plot!([-4.25,4.25], [0,0]; axis_style...)
+	plot!([0,0], [-4.25, 4.25]; axis_style...)
+
+	for k in -4:4
+		P,Q = (k,k),(k+1,k)
+		plot!([P,Q], line=(:black,1))
+		S = Shape([k .+ xy for xy in xys])
+		plot!(S; fill=(:black,))
+		S = Shape([(k+1,k) .+ xy for xy in xys])
+		plot!(S; fill=(:white,), line=(:black,1))
+	end
+	current()
+end
+plotly()
+plt
+```
+
+The `floor` function rounds down. For example, any value in $[k,k+1)$ rounds to $k$ for integer $k$.
+:::
+
+The figure shows the `floor` function which is useful in programming. It rounds down to the first integer value.
+
+
+From the graph, what is the domain of the function?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+    "The entire real line",
+    "The entire real line except for integer values",
+    "The integers"
+]
+answer = 1
+radioq(choices, answ)
+```
+
+From the graph, what is the range of the function?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+    "The entire real line",
+    "The entire real line except for integer values",
+    "The integers"
+]
+answer = 3
+radioq(choices, answ)
+```
+
+(This graphic uses the convention that a filled in point is present, but an open point is not, hence each bar represents some $[k, k+1)$.)
 
 ###### Question
 

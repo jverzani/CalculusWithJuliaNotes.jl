@@ -20,6 +20,7 @@ using SymPy
 #| echo: false
 #| results: "hidden"
 import LinearAlgebra: norm
+using SplitApplyCombine
 nothing
 ```
 
@@ -121,6 +122,145 @@ $$
 The formula is for a rotation around the $x$-axis, but can easily be generalized to rotating around any line (say the $y$-axis or $y=x$, ...) just by adjusting what $r(x)$ is taken to be.
 
 :::
+
+::: {#fig-solid-of-revolution}
+
+```{julia}
+#| echo: false
+plt = let
+    gr()
+	# Follow lead of # https://github.com/SigurdAngenent/WisconsinCalculus/blob/master/figures/221/09surf_of_rotation2.py
+	# plot surface of revolution around x axis between [0, 3]
+	# best if r(t) descreases
+
+	rad(x) = 2/(1 + exp(x))#2/(2.0+x)
+    viewp = [2,-2,1]
+
+	##
+	unitize(x) = x / norm(x)
+
+	"""Orthogonal projection along the vector viewp"""
+	function make_Pmat(viewp)
+    a = unitize( [-viewp[2], viewp[1], 0] )
+    b = unitize( [-viewp[3]*viewp[1],
+                  -viewp[3]*viewp[2],
+                  viewp[1]^2 + viewp[2]^2] )
+    collect(zip(a,b))
+	end
+
+	#linear projection of R^3 onto R^2
+	function proj(X, viewp)
+		Pmat = make_Pmat(viewp)
+		 x=sum([Pmat[i][1]*X[i] for i in 1:3])
+         y=sum([Pmat[i][2]*X[i] for i in 1:3])
+	(x, y) # a point
+	end
+	proj(X) = proj(X, viewp)
+
+	# discrete determinant of Jacobian; area multiplier?
+	function jac(X, u, v)
+	  ϵ = 0.000001
+      A = map((p,q) -> (p-q)/ϵ, X(u+ϵ/2, v), X(u-ϵ/2, v))
+      B = map((p,q) -> (p-q)/ϵ, X(u, v+ϵ/2), X(u, v-ϵ/2))
+	  return A[1]*B[2]-A[2]*B[1]
+	end
+
+
+	# surface of revolution
+    surf(t, z) = [t, rad(t)*cos(z), rad(t)*sin(z)]
+
+	# project the surface at (t, a=theta)
+	psurf(t,z) = proj(surf(t,z))
+
+
+	bisect(f, a, b) = find_zero(f, (a,b), Bisection())
+	_fold(t, zmin, zmax) =  bisect(z -> jac(psurf, t, z), zmin, zmax)
+
+	# create shape holding project disc
+    drawdiscF(t) = Shape(invert([psurf(t, 2*i*pi/100) for i in 1:101])...)
+
+	# project a line between two points
+	pline!(p,q; kwargs...) = plot!([proj(p),proj(q)];
+							   line_style..., kwargs...)
+	α = 1.0
+	line_style = (; line=(:black, 1))
+
+	plot(; empty_style..., aspect_ratio=:equal)
+
+
+
+	# by layering, we get x-axis as desired
+	pline!([-1,0,0], [0,0,0])
+	plot!(drawdiscF(0);   fill =(:lightgray, α))
+	pline!([0,0,0], [1,0,0])
+	plot!(drawdiscF(1);   fill =(:black, α)) #  black to lightgray gives thickness
+	plot!(drawdiscF(1.1); fill=(:lightgray, α))
+	pline!([1.1,0,0], [2,0,0])
+	plot!(drawdiscF(2);   fill=(:lightgray, α))
+	pline!([2,0,0], [3,0,0])
+	plot!(drawdiscF(3);   fill=(:lightgray, α))
+	pline!([3,0,0], [4,0,0]; arrow=true, side=:head)
+	pline!([0,0,0], [0,0,1.25]; arrow=true, side=:head)
+
+
+	tt = range(0, pi, 30)
+	curve = [psurf(t, pi/2) for t in tt]
+	plot!(curve; line=(:black, 2))
+
+	f1 = [[t, _fold(t, 0, pi)] for t in tt]
+	curve = [psurf(f[1], f[2]) for f in f1]
+	plot!(curve; line=(:black,))
+
+	f2 = [[t, _fold(t, pi, 2*pi)] for t in tt]
+    curve = [psurf(f[1], f[2]) for f in f2]
+	plot!(curve; line=(:black,))
+
+
+
+	tt= [0.025*i for i in 1:121]
+    f1 = [[t, _fold(t, pi, 2*pi)] for t in tt]
+	for f in f1
+ 		plot!([psurf(f[1], f[2]-k*0.01*(4-f[1])) for k in 1:21];
+			  line=(:black,1))
+	end
+	tt= [0.05*i for i in 1:61]
+    f1 = [[t, _fold(t, pi, 2*pi)] for t in tt]
+	for f in f1
+  		plot!([psurf( f[1], f[2]-k*0.01*(6-f[1]) )
+            for k in 1:21]; line=(:black, 1))
+	end
+#=
+	ts = 0:.1:2.95
+	θs = range(pi + pi/4, 3pi/2, 25)
+	for ti in ts
+		plot!([psurf(ti,θ) for θ in θs]; line=(:black, 1))
+	end
+	θs = range(pi + pi/6, 3pi/2, 25)
+	for ti in ts
+		plot!([psurf(ti +0.05,θ) for θ in θs]; line=(:black, 1))
+	end
+=#
+	current()
+
+	#ts = range(0, 3, 100)
+	#θs = range(0, 2pi, 100)
+	#contour(ts, θs, (t,z) -> jac(psurf,t,z), levels=[0])
+
+end
+plt
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+
+Illustration of a figure being rotated around the $x$-axis. The discs have approximate volume given by the area of the base times the height or $\pi r(x)^2 \Delta x$. (Figure ported from @Angenent.)
+
+:::
+
 
 For a numeric example, we consider the original Red [Solo](http://en.wikipedia.org/wiki/Red_Solo_Cup) Cup. The dimensions of the cup were basically: a top diameter of $d_1 = 3~ \frac{3}{4}$ inches, a bottom diameter of $d_0 = 2~ \frac{1}{2}$ inches and a height of $h = 4~ \frac{3}{4}$ inches.
 
@@ -352,6 +492,136 @@ $$
 V = \int_a^b \pi \cdot (R(x)^2 - r(x)^2) dx.
 $$
 
+::: {#fig-washer-illustration}
+```{julia}
+#| echo: false
+plt = let
+    gr()
+	# Follow lead of # https://github.com/SigurdAngenent/WisconsinCalculus/blob/master/figures/221/09surf_of_rotation2.py
+	# plot surface of revolution around x axis between [0, 3]
+	# best if r(t) descreases
+
+	rad(x) = 2/(1 + exp(x))#2/(2.0+x)
+    viewp = [2,-2,1]
+
+	##
+	unitize(x) = x / norm(x)
+
+	"""Orthogonal projection along the vector viewp"""
+	function make_Pmat(viewp)
+    a = unitize( [-viewp[2], viewp[1], 0] )
+    b = unitize( [-viewp[3]*viewp[1],
+                  -viewp[3]*viewp[2],
+                  viewp[1]^2 + viewp[2]^2] )
+    collect(zip(a,b))
+	end
+
+	#linear projection of R^3 onto R^2
+	function proj(X, viewp)
+		Pmat = make_Pmat(viewp)
+		 x=sum([Pmat[i][1]*X[i] for i in 1:3])
+         y=sum([Pmat[i][2]*X[i] for i in 1:3])
+	(x, y) # a point
+	end
+	proj(X) = proj(X, viewp)
+
+	# discrete determinant of Jacobian; area multiplier?
+	function jac(X, u, v)
+	  ϵ = 0.000001
+      A = map((p,q) -> (p-q)/ϵ, X(u+ϵ/2, v), X(u-ϵ/2, v))
+      B = map((p,q) -> (p-q)/ϵ, X(u, v+ϵ/2), X(u, v-ϵ/2))
+	  return A[1]*B[2]-A[2]*B[1]
+	end
+
+
+	# surface of revolution
+    surf(t, z) = [t, rad(t)*cos(z), rad(t)*sin(z)]
+	surf2(t, z) = (t, rad(t)*cos(z)/2, rad(t)*sin(z)/2)
+
+	# project the surface at (t, a=theta)
+	psurf(t,z) = proj(surf(t,z))
+	psurf2(t, z) = proj(surf2(t,z))
+
+	bisect(f, a, b) = find_zero(f, (a,b), Bisection())
+	_fold(t, zmin, zmax) =  bisect(z -> jac(psurf, t, z), zmin, zmax)
+
+	# create shape holding project disc
+    drawdiscF(t) = Shape(invert([psurf(t, 2*i*pi/100) for i in 1:101])...)
+	drawdiscI(t) = Shape([psurf2(t, 2*i*pi/100) for i in 1:101])
+
+	# project a line between two points
+	pline!(p,q; kwargs...) = plot!([proj(p),proj(q)];
+							   line_style..., kwargs...)
+	α = 1.0
+	line_style = (; line=(:black, 1))
+
+	plot(; empty_style..., aspect_ratio=:equal)
+
+
+
+	# by layering, we get x-axis as desired
+	pline!([-1,0,0], [0,0,0])
+	plot!(drawdiscF(0);   fill =(:lightgray, α))
+	plot!(drawdiscI(0); fill=(:white, .5))
+	pline!([0,0,0], [1,0,0])
+	plot!(drawdiscF(1);   fill =(:black, α)) #  black to lightgray gives thickness
+	plot!(drawdiscI(1); fill=(:white, .5))
+	plot!(drawdiscF(1.1); fill=(:lightgray, α))
+	plot!(drawdiscI(1.1); fill=(:white, .5))
+	pline!([1.1,0,0], [2,0,0])
+	plot!(drawdiscF(2);   fill=(:lightgray, α))
+	plot!(drawdiscI(2); fill=(:white, .5))
+	pline!([2,0,0], [3,0,0])
+	plot!(drawdiscF(3);   fill=(:lightgray, α))
+	plot!(drawdiscI(3); fill=(:white, .5))
+	pline!([3,0,0], [4,0,0]; arrow=true, side=:head)
+	pline!([0,0,0], [0,0,1.25]; arrow=true, side=:head)
+
+
+	tt = range(0, pi, 30)
+	curve = [psurf(t, pi/2) for t in tt]
+	plot!(curve; line=(:black, 2))
+
+	f1 = [[t, _fold(t, 0, pi)] for t in tt]
+	curve = [psurf(f[1], f[2]) for f in f1]
+	plot!(curve; line=(:black,))
+
+	f2 = [[t, _fold(t, pi, 2*pi)] for t in tt]
+    curve = [psurf(f[1], f[2]) for f in f2]
+	plot!(curve; line=(:black,))
+
+
+
+	tt= [0.025*i for i in 1:121]
+    f1 = [[t, _fold(t, pi, 2*pi)] for t in tt]
+	for f in f1
+ 		plot!([psurf(f[1], f[2]-k*0.01*(4-f[1])) for k in 1:21];
+			  line=(:black,1))
+	end
+	tt= [0.05*i for i in 1:61]
+    f1 = [[t, _fold(t, pi, 2*pi)] for t in tt]
+	for f in f1
+  		plot!([psurf( f[1], f[2]-k*0.01*(6-f[1]) )
+            for k in 1:21]; line=(:black, 1))
+	end
+
+	current()
+
+
+end
+plt
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+Modification of earlier figure to show washer method. The interior volumn would be given by $\int_a^b \pi r(x)^2 dx$, the entire volume by $\int_a^b \pi R(x)^2 dx$. The difference then is the volume computed by the washer method.
+
+:::
+
 ##### Example
 
 
@@ -412,19 +682,21 @@ Let $h$ be the distance from the apex to the base. Consider cones with the prope
 
 
 ```{julia}
-#| hold: true
 #| echo: false
-h = 5
-R, r, rho = 1, 1/4, 1/4
-f(t) = (R-r) * cos(t) + rho * cos((R-r)/r * t)
-g(t) = (R-r) * sin(t) - rho * sin((R-r)/r * t)
-ts = range(0, 2pi, length=100)
+plt = let
+    h = 5
+    R, r, rho = 1, 1/4, 1/4
+    f(t) = (R-r) * cos(t) + rho * cos((R-r)/r * t)
+    g(t) = (R-r) * sin(t) - rho * sin((R-r)/r * t)
+    ts = range(0, 2pi, length=100)
 
-p = plot(f.(ts), g.(ts), zero.(ts), legend=false)
-for t ∈ range(0, 2pi, length=25)
-    plot!(p, [0,f(t)], [0,g(t)], [h, 0], linecolor=:red)
+    plot(f.(ts), g.(ts), zero.(ts), legend=false)
+    for t ∈ range(0, 2pi, length=25)
+        plot!([0,f(t)], [0,g(t)], [h, 0], linecolor=:red)
+    end
+    current()
 end
-p
+plot
 ```
 
 A right circular cone is one where this shape is a circle. This definition can be more general, as a square-based right pyramid is also such a cone. After possibly reorienting the cone in space so the base is at $u=0$ and the apex at $u=h$ the volume of the cone can be found from:
@@ -450,12 +722,119 @@ $$
 
 This gives a general formula for the volume of such cones.
 
+::: {#fig-cross-sections}
+
+```{julia}
+#| echo: false
+plt = let
+    gr()
+	# sections
+	# https://github.com/SigurdAngenent/WisconsinCalculus/blob/master/figures/221/09Xsections.py
+
+	x(h,z) =  0.3*h^2+(0.6-0.2*h)*cos(z)
+	y(h,z) =  h+(0.3-0.2*h)*sin(z)+0.05*sin(4*z)
+	r(h,z) = (x(h,z), y(h,z))
+	r1(h,z) = (2,0) .+ r(h,z)
+
+	Nh=30
+	heights = range(-1/2, 1/2, Nh)
+	h0=heights[Nh ÷ 2]
+	h1=heights[Nh ÷ 2 + 1]
+	hs = [heights[1], h0, h1, heights[end]]
+	ts = range(0, 2pi, 300)
+
+	plot(; empty_style..., aspect_ratio=:equal)
+
+	# stack the curves
+	for h in heights
+		curve = r.(h, ts)
+		plot!(Shape(curve); fill=(:white, 1.0), line=(:black, 1))
+	end
+
+	# shape pull outs; use black to give thickness
+	for (h, color) in zip(hs, (:white, :black, :white, :white))
+	    curve = r1.(h,ts)
+		plot!(Shape(curve); fill=(color,1.0), line=(:black, 1,))
+	end
+
+	# axis with marked points
+	plot!([(-1,-1), (-1, 1)]; axis_style...)
+	pts = [(-1, y(h, pi)) for h in hs]
+	scatter!(pts, marker=(5, :circle))
+
+	# connect with dashes
+	for h in hs
+		plot!([(-1, y(h, pi)), r(h,pi)]; line=(:black, 1, :dash))
+		plot!([r(h,0), r1(h,pi)]; line=(:black, 1, :dash))
+	end
+
+
+
+
+
+	current()
+
+
+end
+plt
+```
+
+This figure shows the volume of a figure being comprised of slices. A discrete approximation would be found by estimating the volume of each slice by the cross sectional area times a small $\Delta h$.
+(This figure was ported from @Angenent.)
+:::
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
 
 ### Cavalieri's method
 
 
 [Cavalieri's](http://tinyurl.com/oda9xd9) Principle is "Suppose two regions in three-space (solids) are included between two parallel planes. If every plane parallel to these two planes intersects both regions in cross-sections of equal area, then the two regions have equal volumes." (Wikipedia).
 
+
+::: {#fig-Cavalieris-first}
+
+```{julia}
+#| echo: false
+plt = let
+    gr()
+
+    x(h,z) =  (0.6-0.2*h) * cos(z)
+    y(h,z) =  h + (0.2-0.15*h) * sin(z) + 0.01 * sin(4*z)
+    xa(h,z) =  2 + 0.1 * cos(7*pi*h) + (0.6-0.2*h)*cos(z)
+
+
+    heights = range(-1/2, 1/2, 50)
+    ts = range(0, 2pi, 300)
+    h0 = heights[25]
+    h1 = heights[26]
+
+    plot(; empty_style..., aspect_ratio=:equal)
+
+    for h in heights
+        curve=[(x(h, t), y(h, t)) for t in ts]
+        plot!(Shape(curve); fill=(:white,), line=(:black,1))
+
+        curve=[(xa(h, t), y(h, t)) for t in ts]
+        plot!(Shape(curve); fill=(:white,), line=(:black,1))
+    end
+    current()
+end
+plt
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+Illustration of Cavalieri's first principle. The discs from the left are moved around to form the left volume, but as the volumes of each  cross-sectional disc remains the same, the two valumes are equally approximated. (This figure ported from @Angenent.)
+
+:::
 
 With the formula for the volume of solids based on cross sections, this is a trivial observation, as the functions giving the cross-sectional area are identical. Still, it can be surprising. Consider a sphere with an interior cylinder bored out of it.  (The [Napkin](http://tinyurl.com/o237v83) ring problem.) The bore has height $h$ - for larger radius spheres this means very wide bores.
 
