@@ -76,21 +76,34 @@ To see why, any partition of the interval $[a,b]$ by $a = t_0 < t_1 < \cdots < t
 ## {{{arclength_graph}}}
 gr()
 function make_arclength_graph(n)
+	x(t) = cos(t)/t
+    y(t) = sin(t)/t
+	a, b = 1, 4pi
+	ns = [10,15,20, 30, 50]
+    empty_style = (xaxis=([], false),
+                    yaxis=([], false),
+                    framestyle=:origin,
+                    legend=false)
 
-    ns = [10,15,20, 30, 50]
+	plot(; empty_style..., aspect_ratio=:equal, size=fig_size)
+	title!("Approximate arc length with $(ns[n]) points")
 
-    g(t) = cos(t)/t
-    f(t) = sin(t)/t
+	ts = range(a, b, 250)
+	plot!(x.(ts), y.(ts); line=(:black,2))
+	pttn = range(a, b, ns[n])
+	plot!(x.(pttn), y.(pttn); line=(:red, 2))
 
-    ts = range(1, stop=4pi, length=200)
-    tis = range(1, stop=4pi, length=ns[n])
+	ts = range(0, 2pi, 100)
 
-    p = plot(g, f, 1, 4pi, legend=false, size=fig_size,
-             title="Approximate arc length with $(ns[n]) points")
-    plot!(p,  map(g, tis), map(f, tis), color=:orange)
+	λ = 0.005
+	cs = [λ .* xys for xys ∈ sincos.(ts)]
 
-    p
+	for v ∈ zip(x.(pttn), y.(pttn))
+		S = Shape([v .+ xy for xy in cs])
+		plot!(S; fill=(:white,), line=(:black,2))
+	end
 
+	current()
 end
 
 n = 5

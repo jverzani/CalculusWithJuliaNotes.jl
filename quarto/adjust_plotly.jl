@@ -9,7 +9,6 @@
 function _add_plotly(f)
     #lineno = 117
 
-
     r = readlines(f)
     inserted = false
     open(f, "w") do io

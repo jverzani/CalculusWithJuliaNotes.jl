@@ -6,7 +6,12 @@ This section uses these packages:
 using SymPy
 using Plots
 using Roots
-plotly()
+```
+
+```{julia}
+#| echo: false
+using LaTeXStrings
+gr();
 ```
 
 ----
@@ -15,21 +20,31 @@ In the March 2003 issue of the College Mathematics Journal, Leon M Hall posed 12
 
 ```{julia}
 #| echo: false
-f(x) = x^2
-fp(x) = 2x
 a₀ = 7/8
 q₀ = -a₀ - 1/(2a₀)
+f(x) = x^2
+fp(x) = 2x
 tangent(x) = f(a₀) + fp(a₀) * (x - a₀)
 normal(x) = f(a₀) - (1 / fp(a₀)) * (x - a₀)
-function make_plot(a₀=7/8, q₀=-a₀ - 1/2a₀)
-    plt = plot(; xlim=(-2,2), ylim=(-1, (1.5)^2),
-               xticks=nothing, yticks=nothing,
-               aspect_ratio=:equal, border=:none, legend=false)
+
+function make_plot()
+    empty_style = (xaxis=([], false),
+                   yaxis=([], false),
+                   framestyle=:origin,
+                   legend=false)
+    axis_style = (arrow=true, side=:head, line=(:gray, 1))
+
+    tangent(x) = f(a₀) + fp(a₀) * (x - a₀)
+    normal(x) = f(a₀) - (1 / fp(a₀)) * (x - a₀)
+
+    plt = plot(; empty_style...,
+               xlims=(-2,2), ylims=(-1, (1.5)^2))
+
     f(x) = x^2
     fp(x) = 2x
 
-    plot!(f, -1.5, 1.5, line=(1, :royalblue))
-    plot!(zero, line=(1, :black))
+    plot!(f, -1.5, 1.5, line=(2, :black))
+    plot!([-1.6, 1.6], [0,0]; axis_style...)
 
     tl = x -> f(a₀) + fp(a₀) * (x-a₀)
     nl = x -> f(a₀) - 1/(fp(a₀)) * (x-a₀)
@@ -40,9 +55,10 @@ function make_plot(a₀=7/8, q₀=-a₀ - 1/2a₀)
     # add in right triangle
     scatter!([a₀, q₀], f.([a₀, q₀]), markersize=5)
     Δ = 0.01
-    annotate!([(a₀ + Δ, nl(a₀+Δ), "P", :bottom),
-               (q₀ - Δ, nl(q₀-Δ), "Q", :top)])
-    plt
+    annotate!([(a₀ + Δ, nl(a₀+Δ), text(L"P", :top)),
+               (q₀ - Δ, nl(q₀-Δ), text(L"Q", :bottom, :left))
+			  ])
+    current()
 end
 make_plot()
 ```

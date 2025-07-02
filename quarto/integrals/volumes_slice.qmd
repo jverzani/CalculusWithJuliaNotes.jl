@@ -680,9 +680,93 @@ For a general cone, we use this [definition](http://en.wikipedia.org/wiki/Cone):
 
 Let $h$ be the distance from the apex to the base. Consider cones with the property that all planes parallel to the base intersect the cone with the same shape, though perhaps a different scale. This figure shows an example, with the rays coming from the apex defining the volume.
 
+::: {#fig-generic-cone}
+```{julia}
+#| echo: false
+plt = let
+	gr()
+	rad(t) = 3/2 - t
+    viewp = [2,-1/1.5,1/2+.2]
+
+	empty_style = (xaxis=([], false),
+                    yaxis=([], false),
+                    framestyle=:origin,
+                    legend=false)
+	axis_style = (arrow=true, side=:head, line=(:gray, 1))
+	unitize(x) = x / norm(x)
+
+	"""Orthogonal projection along the vector viewp"""
+	function make_Pmat(viewp)
+    a = unitize( [-viewp[2], viewp[1], 0] )
+    b = unitize( [-viewp[3]*viewp[1],
+                  -viewp[3]*viewp[2],
+                  viewp[1]^2 + viewp[2]^2] )
+    collect(zip(a,b))
+	end
+
+	#linear projection of R^3 onto R^2
+	function proj(X, viewp)
+		Pmat = make_Pmat(viewp)
+		 x=sum([Pmat[i][1]*X[i] for i in 1:3])
+         y=sum([Pmat[i][2]*X[i] for i in 1:3])
+	(x, y) # a point
+	end
+	proj(X) = proj(X, viewp)
+
+	drawdiscF(t) = Shape([psurf(t, 2*i*pi/100) for i in 1:101])
+
+	# discrete determinant of Jacobian; area multiplier?
+	function jac(X, u, v)
+	  ϵ = 0.000001
+      A = map((p,q) -> (p-q)/ϵ, X(u+ϵ/2, v), X(u-ϵ/2, v))
+      B = map((p,q) -> (p-q)/ϵ, X(u, v+ϵ/2), X(u, v-ϵ/2))
+	  return A[1]*B[2]-A[2]*B[1]
+	end
+
+
+	# our surface
+    R, r, rho = 1, 1/4, 1/4
+    f(t) = (R-r) * cos(t) + rho * cos((R-r)/r * t)
+    g(t) = (R-r) * sin(t) - rho * sin((R-r)/r * t)
+	surf(t, θ) = (rad(t)*f(θ), rad(t)*g(θ), t)
+	psurf(t,θ) = proj(surf(t,θ))
+
+	plot(; empty_style..., aspect_ratio=:equal)
+	for (i,t) in enumerate(range(0, 3/2, 30))
+		plot!(drawdiscF(t); fill=(:gray,1), line=(:black,1))
+	end
+
+
+	θ = 0; plot!([psurf(0, θ), psurf(3/2, θ)]; line=(:black, 2))
+	θ = pi/2; plot!([psurf(0, θ), psurf(3/2, θ)]; line=(:black, 1))
+	θ = 3pi/2; plot!([psurf(0, θ), psurf(3/2, θ)]; line=(:black, 1))
+
+
+	current()
+end
+plt
+```
 
 ```{julia}
 #| echo: false
+plotly()
+nothing
+```
+
+
+A "cone" formed from the parameterized curve
+$r(t) = \langle
+(R-r) \cdot \cos(t) + \rho \cdot \cos((R-r)/r \cdot t),
+(R-r) \cdot \sin(t) - \rho \cdot \sin((R-r)/r \cdot t)
+\rangle$ with apex at the point $[0,0,3/2]$ and rays extending down through the origin following $3/2-z$.
+
+:::
+
+
+
+```{julia}
+#| echo: false
+#| eval: false
 plt = let
     h = 5
     R, r, rho = 1, 1/4, 1/4
@@ -696,7 +780,7 @@ plt = let
     end
     current()
 end
-plot
+plt
 ```
 
 A right circular cone is one where this shape is a circle. This definition can be more general, as a square-based right pyramid is also such a cone. After possibly reorienting the cone in space so the base is at $u=0$ and the apex at $u=h$ the volume of the cone can be found from:
@@ -735,6 +819,11 @@ plt = let
 	y(h,z) =  h+(0.3-0.2*h)*sin(z)+0.05*sin(4*z)
 	r(h,z) = (x(h,z), y(h,z))
 	r1(h,z) = (2,0) .+ r(h,z)
+
+    empty_style = (xaxis=([], false),
+                   yaxis=([], false),
+                   framestyle=:origin,
+                    legend=false)
 
 	Nh=30
 	heights = range(-1/2, 1/2, Nh)
@@ -779,7 +868,8 @@ end
 plt
 ```
 
-This figure shows the volume of a figure being comprised of slices. A discrete approximation would be found by estimating the volume of each slice by the cross sectional area times a small $\Delta h$.
+This figure shows the volume of a figure being comprised of slices. A discrete approximation would be found by estimating the volume of each slice by the cross sectional area times a small $\Delta h$. This leads to a formula
+$V = \int_a^b A(h)dh$, where $A$ computes the cross sectional area.
 (This figure was ported from @Angenent.)
 :::
 
@@ -836,38 +926,196 @@ Illustration of Cavalieri's first principle. The discs from the left are moved a
 
 :::
 
-With the formula for the volume of solids based on cross sections, this is a trivial observation, as the functions giving the cross-sectional area are identical. Still, it can be surprising. Consider a sphere with an interior cylinder bored out of it.  (The [Napkin](http://tinyurl.com/o237v83) ring problem.) The bore has height $h$ - for larger radius spheres this means very wide bores.
+With the formula for the volume of solids based on cross sections, this is a trivial observation, as the functions giving the cross-sectional area are identical. Still, it can be surprising.
 
+
+Consider a sphere with an interior cylinder bored out of it.  (The [Napkin](http://tinyurl.com/o237v83) ring problem.) The bore has height $h$ - for larger radius spheres this means very wide bores.
+
+::: {#fig-napkin-ring-1}
+```{julia}
+#| echo: false
+plt = let
+	# Follow lead of # https://github.com/SigurdAngenent/WisconsinCalculus/blob/master/figures/221/09surf_of_rotation2.py
+	# plot surface of revolution around x axis between [0, 3]
+	# best if r(t) descreases
+
+	rad(t) = (t = clamp(t, -1, 1); sqrt(1 - t^2))
+	rad2(t) = 1/2
+    viewp = [2,-2,1]
+
+	##
+	unitize(x) = x / norm(x)
+
+	"""Orthogonal projection along the vector viewp"""
+	function make_Pmat(viewp)
+    a = unitize( [-viewp[2], viewp[1], 0] )
+    b = unitize( [-viewp[3]*viewp[1],
+                  -viewp[3]*viewp[2],
+                  viewp[1]^2 + viewp[2]^2] )
+    collect(zip(a,b))
+	end
+
+	#linear projection of R^3 onto R^2
+	function proj(X, viewp)
+		Pmat = make_Pmat(viewp)
+		 x=sum([Pmat[i][1]*X[i] for i in 1:3])
+         y=sum([Pmat[i][2]*X[i] for i in 1:3])
+	(x, y) # a point
+	end
+	proj(X) = proj(X, viewp)
+
+	# discrete determinant of Jacobian; area multiplier?
+	function jac(X, u, v)
+	  ϵ = 0.000001
+      A = map((p,q) -> (p-q)/ϵ, X(u+ϵ/2, v), X(u-ϵ/2, v))
+      B = map((p,q) -> (p-q)/ϵ, X(u, v+ϵ/2), X(u, v-ϵ/2))
+	  return A[1]*B[2]-A[2]*B[1]
+	end
+
+
+	# surface of revolution about the z axis
+
+    surf(t, z) = (rad(t)*cos(z), rad(t)*sin(z), t)
+	surf2(t, z) = (rad2(t)*cos(z), rad2(t)*sin(z), t)
+
+	# project the surface at (t, a=theta)
+	psurf(t,z) = proj(surf(t,z))
+	psurf2(t, z) = proj(surf2(t,z))
+
+	bisect(f, a, b) = find_zero(f, (a,b), Bisection())
+	_fold(t, zmin, zmax) =  bisect(z -> jac(psurf, t, z), zmin, zmax)
+	_foldz(z, tmin, tmax) =  bisect(t -> jac(psurf, t, z), tmin, tmax)
+	# create shape holding project disc
+    drawdiscF(t) = Shape([psurf(t, 2*i*pi/100) for i in 1:101])
+	drawdiscI(t) = Shape([psurf2(t, 2*i*pi/100) for i in 1:101])
+
+	# project a line between two points
+	pline!(p,q; kwargs...) = plot!([proj(p),proj(q)];
+							   line_style..., kwargs...)
+	α = 1.0
+	line_style = (; line=(:black, 1))
+
+	plot(; empty_style..., aspect_ratio=:equal)
+
+	# washer
+	t0 = sqrt(3/4)
+
+	Δ = .03
+	δ = 0.785398 + 0.05
+
+	x₀ = -.25
+	plot!(drawdiscF(x₀-Δ); fill=(:black,), line=(:black,1))
+	plot!(drawdiscF(x₀); fill=(:orange,), line=(:black,1))
+	plot!(drawdiscI(x₀); fill=(:white,1.0), line=(:black,1))
+
+	x₀ = 0.35
+	plot!(drawdiscF(x₀-Δ); fill=(:black,), line=(:black,1))
+	plot!(drawdiscF(x₀); fill=(:orange,), line=(:black,1))
+	plot!(drawdiscI(x₀); fill=(:white,1.0), line=(:black,1))
+
+	z0 = 3pi/2 - δ
+	pline!(surf(t0, z0), surf(-t0, z0); line=(:black, 1))
+	pline!(surf(t0, z0+pi), surf(-t0, z0+pi); line=(:black, 1))
+
+
+	# boundary of sphere
+	z0 = 3pi/2 - δ
+	curve = [psurf(t, z0) for t in range(-t0, t0, 100)]
+	plot!(curve; line=(:black,3))
+	z0 = 3pi/2 - δ + pi
+	curve = [psurf(t, z0) for t in range(-t0, t0, 100)]
+	plot!(curve; line=(:black,3))
+
+	# caps
+	curve = [psurf(t0, θ) for θ in range(0, 2pi, 100)]
+	plot!(curve, line=(:black, 2))
+	curve = [psurf(-t0, θ) for θ in range(0, 2pi, 100)]
+	plot!(curve, line=(:black, 2))
+
+
+	# Shade lines
+	δ = pi/6
+	Δₜ =  (4pi/2 - (3pi/2 - δ))/(2*25)
+	for θ ∈ range(3pi/2-δ, 4pi/2, 25)
+		curve = [psurf(t, θ) for t in
+				 range(-t0, max(-t0, -t0 + 1/2*sin(θ+δ+pi/2 + pi/2)), 20)]
+		plot!(curve, line=(:black, 1))
+		curve = [psurf(t, θ+Δₜ) for t in
+				 range(-t0, max(-t0, -t0 + 1/3*sin(θ+δ+pi/2 + pi/2)), 20)]
+		plot!(curve, line=(:black, 1))
+	end
+
+	#=
+    f1 = [[t, _fold(t, 0, pi/2)] for t in range(-0.5, -0.1, 26)]
+	for f in f1
+  		plot!([psurf( f[1], f[2]-k*0.01*(6-f[1]) )
+            for k in 1:21]; line=(:black, 1))
+	end
+	=#
+
+	current()
+end
+plt
+```
+
+Figure showing sphere with interior cylinder bored out.
+:::
+
+
+This cross-sectional figure is used to better understand the key dimensions.
+
+::: {#fig-napkin-ring-2}
 
 ```{julia}
 #| hold: true
 #| echo: false
-#The following illustrates $R=5$ and $h=8$.
+#The following illustrates $R=1$ and $h=2sqrt(3/4$.
+plt = let
+    gr()
+    empty_style = (xaxis=([], false),
+                    yaxis=([], false),
+                    framestyle=:origin,
+                   legend=false)
 
-R =5; h1 = 2*4
+    R = 1; h = 2*sqrt(3/4)
 
-theta = asin(h1/2/R)
-thetas = range(-theta, stop=theta, length=100)
-ts = range(-pi, stop=pi, length=100)
-y = h1/4
+    θ = theta = asin(h/2/R)
+    thetas = range(-theta, stop=theta, length=100)
+    ts = range(-pi, stop=pi, length=100)
+    y = h/4
 
-p = plot(legend=false, aspect_ratio=:equal);
-plot!(p, R*cos.(ts), R*sin.(ts));
-plot!(p, R*cos.(thetas), R*sin.(thetas), color=:orange);
+    plot(; empty_style..., aspect_ratio=:equal)
+    plot!(R*cos.(ts), R*sin.(ts); line=(:black,));
+    plot!(R*cos.(thetas), R*sin.(thetas), line=(:orange,1));
 
-plot!(p, [R*cos.(theta), R*cos.(theta)], [h1/2, -h1/2], color=:orange);
-plot!(p, [R*cos.(theta), sqrt(R^2 - y^2)], [y, y], color=:orange)
+    plot!([R*cos.(theta), R*cos.(theta)], [h/2, -h/2]; color=:orange);
+    plot!([R*cos.(theta), sqrt(R^2 - y^2)], [y, y]; line=(:orange,3))
 
-plot!(p, [0, R*cos.(theta)], [0,0], color=:red);
-plot!(p,[ 0, R*cos.(theta)], [0,h1/2], color=:red);
+    plot!([0, R*cos.(theta)], [0,0], color=:red);
+    plot!([ 0, R*cos.(theta)], [0,h/2], color=:red);
 
-annotate!(p, [(.5, -2/3, "sqrt(R²- (h/2)²)"),
-              (R*cos.(theta)-.6, h1/4, "h/2"),
-              (1.5, 1.75*tan.(theta), "R")])
-
-p
+    x₀ = sqrt(R^2 - (h/2)^2)
+    annotate!( [
+        (x₀/2, 0, text(L"\sqrt{R^2- (\frac{h}{2})^2}",10, :top)),
+        (x₀, h/4, text(L"\frac{h}{2}",:right)),
+        (R/2*cos(θ),R/2*sin(θ), text(L"R", :bottom; rotation=rad2deg(θ)))
+    ])
+    current()
+end
+plt
 
 ```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+Side view illustrating key dimensions of napkin ring problem with $R$ being the radius of the sphere and $h$ being the height of the resulting interior cylinder.
+
+:::
+
 
 The small orange line is rotated, so using the washer method we get the cross sections given by $\pi(r_0^2 - r_i^2)$, the outer and inner radii, as a function of $y$.
 
