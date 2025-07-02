@@ -7,16 +7,19 @@
 
 #alternatives/plotly_plotting.html
 function _add_plotly(f)
-    lineno = 117
+    #lineno = 117
 
-str = """
-<script src="https://cdn.plot.ly/plotly-2.11.0.min.js"></script>
-"""
 
     r = readlines(f)
+    inserted = false
     open(f, "w") do io
         for (i,l) ∈ enumerate(r)
-            i == lineno && println(io, str)
+            if contains(l, "require.min.js")
+                !inserted && println(io, """
+<script src="https://cdn.plot.ly/plotly-2.6.3.min.js"></script>
+""")
+                inserted = true
+            end
             println(io, l)
         end
     end
@@ -29,7 +32,7 @@ function (@main)(args...)
         for fᵢ ∈ files
             f = joinpath(root, fᵢ)
             if endswith(f, ".html")
-                @show :adjust, f
+                dirname(f) == "_book" && continue
                 _add_plotly(f)
             end
         end
