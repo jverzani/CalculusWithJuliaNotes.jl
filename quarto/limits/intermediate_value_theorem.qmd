@@ -17,9 +17,9 @@ using SymPy
 ---
 
 
-![Between points M and M lies an F](figures/ivt.jpg){width=40%}
+![Between points M and M lies an F for a continuous curve.  [L'Hospitals](https://ia801601.us.archive.org/26/items/infinimentpetits1716lhos00uoft/infinimentpetits1716lhos00uoft.pdf) figure 55.](figures/ivt.jpg){width=40%}
 
-Continuity for functions is a valued property which carries implications. In this section we discuss two: the intermediate value theorem and the extreme value theorem. These two theorems speak to some fundamental applications of calculus: finding zeros of a function and finding extrema of a function. [L'Hospitals](https://ia801601.us.archive.org/26/items/infinimentpetits1716lhos00uoft/infinimentpetits1716lhos00uoft.pdf) figure 55, above, suggests why.
+Continuity for functions is a valued property which carries implications. In this section we discuss two: the intermediate value theorem and the extreme value theorem. These two theorems speak to some fundamental applications of calculus: finding zeros of a function and finding extrema of a function.
 
 
 ## Intermediate Value Theorem
@@ -38,7 +38,7 @@ If $f$ is continuous on $[a,b]$  with, say, $f(a) < f(b)$, then for any $y$ with
 #| echo: false
 #| cache: true
 ### {{{IVT}}}
-plt = let
+let
     gr()
 	# IVT
 	empty_style = (xaxis=([], false),
@@ -68,7 +68,7 @@ plt = let
 	plot!([(a,0),(a,f(a))]; line=(:black, 1, :dash))
 	plot!([(b,0),(b,f(b))]; line=(:black, 1, :dash))
 
-	m = f(a/2 + b/2)
+	m = f(a/2 + b/2) + 1.5
 	plot!([a, b], [m,m]; line=(:black, 1, :dashdot))
 
 	δx = 0.03
@@ -76,10 +76,10 @@ plt = let
 		  domain_style...)
 	plot!(Shape((a-.1) .+ 2δx * [-1,1,1,-1], [f(a),f(a),f(b), f(b)]);
 		  range_style...)
-	plot!(Shape((a-.1) .+ δx/2 * [-1,1,1,-1], [y0,y0,y1,y1]);
+	plot!(Shape((a-.1) .+ 2δx/3 * [-1,1,1,-1], [y0,y0,y1,y1]);
 		  range_style...)
 
-    zs = find_zeros(f, (a,b))
+    zs = find_zeros(x -> f(x) - m, (a,b))
     c = zs[2]
     plot!([(c,0), (c,f(c))]; line=(:black, 1, :dashdot))
 
@@ -89,52 +89,11 @@ plt = let
         (c, 0, text(L"c", 12, :top)),
 		(a-.1, f(a), text(L"f(a)", 12, :right)),
 		(a-.1, f(b), text(L"f(b)", 12, :right)),
-        (b, m, text(L"y", 12, :left)),
+        (a-0.2, m, text(L"y", 12, :right)),
 	])
 end
-plt
-
-#=
-function IVT_graph(n)
-    f(x) = sin(pi*x) + 9x/10
-    a,b = [0,3]
-
-    xs = range(a,stop=b, length=50)
-
-
-    ## cheat -- pick an x, then find a y
-    Δ = .2
-    x = range(a + Δ, stop=b - Δ, length=6)[n]
-    y = f(x)
-
-    plt = plot(f, a, b, legend=false, size=fig_size)
-    plot!(plt, [0,x,x], [f(x),f(x),0], color=:orange, linewidth=3)
-
-    plt
-
-end
-
-n = 6
-anim = @animate for i=1:n
-    IVT_graph(i)
-end
-
-imgfile = tempname() * ".gif"
-gif(anim, imgfile, fps = 1)
-
-
-caption = L"""
-
-Illustration of intermediate value theorem. The theorem implies that any randomly chosen $y$
-value between $f(a)$ and $f(b)$ will have  at least one $x$ in $[a,b]$
-with $f(x)=y$.
-
-"""
-
-plotly()
-ImageFile(imgfile, caption)
-=#
 ```
+
 ```{julia}
 #| echo: false
 plotly()
@@ -145,7 +104,7 @@ Illustration of the intermediate value theorem. The theorem implies that any ran
 
 :::
 
-In the early years of calculus, the intermediate value theorem was intricately connected with the definition of continuity, now it is a consequence.
+In the early years of calculus, the intermediate value theorem was intricately connected with the definition of continuity, now it is an important consequence.
 
 
 The basic proof starts with a set of points in $[a,b]$: $C = \{x \text{ in } [a,b] \text{ with } f(x) \leq y\}$. The set is not empty (as $a$ is in $C$) so it *must* have a largest value, call it $c$ (this might seem obvious, but it requires the completeness property of the real numbers).  By continuity of $f$, it can be shown that $\lim_{x \rightarrow c-} f(x) = f(c) \leq y$ and $\lim_{y \rightarrow c+}f(x) =f(c) \geq y$, which forces $f(c) = y$.
@@ -157,18 +116,6 @@ The basic proof starts with a set of points in $[a,b]$: $C = \{x \text{ in } [a,
 Suppose we have a continuous function $f(x)$ on $[a,b]$ with $f(a) < 0$ and $f(b) > 0$. Then as $f(a) < 0 < f(b)$, the intermediate value theorem guarantees the existence of a $c$ in $[a,b]$ with $f(c) = 0$. This was a special case of the intermediate value theorem proved by Bolzano first. Such $c$ are called *zeros* of the function $f$.
 
 
-We use this fact when building a "sign chart" of a polynomial function. Between any two consecutive real zeros the polynomial can not change sign. (Why?) So a "test point" can be used to determine the sign of the function over an entire interval.
-
-The `sign_chart` function from `CalculusWithJulia` uses this to indicate where an *assumed* continuous function changes sign:
-
-```{julia}
-f(x) = sin(x + x^2) + x/2
-sign_chart(f, -3, 3)
-```
-
-
-The intermediate value theorem can find the sign of the function *between* adjacent zeros, but how are the zeros identified?
-
 Here, we use the Bolzano theorem to give an algorithm - the *bisection method* - to locate a value $c$ in $[a,b]$ with $f(c) = 0$ under the assumptions:
 
 * $f$ is continuous on $[a,b]$
@@ -178,7 +125,7 @@ Here, we use the Bolzano theorem to give an algorithm - the *bisection method* -
 ::: {.callout-note}
 #### Between
 
-The bisection method is used to find a zero, $c$, of $f(x)$ *between* two values, $a$ and $b$. The method is guaranteed to work under assumptions, the most important being the continuous function having different signs at $a$ and $b$.
+The bisection method is used to find a zero, $c$, of $f(x)$ *between* two values, $a$ and $b$. The method is guaranteed to work under the assumption of a continuous function having different signs at $a$ and $b$.
 :::
 
 
@@ -305,7 +252,7 @@ sin(c)
 (Even `1pi` itself is not a "zero" due to floating point issues.)
 
 
-### The `find_zero` function.
+### The `find_zero` function to solve `f(x) = 0`
 
 
 The `Roots` package has a function `find_zero` that implements the bisection method when called as `find_zero(f, (a,b))` where $[a,b]$ is a bracket. Its use is similar to `simple_bisection` above. This package is loaded when `CalculusWithJulia` is. We illlustrate the usage of `find_zero` in the following:
@@ -315,8 +262,8 @@ The `Roots` package has a function `find_zero` that implements the bisection met
 xstar = find_zero(sin, (3, 4))
 ```
 
-:::{.callout-warning}
-## Warning
+:::{.callout-note}
+## Action template
 Notice, the call `find_zero(sin, (3, 4))` again fits the template `action(function, args...)` that we see repeatedly. The `find_zero` function can also be called through `fzero`. The use of `(3, 4)` to specify the interval is not necessary. For example  `[3,4]` would work equally as well. (Anything where `extrema` is defined works.)
 
 :::
@@ -396,6 +343,10 @@ It appears (and a plot over $[0,1]$ verifies) that there is one zero between $-2
 find_zero(x^3 - x + 1, (-2,  -1))
 ```
 
+#### The `find_zero` function to solve `f(x) = c`
+
+Solving `f(x) = c` is related to solving `h(x) = 0`. The key is to make a new function using the difference of the two sides: `h(x) = f(x) - c`.
+
 ##### Example
 
 Solve for a value of $x$ where `erfc(x)` is equal to `0.5`.
@@ -414,6 +365,40 @@ Now the `erfc` function is always defined and decreasing from $2$ to $0$, so wil
 find_zero(h, (-Inf, Inf))  # as wide as possible in this case
 ```
 
+
+##### Example: Inverse functions
+
+If $f(x)$ is *monotonic* and *continuous* over an interval $[a,b]$ then it has an *inverse function*. That is for any $y$ between $f(a)$ and $f(b)$ we can find an $x$ satisfying $y = f(x)$ with $a \leq x \leq b$. This is due, of course, to both the intermediate value theorem (which guarantees an $x$) and monotonicity (which guarantees just one $x$).
+
+To see how we can *numerically* find an inverse function using `find_zero`, we have this function:
+
+```{julia}
+function inverse_function(f, a, b, args...; kwargs...)
+    fa, fb = f(a), f(b)
+    m, M = fa < fb ? (fa, fb) : (fb, fa)
+    y -> begin
+        @assert m ≤ y ≤ M
+        find_zero(x ->f(x) - y, (a,b), args...; kwargs...)
+    end
+end
+```
+
+The check on `fa < fb` is due to the possibility that $f$ is increasing (in which case `fa < fb`) or decreasing (in which case `fa > fb`).
+
+To see this used, we consider the monotonic function $f(x) = x - \sin(x)$ over $[0, 5\pi]$. To graph, we have:
+
+```{julia}
+f(x) = x - sin(x)
+a, b = 0, 5pi
+plot(inverse_function(f, a, b), f(a), f(b); aspect_ratio=:equal)
+```
+
+(We plot over the range $[f(a), f(b)]$ here, as we can guess $f(x)$ is *increasing*.)
+
+
+#### The `find_zero` function to solve `f(x) = g(x)`
+
+Solving `f(x) = g(x)` is related to solving `h(x) = 0`. The key is to make a new function using the difference of the two sides: `h(x) = f(x) - g(x)`.
 
 
 ##### Example
@@ -454,36 +439,6 @@ find_zero(cos(x) ~ x, (0, 2))
 :::
 
 [![Intersection of two curves as illustrated by Canadian artist Kapwani Kiwanga.](figures/intersection-biennale.jpg)](https://www.gallery.ca/whats-on/touring-exhibitions-and-loans/around-the-world/canada-pavilion-at-the-venice-biennale/kapwani-kiwanga-trinket){width=40%}
-
-##### Example: Inverse functions
-
-If $f(x)$ is *monotonic* and *continuous* over an interval $[a,b]$ then it has an *inverse function*. That is for any $y$ between $f(a)$ and $f(b)$ we can find an $x$ satisfying $y = f(x)$ with $a \leq x \leq b$. This is due, of course, to both the intermediate value theorem (which guarantees an $x$) and monotonicity (which guarantees just one $x$).
-
-To see how we can *numerically* find an inverse function using `find_zero`, we have this function:
-
-```{julia}
-function inverse_function(f, a, b, args...; kwargs...)
-    fa, fb = f(a), f(b)
-    m, M = fa < fb ? (fa, fb) : (fb, fa)
-    y -> begin
-        @assert m ≤ y ≤ M
-        find_zero(x ->f(x) - y, (a,b), args...; kwargs...)
-    end
-end
-```
-
-The check on `fa < fb` is due to the possibility that $f$ is increasing (in which case `fa < fb`) or decreasing (in which case `fa > fb`).
-
-To see this used, we consider the monotonic function $f(x) = x - \sin(x)$ over $[0, 5\pi]$. To graph, we have:
-
-```{julia}
-f(x) = x - sin(x)
-a, b = 0, 5pi
-plot(inverse_function(f, a, b), f(a), f(b); aspect_ratio=:equal)
-```
-
-(We plot over the range $[f(a), f(b)]$ here, as we can guess $f(x)$ is *increasing*.)
-
 
 ##### Example
 
@@ -679,7 +634,7 @@ Geometry will tell us that $\cos(x) - x/p$ for *one* $x$ in $[0, \pi/2]$ wheneve
 #| hold: true
 f(x, p=1) = cos(x) - x/p
 I = (0, pi/2)
-find_zero(f, I), find_zero(f, I, p=2)
+find_zero(f, I), find_zero(f, I; p=2)
 ```
 
 The second number is the solution when `p=2`.
@@ -752,7 +707,7 @@ f.(zs)
 The `find_zero` function in the `Roots` package is an interface to one of several methods. For now we focus on the *bracketing* methods, later we will see others. Bracketing methods, among others,  include `Roots.Bisection()`, the basic bisection method though with a different sense of "middle" than $(a+b)/2$ and used by default above; `Roots.A42()`, which will typically converge much faster than simple bisection; `Roots.Brent()` for the classic method of Brent, and `FalsePosition()` for a family of *regula falsi* methods. These can all be used by specifying the method in a call to `find_zero`.
 
 
-Alternatively, `Roots` implements the `CommonSolve` interface popularized by its use in the `DifferentialEquations.jl` ecosystem, a wildly successful area for `Julia`. The basic setup involves two steps: setup a "problem;" solve the problem.
+Alternatively, `Roots` implements the `CommonSolve` interface popularized by its use in the `DifferentialEquations.jl` ecosystem, a wildly successful area for `Julia`. The basic setup involves two steps: setup a "problem"; solve the problem.
 
 
 To set up a problem we call `ZeroProblem` with the function and an initial interval, as in:
@@ -822,6 +777,74 @@ nothing
 [![Elevation profile of the  Hardrock 100 ultramarathon. Treating the elevation profile as a function, the absolute maximum is just about 14,000 feet and the absolute minimum about 7600 feet. These are of interest to the runner for different reasons. Also of interest would be each local maxima and local minima - the peaks and valleys of the graph - and the total elevation climbed - the latter so important/unforgettable its value makes it into the chart's title.
 ](figures/hardrock-100.jpeg)](https://hardrock100.com){width=50%}
 
+
+This figure shows the two concepts as well.
+
+::: {#fig-absolute-relative}
+
+```{julia}
+#| echo: false
+plt = let
+
+    gr()
+	empty_style = (xaxis=([], false),
+                    yaxis=([], false),
+                    framestyle=:origin,
+                    legend=false)
+	axis_style = (arrow=true, side=:head, line=(:gray, 1))
+
+
+	p(x) = (x-1)*(x-2)*(x-3)*(x-4) + x/2 + 2
+	a, b = 0.25, 4.5
+	z₁, z₂, z₃ = zs = find_zeros(x -> ForwardDiff.derivative(p,x), (a, b))
+
+	a′ = -0.0
+	plot(; empty_style...)
+	plot!(p, a, b; line=(:black, 2))
+	plot!([a′,b+0.25], [0,0]; axis_style...)
+	plot!([a′,a′] .+ .1, [-1, p(0)]; axis_style...)
+
+	δ = .5
+	ts = range(0, 2pi, 100)
+
+	for z in zs
+		plot!([z-δ,z+δ],[p(z),p(z)]; line=(:black, 1))
+		C = Shape(z .+ 0.03 * sin.(ts), p(z) .+ 0.3 * cos.(ts))
+		plot!(C; fill=(:periwinkle, 1), line=(:black, 1))
+	end
+	for z in (a,b)
+		C = Shape(z .+ 0.03 * sin.(ts), p(z) .+ 0.3 * cos.(ts))
+		plot!(C; fill=(:black, 1), line=(:black, 1))
+	end
+
+	κ = 0.33
+	annotate!([
+		(a, 0,          text(L"a", :top)),
+		(b,0,           text(L"b", :top)),
+		(a + κ/5,  p(a),      text(raw"absolute max", 10, :left)),
+		(z₁, p(z₁)-κ,     text(raw"absolute min", 10, :top)),
+		(z₂, p(z₂) + κ,     text(raw"relative max", 10, :bottom)),
+		(z₃, p(z₃) - κ,     text(raw"relative min", 10, :top)),
+		(b, p(b) + κ,       text(raw"endpoint", 10, :bottom))
+
+	])
+
+	current()
+end
+plt
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+Figure illustrating absolute and relative minima for a function $f(x)$ over $I=[a,b]$. The leftmost point has a $y$ value, $f(a)$, which is an absolute maximum of $f(x)$ over $I$. The three points highlighted between $a$ and $b$ are all relative extrema. The first one is *also* the absolute minimum over $I$. The endpoint is not considered a relative maximum for technical reasons --- there is no interval around $b$, it being on the boundary of $I$.
+
+:::
+
+
 The extreme value theorem discusses an assumption that ensures absolute maximum and absolute minimum values exist.
 
 ::: {.callout-note icon=false}
@@ -849,7 +872,7 @@ The function $f(x) = \sqrt{1-x^2}$ is continuous on the interval $[-1,1]$ (in th
 ##### Example
 
 
-The function $f(x) = x \cdot e^{-x}$ on the closed interval $[0, 5]$ is continuous. Hence it has an absolute maximum, which a graph shows to be $0.4$. It has an absolute minimum, clearly the value $0$ occurring at the endpoint.
+The function $f(x) = x \cdot e^{-x}$ on the closed interval $[0, 5]$ is continuous. Hence it has an absolute maximum, which a graph shows to be about $0.4$ and occurring near $x=1$. It has an absolute minimum, clearly the value $0$ occurring at the endpoint.
 
 
 ```{julia}
@@ -886,7 +909,7 @@ A New York Times [article](https://www.nytimes.com/2016/07/30/world/europe/norwa
 ## Continuity and closed and open sets
 
 
-We comment on two implications of continuity that can be generalized to more general settings.
+We comment on two implications of continuity that can be generalized.
 
 
 The two intervals $(a,b)$ and $[a,b]$ differ as the latter includes the endpoints. The extreme value theorem shows this distinction can make a big difference in what can be said regarding *images* of such interval.
@@ -1212,7 +1235,7 @@ radioq(choices, answ, keep_order=true)
 ###### Question
 
 
-The extreme value theorem has two assumptions: a continuous function and a *closed* interval. Which of the following examples fails to satisfy the consequence of the  extreme value theorem because the function is not continuous?
+The extreme value theorem has two assumptions: a continuous function and a *closed* interval. Which of the following examples fails to satisfy the consequence of the  extreme value theorem because the function is defined on $I$ but is not continuous on $I$?
 
 
 ```{julia}
@@ -1226,6 +1249,170 @@ choices = [
 answ = 4
 radioq(choices, answ, keep_order=true)
 ```
+
+###### Question
+
+The extreme value theorem is true when $f$ is a continuous function on an interval $I$ *and* $I=[a,b]$ is a *closed* interval. Which of these illustrates why it doesn't apply as $f$ is not continuous on $I$ but is defined on $I$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+
+let
+    gr()
+     empty_style = (xaxis=([], false),
+                    yaxis=([], false),
+                    framestyle=:origin,
+                    legend=false)
+	axis_style = (arrow=true, side=:head, line=(:gray, 1))
+
+    ts = range(0, 2pi, 100)
+
+    # defined on I; not continuous on I
+    p1 = plot(;empty_style..., aspect_ratio=:equal)
+    title!(p1, "(a)")
+    plot!(p1, x -> 1 - abs(2x), -1, 1, color=:black)
+    plot!(p1, zero; line=(:black, 1), arrow=true, side=:head)
+    C = Shape(0.03 .* sin.(ts), 1 .+ 0.03 .* cos.(ts))
+    plot!(p1, C, fill=(:white, 1), line=(:black,1))
+    C = Shape(0.03 .* sin.(ts), - 0.25 .+ 0.03 .* cos.(ts))
+    plot!(p1, C, fill=(:black,1))
+    annotate!(p1, [
+		(-1,0,text(L"a", :top)),
+        (1,0,text(L"b", :top))
+	])
+
+    # not defined on I
+    p2 = plot(;empty_style...)
+    title!(p2, "(b)")
+    plot!(p2, x -> 1/(1-x), 0, .95, color=:black)
+    plot!(p2, x-> -1/(1-x), 1.05, 2, color=:black)
+    plot!(p2, zero; axis_style...)
+    annotate!(p2,[
+		(0,0,text(L"a", :top)),
+		(2, 0, text(L"b", :top))
+	])
+
+    # not continuous on I
+    p3 = plot(;empty_style...)
+    title!(p3, "(c)")
+    plot!(p3, x -> 1/(1-x), 0, .95, color=:black)
+    ylims!((-0.25, 1/(1 - 0.96)))
+    plot!(p3, [0,1.05],[0,0]; axis_style...)
+	vline!(p3, [1]; line=(:black, 1, :dash))
+    annotate!(p3,[
+		(0,0,text(L"a", :top)),
+		(1, 0, text(L"b", :top))
+	])
+
+    # continuous
+     p4 = plot(;empty_style...)
+    title!(p4, "(d)")
+	f(x) = x^x
+	a, b = 0, 2
+    plot!(p4, f, a, b; line=(:black,1))
+    ylims!(p4, (-.25, f(b)))
+    plot!(p4, [a-.1, b+.1], [0,0]; axis_style...)
+	scatter!([0,2],[ f(0),f(2)]; marker=(:circle,:black))
+	annotate!([
+	(a, 0, text(L"a", :top)),
+		(b, 0, text(L"b", :top))
+
+	])
+
+    l = @layout[a b; c d]
+    p = plot(p1, p2, p3, p4, layout=l)
+    imgfile = tempname() * ".png"
+    savefig(p, imgfile)
+    hotspotq(imgfile, (0,1/2), (1/2,1))
+end
+```
+
+
+
+The extreme value theorem is true when $f$ is a continuous function on an interval $I$ and $I=[a,b]$ is a *closed* interval. Which of these illustrates when the theorem's assumptions are true?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+## come on; save this figure...
+let
+    gr()
+     empty_style = (xaxis=([], false),
+                    yaxis=([], false),
+                    framestyle=:origin,
+                    legend=false)
+	axis_style = (arrow=true, side=:head, line=(:gray, 1))
+
+    ts = range(0, 2pi, 100)
+
+    # defined on I; not continuous on I
+    p1 = plot(;empty_style..., aspect_ratio=:equal)
+    title!(p1, "(a)")
+    plot!(p1, x -> 1 - abs(2x), -1, 1, color=:black)
+    plot!(p1, zero; line=(:black, 1), arrow=true, side=:head)
+    C = Shape(0.03 .* sin.(ts), 1 .+ 0.03 .* cos.(ts))
+    plot!(p1, C, fill=(:white, 1), line=(:black,1))
+    C = Shape(0.03 .* sin.(ts), - 0.25 .+ 0.03 .* cos.(ts))
+    plot!(p1, C, fill=(:black,1))
+    annotate!(p1, [
+		(-1,0,text(L"a", :top)),
+        (1,0,text(L"b", :top))
+	])
+
+    # not defined on I
+    p2 = plot(;empty_style...)
+    title!(p2, "(b)")
+    plot!(p2, x -> 1/(1-x), 0, .95, color=:black)
+    plot!(p2, x-> -1/(1-x), 1.05, 2, color=:black)
+    plot!(p2, zero; axis_style...)
+    annotate!(p2,[
+		(0,0,text(L"a", :top)),
+		(2, 0, text(L"b", :top))
+	])
+
+    # not continuous on I
+    p3 = plot(;empty_style...)
+    title!(p3, "(c)")
+    plot!(p3, x -> 1/(1-x), 0, .95, color=:black)
+    ylims!((-0.1, 1/(1 - 0.96)))
+    plot!(p3, [0,1.05],[0,0]; axis_style...)
+	vline!(p3, [1]; line=(:black, 1, :dash))
+    annotate!(p3,[
+		(0,0,text(L"a", :top)),
+		(1, 0, text(L"b", :top))
+	])
+
+    # continuous
+     p4 = plot(;empty_style...)
+    title!(p4, "(d)")
+	f(x) = x^x
+	a, b = 0, 2
+    ylims!(p4, (-.25, f(b)))
+    plot!(p4, f, a, b; line=(:black,1))
+    plot!(p4, [a-.1, b+.1], [0,0]; axis_style...)
+	scatter!([0,2],[ f(0),f(2)]; marker=(:circle,:black))
+	annotate!([
+	(a, 0, text(L"a", :top)),
+		(b, 0, text(L"b", :top))
+
+	])
+
+    l = @layout[a b; c d]
+    p = plot(p1, p2, p3, p4, layout=l)
+    imgfile = tempname() * ".png"
+    savefig(p, imgfile)
+    hotspotq(imgfile, (1/2,1), (0,1/2))
+end
+```
+
+```{julia}
+#| echo: false
+plotly();
+```
+
 
 ###### Question
 
@@ -1317,29 +1504,4 @@ The zeros of the equation $\cos(x) \cdot \cosh(x) = 1$ are related to vibrations
 #| echo: false
 val = maximum(find_zeros(x -> cos(x) * cosh(x) - 1, (0, 6pi)))
 numericq(val)
-```
-
-###### Question
-
-
-A parametric equation is specified by a parameterization $(f(t), g(t)), a \leq t \leq b$. The parameterization will be continuous if and only if each function is continuous.
-
-
-Suppose $k_x$ and $k_y$ are positive integers and $a, b$ are positive numbers, will the [Lissajous](https://en.wikipedia.org/wiki/Parametric_equation#Lissajous_Curve) curve given by $(a\cos(k_x t), b\sin(k_y t))$ be continuous?
-
-
-```{julia}
-#| hold: true
-#| echo: false
-yesnoq(true)
-```
-
-Here is a sample graph for $a=1, b=2, k_x=3, k_y=4$:
-
-
-```{julia}
-#| hold: true
-a,b = 1, 2
-k_x, k_y = 3, 4
-plot(t -> a * cos(k_x *t), t-> b * sin(k_y * t), 0, 4pi)
 ```

@@ -156,10 +156,75 @@ In Part 1, the integral $F(x) = \int_a^x f(u) du$ is defined for any Riemann int
 
 :::
 
+
+This figure relating the area under some continuous $f(x)$ from $a$ to both $x$ and $x+h$ for some small $h$ helps to visualize the two fundamental theorems.
+
+::: {#fig-FTC-derivative}
+```{julia}
+#| echo: false
+let
+    gr()
+	f(x) = sin(x)
+	A(x) = cos(x)
+	a,b = 0, 6pi/13
+	h = pi/20
+	xs = range(a, b, 100)
+
+	p1 = plot(; empty_style...)
+	plot!([0,0] .- 0.05,[-0.1, 1]; line=(:gray,1), arrow=true, side=:head)
+	plot!([-0.1, b+h + pi/10], [0,0]; line=(:gray,1), arrow=true, side=:head)
+	xs = range(a, b, 100)
+	S = Shape(vcat(xs, reverse(xs)), vcat(f.(xs), zero.(xs)))
+	plot!(S; fill=(:gray90, 0.25), line=(nothing,))
+	plot!(f, a, b+h; line=(:black, 2))
+
+	xs = range(b, b+h, 100)
+	S = Shape(vcat(xs, reverse(xs)), vcat(f.(xs), zero.(xs)))
+	plot!(S; fill=(:gray70, 0.25), line=(nothing,))
+
+	plot!([b,b,b+h,b+h],[0,f(b),f(b),0]; line=(:black,1,:dash))
+
+	annotate!([
+	(a,0,text(L"a", :top, :left)),
+		(b, 0, text(L"x", :top)),
+		(b+h,0,text(L"x+h", :top)),
+		(2b/3, 1/2, text(L"A(x)")),
+		(b + h/2, 1/2, text(L"f(x)\cdot h \approx A(x+h)-A(x)", rotation=90))
+
+	])
+
+    current()
+end
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+Area under curve between $a$ and $b$ labeled with $A(b)$ for $b=x$ and $b=x+h$.
+
+:::
+
+The last rectangle is exactly $f(x)h$ and approximately $A(x+h)-A(x)$, the difference being the small cap above the shaded rectangle. This gives the approximate derivative:
+
+$$
+A'(x) \approx \frac{A(x+h) - A(x)}{h} \approx \frac{f(x)\cdot h}{h} = f(x)
+$$
+
+That is, by taking limits,  $A(x) = \int_a^x f(u) du$ is an antiderivative of $f(x)$. Moreover, from geometric considerations of area, if $a < c < b$, then
+
+$$
+A(b) - A(c) = \int_a^b f(x) dx - \int_a^c f(x) dx = \int_c^b f(x) dx
+$$
+
+That is $A(x)$ satisfies the two parts of the fundamental theorem.
+
 ## Using the fundamental theorem of calculus to evaluate definite integrals
 
 
-The major use of the FTC is the computation of $\int_a^b f(x) dx$. Rather than resort to Riemann sums or geometric arguments, there is an alternative - *when possible*, find a function $F$ with $F'(x) = f(x)$ and compute $F(b) - F(a)$.
+The most visible use of the FTC is the computation of definite integrals, $\int_a^b f(x) dx$. Rather than resort to Riemann sums or geometric arguments, there is an alternative - *when possible*, find a function $F$ with $F'(x) = f(x)$ and compute $F(b) - F(a)$.
 
 
 Some examples:
@@ -213,21 +278,21 @@ The expression $F(b) - F(a)$ is often written in this more compact form:
 
 
 $$
-\int_a^b f(x) dx = F(b) - F(a) = F(x)\big|_{x=a}^b, \text{ or just expr}\big|_{x=a}^b.
+\int_a^b f(x) dx = F(b) - F(a) = F(x)\Big|_{x=a}^b, \text{ or just expr}\Big|_{x=a}^b.
 $$
 
 The vertical bar is used for the *evaluation* step, in this case the $a$ and $b$ mirror that of the definite integral. This notation lends itself to working inline, as we illustrate with this next problem where we "know" a function "$F$", so just express it "inline":
 
 
 $$
-\int_0^{\pi/4} \sec^2(x) dx = \tan(x) \big|_{x=0}^{\pi/4} = 1 - 0 = 1.
+\int_0^{\pi/4} \sec^2(x) dx = \tan(x) \Big|_{x=0}^{\pi/4} = 1 - 0 = 1.
 $$
 
 A consequence of this notation is:
 
 
 $$
-F(x) \big|_{x=a}^b = -F(x) \big|_{x=b}^a.
+F(x) \Big|_{x=a}^b = -F(x) \Big|_{x=b}^a.
 $$
 
 This says nothing more than $F(b)-F(a) = -F(a) - (-F(b))$, though more compactly.
@@ -324,13 +389,13 @@ Answers may not be available as elementary functions, but there may be special f
 integrate(x / sqrt(1-x^3), x)
 ```
 
-The different cases explored by `integrate` are after the questions.
+Different cases explored by `integrate` are mentioned after the questions.
 
 
 ## Rules of integration
 
 
-There are some "rules" of integration that allow integrals to be re-expressed. These follow from the rules of derivatives.
+There are some "rules" of integration that allow indefinite integrals to be re-expressed.
 
 
   * The integral of a constant times a function:
@@ -353,7 +418,7 @@ $$
 This follows immediately as if $F(x)$ and $G(x)$ are antiderivatives of $f(x)$ and $g(x)$, then $[F(x) + G(x)]' = f(x) + g(x)$, so the right hand side will have a derivative of $f(x) + g(x)$.
 
 
-In fact, this more general form where $c$ and $d$ are constants covers both cases:
+In fact, this more general form where $c$ and $d$ are constants covers both cases and referred to by the linearity of the integral:
 
 
 $$
@@ -373,7 +438,7 @@ $$
 \begin{align*}
 \int (a_n x^n + \cdots + a_1 x + a_0) dx
 &= \int a_nx^n dx + \cdots + \int a_1 x dx + \int a_0 dx                   \\
-&= a_n \int x^n dx + \cdots +  a_1 \int x dx + a_0 \int dx                   \\
+&= a_n \int x^n dx + \cdots +  a_1 \int x^1 dx + a_0 \int x^0 dx                   \\
 &= a_n\frac{x^{n+1}}{n+1} + \cdots +  a_1 \frac{x^2}{2} +  a_0 \frac{x}{1}.
 \end{align*}
 $$
@@ -417,10 +482,12 @@ This seems like a lot of work, and indeed it is more than is needed. The followi
 
 
 $$
-\int_0^\pi 100 \sin(x) dx = 100(-\cos(x)) \big|_0^{\pi} = 100 \cos(x) \big|_{\pi}^0 = 100(1) - 100(-1) = 200.
+\int_0^\pi 100 \sin(x) dx = 100(-\cos(x)) \Big|_0^{\pi} = 100 \cos(x) \Big|_{\pi}^0 = 100(1) - 100(-1) = 200.
 $$
 
 ## The derivative of the integral
+
+
 
 
 The relationship that $[\int_a^x f(u) du]' = f(x)$ is a bit harder to appreciate, as it doesn't help answer many ready made questions. Here we give some examples of its use.
@@ -433,12 +500,16 @@ $$
 F(x) = \int_a^x f(u) du.
 $$
 
-The value of $a$ does not matter, as long as the integral is defined.
+The value of $a$ does not matter, as long as the integral is defined. This $F$ satisfies the first fundamental theorem, as $F(a)=0$.
+
+
+
 
 
 ```{julia}
 #| hold: true
 #| echo: false
+#| eval: false
 ##{{{ftc_graph}}}
 gr()
 function make_ftc_graph(n)
@@ -479,9 +550,9 @@ imgfile = tempname() * ".gif"
 gif(anim, imgfile, fps = 1)
 plotly()
 ImageFile(imgfile, caption)
-```
 
-The picture for this, for non-negative $f$, is of accumulating area as $x$ increases. It can be used to give insight into some formulas:
+#The picture for this, for non-negative $f$, is of accumulating area as $x$ increases. It can be used to give insight into some formulas:
+```
 
 
 For any function, we know that $F(b) - F(c) + F(c) - F(a) = F(b) - F(a)$. For this specific function, this translates into this property of the integral:
@@ -550,7 +621,7 @@ In probability theory, for a positive, continuous random variable, the probabili
 For example, the exponential distribution with rate $1$ has $f(x) = e^{-x}$. Compute $F(x)$.
 
 
-This is just $F(x) = \int_0^x e^{-u} du = -e^{-u}\big|_0^x = 1 - e^{-x}$.
+This is just $F(x) = \int_0^x e^{-u} du = -e^{-u}\Big|_0^x = 1 - e^{-x}$.
 
 
 The "uniform" distribution on $[a,b]$ has
@@ -1122,6 +1193,192 @@ radioq(choices, answ)
 
 ###### Question
 
+The error function (`erf`) is defined in terms of an integral:
+
+$$
+\text{erf}(x) = \frac{2}{\sqrt{\pi}} \int_0^x \exp(-t^2) dt, \quad{x \geq 0}
+$$
+
+The constant is chosen so that $\lim_{x \rightarrow \infty} \text{erf}(x) = 1$.
+
+What is the derivative of $\text{erf}(x)$?
+
+
+
+```{julia}
+#| echo: false
+choices = [L"\exp(-x^2)",
+           L"-2x \exp(-x^2)",
+           L"\frac{2}{\sqrt{\pi}} \exp(-x^2)"]
+radioq(choices, 3; keep_order=true, explanation="Don't forget the scalar multiple")
+```
+
+Is the function $\text{erf(x)}$ *increasing* on $[0,\infty)$?
+
+```{julia}
+#| echo: false
+choices = ["No",
+           "Yes, the derivative is positive on this interval",
+           "Yes, the derivative is negative on this interval",
+           "Yes, the derivative is increasing on this interval",
+           "Yes, the derivative is decreasing on this interval"]
+radioq(choices, 2; keep_order=true)
+```
+
+Is the function $\text{erf(x)}$ *concave down* on $[0,\infty)$?
+
+```{julia}
+#| echo: false
+choices = ["No",
+           "Yes, the derivative is positive on this interval",
+           "Yes, the derivative is negative on this interval",
+           "Yes, the derivative is increasing on this interval",
+           "Yes, the derivative is decreasing on this interval"]
+radioq(choices, 5; keep_order=true)
+```
+
+For $x > 0$, consider the function
+
+$$
+F(x) = \frac{2}{\sqrt{\pi}} \int_{-x}^0 \exp(-t^2) dt
+$$
+
+Why is $F'(x) = \text{erf}'(x)$?
+
+```{julia}
+#| echo: false
+choices = ["The integrand is an *even* function so the itegral from ``0`` to ``x`` is the same as the integral from ``-x`` to ``0``",
+           "This isn't true"]
+radioq(choices, 1; keep_order=true)
+```
+
+
+Consider the function
+
+$$
+F(x) = \frac{2}{\sqrt{\pi}} \int_0^{\sqrt{x}} \exp(-t^2) dt, \quad x \geq 0
+$$
+
+
+
+
+
+What is the derivative of $F$?
+
+```{julia}
+#| echo: false
+choices = [L"\exp(-x^2)",
+           L"\frac{2}{\sqrt{\pi}} \exp(-x^2)",
+           L"\frac{2}{\sqrt{\pi}} \exp(-x^2) \cdot (-2x)"]
+radioq(choices, 3; keep_order=true, explanation="Don't forget to apply the chain rule, as ``F(x) = \\text{erf}(\\sqrt{x})``")
+```
+
+###### Question
+
+Define two function through the integrals:
+
+$$
+\begin{align*}
+S(x) &= \int_0^x \sin(t^2) dt\\
+C(x) &= \int_0^x \cos(t^2) dt
+\end{align*}
+$$
+
+These are called *Fresnel Integrals*.
+
+A non-performant implementation might look like:
+
+```{julia}
+S(x) = first(quadgk(t -> sin(t^2), 0, x))
+```
+
+Define a similar function for $C(x)$ and them make a parametric plot for $0 \le t \le 5$.
+
+Describe the shape.
+
+```{julia}
+#| echo: false
+choices = ["It makes a lovely star shape",
+           "It makes a lovely spiral shape",
+           "It makes a lovely circle"]
+radioq(choices, 2; keep_order=true)
+```
+
+
+What is the value of $S'(x)^2 + C'(x)^2$ when $x=\pi$?
+
+```{julia}
+#| echo: false
+numericq(1)
+```
+
+###### Question
+
+Define a function with parameter $\alpha \geq 1$ by:
+
+$$
+\gamma(x; \alpha) = \int_0^x \exp(-t) t^{\alpha-1} dt, \quad x > 0
+$$
+
+What is the ratio of $\gamma'(2; 3) / \gamma'(2; 4)$?
+
+```{julia}
+#| echo: false
+df(x,alpha) = exp(-x)*x^(alpha -1)
+numericq(df(2,3)/df(2,4))
+```
+
+###### Question
+
+Define a function
+
+$$
+i(x) = \int_0^{x^2} \exp(-t) t^{1/2} dt
+$$
+
+What is the derivative if $i$?
+
+```{julia}
+#| echo: false
+choices = [L"\exp(-x) x^{1/2}",
+           L"\exp(-x) x^{1/2} \cdot 2x",
+           L"\exp(-x^2) (x^2)^{1/2}",
+           L"\exp(-x^2) (x^2)^{1/2}\cdot 2x"]
+radioq(choices, 4; keep_order=true)
+```
+
+###### Question
+
+The function `sinint` from `SpecialFunctions` computes
+
+$$
+F(x) = \int_0^x \frac{\sin(t)}{t} dt =  \int_0^x \phi(t) dt,
+$$
+
+Where we define $\phi$ above to be $1$ when $t=0$, so that it will be continuous over $[0,x]$.
+
+A related integral might be:
+
+$$
+G(x) = \int_0^x \frac{\sin(\pi t)}{\pi t} dt = \int_0^x \phi(\pi t) dt
+$$
+
+As this is an integral involving a simple transformation of $\phi(x)$, we can see that $G(x) = (1/\pi) F(\pi x)$. What is the derivative of $G$?
+
+```{julia}
+#| echo: false
+choices = [
+L"\phi(x)",
+L"\phi(\pi x)",
+L"\pi \phi(\pi x)"
+]
+radioq(choices, 2; keep_order=true)
+```
+
+
+
+###### Question
+
 
 Suppose $f(x)$ is monotonically decreasing with $f(0)=1$, $f(1/2) = 0$ and $f(1) = -1$. Let $F(x) = \int_0^x f(u) du$. $F(x)$ is continuous and so has a maximum value on the interval $[0,1]$ taken at some $c$ in $[0,1]$. It is
 
@@ -1144,12 +1401,14 @@ radioq(choices, answ, keep_order=true)
 Barrow presented a version of the fundamental theorem of calculus in a 1670 volume edited by Newton, Barrow's student (cf. [Wagner](http://www.maa.org/sites/default/files/0746834234133.di020795.02p0640b.pdf)). His version can be stated as follows (cf. [Jardine](http://www.maa.org/publications/ebooks/mathematical-time-capsules)):
 
 
-Consider the following figure where $f$ is a strictly increasing function with $f(0) = 0$. and $x > 0$. The function $A(x) = \int_0^x f(u) du$ is also plotted. The point $Q$ is $f(x)$, and the point $P$ is $A(x)$. The point $T$ is chosen to so that the length between $T$ and $x$ times the length between $Q$ and $x$ equals the length from $P$ to $x$. ($\lvert Tx \rvert \cdot \lvert Qx \rvert = \lvert Px \rvert$.) Barrow showed that the line segment $PT$ is tangent to the graph of $A(x)$. This figure illustrates the labeling for some function:
+Consider the following figure where $f$ is a strictly increasing function with $f(0) = 0$. and $x > 0$. The function $A(x) = \int_0^x f(u) du$ is also plotted with a dashed red line. The point $Q$ is $f(x)$, and the point $P$ is $A(x)$. The point $T$ is chosen to so that the length between $T$ and $x$ times the length between $Q$ and $x$ equals the length from $P$ to $x$. ($\lvert Tx \rvert \cdot \lvert Qx \rvert = \lvert Px \rvert$.) Barrow showed that the line segment $PT$ is tangent to the graph of $A(x)$. This figure illustrates the labeling for some function:
 
 
 ```{julia}
 #| hold: true
 #| echo: false
+let
+    gr()
 f(x) = x^(2/3)
 x = 2
 A(x) = quadgk(f, 0, x)[1]
@@ -1160,14 +1419,21 @@ P = A(x)
 secpt = u -> 0 + P/(x-T) * (u-T)
 xs = range(0, stop=x+1/4, length=50
 )
-p = plot(f, 0, x + 1/4, legend=false)
-plot!(p, A, 0, x + 1/4, color=:red)
+p = plot(f, 0, x + 1/4, legend=false, line=(:black,2))
+plot!(p, A, 0, x + 1/4, line=(:red, 2,:dash))
 scatter!(p, [T, x, x, x], [0, 0, Q, P], color=:orange)
-annotate!(p, collect(zip([T, x, x+.1, x+.1], [0-.15, 0-.15, Q-.1, P], ["T", "x", "Q", "P"])))
+annotate!(p, collect(zip([T, x, x+.1, x+.1], [0-.15, 0-.15, Q-.1, P], [L"T", L"x", L"Q", L"P"])))
 plot!(p,  [T-1/4, x+1/4], map(secpt, [T-1/4, x + 1/4]), color=:orange)
 plot!(p, [T, x, x], [0, 0, P], color=:green)
 
-p
+    p
+end
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
 ```
 
 The fact that $\lvert Tx \rvert \cdot \lvert Qx \rvert = \lvert Px \rvert$ says what in terms of $f(x)$, $A(x)$ and $A'(x)$?

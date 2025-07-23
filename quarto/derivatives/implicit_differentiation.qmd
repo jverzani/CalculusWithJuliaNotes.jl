@@ -93,6 +93,42 @@ In general though, we may not be able to solve for $y$ in terms of $x$. What the
 
 The idea is to *assume* that $y$ is representable by some function of $x$. This makes sense, moving on the curve from $(x,y)$ to some nearby point, means changing $x$ will cause some change in $y$. This assumption is only made *locally* - basically meaning a complicated graph is reduced to just a small, well-behaved, section of its graph.
 
+::: {#fig-well-behaved-section}
+
+```{julia}
+#| echo: false
+let
+    gr()
+    a = 1
+	k = 2
+	F(x,y) = a * (x + a)*(x^2 + y^2) - k*x^2
+	xs = range(-3/2, 3/2, 100)
+	ys = range(-2, 2, 100)
+	contour(xs, ys, F; levels=[0],
+			axis=([], nothing),
+            line=(:black, 1),
+			framestyle=:none, legend=false)
+
+	x₀, y₀ = 3/4, -0.2834733547569205
+	m = (-a^2*x₀ - 3*a*x₀^2/2 - a*y₀^2/2 + k*x₀)/(a*(a + x₀)*y₀)
+
+	plot!(x -> y₀ + m*(x - x₀), x₀-0.5, x₀ + 0.5; line=(:gray, 2))
+    plot!(x -> -x*sqrt(-(a^2 + a*x - k)/(a*(a + x))), -1/8,0.99;
+          line=(:black,4))
+    scatter!([x₀], [y₀]; marker=(:circle,5,:yellow))
+end
+```
+
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+Graph of an equation with a well behaved section emphasized. The tangent line can be found by finding a formula for this well behaved section and differentiating *or* by implicit differentiation simply by assuming a form for the implicit function.
+:::
+
 
 With this assumption, asking what $dy/dx$ is has an obvious meaning - what is the slope of the tangent line to the graph at $(x,y)$. (The assumption eliminates the question of what a tangent line would  mean when a graph self intersects.)
 
@@ -120,7 +156,7 @@ This says the slope of the tangent line depends on the point $(x,y)$ through the
 As a check, we compare to what we would have found had we solved for $y= \sqrt{1 - x^2}$ (for $(x,y)$ with $y \geq 0$). We would have found: $dy/dx = 1/2 \cdot 1/\sqrt{1 - x^2} \cdot (-2x)$. Which can be simplified to $-x/y$. This should show that the method above - assuming $y$ is a function of $x$ and differentiating - is not only more general, but can even be easier.
 
 
-The name - *implicit differentiation* - comes from the assumption that $y$ is implicitly defined in terms of $x$.  According to the [Implicit Function Theorem](http://en.wikipedia.org/wiki/Implicit_function_theorem) the above method will work provided the curve has sufficient smoothness near the point $(x,y)$.
+The name - *implicit differentiation* - comes from the assumption that $y$ is implicitly defined in terms of $x$.  According to the [Implicit Function Theorem](http://en.wikipedia.org/wiki/Implicit_function_theorem) the above method will work provided the curve has sufficient smoothness near the point $(x,y)$. (Continuously differentiable and non vanishing derivative in $y$.)
 
 
 ##### Examples
@@ -140,10 +176,16 @@ For $a = 2, b=1$ we have the graph:
 #| hold: true
 a, b = 2, 1
 f(x,y) = x^2*y + a * b * y - a^2 * x
-implicit_plot(f)
+implicit_plot(f; legend=false)
+
+x₀, y₀ = 0, 0
+m = (a^2 - 2x₀*y₀) / (a*b + x₀^2)
+plot!(x -> y₀ + m*(x - x₀), -1, 1)
 ```
 
-We can see that at each point in the viewing window the tangent line exists due to the smoothness of the curve. Moreover, at a point $(x,y)$ the tangent will have slope $dy/dx$ satisfying:
+To the plot we added a tangent line at $(0,0)$.
+
+We can see that at each point in the viewing window the tangent line exists due to the smoothness of the curve. To find the slope of the tangent line at a  point $(x,y)$ the tangent line will have slope $dy/dx$ satisfying:
 
 
 $$
@@ -177,7 +219,7 @@ A graph for $a=3$ shows why it has the name it does:
 #| hold: true
 a = 3
 f(x,y) = x^4 - a^2*(x^2 - y^2)
-implicit_plot(f)
+implicit_plot(f; xticks=-5:5)
 ```
 
 The tangent line at $(x,y)$ will have slope, $dy/dx$ satisfying:
@@ -341,7 +383,7 @@ The next step is solve for $dy/dx$ - the lone answer to the linear equation - wh
 
 ```{julia}
 dydx = diff(u(x), x)
-ex3 = solve(ex2, dydx)[1]    # pull out lone answer with [1] indexing
+ex3 = only(solve(ex2, dydx))    # pull out the only answer
 ```
 
 As this represents an answer in terms of `u(x)`, we replace that term with the original variable:
@@ -369,9 +411,9 @@ Let $a = b = c = d = 1$, then $(1,4)$ is a point on the curve. We can draw a tan
 ```{julia}
 H = ex(a=>1, b=>1, c=>1, d=>1)
 x0, y0 = 1, 4
-𝒎 = dydx₁(x=>1, y=>4, a=>1, b=>1, c=>1, d=>1)
+m = dydx₁(x=>1, y=>4, a=>1, b=>1, c=>1, d=>1)
 implicit_plot(lambdify(H); xlims=(-5,5), ylims=(-5,5), legend=false)
-plot!(y0 + 𝒎 * (x-x0))
+plot!(y0 + m * (x-x0))
 ```
 
 Basically this includes all the same steps as if done "by hand." Some effort could have been saved in plotting, had values for the parameters been substituted initially, but not doing so shows their dependence in the derivative.
@@ -379,7 +421,7 @@ Basically this includes all the same steps as if done "by hand." Some effort cou
 
 :::{.callout-warning}
 ## Warning
-The use of `lambdify(H)` is needed to turn the symbolic expression, `H`, into a function.
+The use of `lambdify(H)` is needed to turn the symbolic expression, `H`, into a function for plotting purposes.
 
 :::
 
@@ -517,15 +559,9 @@ This could have been made easier, had we leveraged the result of the previous ex
 
 #### Example: from physics
 
-
-Many problems are best done with implicit derivatives. A video showing such a problem along with how to do it analytically is [here](http://ocw.mit.edu/courses/mathematics/18-01sc-single-variable-calculus-fall-2010/unit-2-applications-of-differentiation/part-b-optimization-related-rates-and-newtons-method/session-32-ring-on-a-string/).
-
-
-This video starts with a simple question:
-
-
 > If you have a rope and heavy ring, where will the ring position itself due to gravity?
 
+This problem illustrates one best done with implicit derivatives. A video showing this problem along with how to do it analytically is [here](http://ocw.mit.edu/courses/mathematics/18-01sc-single-variable-calculus-fall-2010/unit-2-applications-of-differentiation/part-b-optimization-related-rates-and-newtons-method/session-32-ring-on-a-string/).
 
 
 Well, suppose you hold the rope in two places, which we can take to be $(0,0)$ and $(a,b)$. Then let $(x,y)$ be all the possible positions of the ring that hold the rope taught. Then we have this picture:
@@ -534,19 +570,41 @@ Well, suppose you hold the rope in two places, which we can take to be $(0,0)$ a
 ```{julia}
 #| hold: true
 #| echo: false
-
+let
+    gr()
 	P = (4,1)
 	Q = (1, -3)
-	scatter([0,4], [0,1], legend=false, xaxis=nothing, yaxis=nothing)
-	plot!([0,1,4],[0,-3,1])
-	𝑎, 𝑏= .05, .25
+	plot(;
+		axis=([],false),
+		legend=false)
+
+	scatter!([0,4], [0,1])
+	plot!([0,1,4],[0,-3,1]; line=(:black,2))
+	a, b = .05, .25
 	ts = range(0, 2pi, length=100)
-	plot!(1 .+ 𝑎*sin.(ts), -3 .+ 𝑏*cos.(ts), color=:gold)
-	annotate!((4-0.3,1,"(a,b)"))
-	plot!([0,1,1],[0,0,-3], color=:gray, alpha=0.25)
-	plot!([1,1,4],[0,1,1], color=:gray, alpha=0.25)
-	Δ = 0.15
-	annotate!([(1/2, 0-Δ, "x"), (5/2, 1 - Δ, "a-x"), (1-Δ, -1, "|y|"), (1+Δ, -1, "b-y")])
+	plot!(1 .+ a*sin.(ts), -3 .+ b*cos.(ts), line=(:gold,2))
+
+	plot!([0,1,1],[0,0,-3], color=:gray, alpha=0.75)
+	plot!([1,1,4],[0,1,1], color=:gray, alpha=0.75)
+	Δ = 0.05
+
+	annotate!([
+		(0,0, text(L"(0,0)",:bottom)),
+		(4,1, text(L"(a,b)",:bottom)),
+		(1/2, 0, text(L"x",:top)),
+		(5/2, 1, text(L"a-x", :top)),
+		(1, -1, text(L"|y|",:right)),
+		(1+Δ, -1, text(L"b-y",:left)),
+		(1+2a, -3, text(L"(x,y)",:left))
+	])
+    current()
+end
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
 ```
 
 Since the length of the rope does not change, we must have for any admissible $(x,y)$ that:

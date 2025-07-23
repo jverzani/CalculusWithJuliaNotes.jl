@@ -32,21 +32,23 @@ Let's begin with a function that is just problematic. Consider
 
 
 $$
-f(x) = \sin(1/x)
+f(x) = \sin(\frac{1}{x})
 $$
 
 As this is a composition of nice functions it will have a limit everywhere except possibly when $x=0$, as then $1/x$ may not have a limit. So rather than talk about where it is nice, let's consider the question of whether a limit exists at $c=0$.
 
+@fig-sin-1-over-x shows the issue:
 
-A graph shows the issue:
-
+:::{#fig-sin-1-over-x}
 
 ```{julia}
-#| hold: true
 #| echo: false
 f(x) = sin(1/x)
 plot(f, range(-1, stop=1, length=1000))
 ```
+
+Graph of the function $f(x) = \sin(1/x)$ near $0$. It oscillates infinitely many times around $0$.
+:::
 
 The graph oscillates between $-1$ and $1$ infinitely many times on this interval - so many times, that no matter how close one zooms in, the graph on the screen will fail to capture them all. Graphically, there is no single value of $L$ that the function gets close to, as it varies between all the values in $[-1,1]$ as $x$ gets close to $0$. A simple proof that there is no limit, is to take any $\epsilon$ less than $1$, then with any $\delta > 0$, there are infinitely many $x$ values where $f(x)=1$ and infinitely many where $f(x) = -1$. That is, there is no $L$ with $|f(x) - L| < \epsilon$ when $\epsilon$ is less than $1$ for all $x$ near $0$.
 
@@ -65,11 +67,10 @@ The following figure illustrates:
 
 
 ```{julia}
-#| hold: true
 f(x) = x * sin(1/x)
-plot(f, -1, 1)
-plot!(abs)
-plot!(x -> -abs(x))
+plot(f, -1, 1; label="f")
+plot!(abs; label="|.|")
+plot!(x -> -abs(x); label="-|.|")
 ```
 
 The [squeeze](http://en.wikipedia.org/wiki/Squeeze_theorem) theorem of calculus is the formal reason $f$ has a limit at $0$, as both the upper function, $|x|$, and the lower function, $-|x|$, have a limit of $0$ at $0$.
@@ -181,21 +182,38 @@ Consider this funny graph:
 ```{julia}
 #| hold: true
 #| echo: false
-xs = range(0,stop=1, length=50)
-
-plot(x->x^2, -2, -1, legend=false)
+let
+	xs = range(0,stop=1, length=50)
+plot(; legend=false, aspect_ratio=true,
+	xticks = -4:4)
+	plot!([(-4, -1.5),(-2,4)]; line=(:black,1))
+	plot!(x->x^2, -2, -1; line=(:black,1))
 plot!(exp, -1,0)
 plot!(x -> 1-2x, 0, 1)
 plot!(sqrt, 1, 2)
 plot!(x -> 1-x, 2,3)
+S = Plots.scale(Shape(:circle), 0.05)
+
+	plot!(Plots.translate(S, -4, -1.5); fill=(:black,))
+	plot!(Plots.translate(S, -1, (-1)^2); fill=(:white,))
+	plot!(Plots.translate(S, -1, exp(-1)); fill=(:black,))
+	plot!(Plots.translate(S, 1, 1 - 2(1)); fill=(:black,))
+	plot!(Plots.translate(S, 1, sqrt(1)); fill=(:white,))
+	plot!(Plots.translate(S, 2, sqrt(2)); fill=(:white,))
+	plot!(Plots.translate(S, 2, 1 - (2)); fill=(:black,))
+	plot!(Plots.translate(S, 3, 1 - (3)); fill=(:black,))
+
+end
 ```
 
 Describe the limits at $-1$, $0$, and $1$.
 
 
-  * At $-1$ we see a jump, there is no limit but instead a left limit of 1 and a right limit appearing to be $1/2$.
-  * At $0$ we see a limit of $1$.
-  * Finally, at $1$ again there is a jump, so no limit. Instead the left limit is about $-1$ and the right limit $1$.
+* At $-1$ we see a jump, there is no limit but instead a left limit of 1 and a right limit appearing to be $1/2$.
+
+* At $0$ we see a limit of $1$.
+
+* Finally, at $1$ again there is a jump, so no limit. Instead the left limit is about $-1$ and the right limit $1$.
 
 
 ## Limits at infinity

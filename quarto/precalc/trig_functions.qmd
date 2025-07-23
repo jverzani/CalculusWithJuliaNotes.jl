@@ -34,12 +34,37 @@ For a right triangle with angles $\theta$, $\pi/2 - \theta$, and $\pi/2$ ($0 < \
 ```{julia}
 #| hide: true
 #| echo: false
-p = plot(legend=false, xlim=(-1/4,5), ylim=(-1/2, 3),
-         xticks=nothing, yticks=nothing, border=:none)
-plot!([0,4,4,0],[0,0,3,0], linewidth=3)
-del = .25
-plot!([4-del, 4-del,4], [0, del, del], color=:black, linewidth=3)
-annotate!([(.75, .25, "θ"), (4.0, 1.25, "opposite"), (2, -.25, "adjacent"), (1.5, 1.25, "hypotenuse")])
+let
+    gr()
+	p = plot(;legend=false,
+	         xticks=nothing, yticks=nothing,
+			 border=:none,
+			xlim=(-1/4,5), ylim=(-1/2, 3))
+	plot!([0,4,4,0],[0,0,3,0], linewidth=3)
+	θ = atand(3,4)
+	del = .25
+	plot!([4-del, 4-del,4], [0, del, del], color=:black, linewidth=3)
+	theta = pi/20
+	r = sqrt((3/4)^2 + (1/4)^2)
+	ts = range(0, theta, 20)
+		plot!(r*cos.(ts), r*sin.(ts); line=(:gray, 1))
+	ts = range(atan(3/4) - theta, atan(3,4), 20)
+		plot!(r*cos.(ts), r*sin.(ts); line=(:gray, 1))
+
+annotate!([
+	(.75, .25, L"\theta"),
+	(4.0, 1.5+.1, text("opposite", rotation=90,:top)),
+	(2, -.25, "adjacent"),
+	(2, 1.5+.1, text("hypotenuse", rotation=θ,:bottom))
+])
+
+end
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
 ```
 
 With these, the basic definitions for the primary trigonometric functions are
@@ -77,9 +102,13 @@ gr()
 
 function plot_angle(m)
     r = m*pi
+	n,d = numerator(m), denominator(m)
 
-    ts = range(0, stop=2pi, length=100)
-    tit = "$m ⋅ pi -> ($(round(cos(r), digits=2)), $(round(sin(r), digits=2)))"
+	tit = latexstring("\\frac{$n}{$d}") *
+		L"\cdot\pi\rightarrow (" *
+		latexstring("$(round(cos(r), digits=2)),$(round(sin(r), digits=2)))")
+
+	ts = range(0, 2pi, 151)
     p = plot(cos.(ts), sin.(ts), legend=false, aspect_ratio=:equal,title=tit)
     plot!(p, [-1,1], [0,0], color=:gray30)
     plot!(p,  [0,0], [-1,1], color=:gray30)
@@ -95,12 +124,10 @@ function plot_angle(m)
     plot!(p, [0,l*cos(r)], [0,l*sin(r)], color=:green, linewidth=4)
 
     scatter!(p, [cos(r)], [sin(r)], markersize=5)
-    annotate!(p, [(1/4+cos(r), sin(r), "(x,y)")])
+    annotate!(p, [(1/4+cos(r), sin(r), L"(x,y)")])
 
     p
 end
-
-
 
 ## different linear graphs
 anim = @animate for m in  -4//3:1//6:10//3
@@ -406,7 +433,7 @@ Suppose both $\alpha$ and $\beta$ are positive with $\alpha + \beta \leq \pi/2$.
 
 ```{julia}
 #| echo: false
-
+gr()
 using Plots, LaTeXStrings
 
 # two angles
@@ -425,7 +452,10 @@ color1 = :royalblue
 color2 = :forestgreen
 color3 = :brown3
 color4 = :mediumorchid2
-canvas() = plot(axis=([],false), legend=false, aspect_ratio=:equal)
+canvas() = plot(;
+				axis=([],false),
+				legend=false,
+				aspect_ratio=:equal)
 p1 = canvas()
 plot!(Shape([A,B,F]), fill=(color4, 0.15))
 
@@ -440,29 +470,29 @@ ddf = sqrt(sum((D.-F).^2))
 Δ = 0.0
 
 alphabeta = (r*cos(α/2 + β/2), r*sin(α/2 + β/2),
-             text("α + β",:hcenter; rotation=pi/2))
-cosαβ = (B[1]/2, 0, text("cos(α + β)", :top))
-sinαβ = (B[1], F[2]/2, text("sin(α + β)"))
+             text(L"\alpha + \beta",:left, rotation=pi/2))
+cosαβ = (B[1]/2, 0, text(L"\cos(\alpha + \beta)", :top))
+sinαβ = (B[1], F[2]/2, text(L"\sin(\alpha + \beta)", rotation=90,:top))
 
 txtpoints = (
-    one = (F[1]/2, F[2]/2, "1",:right),
+    one = (F[1]/2, F[2]/2, text(L"1", :bottom)),
     beta=(r*cos(α + β/2), r*sin(α + β/2),
-          text("β", :hcenter)),
+          text(L"\beta", :hcenter)),
     alpha = (r*cos(α/2), r*sin(α/2),
-             text("α",:hcenter)),
+             text(L"\alpha",:hcenter)),
     alphaa = (F[1] + r*sin(α/2), F[2] - r*cos(α/2) ,
-              text("α"),:hcenter),
+              text(L"\alpha"),:hcenter),
     cosβ = (dae/2*cos(α),dae/2*sin(α) + Δ,
-            text("cos(β)",:hcenter)),
+            text(L"\cos(\beta)",:bottom, rotation=rad2deg(α))),
     sinβ = (B[1] + dbc/2 + Δ/2, D[2] + ddf/2 + Δ/2,
-            text("sin(β)",:bottom)),
-    cosαcosβ = (C[1]/2, 0 - Δ, text("cos(α)cos(β)", :top)),
-    sinαcosβ = (cos(α)*cos(β) - 0.1, dce/2 ,
-                text("sin(α)cos(β)", :hcenter)),
+            text(L"\sin(\beta)",:bottom, rotation=-(90-rad2deg(α)))),
+    cosαcosβ = (C[1]/2, 0 - Δ, text(L"\cos(\alpha)\cos(\beta)", :top)),
+    sinαcosβ = (cos(α)*cos(β), dce/2 ,
+                text(L"\sin(\alpha)\cos(\beta)", :top, rotation=90)),
     cosαsinβ = (D[1] - Δ, D[2] +  ddf/2 ,
-                text("cos(α)sin(β)", :top)),
+                text(L"\cos(\alpha)\sin(\beta)", :bottom, 10, rotation=90)),
     sinαsinβ = (D[1] + dde/2, D[2] + Δ ,
-                text("sin(α)sin(β)", :top)),
+                text(L"\sin(\alpha)\sin(\beta)", 10, :top)),
 )
 
 # Plot 1
@@ -573,6 +603,12 @@ $$
 \end{align*}
 $$
 :::
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
 
 ##### Example
 
@@ -1028,4 +1064,3 @@ Is this identical to the pattern for the regular sine function?
 #| echo: false
 yesnoq(false)
 ```
-

@@ -33,20 +33,26 @@ function make_sqrt_x_graph(n)
 
     b = 1
     a = 1/2^n
-    xs = range(1/2^8, stop=b, length=250)
-    x1s = range(a, stop=b, length=50)
+    xs = range(1/2^n, stop=b, length=1000)
+    x1s = range(a, stop=b, length=1000)
     @syms x
     f(x) = 1/sqrt(x)
     val = N(integrate(f(x), (x, 1/2^n, b)))
-    title = "area under f over [1/$(2^n), $b] is $(rpad(round(val, digits=2), 4))"
 
-    plt = plot(f, range(a, stop=b, length=251), xlim=(0,b), ylim=(0, 15), legend=false, size=fig_size, title=title)
-    plot!(plt,  [b, a, x1s...], [0, 0, map(f, x1s)...], linetype=:polygon, color=:orange)
+	title = L"area under $f$ over $[2^{-%$n}, %$b]$ is $%$(rpad(round(val, digits=2), 4))$"
+
+
+    plt = plot(f, range(a, stop=b, length=1000);
+               xlim=(0,b), ylim=(0, 15),
+               legend=false,
+               title=title)
+    plot!(plt,  [b, a, x1s...], [0, 0, map(f, x1s)...];
+          linetype=:polygon, color=:orange)
 
     plt
 
-
 end
+
 caption = L"""
 
 Area under $1/\sqrt{x}$ over $[a,b]$ increases as $a$ gets closer to $0$. Will it grow unbounded or have a limit?
@@ -133,7 +139,7 @@ The limit is infinite, so does not exist except in an extended sense.
 Before showing this, we recall the fundamental theorem of calculus. The limit existing is the same as saying the limit of $F(M) - F(a)$ exists for an antiderivative of $f(x)$.
 
 
-For this particular problem, it can be shown by integration by parts that for positive, integer values of $n$ that an antiderivative exists of the form $F(x) = p(x)e^{-x}$, where $p(x)$ is a polynomial of degree $n$. But we've seen that for any $n>0$, $\lim_{x \rightarrow \infty} x^n e^{-x} = 0$, so the same is true for any polynomial. So, $\lim_{M \rightarrow \infty} F(M) - F(1) = -F(1)$.
+For this particular problem, it can be shown with integration by parts that for positive, integer values of $n$ that an antiderivative exists of the form $F(x) = p(x)e^{-x}$, where $p(x)$ is a polynomial of degree $n$. But we've seen that for any $n>0$, $\lim_{x \rightarrow \infty} x^n e^{-x} = 0,$ so the same is true for any polynomial. So, $\lim_{M \rightarrow \infty} F(M) - F(1) = -F(1)$.
 
 
   * The function $e^x$ is integrable over $(-\infty, a]$ but not
@@ -174,6 +180,87 @@ As $M$ goes to $\infty$, this will converge to $1$.
 @syms M
 limit(sympy.Si(M), M => oo)
 ```
+
+
+##### Example
+
+To formally find the limit as $x\rightarrow \infty$ of
+
+$$
+\text{Si}(x) = \int_0^\infty \frac{\sin(t)}{t} dt
+$$
+
+we introduce a trick and rely on some theorems that have not been discussed.
+
+First, we notice that $\Si(x)$ is the value of $I(\alpha)$ when $\alpha=0$ where
+
+$$
+I(\alpha) = \int_0^\infty \exp(-\alpha t) \frac{\sin(t)}{t} dt
+$$
+
+We differentiate $I$ in $\alpha$ to get:
+
+$$
+\begin{align*}
+I'(\alpha) &= \frac{d}{d\alpha} \int_0^\infty \exp(-\alpha t) \frac{\sin(t)}{t} dt \\
+&= \int_0^\infty \frac{d}{d\alpha} \exp(-\alpha t) \frac{\sin(t)}{t} dt \\
+&= \int_0^\infty (-t)  \exp(-\alpha t) \frac{\sin(t)}{t} dt \\
+&= -\int_0^\infty \exp(-\alpha t) \sin(t) dt \\
+\end{align*}
+$$
+
+As illustrated previously, this integral can be integrated by parts, though here we have infinite limits and have adjusted for the minus sign:
+
+$$
+\begin{align*}
+-I'(\alpha) &= \int_0^\infty \exp(-\alpha t) \sin(t) dt \\
+&=\sin(t) \frac{-\exp(-\alpha t)}{\alpha} \Big|_0^\infty -
+\int_0^\infty \frac{-\exp(-\alpha t)}{\alpha} \cos(t) dt \\
+&= 0 + \frac{1}{\alpha} \cdot  \int_0^\infty \exp(-\alpha t) \cos(t) dt \\
+&= \frac{1}{\alpha} \cdot \cos(t)\frac{-\exp(-\alpha t)}{\alpha} \Big|_0^\infty -
+\frac{1}{\alpha} \cdot \int_0^\infty  \frac{-\exp(-\alpha t)}{\alpha} (-\sin(t)) dt \\
+&= \frac{1}{\alpha^2}  - \frac{1}{\alpha^2} \cdot \int_0^\infty \exp(-\alpha t) \sin(t) dt
+\end{align*}
+$$
+
+Combining gives:
+
+$$
+\left(1 + \frac{1}{\alpha^2}\right) \int_0^\infty \exp(-\alpha t) \sin(t) dt  = \frac{1}{\alpha^2}
+$$
+
+Solving gives the desired integral as
+
+$$
+I'(\alpha) = -\frac{1}{\alpha^2} / (1 + \frac{1}{\alpha^2}) = -\frac{1}{1 + \alpha^2}.
+$$
+
+
+This has a known antiderivative: $I(\alpha) = -\tan^{-1}(\alpha) + C$. As $\alpha \rightarrow \infty$ *if* we can pass the limit *inside* the integral, then $I(\alpha) \rightarrow 0$. So $\lim_{x \rightarrow \infty} -\tan^{-1}(x) + C = 0$ or $C = \pi/2$.
+
+As our question is answered by $I(0)$, we get $I(0) = \tan^{-1}(0) + C = C = \pi/2$.
+
+The above argument requires two places where a *limit* is passed inside the integral. The first involved the derivative. The [Leibniz integral rule](https://en.wikipedia.org/wiki/Leibniz_integral_rule) can be used to verify the first use is valid:
+
+:::{.callout-note icon=false}
+## Leibniz integral rule
+If $f(x,t)$ and the derivative in $x$ for a fixed $t$ is continuous (to be discussed later) in a region containing $a(x) \leq t \leq b(x)$ and $x_0 < x < x_1$ and both $a(x)$ and $b(x)$ are continuously differentiable, then
+
+$$
+\frac{d}{dx}\int_{a(x)}^{b(x)} f(x, t) dt =
+\int_{a(x)}^{b(x)} \frac{d}{dx}f(x,t) dt +
+f(x, b(x)) \frac{d}{dx}b(x) - f(x, a(x)) \frac{d}{dx}a(x).
+$$
+
+:::
+
+This extends the fundamental theorem of calculus for cases where the integrand also depends on $x$. In our use, both $a'(x)$ and $b'(x)$ are $0$.
+
+[Uniform convergence](https://en.wikipedia.org/wiki/Uniform_convergence) can be used to establish the other.
+
+
+
+
 
 ### Numeric integration
 

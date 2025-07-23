@@ -315,10 +315,10 @@ One way to think about this is the difference between `x` and the next largest f
 For the specific example, `abs(b-a) <= 2eps(m)`  means that the gap between `a` and `b` is essentially 2 floating point values from the $x$ value with the smallest $f(x)$ value.
 
 
-For bracketing methods that is about as good as you can get. However, once floating values are understood, the absolute best you can get for a bracketing interval would be
+For bracketing methods that is about as good as you can get. However, once floating point values are understood, the absolute best you can get for a bracketing interval would be
 
 
-  * along the way, a value `f(c)` is found which is *exactly* `0.0`
+  * along the way, a value `f(c)` is found which evaluates *exactly* to `0.0`
   * the endpoints of the bracketing interval are *adjacent* floating point values, meaning the interval can not be bisected and `f` changes sign between the two values.
 
 
@@ -334,6 +334,8 @@ chandrapatla(fu, -9, 1, λ3)
 
 Here the issue is `abs(b-a)` is tiny (of the order `1e-119`) but `eps(m)` is even smaller.
 
+> For checking if $x_n \approx x_{n+1}$ both a relative and absolute error should be used unless something else is known.
+
 
 For non-bracketing methods, like Newton's method or the secant method, different criteria are useful. There may not be a bracketing interval for `f` (for example `f(x) = (x-1)^2`) so the second criteria above might need to be restated in terms of the last two iterates, $x_n$ and $x_{n-1}$. Calling this difference $\Delta = |x_n - x_{n-1}|$, we might stop if $\Delta$ is small enough. As there are scenarios where this can happen, but the function is not at a zero, a check on the size of $f$ is needed.
 
@@ -347,7 +349,7 @@ First if `f(x_n)` is `0.0` then it makes sense to call `x_n` an *exact zero* of 
 However, there may never be a value with `f(x_n)` exactly `0.0`. (The value of `sin(1pi)` is not zero, for example, as `1pi` is an approximation to $\pi$, as well the `sin` of values adjacent to `float(pi)` do not produce `0.0` exactly.)
 
 
-Suppose `x_n` is the closest floating number to $\alpha$, the zero. Then the relative rounding error, $($ `x_n` $- \alpha)/\alpha$, will be a value $\delta$ with $\delta$ less than `eps()`.
+Suppose `x_n` is the closest floating point number to $\alpha$, the zero. Then the relative rounding error, $($ `x_n` $- \alpha)/\alpha$, will be a value $\delta$ with $\delta$ less than `eps()`.
 
 
 How far then can `f(x_n)` be from $0 = f(\alpha)$?
@@ -364,10 +366,11 @@ $$
 f(x_n) \approx f(\alpha) + f'(\alpha) \cdot (\alpha\delta) = f'(\alpha) \cdot \alpha \delta
 $$
 
-So we should consider `f(x_n)` an *approximate zero* when it is on the scale of $f'(\alpha) \cdot \alpha \delta$.
+So we should consider `f(x_n)` an *approximate zero* when it is on the scale of $f'(\alpha) \cdot \alpha \delta$. That $\alpha$ factor means we consider a *relative* tolerance for `f`.
 
+> For checking if $f(x_n) \approx 0$ both a relative and absolute error should be used--the relative error involving the size of $x_n$.
 
-That $\alpha$ factor means we consider a *relative* tolerance for `f`. Also important – when `x_n` is close to  `0`, is the need for an *absolute* tolerance, one not dependent on the size of `x`. So a good condition to check if `f(x_n)` is small is
+A good condition to check if `f(x_n)` is small is
 
 
 `abs(f(x_n)) <= abs(x_n) * rtol + atol`, or `abs(f(x_n)) <= max(abs(x_n) * rtol, atol)`
@@ -396,7 +399,7 @@ It is not uncommon to assign `rtol` to have a value like `sqrt(eps())` to accoun
 
 In Part III of @doi:10.1137/1.9781611977165 we find language of numerical analysis useful to  formally describe the zero-finding problem. Key concepts are errors, conditioning, and stability. These give some theoretical justification for the tolerances above.
 
-Abstractly a *problem* is a mapping, $F$, from a domain $X$ of data to a range $Y$ of solutions. Both $X$ and $Y$ have a sense of distance given by a *norm*. A norm is a generalization of the absolute value and gives quantitative meaning to terms like small and large.
+Abstractly a *problem* is a mapping, $F$, from a domain $X$ of data to a range $Y$ of solutions. Both $X$ and $Y$ have a sense of distance given by a *norm*. A norm (denoted with $\lVert\cdot\rVert$) is a generalization of the absolute value and gives quantitative meaning to terms like small and large.
 
 
 > A *well-conditioned* problem is one with the property that all small perturbations of $x$ lead to only small changes in $F(x)$.
@@ -435,7 +438,7 @@ $$
 \tilde{F}(x) = F(\tilde{x})
 $$
 
-for some $\tilde{x}$ with $\lVert\tilde{x} - x\rVert/\lVert x\rVert$ is small.
+for some $\tilde{x}$ where $\lVert\tilde{x} - x\rVert/\lVert x\rVert$ is small.
 
 > "A backward stable algorithm gives exactly the right answer to nearly the right question."
 

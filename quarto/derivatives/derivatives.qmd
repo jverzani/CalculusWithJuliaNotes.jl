@@ -230,13 +230,22 @@ function secant_line_tangent_line_graph(n)
 
     xs = range(0, stop=pi, length=50)
     fig_size=(800, 600)
-    plt = plot(f, 0, pi, legend=false, size=fig_size,
-               line=(2,),
-               axis=([],false),
+    plt = plot(;
+			xaxis=([], false),
+            yaxis=([], false),
+        	  framestyle=:origin,
+                legend=false,
+
                ylims=(-.1,1.5)
                )
-    plot!([0, 1.1* pi],[0,0], line=(3, :black))
-    plot!([0, 0], [0,2*1], line=(3, :black))
+
+	plot!(f, 0, pi/2; line=(:black, 2))
+	plot!(f, pi/2, pi/2 + pi/5; line=(:black, 2, 1/4))
+	plot!(f,  pi/2 + pi/5, pi; line=(:black, 2))
+
+
+	plot!(0.1 .+ [0,0],[-.1, 1.5]; line=(:gray,1), arrow=true, side=:head)
+	plot!([-0.2, 3.4], [.1, .1]; line=(:gray, 1), arrow=true, side=:head)
 
     plot!(plt, xs, f(c) .+ cos(c)*(xs .- c), color=:orange)
     plot!(plt, xs, f(c) .+ m*(xs .- c), color=:black)
@@ -244,8 +253,10 @@ function secant_line_tangent_line_graph(n)
 
     plot!(plt, [c, c+h, c+h], [f(c), f(c), f(c+h)], color=:gray30)
 
-    annotate!(plt, [(c+h/2, f(c), text("h", :top)),
-                    (c + h + .05, (f(c) + f(c + h))/2, text("f(c+h) - f(c)", :left))
+    annotate!(plt, [(c+h/2, f(c), text(L"h", :top)),
+                    (c + h + .05, (f(c) + f(c + h))/2, text(L"f(c+h) - f(c)", :left)),
+
+
                     ])
 
     plt
@@ -258,7 +269,7 @@ The slope of each secant line represents the *average* rate of change between $c
 
 
 
-n = 5
+n = 6
 anim = @animate for i=0:n
     secant_line_tangent_line_graph(i)
 end
@@ -279,11 +290,59 @@ $$
 
 We will define the tangent line at $(c, f(c))$ to be the line through the point with the slope from the limit above - provided that limit exists. Informally, the tangent line is the line through the point that best approximates the function.
 
+::: {#fig-tangent_line_approx_graph}
+
+```{julia}
+#| echo: false
+gr()
+let
+	function make_plot(Δ)
+		f(x) = 1 + sin(x-c)
+		df(x) = cos(x-c)
+		plt = plot(;
+				#xaxis=([], false),
+        	    yaxis=([], false),
+        	    aspect_ratio=:equal,
+            	legend=false,
+
+               )
+
+		c = 1
+		xticks!([c-Δ, c, c+Δ], [latexstring("c-$Δ"), L"c", latexstring("c-$Δ")])
+		y₀ = f(c) - 2/3 * Δ
+		tl(x) = f(c) + df(c) * (x-c)
+
+		plot!(f, c - Δ, c + Δ; line=(:black, 2))
+		plot!(tl, c - Δ, c + Δ; line=(:red, 2))
+		plot!([c,c], [tl(c-Δ), f(c)]; line=(:gray, :dash, 1))
+		#plot!([c-1.1*Δ, c+1.1*Δ], y₀ .+ [0,0]; line=(:gray, 1), arrow=true)
+
+
+		current()
+	end
+
+	ps = make_plot.((1.5, 1.0, 0.5, 0.1))
+	plot(ps...)
+
+
+end
+```
+
+Illustration that the tangent line is the best linear approximation *near* $c$.
+:::
+
+```{julia}
+#| echo: false
+
+plotly()
+nothing
+```
 
 ```{julia}
 #| hold: true
 #| echo: false
 #| cache: true
+#| eval: false
 gr()
 function line_approx_fn_graph(n)
     f(x) = sin(x)

@@ -50,7 +50,7 @@ A parallel definition with $a < b$ implying $f(a) > f(b)$ would be used for a *s
 We can try and prove these properties for a function algebraically – we'll see both are related to the zeros of some function. However, before proceeding to that it is usually helpful to get an idea of where the answer is using exploratory graphs.
 
 
-We will use a helper function, `plotif(f, g, a, b)` that plots the function `f` over `[a,b]` highlighting the regions in the domain when `g` is non-negative. Such a function is defined for us in the accompanying `CalculusWithJulia` package, which has been previously been loaded.
+We will use a helper function, `plotif(f, g, a, b)` that plots the function `f` over `[a,b]` highlighting the regions in the domain when `g` is non-negative. Such a function is defined for us in the accompanying `CalculusWithJulia` package, which has been previously loaded.
 
 
 To see where a function is positive, we simply pass the function object in for *both* `f` and `g` above. For example, let's look at where $f(x) = \sin(x)$ is positive:
@@ -475,22 +475,22 @@ Let's look at the function $x^2 \cdot e^{-x}$ for positive $x$. A quick graph sh
 
 
 ```{julia}
-h(x) = x^2 * exp(-x)
-plotif(h, h'', 0, 8)
+g(x) = x^2 * exp(-x)
+plotif(g, g'', 0, 8)
 ```
 
 From the graph, we would expect that the second derivative - which is continuous - would have two zeros on $[0,8]$:
 
 
 ```{julia}
-ips = find_zeros(h'', 0, 8)
+ips = find_zeros(g'', 0, 8)
 ```
 
 As well, between the zeros we should have the sign pattern `+`, `-`, and `+`, as we verify:
 
 
 ```{julia}
-sign_chart(h'', 0, 8)
+sign_chart(g'', 0, 8)
 ```
 
 ### Second derivative test
@@ -744,6 +744,90 @@ choices=[
 answ = 3
 radioq(choices, answ)
 ```
+###### Question
+
+The function
+
+$$
+f(x) =
+\begin{cases}
+\frac{x}{2} + x^2 \sin(\frac{\pi}{x}) & x \neq 0\\
+0 & x = 0
+\end{cases}
+$$
+
+is graphed below over $[-1/3, 1/3]$.
+
+
+```{julia}
+#| echo: false
+plt = let
+    gr()
+    empty_style = (xaxis=([], false),
+                    yaxis=([], false),
+                    framestyle=:origin,
+                    legend=false)
+	axis_style = (arrow=true, side=:head, line=(:gray, 1))
+
+	## f'(0) > 0 but not increasing
+	f(x) = x/2 + x^2 * sinpi(1/x)
+	g(x) = x/2 - x^2
+	a, b = -1/3, 1/3
+	xs = range(a, b, 10_000)
+	ys = f.(xs)
+	y0,y1 = extrema(ys)
+	plot(; empty_style..., aspect_ratio=:equal)
+	plot!([a,b],[0,0]; axis_style...)
+	plot!([0,0], [y0,y1]; axis_style...)
+	plot!(xs, f.(xs); line=(:black, 1))
+
+	plot!(xs, x -> x/2 + x^2; line=(:gray, 1, :dot))
+	plot!(xs, x -> x/2 - x^2; line=(:gray, 1, :dot))
+	plot!(xs, x -> x/2; line=(:gray, 1))
+
+	a1 = (1/4 + 1/5)/2
+	a2 = -(1*1/3 + 4*1/4)/5
+	annotate!([
+	(a1, g(a1), text(L"\frac{x}{2} - x^2", 10, :top)),
+	(a1, f(a1), text(L"\frac{x}{2} + x^2", 10, :bottom)),
+		(-1/6, f(1/6), text(L"\frac{x}{2} + x^2\sin(\frac{\pi}{x})", 10, :bottom))
+	])
+	plot!([-1/6, -1/13.5], [f(1/6), f(-1/13.5)]; axis_style...)
+end
+plt
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+This function has a derivative at $0$ that is *positive*
+
+```{julia}
+f(x) = x == 0 ? 0 : x/2 + x^2 * sinpi(1/x)
+@syms h
+limit((f(0+h) - f(0))/h, h=>0; dir="+-")
+```
+
+Is the function increasing **around** $0$?
+
+(The derivative away from $0$ is given by:
+
+```{julia}
+@syms x
+diff(f(x), x)
+```
+
+```{julia}
+#| echo: false
+choices = ["Yes", "No"]
+answer = 1
+buttonq(choices, answer; explanation=raw"""
+The slope of the tangent line away from $0$ oscillates from positive to negative at every rational number of the form $1/n$ due to the $\cos(\pi/x)$ term, so it is neither going just up or down around $0$. (This example comes from @Angenent.)
+""")
+```
 
 ###### Question
 
@@ -779,21 +863,30 @@ Consider the following figure of a graph of $f$:
 
 ```{julia}
 #| echo: false
-ex(x) = x * tanh(exp(x))
-a, b = -5, 1
-plot(ex, a, b, legend=false,
-     axis=([], false),
-     color = :royalblue
-     )
-plot!([a-.1, b+.1], [0,0], line=(3, :black))
+let
+    gr()
+    ex(x) = x * tanh(exp(x))
+    a, b = -5, 1
+    plot(ex, a, b, legend=false,
+         axis=([], false),
+	     line=(:black, 2)
+         )
+    plot!([a-.1, b+.1], [0,0], line=(:gray,1), arrow=true, side=:head)
 
-zs  = find_zeros(ex, (a, b))
-cps = find_zeros(ex', (a, b))
-ips = find_zeros(ex'', (a, b))
+    zs  = find_zeros(ex, (a, b))
+    cps = find_zeros(ex', (a, b))
+    ips = find_zeros(ex'', (a, b))
 
-scatter!(zs,  ex.(zs),  marker=(5, "black", :circle))
-scatter!(cps, ex.(cps), marker=(5, "forestgreen", :diamond))
-scatter!(ips, ex.(ips), marker=(5, :brown3, :star5))
+    scatter!(zs,  ex.(zs),  fill=(:black,), marker=(8, :circle))
+    scatter!(cps, ex.(cps), fill=(:green,), marker=(8, :diamond))
+    scatter!(ips, ex.(ips), fill=(:brown3,), marker=(8,:star5))
+end
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
 ```
 
 The black circle denotes what?

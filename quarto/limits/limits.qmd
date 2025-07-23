@@ -36,27 +36,38 @@ colors = [:black, :blue, :orange, :red, :green, :orange, :purple]
 ## Area of parabola
 function make_triangle_graph(n)
     title = "Area of parabolic cup ..."
-    n==1 && (title = "\${Area = }1/2\$")
-    n==2 && (title = "\${Area = previous }+ 1/8\$")
-    n==3 && (title = "\${Area = previous }+ 2\\cdot(1/8)^2\$")
-    n==4 && (title = "\${Area = previous }+ 4\\cdot(1/8)^3\$")
-    n==5 && (title = "\${Area = previous }+ 8\\cdot(1/8)^4\$")
-    n==6 && (title = "\${Area = previous }+ 16\\cdot(1/8)^5\$")
-    n==7 && (title = "\${Area = previous }+ 32\\cdot(1/8)^6\$")
+    n==1 && (title = L"Area $= 1/2$")
+    n==2 && (title = L"Area $=$ previous $+\; \frac{1}{8}$")
+    n==3 && (title = L"Area $=$ previous $+\; 2\cdot\frac{1}{8^2}$")
+    n==4 && (title = L"Area $=$ previous $+\; 4\cdot\frac{1}{8^3}$")
+    n==5 && (title = L"Area $=$ previous $+\; 8\cdot\frac{1}{8^4}$")
+    n==6 && (title = L"Area $=$ previous $+\; 16\cdot\frac{1}{8^5}$")
+    n==7 && (title = L"Area $=$ previous $+\; 32\cdot\frac{1}{8^6}$")
 
 
 
-    plt = plot(f, 0, 1, legend=false, size = fig_size, linewidth=2)
-    annotate!(plt, [(0.05, 0.9, text(title,:left))])  # if in title, it grows funny with gr
-    n >= 1 && plot!(plt, [1,0,0,1, 0], [1,1,0,1,1], color=colors[1], linetype=:polygon, fill=colors[1], alpha=.2)
-    n == 1 && plot!(plt, [1,0,0,1, 0], [1,1,0,1,1], color=colors[1], linewidth=2)
+    plt = plot(f, 0, 1;
+			   legend=false,
+			   size = fig_size,
+			   linewidth=2)
+    annotate!(plt, [
+		(0.05, 0.9, text(title,:left))
+	])  # if in title, it grows funny with gr
+    n >= 1 && plot!(plt, [1,0,0,1, 0], [1,1,0,1,1];
+					color=colors[1], linetype=:polygon,
+					fill=colors[1], alpha=.2)
+    n == 1 && plot!(plt, [1,0,0,1, 0], [1,1,0,1,1];
+					color=colors[1], linewidth=2)
     for k in 2:n
-        xs = range(0,stop=1, length=1+2^(k-1))
-        ys = map(f, xs)
-        k < n && plot!(plt, xs, ys, linetype=:polygon, fill=:black, alpha=.2)
+        xs = range(0, stop=1, length=1+2^(k-1))
+        ys = f.(xs)
+        k < n && plot!(plt, xs, ys;
+					   linetype=:polygon, fill=:black, alpha=.2)
         if k == n
-            plot!(plt, xs, ys, color=colors[k], linetype=:polygon, fill=:black, alpha=.2)
-            plot!(plt, xs, ys, color=:black, linewidth=2)
+            plot!(plt, xs, ys;
+				  color=colors[k], linetype=:polygon, fill=:black, alpha=.2)
+            plot!(plt, xs, ys;
+				  color=:black, linewidth=2)
         end
     end
     plt
@@ -1041,18 +1052,34 @@ $$
 Why? We can express the function $e^{\csc(x)}/e^{\cot(x)}$ as the above function plus the polynomial $1 + x/2 + x^2/8$. The above is then the sum of two functions whose limits exist and are finite, hence, we can conclude that $M = 0 + 1$.
 
 
-### The [squeeze](http://en.wikipedia.org/wiki/Squeeze_theorem) theorem
+### The squeeze theorem
+
+Sometimes limits can be found by bounding more complicated functions by easier functions.
+
+::: {.callout-note icon=false}
+## The [squeeze theorem](http://en.wikipedia.org/wiki/Squeeze_theorem)
+
+Fix $c$ in $I=(a,b)$. Suppose for all $x$ in $I$, except possibly $c$, there are two functions  $l$ and $u$, satisfying:
 
 
-We note one more limit law. Suppose we wish to compute $\lim_{x \rightarrow c}f(x)$ and we have two other functions, $l$ and $u$, satisfying:
+* $l(x) \leq f(x) \leq u(x)$.
+
+* These limits exist and are equal:
+
+$$
+L = \lim_{x \rightarrow c} l(x) = \lim_{x \rightarrow c} u(x).
+$$
 
 
-  * for all $x$ near $c$ (possibly not including $c$) $l(x) \leq f(x) \leq u(x)$.
-  * These limits exist and are equal: $L = \lim_{x \rightarrow c} l(x) = \lim_{x \rightarrow c} u(x)$.
+Then
 
+$$
+\lim_{x\rightarrow c} f(x) = L.
+$$
 
-Then the limit of $f$ must also  be $L$.
+:::
 
+The figure  shows a usage of the squeeze theorem to show $\sin(x)/x \rightarrow 1$ as $\cos(x) \leq \sin(x)x \leq 1$ for $x$ close to $0$.
 
 ```{julia}
 #| hold: true
@@ -1088,8 +1115,71 @@ ImageFile(imgfile, caption)
 The formal definition of a limit involves clarifying what it means for $f(x)$ to be "close to $L$" when $x$ is "close to $c$". These are quantified by the inequalities $0 < \lvert x-c\rvert < \delta$ and the $\lvert f(x) - L\rvert < \epsilon$. The second does not have the restriction that it is greater than $0$, as indeed $f(x)$ can equal $L$. The order is important: it says for any idea of close for $f(x)$ to $L$, an idea of close must be found for $x$ to $c$.
 
 
+
 The key is identifying a value for $\delta$  for a given value of $\epsilon$.
 
+::: {#fig-limit-e-d}
+```{julia}
+#| echo: false
+plt = let
+    gr()
+	f(x) = (x+1)^2 -1
+	a, b = -1/4, 2
+	c = 1
+	L = f(c)
+	δ = 0.2
+	ϵ = 3sqrt(δ)
+
+	plot(; empty_style...)#, aspect_ratio=:equal)
+	plot!(f, a, b; line=(:black, 2))
+	plot!([a,b],[0,0]; axis_style...)
+	plot!([0,0], [f(a), f(2)]; axis_style...)
+
+	plot!([c, c, 0], [0, f(c), f(c)]; line=(:black, 1, :dash))
+	plot!([c-δ, c-δ, 0], [0, f(c-δ), f(c-δ)]; line=(:black, 1, :dashdot))
+	plot!([c+δ, c+δ, 0], [0, f(c+δ), f(c+δ)]; line=(:black, 1, :dashdot))
+
+	S = Shape([0,b,b,0],[L-ϵ,L-ϵ,L+ϵ,L+ϵ])
+	plot!(S; fill=(:lightblue, 0.25), line=(nothing,))
+
+	domain_color=:red
+    range_color=:blue
+
+
+	S = Shape([c-δ, c+δ, c+δ, c-δ], 0.05*[-1,-1,1,1])
+	plot!(S, fill=(domain_color,0.4), line=nothing)
+	m,M = f(c-δ), f(c+δ)
+	T = Shape(0.015 * [-1,1,1,-1], [m,m,M,M])
+	plot!(T, fill=(range_color, 0.4), line=nothing)
+
+
+    C = Plots.scale(Shape(:circle), 0.02, 0.1)
+	plot!(Plots.translate(C, c, L), fill=(:white,1,0), line=(:black, 1))
+	plot!(Plots.translate(C, c, 0), fill=(:white,1,0), line=(domain_color, 1))
+	plot!(Plots.translate(C, 0, L), fill=(:white,1,0), line=(range_color, 1))
+
+	annotate!([
+	(c, 0, text(L"c", :top)),
+		(c-δ, 0, text(L"c - \delta", 10, :top)),
+		(c+δ, 0, text(L"c + \delta", 10, :top)),
+		(0, L, text(L"L", :right)),
+		(0, L+ϵ, text(L"L + \epsilon", 10, :right)),
+		(0, L-ϵ, text(L"L - \epsilon", 10, :right)),
+
+	])
+
+end
+plt
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+Figure illustrating requirements of $\epsilon-\delta$ definition of the limit. The image (shaded red on $y$ axis) of the $x$ within $\delta$ of $c$ (except for $c$ and shaded blue on the $x$ axis) must stay within the bounds of $L-\epsilon$ and $L+ \epsilon$, where $\delta$ may be chosen based on $\epsilon$ but needs to be chosen for every positive $\epsilon$, not just a fixed one as in this figure.
+:::
 
 A simple case is the linear case. Consider the function $f(x) = 3x + 2$. Verify that the limit at $c=1$ is $5$.
 
@@ -1117,64 +1207,78 @@ These lines produce a random $\epsilon$, the resulting $\delta$, and then verify
 (The random numbers are technically in $[0,1)$, so in theory `epsilon` could be `0`. So the above approach would be more solid if some guard, such as  `epsilon = max(eps(), rand())`, was used. As the formal definition is the domain of paper-and-pencil, we don't fuss.)
 
 
-In this case, $\delta$ is easy to guess, as the function is linear and has slope $3$. This basically says the $y$ scale is 3 times the $x$ scale. For non-linear functions, finding $\delta$ for a given $\epsilon$ can be a challenge. For the function $f(x) = x^3$, illustrated below, a value of $\delta=\epsilon^{1/3}$ is used for $c=0$:
+In this case, $\delta$ is easy to guess, as the function is linear and has slope $3$. This basically says the $y$ scale is 3 times the $x$ scale. For non-linear functions, finding $\delta$ for a given $\epsilon$ can be more of a challenge.
 
 
-```{julia}
-#| hold: true
-#| echo: false
-#| cache: true
-## {{{ limit_e_d }}}
-gr()
-function make_limit_e_d(n)
-    f(x) = x^3
+##### Example
 
-    xs = range(-.9, stop=.9, length=50)
-    ys = map(f, xs)
+We show using the definition that for any fixed $a$ and $n$:
+$$
+\lim_{x \rightarrow a} x^n = a^n.
+$$
+
+This proof uses a bound based on properties of the absolute value.
 
 
-    plt = plot(f, -.9, .9, legend=false, size=fig_size)
-    if n == 0
-        nothing
-    else
-        k = div(n+1,2)
-        epsilon = 1/2^k
-        delta = cbrt(epsilon)
-        if isodd(n)
-            plot!(plt, xs, 0*xs .+ epsilon, color=:orange)
-            plot!(plt, xs, 0*xs .- epsilon, color=:orange)
-        else
-            plot!(delta * [-1,  1], epsilon * [ 1, 1], color=:orange)
-            plot!(delta * [ 1, -1], epsilon * [-1,-1], color=:orange)
-            plot!(delta * [-1, -1], epsilon * [-1, 1], color=:red)
-            plot!(delta * [ 1,  1], epsilon * [-1, 1], color=:red)
-        end
-    end
-    plt
-end
+We look at $f(x) - L = x^n - a^n = (x-a)(x^{n-1} + x^{n-2}a + \cdots + x^1a^{n-1} + a^n)$.
 
+Taking absolute values gives an inequality by the triangle inequality:
 
-n = 11
-anim = @animate for i=1:n
-    make_limit_e_d(i-1)
-end
+$$
+\lvert x^n - a^n\rvert \leq \lvert x-a\rvert\cdot
+\left(
+\lvert x^{n-1}\rvert +
+\lvert x^{n-2}\rvert\lvert a\rvert +
+\cdots +
+\lvert x^1\rvert\lvert a^{n-1}\rvert +
+\lvert a^n\rvert
+\right).
+$$
 
-imgfile = tempname() * ".gif"
-gif(anim, imgfile, fps = 1)
+Now, for a given $\epsilon>0$ we seek a $\delta>0$ satisfying the properties of the limit definition for $f(x) = x^n$ and $L=a^n$. For now, assume $\delta < 1$. Then we can assume $\lvert x-a\rvert < \delta$ and
 
+$$
+\lvert x\rvert = \lvert x - a + a\rvert \leq \lvert x-a\rvert + \lvert a\rvert < 1 + \lvert a\rvert
+$$
 
-caption = L"""
+This says then
 
-Demonstration of $\epsilon$-$\delta$ proof of $\lim_{x \rightarrow 0}
-x^3 = 0$. For any $\epsilon>0$ (the orange lines) there exists a
-$\delta>0$ (the red lines of the box) for which the function $f(x)$
-does not leave the top or bottom of the box (except possibly at the
-edges). In this example $\delta^3=\epsilon$.
+$$
+\begin{align*}
+\lvert x^n - a^n\rvert
+&\leq
+\lvert x-a\rvert\cdot \left(
+\lvert x\rvert^{n-1} +
+\lvert x\rvert^{n-2}\lvert a\rvert +
+\cdots +
+\lvert x\rvert^1\lvert a^{n-1}\rvert +
+\lvert a^n\rvert
+\right)\\
+%%
+&\leq \lvert x - a\rvert
+\cdot \left(
+(\lvert a\rvert+1)^{n-1} +
+(\lvert a\rvert+1)^{n-2}\lvert a\rvert
++ \cdots +
+(\lvert a\rvert+1)^1 \lvert a^{n-1}\rvert +
+\lvert a^n \rvert
+\right)\\
+&\leq \lvert x-a\rvert \cdot C,
+\end{align*}
+$$
 
-"""
-plotly()
-ImageFile(imgfile, caption)
-```
+where $C$ is just some constant not depending on $x$, just $a$ and $n$.
+
+Now if $\delta < 1$ and $\delta < \epsilon/C$  and if
+$0 < \lvert x - a \rvert < \delta$ then
+
+$$
+\lvert f(x) - L \rvert =
+\lvert x^n - a^n\rvert \leq \lvert x-a\rvert \cdot C \leq \delta\cdot C < \frac{\epsilon}{C} \cdot C = \epsilon.
+$$
+
+With this result, the rules of limits can immediately extend this to any polynomial, $p(x),$ it follows that $\lim_{x \rightarrow c} p(x) = p(a)$. (Because $c_n x^n \rightarrow c_n a^n$ and the sum of two functions with a limit has the limit of the sums.) Based on this, we will say later that any polynomial is *continuous* for all $x$.
+
 
 ## Questions
 
@@ -1290,26 +1394,26 @@ let
     title!(p1, "(a)")
     plot!(p1, x -> x^2, 0, 2, color=:black)
     plot!(p1, zero, linestyle=:dash)
-    annotate!(p1,[(1,0,"a")])
+    annotate!(p1,[(1,0,text(L"a",:top))])
 
     p2 = plot(;axis=nothing, legend=false)
     title!(p2, "(b)")
     plot!(p2, x -> 1/(1-x), 0, .95, color=:black)
     plot!(p2, x-> -1/(1-x), 1.05, 2, color=:black)
     plot!(p2, zero, linestyle=:dash)
-    annotate!(p2,[(1,0,"a")])
+    annotate!(p2,[(1,0,text(L"a",:top))])
 
     p3 = plot(;axis=nothing, legend=false)
     title!(p3, "(c)")
     plot!(p3, sinpi, 0, 2, color=:black)
     plot!(p3, zero, linestyle=:dash)
-    annotate!(p3,[(1,0,"a")])
+    annotate!(p3,[(1,0,text("a",:top))])
 
     p4 = plot(;axis=nothing, legend=false)
     title!(p4, "(d)")
     plot!(p4, x -> x^x, 0, 2, color=:black)
     plot!(p4, zero, linestyle=:dash)
-    annotate!(p4,[(1,0,"a")])
+    annotate!(p4,[(1,0,text(L"a",:top))])
 
     l = @layout[a b; c d]
     p = plot(p1, p2, p3, p4, layout=l)
@@ -1520,8 +1624,8 @@ Take
 
 $$
 f(x) = \begin{cases}
-0 & x \neq 0\\
-1 & x = 0
+0 &~ x \neq 0\\
+1 &~ x = 0
 \end{cases}
 $$
 

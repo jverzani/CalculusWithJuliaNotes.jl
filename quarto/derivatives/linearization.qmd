@@ -186,25 +186,45 @@ In each of these  cases, a more complicated non-linear function is well approxim
 #| echo: false
 #| label: fig-tangent-dy-dx
 #| fig-cap: "Graph with tangent line layered on"
-f(x) = sin(x)
-a, b = -1/4, pi/2
+let
+    gr()
+    f(x) = sin(x)
+    a, b = -1/4, pi/2
 
-p = plot(f, a, b, legend=false,
-         line=(3, :royalblue),
-         axis=([], false)
-         );
+    p = plot(f, a, b, legend=false,
+             line=(3, :royalblue),
+             axis=([], false)
+             );
 
-plot!(p, x->x, a, b);
-plot!(p, [0,1,1], [0, 0, 1], color=:brown);
+    plot!(p, x->x, a, b);
+    plot!(p, [0,1,1], [0, 0, 1], color=:brown);
 
-plot!(p, [1,1], [0, sin(1)], color=:green, linewidth=4);
+    plot!(p, [1,1], [0, sin(1)], color=:green, linewidth=4);
 
-scatter!([0], [0], marker=(5, :mediumorchid3))
-annotate!(p, [(0, f(0), text("(c,f(c))", :bottom,:right))])
-annotate!(p, collect(zip([1/2, 1+.075, 1/2-1/8],
-                         [.05, sin(1)/2, .75],
-                         ["Δx", "Δy", "m=dy/dx"])));
+	x₀ = 1.15
+	δ = 0.1
+	plot!(p, [x₀,x₀,1], [sin(1)/2-δ,0,0], line=(:black, 1, :dash), arrow=true)
+	plot!(p, [x₀,x₀,1], [sin(1)/2+δ,1, 1], line=(:black, 1, :dash), arrow=true)
+	plot!(p, [1/2 - 0.8δ, 0], [-δ, -δ]*3/4, line=(:black, 1, :dash), arrow=true)
+	plot!(p, [1/2 + 0.8δ, 1], [-δ, -δ]*3/4, line=(:black, 1, :dash), arrow=true)
+    scatter!([0], [0], marker=(5, :mediumorchid3))
+    annotate!(p, [
+        (0, f(0), text(L"(c, f(c))", :bottom, :right)),
+        (1/2, 0, text(L"\Delta x", :bottom)),
+	    (1/2, 0, text(L"dx", :top)),
+        (1-0.02, sin(1)/2, text(L"Δ y", :right)),
+	    (x₀, sin(1)/2, text(L"dy")),
+        (2/3, 2/3, text(L"m = \frac{dy}{dx} \approx \frac{\Delta y}{\Delta x}",
+                        :bottom, rotation=33)) # why 33 and not 45?
+])
 p
+end
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
 ```
 
 The plot in @fig-tangent-dy-dx shows a tangent line with slope $dy/dx$ and the actual change in $y$, $\Delta y$, for some specified $\Delta x$ at a point $(c,f(c))$. The small gap above the sine curve is the error were the value of the sine approximated using the drawn tangent line. We can see that approximating the value of $\Delta y = \sin(c+\Delta x) - \sin(c)$ with the often easier to compute $(dy/dx) \cdot \Delta x = f'(c)\Delta x$ - for small enough values of $\Delta x$ -  is not going to be too far off provided $\Delta x$ is not too large.
@@ -480,7 +500,8 @@ To see formally why the remainder is as it is, we recall the mean value theorem 
 
 
 $$
-\text{error} = h(x) - h(0) = (g(x) - g(0)) \frac{h'(e)}{g'(e)} = x^2 \cdot \frac{1}{2} \cdot \frac{f'(e) - f'(0)}{e} =
+\text{error} = h(x) - h(0) = (g(x) - g(0)) \frac{h'(e)}{g'(e)} =
+(x^2 - 0) \cdot \frac{f'(e) - f'(0)}{2e} =
 x^2 \cdot \frac{1}{2} \cdot f''(\xi).
 $$
 
@@ -551,7 +572,8 @@ Is it a coincidence that a basic algebraic operation with tangent lines approxim
 $$
 \begin{align*}
 f(x) \cdot g(x) &=  [f(c) + f'(c)(x-c) + \mathcal{O}((x-c)^2)] \cdot [g(c) + g'(c)(x-c) + \mathcal{O}((x-c)^2)]\\
-&=[f(c) + f'(c)(x-c)] \cdot  [g(c) + g'(c)(x-c)] + (f(c) + f'(c)(x-c)) \cdot \mathcal{O}((x-c)^2) + (g(c) + g'(c)(x-c)) \cdot \mathcal{O}((x-c)^2) + [\mathcal{O}((x-c)^2)]^2\\
+&=[f(c) + f'(c)(x-c)] \cdot  [g(c) + g'(c)(x-c)] \\
+&+ (f(c) + f'(c)(x-c)) \cdot \mathcal{O}((x-c)^2) + (g(c) + g'(c)(x-c)) \cdot \mathcal{O}((x-c)^2) + [\mathcal{O}((x-c)^2)]^2\\
 &= [f(c) + f'(c)(x-c)] \cdot  [g(c) + g'(c)(x-c)] + \mathcal{O}((x-c)^2)\\
 &= f(c) \cdot g(c) + [f'(c)\cdot g(c) + f(c)\cdot g'(c)] \cdot (x-c) + [f'(c)\cdot g'(c) \cdot (x-c)^2 + \mathcal{O}((x-c)^2)] \\
 &= f(c) \cdot g(c) + [f'(c)\cdot g(c) + f(c)\cdot g'(c)] \cdot (x-c) + \mathcal{O}((x-c)^2)
@@ -630,7 +652,7 @@ Automatic differentiation (forward mode) essentially uses this technique. A "dua
 
 
 ```{julia}
-Dual(0, 1)
+x = Dual(0, 1)
 ```
 
 Then what is $x$? It should reflect both $(\sin(0), \cos(0))$ the latter being the derivative of $\sin$. We can see this is *almost* what is computed behind the scenes through:
@@ -638,11 +660,13 @@ Then what is $x$? It should reflect both $(\sin(0), \cos(0))$ the latter being t
 
 ```{julia}
 #| hold: true
-x = Dual(0, 1)
 @code_lowered sin(x)
 ```
 
-This output of `@code_lowered` can be confusing, but this simple case needn't be. Working from the end we see an assignment to a variable named `%3` of `Dual(%6, %12)`. The value of `%6` is `sin(x)` where `x` is the value `0` above. The value of `%12` is `cos(x)` *times* the value `1` above (the `xp`), which reflects the *chain* rule being used. (The derivative of `sin(u)` is `cos(u)*du`.) So this dual number encodes both the function value at `0` and the derivative of the function at `0`.
+This output of `@code_lowered` can be confusing, but this simple case needn't be, as we know what to look for: we need to evaluate `sin` at `1` and carry along the derivative `cos(x)` **times** the derivative at `x`.
+
+The `sin` is computed in `%6` and is passed to `Dual` in `%13` as the first arguments. The `cos` is computed in `%11` and then *multiplied* in `%` by `xp`, which holds the derivative information about `x`. This is passed as the second argument to `Dual` in `%13`.
+
 
 
 Similarly, we can see what happens to `log(x)` at `1` (encoded by `Dual(1,1)`):
@@ -654,14 +678,15 @@ x = Dual(1, 1)
 @code_lowered log(x)
 ```
 
-We can see the derivative again reflects the chain rule, it being given by `1/x * xp` where `xp` acts like `dx` (from assignments `%9` and `%8`). Comparing the two outputs, we see only the assignment to `%9` differs, it reflecting the derivative of the function.
+We again see `log(x)` being evaluated in line `%6`. The derivative evaluated at `x` is done in line `%11` and this is multiplied by `xp` in line `%12`.
+
 
 ## Curvature
 
 The curvature of a function will be a topic in a later section on differentiable vector calculus, but the concept of linearization can be used to give an earlier introduction.
 
 
-The tangent line linearizes the function, it begin the best linear approximation to the graph of the function at the point. The slope of the tangent line is the limit of the slopes of different secant lines. Consider now, the orthogonal concept, the *normal line* at a point. This is a line perpendicular to the tangent line that goes through the point on the curve.
+The tangent line linearizes the function, it being the best linear approximation to the graph of the function at the point. The slope of the tangent line is the limit of the slopes of different secant lines. Consider now, the orthogonal concept, the *normal line* at a point. This is a line perpendicular to the tangent line that goes through the point on the curve.
 
 At a point $(c,f(c))$ the slope of the normal line is $-1/f'(c)$.
 
@@ -692,6 +717,7 @@ Call $R$ the intersection point of the two normal lines:
 #| echo: false
 using Roots
 let
+    gr()
 	f(x) = x^4
 	fp(x) = 4x^3
 	c = 1/4
@@ -706,12 +732,17 @@ let
 	Rx = find_zero(x -> nlc(x) - nlch(x), (-10, 10))
 	scatter!([c,c+h], f.([c, c+h]))
 	scatter!([Rx], [nlc(Rx)])
-	annotate!([(c, f(c), "(c,f(c))",:top),
-	           (c+h, f(c+h), "(c+h, f(c+h))",:bottom),
-               (Rx,  nlc(Rx), "R",:left)])
+	annotate!([(c, f(c), L"(c,f(c))",:top),
+	           (c+h, f(c+h), L"(c+h, f(c+h))",:bottom),
+               (Rx,  nlc(Rx), L"R",:left)])
 end
 ```
 
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
 
 
 What happens to $R$ as $h \rightarrow 0$?
@@ -760,6 +791,7 @@ This formula for $r$ is known as the radius of curvature of $f$ -- the radius of
 ```{julia}
 #| echo: false
 let
+    gr()
 	f(x) = x^4
 	fp(x) = 4x^3
 	fpp(x) = 12x^2
@@ -779,8 +811,8 @@ let
 
 	scatter!([c], f.([c]))
 	scatter!([Rx], [nlc(Rx)])
-	annotate!([(c, f(c), "(c,f(c))",:top),
-		(Rx,  nlc(Rx), "R",:left)])
+	annotate!([(c, f(c), L"(c,f(c))",:top),
+		(Rx,  nlc(Rx), L"R",:left)])
 
 
 	Delta = pi/10
@@ -799,6 +831,12 @@ let
 	plot!(xns, yns; line=sty)
 
 end
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
 ```
 
 

@@ -42,7 +42,7 @@ For these examples, the domain of both $f(x)$ and $g(x)$ is all real values of $
 
 In general the range is harder to identify than the domain, and this is the case for these functions too. For $f(x)$ we may know the $\cos$ function is trapped in $[-1,1]$ and it is intuitively clear than all values in that set are possible. The function $h(x)$ would have range $[0,\infty)$.  The $s(x)$ function is either $-1$ or $1$, so only has two possible values in its range.  What about $g(x)$? It is a parabola that opens upward, so any $y$ values below the $y$ value of its vertex will not appear in the range. In this case, the symmetry indicates that the vertex will be at $(1/2, -1/4)$, so the range is $[-1/4, \infty)$.
 
-::: {#fig-domain-range layout-nrow=2}
+::: {#fig-domain-range-1}
 ```{julia}
 #| echo: false
 plt = let
@@ -70,7 +70,7 @@ plt = let
 	Δy = (y1-y0)/60
 	Δx = (b - a)/75
 
-	plot(; aspect_ratio=:equal, empty_style...)
+	plot(;  empty_style...) # aspect_ratio=:equal,
 	plot!([-.25,3.25],[0,0]; axis_style...)
 	plot!([0,0],  [min(-2Δy, y0 - Δy), y1 + 4Δy]; axis_style... )
 
@@ -83,9 +83,13 @@ plt = let
 	plot!([a, b], [f(a), f(a)]; mark_style...)
 	plot!([a, b], [f(b), f(b)]; mark_style...)
 end
-plot
+plt
 ```
 
+Figure of the plot of a function over an interval $[a,b]$ highlighting the domain and the range.
+:::
+
+::: {#fig-domain-range-2}
 ```{julia}
 #| echo: false
 plt = let
@@ -124,7 +128,7 @@ plt = let
 	plot!(Shape(Δx*[-1,1,1,-1], [-5, -5,-1,-1]); range_style...)
 	plot!(Shape(Δx*[-1,1,1,-1], [ 5,  5,1,1]);  range_style...)
 end
-plot
+plt
 ```
 
 
@@ -134,7 +138,7 @@ plotly()
 nothing
 ```
 
-The top figure shows the domain and range of the function as highlighted intervals. The bottom figure shows that the domain may be a collection of intervals. (In this case the $\sec$ function is not defined at $\pi/2 + k \pi$ for integer $k$) and the range may be a collection of intervals. (In this case, the $\sec$ function never have a value in $(-1,1)$.
+This figure shows that the domain of a function may be a collection of intervals. (In this case the $\sec$ function is not defined at $\pi/2 + k \pi$ for integer $k$) and the range may be a collection of intervals. (In this case, the $\sec$ function never has a value in $(-1,1)$.
 :::
 
 
@@ -176,7 +180,7 @@ For typical cases like the three above, there isn't really much new to learn.
 
 
 :::{.callout-note}
-## Note
+## The equals sign is used differently between math and Julia
 The equals sign in `Julia`  always indicates either an assignment or a mutation of the object on the left side. The definition of a function above is an *assignment*, in that a function is added (or modified) in a table holding the methods associated with the function's name.
 
 The equals sign restricts the expressions available on the *left*-hand side to a) a variable name, for assignment; b) mutating an object at an index, as in `xs[1]`; c) mutating a property of a struct; or d) a function assignment following this form `function_name(args...)`.
@@ -216,7 +220,10 @@ $$
 f(x) = 5/9 \cdot (x - 32)
 $$
 
-In fact, the graph of a function $f(x)$ is simply defined as the graph of the equation $y=f(x)$. There is a distinction in `Julia` as a command such as
+In fact, the graph of a function $f(x)$ is simply defined as the graph of the equation $y=f(x)$.
+
+
+There **is** a distinction in `Julia`. The last command here
 
 
 ```{julia}
@@ -236,13 +243,65 @@ f(72)				## room temperature
 will create a function object with a value of `x` determined at a later time - the time the function is called. So the value of `x` defined when the function is created is not important here (as the value of `x` used by `f` is passed in as an argument).
 
 
-Within `Julia`, we make note of the distinction between a function object versus a function call. In the definition `f(x)=cos(x)`, the variable `f` refers to a function object, whereas the expression `f(pi)` is a function call. This mirrors the math notation where an $f$ is used when properties of a function are being emphasized (such as $f \circ g$ for composition) and $f(x)$ is used when the values related to the function are being emphasized (such as saying "the plot of the equation $y=f(x)$).
+Within `Julia`, we make note of the distinction between a function object versus a function call. In the definition `f(x)=cos(x)`, the variable `f` refers to a function object, whereas the expression `f(pi)` is a function call, resulting in a value. This mirrors the math notation where an $f$ is used when properties of a function are being emphasized (such as $f \circ g$ for composition) and $f(x)$ is used when the values related to the function are being emphasized (such as saying "the plot of the equation $y=f(x)$).
 
 
-Distinguishing these three related but different concepts -- equations and expressions, function objects, and function calls -- is important when modeling mathematics on the computer.
+Distinguishing these  related but different concepts --- expressions, equations, values from function calls, and function objects --- is important when modeling mathematics on the computer.
+
+::: {#fig-kidney}
+
+```{julia}
+#| echo: false
+plt = let
+    gr()
+	# two kidneys and an arrow
+	ts = range(0, 2pi, 200)
+	a = 1
+	x(t) = 6a*cos(t)  + sin(t) - 4a*cos(t)^5
+	y(t) = 4a*sin(t)^3
+	S = Shape(x.(ts), y.(ts))
+
+	y1(t) = 6a*cos(t)  -3sin(t) - 4a*cos(t)^5
+	x1(t) = 4a*sin(t)^3
+
+	T = Shape(x1.(ts), y1.(ts))
+	T = Plots.translate(T, 10, 0)
+
+	plot(; empty_style...)
+	plot!(S, fill=(:gray, 0.2), line=(:black, 1))
+	plot!(T, fill=(:gray, 0.2), line=(:black, 1))
+
+	P = (0,0)
+	Q = (10, 0)
+	scatter!([P,Q], marker=(:circle,))
+
+	ts = reverse(range(pi/4+.1, 3pi/4-.1, 100))
+	plot!(5 .+ 5*sqrt(2)*cos.(ts), -5 .+ 5*sqrt(2)*sin.(ts);
+		  line=(:black, 1), arrow=true, side=:head)
 
 
-### Cases
+	annotate!([
+	    (P..., text(L"x", :top)),
+		(Q..., text(L"f(x)", :top)),
+	    (5, 3, text(L"f", :top)),
+        (0, -6, text("Domain")),
+		(10, -6, text("Range"))
+	])
+
+end
+plt
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+Common illustration of an abstract function mapping a value $x$ in the domain to a value $y=f(x)$ in the range. In `Julia`, the values are named, as with `x`, or computed, as with `f(x)`. The function *object* `f` is like the named arrow, which is the name assigned to a particular mapping.
+:::
+
+### Cases, the ternary operator
 
 
 The definition of $s(x)$ above has two cases:
@@ -256,7 +315,7 @@ s(x) =
 \end{cases}
 $$
 
-We learn to read this as: when $x$ is less than $0$, then the answer is $-1$. If $x$ is greater than $0$ the answer is $1.$ Often - but not in this example - there is an "otherwise" case to catch those values of $x$ that are not explicitly mentioned. As there is no such "otherwise" case here, we can see that this function has no definition when $x=0$. This function is often called the "sign" function and is also defined by $\lvert x\rvert/x$. (`Julia`'s `sign` function actually defines `sign(0)` to be `0`.)
+We learn to read this as: when $x$ is less than $0$, then the answer is $-1$. If $x$ is greater than $0$ the answer is $1.$ Often--but not in this example--there is an "otherwise" case to catch those values of $x$ that are not explicitly mentioned. As there is no such "otherwise" case here, we can see that this function has no definition when $x=0$. This function is often called the "sign" function and is also defined by $\lvert x\rvert/x$. (`Julia`'s `sign` function defines `sign(0)` to be `0`.)
 
 
 How do we create conditional statements in `Julia`? Programming languages generally have "if-then-else" constructs to handle conditional evaluation. In `Julia`, the following code will handle the above condition:
@@ -298,7 +357,7 @@ For example, here is one way to define an absolute value function:
 abs_val(x) = x >= 0 ? x : -x
 ```
 
-The condition is `x >= 0` - or is `x` non-negative? If so, the value `x` is used, otherwise `-x` is used.
+The condition is `x >= 0`--or is `x` non-negative? If so, the value `x` is used, otherwise `-x` is used.
 
 
 Here is a means to implement a function which takes the larger of `x` or `10`:
@@ -311,16 +370,16 @@ bigger_10(x) = x > 10 ? x : 10.0
 (This could also utilize the `max` function: `f(x) = max(x, 10.0)`.)
 
 
-Or similarly, a function to represent a cell phone plan where the first $500$ minutes are $20$ dollars and every additional minute is $5$ cents:
+Or similarly, a function to represent a cell phone plan where the first $5$ Gb of data are $11$ dollars and every additional GB is $3.50$:
 
 
 ```{julia}
-cellplan(x) = x < 500 ? 20.0 : 20.0 + 0.05 * (x-500)
+cellplan(x) = x <= 5 ? 11.0 : 11.0 + 3.50 * (x-5)
 ```
 
 :::{.callout-warning}
 ## Warning
-Type stability. These last two definitions used `10.0` and `20.0` instead of the integers `10` and `20` for the answer. Why the extra typing? When `Julia` can predict the type of the output from the type of inputs, it can be more efficient. So when possible, we help out and ensure the output is always the same type.
+Type stability. These last two definitions used `10.0` and `11.0` instead of the integers `10` and `11` for the answer. Why the extra typing? When `Julia` can predict the type of the output from the type of inputs, it can be more efficient. So when possible, we help out and ensure the output is always the same type.
 
 :::
 
@@ -391,7 +450,7 @@ $$
 	f(x) = \left(\frac{g}{k v_0\cos(\theta)} + \tan(\theta) \right) x + \frac{g}{k^2}\ln\left(1 - \frac{k}{v_0\cos(\theta)} x \right)
 $$
 
-Here $g$ is the gravitational constant $9.8$ and $v_0$, $\theta$ and $k$ parameters, which we take to be $200$, $45$ degrees and $1/2$ respectively. With these values, the above function can be computed when $x=100$ with:
+Here $g$ is the gravitational constant $9.8$ and $v_0$, $\theta$, and $k$ parameters, which we take to be $200$, $45$ degrees and $1/2$ respectively. With these values, the above function can be computed when $x=100$ with:
 
 
 ```{julia}
@@ -541,7 +600,12 @@ $$
 f(x) = m \cdot x + b, \quad g(x) = y_0 + m \cdot (x - x_0).
 $$
 
-Both functions use the variable $x$, but there is no confusion, as we learn that this is just a dummy variable to be substituted for and so could have any name. Both also share a variable $m$ for a slope. Where does that value come from? In practice, there is a context that gives an answer. Despite the same name, there is no expectation that the slope will be the same for each function if the context is different. So when parameters are involved, a function involves a rule and a context to give specific values to the parameters. Euler had said initially that functions  composed of "the variable quantity and numbers or constant quantities." The term "variable," we still use, but instead of "constant quantities," we use the name "parameters."
+Both functions use the variable $x$, but there is no confusion, as we
+learn that this is just a dummy variable to be substituted for and so
+could have any name. Both also share a variable $m$ for a slope.
+Where does the value for  $m$ come from?
+
+In practice, there is a context that gives an answer. Despite the same name, there is no expectation that the slope will be the same for each function if the context is different. So when parameters are involved, a function involves a rule and a context to give specific values to the parameters. Euler had said initially that functions  composed of "the variable quantity and numbers or constant quantities." The term "variable," we still use, but instead of "constant quantities," we use the name "parameters." In computer language, instead of context, we use the word *scope*.
 
 
 Something similar is also true with `Julia`.  Consider the example of writing a function to model a linear equation with slope $m=2$ and $y$-intercept $3$. A typical means to do this would be to define constants, and then use the familiar formula:
@@ -580,7 +644,11 @@ So the `b` is found from the currently stored value. This fact can be exploited.
 How `Julia` resolves what a variable refers to is described in detail in the manual page [Scope of Variables](https://docs.julialang.org/en/v1/manual/variables-and-scoping/). In this case, the function definition finds variables in the context of where the function was defined, the main workspace, and not where it is called. As seen, this context can be modified after the function definition and prior to the function call. It is only when `b` is needed, that the context is consulted, so the most recent binding is retrieved.  Contexts allow the user to repurpose variable names without there being name collision. For example, we typically use `x` as a function argument, and different contexts allow this `x` to refer to different values.
 
 
-Mostly this works as expected, but at times it can be complicated to reason about. In our example, definitions of the parameters can be forgotten, or the same variable name may have been used for some other purpose. The potential issue is with the parameters, the value for `x` is straightforward, as it is passed into the function. However, we can also pass the parameters, such as $m$ and $b$, as arguments.  For parameters, one suggestion is to use [keyword](https://docs.julialang.org/en/v1/manual/functions/#Keyword-Arguments) arguments. These allow the specification of parameters, but also give a default value. This can make usage explicit, yet still convenient. For example, here is an alternate way of defining a line with parameters `m` and `b`:
+Mostly this works as expected, but at times it can be complicated to reason about. In our example, definitions of the parameters can be forgotten, or the same variable name may have been used for some other purpose. The potential issue is with the parameters, the value for `x` is straightforward, as it is passed into the function.
+
+However, we can also pass the parameters, such as $m$ and $b$, as arguments.  There are different styles employed.
+
+For parameters, one suggestion is to use [keyword](https://docs.julialang.org/en/v1/manual/functions/#Keyword-Arguments) arguments. These allow the specification of parameters, but also give a default value. This can make usage explicit, yet still convenient. For example, here is an alternate way of defining a line with parameters `m` and `b`:
 
 
 ```{julia}
@@ -604,7 +672,7 @@ During this call, values for `m` and `b` are found from how the function is call
 mxplusb(0; m=3, b=2)
 ```
 
-Keywords are used to mark the parameters whose values are to be changed from the default. Though one can use *positional arguments* for parameters - and there are good reasons to do so - using keyword arguments is a good practice if performance isn't paramount, as their usage is more explicit yet the defaults mean that a minimum amount of typing needs to be done.
+Keywords are used to mark the parameters whose values are to be changed from the default. Though one can use *positional arguments* for parameters--and there are good reasons to do so--using keyword arguments is a good practice if performance isn't paramount, as their usage is more explicit yet the defaults mean that a minimum amount of typing needs to be done.
 
 
 Keyword arguments are widely used with plotting commands, as there are numerous options to adjust, but typically only a handful adjusted per call. The `Plots` package whose commands we illustrate throughout these notes starting with the next section has this in its docs: `Plots.jl` follows two simple rules with data and attributes:
@@ -640,14 +708,14 @@ For example, here we use a *named tuple* to pass parameters to `f`:
 
 ```{julia}
 #| hold: true
-function trajectory(x ,p)
+function trajectory(x, p)
     g, v0, theta, k = p.g, p.v0, p.theta, p.k # unpack parameters
 
     a = v0 * cos(theta)
     (g/(k*a) + tan(theta))* x + (g/k^2) * log(1 - k/a*x)
 end
 
-p = (g=9.8, v0=200, theta = 45*pi/180, k=1/2)
+p = (g=9.8, v0=200, theta=45*pi/180, k=1/2)
 trajectory(100, p)
 ```
 
@@ -687,7 +755,7 @@ The right-hand sides may or may not be familiar, but it should be reasonable to 
 Earlier we saw the `log` function can use a second argument to express the base. This function is basically defined by `log(b,x)=log(x)/log(b)`. The `log(x)` value is the natural log, and this definition just uses the change-of-base formula for logarithms.
 
 
-But not so fast, on the left side is a function with two arguments and on the right side the functions have one argument - yet they share the same name. How does `Julia` know which to use? `Julia` uses the number, order, and *type* of the positional arguments passed to a function to determine which function definition to use. This is technically known as [multiple dispatch](http://en.wikipedia.org/wiki/Multiple_dispatch) or **polymorphism**. As a feature of the language, it can be used to greatly simplify the number of functions the user must learn. The basic idea is that many functions are "generic" in that they have methods which will work differently in different scenarios.
+But not so fast, on the left side is a function with two arguments and on the right side the functions have one argument--yet they share the same name. How does `Julia` know which to use? `Julia` uses the number, order, and *type* of the positional arguments passed to a function to determine which function definition to use. This is technically known as [multiple dispatch](http://en.wikipedia.org/wiki/Multiple_dispatch) or **polymorphism**. As a feature of the language, it can be used to greatly simplify the number of functions the user must learn. The basic idea is that many functions are "generic" in that they have methods which will work differently in different scenarios.
 
 
 :::{.callout-warning}
@@ -696,7 +764,7 @@ Multiple dispatch is very common in mathematics. For example, we learn different
 
 :::
 
-`Julia` is similarly structured.  `Julia` terminology would be to call the operation "`+`" a *generic function* and the different implementations *methods* of "`+`". This allows the user to just need to know a smaller collection of generic concepts yet still have the power of detail-specific implementations.  To see how many different methods are defined in the base `Julia` language for the `+` operator, we can use the command `methods(+)`. As there are so many (well over $200$ when `Julia` is started), we illustrate how many different logarithm methods are implemented for "numbers:"
+`Julia` is similarly structured.  `Julia` terminology would be to call the operation "`+`" a *generic function* and the different implementations *methods* of "`+`". This allows the user to just need to know a smaller collection of generic concepts yet still have the power of detail-specific implementations.  To see how many different methods are defined in the base `Julia` language for the `+` operator, we can use the command `methods(+)`. As there are so many (well over $100$ when `Julia` is started), we illustrate how many different logarithm methods are implemented for "numbers:"
 
 
 ```{julia}
@@ -743,7 +811,7 @@ Representing the area of a rectangle in terms of two variables is easy, as the f
 Area(w, h) = w * h
 ```
 
-But the other fact about this problem - that the perimeter is $20$ - means that height depends on width. For this question, we can see that $P=2w + 2h$ so that - as a function - `height` depends on `w` as follows:
+But the other fact about this problem--that the perimeter is $20$--means that height depends on width. For this question, we can see that $P=2w + 2h$ so that--as a function--`height` depends on `w` as follows:
 
 
 ```{julia}
@@ -813,7 +881,7 @@ function shift_right(f; c=0)
 end
 ```
 
-That takes some parsing. In the body of the `shift_right` is the definition of a function. But this function has no name– it is *anonymous*. But what it does should be clear - it subtracts $c$ from $x$ and evaluates $f$ at this new value. Since the last expression creates a function, this function is returned by `shift_right`.
+That takes some parsing. In the body of the `shift_right` is the definition of a function. But this function has no name–-it is *anonymous*. But what it does should be clear--it subtracts $c$ from $x$ and evaluates $f$ at this new value. Since the last expression creates a function, this function is returned by `shift_right`.
 
 
 So we could have done something more complicated like:
@@ -833,7 +901,7 @@ The value of `c` used when `l` is called is the one passed to `shift_right`. Fun
 
 :::
 
-Anonymous functions can be created with the `function` keyword, but we will use the "arrow" notation, `arg->body` to create them, The above, could have been defined as:
+Anonymous functions can be created with the `function` keyword, but we will use the "arrow" notation, `arg->body`, to create them, The above, could have been defined as:
 
 
 ```{julia}
@@ -845,7 +913,11 @@ When the `->` is seen a function is being created.
 
 :::{.callout-warning}
 ## Warning
-Generic versus anonymous functions. Julia has two types of functions, generic ones, as defined by `f(x)=x^2` and anonymous ones, as defined by `x -> x^2`. One gotcha is that `Julia` does not like to use the same variable name for the two types.  In general, Julia is a dynamic language, meaning variable names can be reused with different types of variables. But generic functions take more care, as when a new method is defined it gets added to a method table. So repurposing the name of a generic function for something else is not allowed. Similarly, repurposing an already defined variable name for a generic function is not allowed. This comes up when we use functions that return functions as we have different styles that can be used: When we defined `l = shift_right(f, c=3)` the value of `l` is assigned an anonymous function. This binding can be reused to define other variables. However, we could have defined the function `l` through `l(x) = shift_right(f, c=3)(x)`, being explicit about what happens to the variable `x`. This would add a method to the generic function `l`. Meaning, we get an error if we tried to assign a variable to `l`, such as an expression like `l=3`. The latter style is inefficient, so is not preferred.
+Generic versus anonymous functions. Julia has two types of functions, generic ones, as defined by `f(x)=x^2` and anonymous ones, as defined by `x -> x^2`. One gotcha is that `Julia` does not like to use the same variable name for the two types.  In general, Julia is a dynamic language, meaning variable names can be reused with different types of variables. But generic functions take more care, as when a new method is defined it gets added to a method table. So repurposing the name of a generic function for something else is not allowed. Similarly, repurposing an already defined variable name for a generic function is not allowed.
+
+This comes up when we use functions that return functions as we have different styles that can be used: When we defined `l = shift_right(f, c=3)` the value of `l` is assigned to name an anonymous function for later use. This binding can be reused to define other variables.
+
+However, we could have defined the function `l` through `l(x) = shift_right(f, c=3)(x)`, being explicit about what happens to the variable `x`. This would add a method to the generic function `l`. Meaning, we get an error if we tried to assign a variable to `l`, such as an expression like `l=3`. The latter style is inefficient, so is not preferred.
 
 :::
 
@@ -918,6 +990,10 @@ which picks off the values of `0` and `1` in a somewhat obscure way but less ver
 
 The `Fix2` function is also helpful when using the `f(x, p)` form for passing parameters to a function. The result of `Base.Fix2(f, p)` is a function with its parameters fixed that can be passed along for plotting or other uses.
 
+:::{.callout-note}
+## Fix
+In Julia v1.12 the `Fix` constructor can fix an arbitrary position of a variadic function.
+:::
 
 ### The `do` notation
 
@@ -1038,9 +1114,7 @@ radioq(choices, answ)
 ```{julia}
 #| echo: false
 plt = let
-    gr()
-	empty_style = (xaxis=([], false),
-                    yaxis=([], false),
+    empty_style = (xticks=-4:4, yticks=-4:4,
                     framestyle=:origin,
                     legend=false)
 	axis_style = (arrow=true, side=:head, line=(:gray, 1))
@@ -1067,10 +1141,17 @@ plt = let
 		S = Shape([(k+1,k) .+ xy for xy in xys])
 		plot!(S; fill=(:white,), line=(:black,1))
 	end
+
+
 	current()
 end
-plotly()
 plt
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
 ```
 
 The `floor` function rounds down. For example, any value in $[k,k+1)$ rounds to $k$ for integer $k$.
@@ -1494,7 +1575,7 @@ Where $N(m)$ counts the number of stars brighter than magnitude $m$ *per* square
 A [square degree](https://en.wikipedia.org/wiki/Square_degree) is a unit of a solid angle. An entire sphere has a solid angle of $4\pi$ and $4\pi \cdot (180/\pi)^2$ square degrees.
 
 
-With this we can answer agequestions, such as:
+With this we can answer questions, such as:
 
 > How many stars can we see in the sky?
 

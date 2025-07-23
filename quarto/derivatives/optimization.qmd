@@ -70,7 +70,7 @@ function perimeter_area_graphic_graph(n)
                size=fig_size,
                xlim=(0,10), ylim=(0,10))
     scatter!(plt, [w], [h], color=:orange, markersize=5)
-    annotate!(plt, [(w/2, h/2, "Area=$(round(w*h,digits=1))")])
+    annotate!(plt, [(w/2, h/2, L"Area$=\; %$(round(w*h,digits=1))$")])
     plt
 end
 
@@ -79,7 +79,7 @@ caption = """
 Some possible rectangles that satisfy the constraint on the perimeter and their area.
 
 """
-n = 6
+n = 5
 anim = @animate for i=1:n
     perimeter_area_graphic_graph(i-1)
 end
@@ -187,8 +187,11 @@ ts = range(0, stop=pi, length=50)
 x1,y1 = 4, 4.85840
 x2,y2 = 3, 6.1438
 delta = 4
-p = plot(delta .+ x1*[0, 1,1,0], y1*[0,0,1,1],          linetype=:polygon, fillcolor=:blue, legend=false)
-plot!(p, x2*[0, 1,1,0], y2*[0,0,1,1],                linetype=:polygon, fillcolor=:blue)
+p = plot(delta .+ x1*[0, 1,1,0], y1*[0,0,1,1];
+         linetype=:polygon, fillcolor=:blue, legend=false,
+         aspect_ratio=:equal)
+plot!(p, x2*[0, 1,1,0], y2*[0,0,1,1];
+      linetype=:polygon, fillcolor=:blue)
 
 plot!(p, delta .+ x1/2 .+ x1/2*cos.(ts), y1.+x1/2*sin.(ts), linetype=:polygon, fillcolor=:red)
 plot!(p, x2/2 .+ x2/2*cos.(ts), y2 .+ x2/2*sin.(ts),         linetype=:polygon, fillcolor=:red)
@@ -308,7 +311,7 @@ A₀    = w₀ * h₀ + pi * (w₀/2)^2 / 2
 Perim = 2*h₀ + w₀ + pi * w₀/2
 h₁    = solve(Perim - 20, h₀)[1]
 A₁    = A₀(h₀ => h₁)
-w₁    = solve(diff(A₁,w₀), w₀)[1]
+w₁    = solve(diff(A₁,w₀) ~ 0, w₀)[1]
 ```
 
 We know that `w₀` is the maximum in this example from our previous work. We shall see soon, that just knowing that the second derivative is negative at `w₀` would suffice to know this. Here we check that condition:
@@ -392,14 +395,29 @@ The figure shows a ladder of length $l_1 + l_2$ that got stuck - it was too long
 ```{julia}
 #| hold: true
 #| echo: false
-p = plot([0, 0, 15], [15, 0, 0], color=:blue, legend=false)
-plot!(p, [5, 5, 15], [15, 8, 8], color=:blue)
-plot!(p, [0,14.53402874075368], [12.1954981558864, 0], linewidth=3)
-plot!(p, [0,5], [8,8], color=:orange)
-plot!(p, [5,5], [0,8], color=:orange)
-annotate!(p, [(13, 1/2, "θ"),
-              (2.5, 11, "l₂"), (10, 5, "l₁"), (2.5, 7.0, "l₂ ⋅ cos(θ)"),
-	      (5.1, 4, "l₁ ⋅ sin(θ)")])
+let
+    gr()
+    p = plot([0, 0, 15], [15, 0, 0],
+			 xticks = [0,5, 15],
+			 yticks = [0,8, 12],
+			 line=(:blue, 2),
+			 legend=false)
+    plot!(p, [5, 5, 15], [15, 8, 8]; line=(:blue,2))
+    plot!(p, [0,14.53402874075368], [12.1954981558864, 0], linewidth=3)
+    plot!(p, [0,5], [8,8], color=:orange)
+    plot!(p, [5,5], [0,8], color=:orange)
+    annotate!(p, [(13, 1/2, L"\theta"),
+                  (2.5, 11, L"l_2"),
+                  (10, 5, L"l_1"),
+                  (2.5, 7.0, L"l_2 \cos(\theta)"),
+				  (5.1, 4, text(L"l_1 \sin(\theta)", :top,rotation=90))])
+end
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
 ```
 
 We approach this problem in reverse. It is easy to see when a ladder is too long. It gets stuck at some angle $\theta$. So for each $\theta$ we find that ladder length that is just too long. Then we find the minimum length of all these ladders that are too long. If a ladder is this length or more it will get stuck for some angle. However, if it is less than this length it will not get stuck. So to maximize a ladder length, we minimize a different function. Neat.
@@ -834,10 +852,12 @@ A rancher with $10$ meters of fence wishes to make a pen adjacent to an existing
 ```{julia}
 #| hold: true
 #| echo: false
-p = plot(; legend=false, aspect_ratio=:equal, axis=nothing, border=:none)
+	p = plot(; legend=false, aspect_ratio=:equal, axis=nothing, border=:none)
+
 plot!([0,10, 10, 0, 0], [0,0,10,10,0]; linewidth=3)
 plot!(p, [10,14,14,10], [2, 2, 8,8]; linewidth = 1)
-annotate!(p, [(15, 5, "x"), (12,1, "y")])
+
+annotate!(p, [(14-0.1, 5, text("x", :right)), (12,2, text("y",:bottom))])
 p
 ```
 
@@ -1353,7 +1373,12 @@ p = 1/2
 x = a/p
 plot!(plt, [0, b*(1+p), 0, 0], [0, 0, a+x, 0])
 plot!(plt, [b,b,0,0],[0,a,a,0])
-annotate!(plt, [(b/2,0, "b"), (0,a/2,"a"), (0,a+x/2,"x"), (b+b*p/2,0,"bp")])
+annotate!(plt, [
+	(b/2,0,     text("b",:top)),
+	(0,a/2,     text("a",:right)),
+	(0,a+x/2,   text("x",:right)),
+	(b+b*p/2,0, text("bp",:top))
+])
 plt
 ```
 

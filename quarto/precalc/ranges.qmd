@@ -103,13 +103,13 @@ h = (b-a)/(n-1)
 collect(a:h:b)
 ```
 
-Pretty neat. If we were doing this many times - such as once per plot - we'd want to encapsulate this into a function, for example:
+Pretty neat. If we were doing this many times - such as once per plot - we'd want to encapsulate this into a function, for example using a comprehension:
 
 
 ```{julia}
 function evenly_spaced(a, b, n)
     h = (b-a)/(n-1)
-    collect(a:h:b)
+    [a + i*h for i in 0:n-1]
 end
 ```
 
@@ -131,10 +131,10 @@ It seems to work as expected. But looking just at the algorithm it isn't quite s
 
 
 ```{julia}
-1/5 + 2*1/5 # last value
+1/5 + 2*1/5 # last value if h is exactly 1/5 or 0.2
 ```
 
-Floating point roundoff leads to the last value *exceeding* `0.6`, so should it be included? Well, here it is pretty clear it *should* be, but better to have something programmed that hits both `a` and `b` and adjusts `h` accordingly.
+Floating point roundoff leads to the last value *exceeding* `0.6`, so should it be included? Well, here it is pretty clear it *should* be, but better to have something programmed that hits both `a` and `b` and adjusts `h` accordingly. Something which isn't subject to the vagaries of `(3/5 - 1/5)/2` not being `0.2`.
 
 
 Enter the base function `range` which solves this seemingly simple - but not really - task. It can use `a`, `b`, and `n`. Like the range operation, this function returns a generator which can be collected to realize the values.
@@ -144,14 +144,7 @@ The number of points is specified as a third argument (though keyword arguments 
 
 
 ```{julia}
-xs = range(-1, 1,9)
-```
-
-and
-
-
-```{julia}
-collect(xs)
+xs = range(1/5, 3/5, 3) |> collect
 ```
 
 :::{.callout-note}
@@ -266,7 +259,7 @@ Here are decreasing powers of $2$:
 [1/2^i for i in 1:10]
 ```
 
-Sometimes, the comprehension does not produce the type of output that may be expected. This is related to `Julia`'s more limited abilities to infer types at the command line. If the output type is important, the extra prefix of `T[]` can be used, where `T` is the desired type. We will see that this will be needed at times with symbolic math.
+Sometimes, the comprehension does not produce the type of output that may be expected. This is related to `Julia`'s more limited abilities to infer types at the command line. If the output type is important, the extra prefix of `T[]` can be used, where `T` is the desired type.
 
 
 ### Generators

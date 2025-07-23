@@ -18,7 +18,7 @@ using SymPy
 ---
 
 
-Related rates problems involve two (or more) unknown quantities that are related through an equation. As the two variables depend on each other, also so do their rates - change with respect to some variable which is often time, though exactly how remains to be discovered. Hence the name "related rates."
+Related rates problems involve two (or more) unknown quantities that are related through an equation. As the two variables depend on each other, also so do their rates - change with respect to some variable which is often time. Exactly how remains to be discovered. Hence the name "related rates."
 
 
 #### Examples
@@ -27,7 +27,7 @@ Related rates problems involve two (or more) unknown quantities that are related
 The following is a typical "book" problem:
 
 
-> A screen saver displays the outline of a $3$ cm by $2$ cm rectangle and then expands the rectangle in such a way that the $2$ cm side is expanding at the rate of $4$ cm/sec and the proportions of the rectangle never change.  How fast is the area of the rectangle increasing when its dimensions are $12$ cm by $8$ cm? [Source.](http://oregonstate.edu/instruct/mth251/cq/Stage9/Practice/ratesProblems.html)
+> A *vintage* screen saver displays the outline of a $3$ cm by $2$ cm rectangle and then expands the rectangle in such a way that the $2$ cm side is expanding at the rate of $4$ cm/sec and the proportions of the rectangle never change.  How fast is the area of the rectangle increasing when its dimensions are $12$ cm by $8$ cm? [Source.](http://oregonstate.edu/instruct/mth251/cq/Stage9/Practice/ratesProblems.html)
 
 
 
@@ -125,7 +125,7 @@ w(t) = 2 + 4*t
 
 
 ```{julia}
-h(t) = 3/2 * w(t)
+h(t) = 3 * w(t) / 2
 ```
 
 This means again that area depends on $t$ through this formula:
@@ -198,6 +198,50 @@ A ladder, with length $l$, is leaning against a wall. We parameterize this probl
 
 If the ladder starts to slip away at the base, but remains in contact with the wall, express the rate of change of $h$ with respect to $t$ in terms of $db/dt$.
 
+```{julia}
+#| echo: false
+let
+    gr()
+	l = 12
+	b = 6
+	h = sqrt(l^2 - b^2)
+
+	plot(;
+		axis=([],false),
+		legend=false,
+		aspect_ratio=:equal)
+	P,Q = (0,h),(b,0)
+	w = 0.2
+	S = Shape([-w,0,0,-w],[0,0,h+1,h+1])
+	plot!(S; fillstyle=:/, fillcolor=:gray80, fillalpha=0.5)
+	R = Shape([-w,b+2,b+2,-w],[-w,-w,0,0])
+	plot!(R, fill=(:gray, 0.25))
+
+	plot!([P,Q]; line=(:black, 2))
+	scatter!([P,Q])
+	b′ = b + 3/2
+	h′ = sqrt(l^2 - b′^2)
+
+	plot!([b,b′],[0,0]; arrow=true, side=:head, line=(:blue, 3))
+	plot!([0,0], [h,h′]; arrow=true, side=:head, line=(:blue, 3))
+
+	annotate!([
+	(b,-w,text(L"(b(t),0)",:top)),
+		(-w, h, text(L"(0,h(t))", :bottom, rotation=90)),
+		(b/2, h/2, text(L"L", rotation = -atand(h,b), :bottom))
+
+	])
+    current()
+end
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+
 
 We have from implicitly differentiating in $t$ the equation $l^2 = h^2 + b^2$,  noting that $l$ is a constant, that:
 
@@ -236,7 +280,7 @@ As $b$ goes to $l$, $h$ goes to $0$, so $b/h$ blows up. Unless $db/dt$ goes to $
 
 :::{.callout-note}
 ## Note
-Often, this problem is presented with $db/dt$ having a constant rate. In this case, the ladder problem defies physics, as $dh/dt$ eventually is faster than the speed of light as $h \rightarrow 0+$. In practice, were $db/dt$ kept at a constant, the ladder would necessarily come away from the wall. The trajectory would follow that of a tractrix were there no gravity to account for.
+Often, this problem is presented with $db/dt$ having a constant rate. In this case, the ladder problem defies physics, as $dh/dt$ eventually is faster than the speed of light as $h \rightarrow 0+$. In practice, were $db/dt$ kept at a constant, the ladder would necessarily come away from the wall.
 
 :::
 
@@ -247,11 +291,14 @@ Often, this problem is presented with $db/dt$ having a constant rate. In this ca
 ```{julia}
 #| hold: true
 #| echo: false
+#| eval: false
 caption = "A man and woman walk towards the light."
 
 imgfile = "figures/long-shadow-noir.png"
 ImageFile(:derivatives, imgfile, caption)
 ```
+
+![A man and woman walk towards the light](./figures/long-shadow-noir.png)
 
 Shadows are a staple of film noir. In the photo, suppose a man and a woman walk towards a street light. As they approach the light the length of their shadow changes.
 
@@ -340,7 +387,7 @@ This can be solved for the unknown: $dx/dt = 50/20$.
 A batter hits a ball toward third base at $75$ ft/sec and runs toward first base at a rate of $24$ ft/sec. At what rate does the distance between the ball and the batter change when $2$ seconds have passed?
 
 
-We will answer this with `SymPy`. First we create some symbols for the movement of the ball towards third base, `b(t)`, the runner toward first base, `r(t)`, and the two velocities. We use symbolic functions for the movements, as we will be differentiating them in time:
+We will answer this symbolically. First we create some symbols for the movement of the ball towards third base, `b(t)`, the runner toward first base, `r(t)`, and the two velocities. We use symbolic functions for the movements, as we will be differentiating them in time:
 
 
 ```{julia}

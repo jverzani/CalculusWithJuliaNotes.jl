@@ -19,8 +19,44 @@ using SymPy
 ```{julia}
 #| echo: false
 #| results: "hidden"
-import LinearAlgebra: norm
+import LinearAlgebra: norm, cross
 using SplitApplyCombine
+nothing
+```
+
+
+```{julia}
+#| echo: false
+# commands used for plotting from https://github.com/SigurdAngenent/WisconsinCalculus/blob/master/figures/221/09surf_of_rotation2.py
+
+
+#linear projection of R^3 onto R^2
+function _proj(X, v)
+    # a is ⟂ to v and b is v × a
+	vx, vy, vz = v
+	a = [-vy, vx, 0]
+	b = cross([vx,vy,vz], a)
+	a′, b′ = a/norm(a), b/norm(b)
+	return 	(a′ ⋅ X, b′ ⋅ X)
+end
+
+# project a curve in R3 onto R2
+pline(viewp, ps...) = [_proj(p, viewp) for p in ps]
+
+# determinant of Jacobian; area multiplier
+# det(J); used to identify folds
+function jac(X, u, v)
+	return det(ForwardDiff.jacobian(xs -> collect(X(xs...)), [u,v]))
+end
+
+function _fold(F, t, θmin, θmax)
+	λ = θ -> jac(F, t, θ) # F is projected surface, psurf
+	iszero(λ(θmin)) && return θmin
+	iszero(λ(θmax)) && return θmax
+
+	return solve(ZeroProblem(λ, (θmin, θmax)))
+end
+
 nothing
 ```
 
@@ -133,38 +169,13 @@ plt = let
 	# plot surface of revolution around x axis between [0, 3]
 	# best if r(t) descreases
 
-	rad(x) = 2/(1 + exp(x))#2/(2.0+x)
-    viewp = [2,-2,1]
+	rad(x) = 2/(1 + exp(x))
+    trange = (0,3)
+    θrange = (0, 2pi)
+    viewp = [2,-2, 1]
 
-	##
-	unitize(x) = x / norm(x)
-
-	"""Orthogonal projection along the vector viewp"""
-	function make_Pmat(viewp)
-    a = unitize( [-viewp[2], viewp[1], 0] )
-    b = unitize( [-viewp[3]*viewp[1],
-                  -viewp[3]*viewp[2],
-                  viewp[1]^2 + viewp[2]^2] )
-    collect(zip(a,b))
-	end
-
-	#linear projection of R^3 onto R^2
-	function proj(X, viewp)
-		Pmat = make_Pmat(viewp)
-		 x=sum([Pmat[i][1]*X[i] for i in 1:3])
-         y=sum([Pmat[i][2]*X[i] for i in 1:3])
-	(x, y) # a point
-	end
-	proj(X) = proj(X, viewp)
-
-	# discrete determinant of Jacobian; area multiplier?
-	function jac(X, u, v)
-	  ϵ = 0.000001
-      A = map((p,q) -> (p-q)/ϵ, X(u+ϵ/2, v), X(u-ϵ/2, v))
-      B = map((p,q) -> (p-q)/ϵ, X(u, v+ϵ/2), X(u, v-ϵ/2))
-	  return A[1]*B[2]-A[2]*B[1]
-	end
-
+    ##
+	proj(X) = _proj(X, viewp)
 
 	# surface of revolution
     surf(t, z) = [t, rad(t)*cos(z), rad(t)*sin(z)]
@@ -172,79 +183,62 @@ plt = let
 	# project the surface at (t, a=theta)
 	psurf(t,z) = proj(surf(t,z))
 
-
-	bisect(f, a, b) = find_zero(f, (a,b), Bisection())
-	_fold(t, zmin, zmax) =  bisect(z -> jac(psurf, t, z), zmin, zmax)
-
 	# create shape holding project disc
     drawdiscF(t) = Shape(invert([psurf(t, 2*i*pi/100) for i in 1:101])...)
 
-	# project a line between two points
-	pline!(p,q; kwargs...) = plot!([proj(p),proj(q)];
-							   line_style..., kwargs...)
-	α = 1.0
-	line_style = (; line=(:black, 1))
+	α = 1.0 # opacity
 
+	line_style = (; line=(:black, 1))
 	plot(; empty_style..., aspect_ratio=:equal)
 
 
 
 	# by layering, we get x-axis as desired
-	pline!([-1,0,0], [0,0,0])
+	plot!(pline(viewp, [-1,0,0], [0,0,0]); line_style...)
 	plot!(drawdiscF(0);   fill =(:lightgray, α))
-	pline!([0,0,0], [1,0,0])
+
+	plot!(pline(viewp, [0,0,0], [1,0,0]); line_style...)
 	plot!(drawdiscF(1);   fill =(:black, α)) #  black to lightgray gives thickness
 	plot!(drawdiscF(1.1); fill=(:lightgray, α))
-	pline!([1.1,0,0], [2,0,0])
+
+	plot!(pline(viewp, [1.1,0,0], [2,0,0]); line_style...)
 	plot!(drawdiscF(2);   fill=(:lightgray, α))
-	pline!([2,0,0], [3,0,0])
+
+	plot!(pline(viewp, [2,0,0], [3,0,0]); line_style...)
 	plot!(drawdiscF(3);   fill=(:lightgray, α))
-	pline!([3,0,0], [4,0,0]; arrow=true, side=:head)
-	pline!([0,0,0], [0,0,1.25]; arrow=true, side=:head)
+
+	plot!(pline(viewp, [3,0,0], [4,0,0]); line_style..., arrow=true, side=:head)
+	plot!(pline(viewp, [0,0,0], [0,0,1.25]); line_style..., arrow=true, side=:head)
 
 
-	tt = range(0, pi, 30)
-	curve = [psurf(t, pi/2) for t in tt]
+	tt = range(trange..., 30)
+
+	curve = psurf.(tt, pi/2)
 	plot!(curve; line=(:black, 2))
 
-	f1 = [[t, _fold(t, 0, pi)] for t in tt]
+	f1 = [(t, _fold(psurf, t, 0, pi)) for t in tt]
 	curve = [psurf(f[1], f[2]) for f in f1]
-	plot!(curve; line=(:black,))
+	plot!(curve; line=(:black,1))
 
-	f2 = [[t, _fold(t, pi, 2*pi)] for t in tt]
+	f2 = [(t, _fold(psurf, t, pi, 2*pi)) for t in tt]
     curve = [psurf(f[1], f[2]) for f in f2]
-	plot!(curve; line=(:black,))
+	plot!(curve; line=(:black,1))
 
 
 
-	tt= [0.025*i for i in 1:121]
-    f1 = [[t, _fold(t, pi, 2*pi)] for t in tt]
-	for f in f1
- 		plot!([psurf(f[1], f[2]-k*0.01*(4-f[1])) for k in 1:21];
-			  line=(:black,1))
+    ## find bottom edge (t,θ) again
+	tt = range(0, 3, 120)
+	f1 = [(t, _fold(psurf, t, pi, 2*pi)) for t in range(trange..., 100)]
+
+	# shade bottom by adding bigger density of lines near bottom
+	for (i,f) ∈ enumerate(f1)
+		λ = iseven(i) ? 6 : 4 # adjust density by have some lines only extend to 6
+		isnan(f[1]) || isnan(f[2]) && continue
+		curve = [psurf(f[1], θ) for θ in range(f[2] - 0.2*(λ - f[1]), f[2], 20)]
+		plot!(curve; line=(:black, 1))
 	end
-	tt= [0.05*i for i in 1:61]
-    f1 = [[t, _fold(t, pi, 2*pi)] for t in tt]
-	for f in f1
-  		plot!([psurf( f[1], f[2]-k*0.01*(6-f[1]) )
-            for k in 1:21]; line=(:black, 1))
-	end
-#=
-	ts = 0:.1:2.95
-	θs = range(pi + pi/4, 3pi/2, 25)
-	for ti in ts
-		plot!([psurf(ti,θ) for θ in θs]; line=(:black, 1))
-	end
-	θs = range(pi + pi/6, 3pi/2, 25)
-	for ti in ts
-		plot!([psurf(ti +0.05,θ) for θ in θs]; line=(:black, 1))
-	end
-=#
+
 	current()
-
-	#ts = range(0, 3, 100)
-	#θs = range(0, 2pi, 100)
-	#contour(ts, θs, (t,z) -> jac(psurf,t,z), levels=[0])
 
 end
 plt
@@ -501,37 +495,13 @@ plt = let
 	# plot surface of revolution around x axis between [0, 3]
 	# best if r(t) descreases
 
-	rad(x) = 2/(1 + exp(x))#2/(2.0+x)
+	rad(x) = 2/(1 + exp(x))
+    trange = (0, 3)
+    θrange = (0, 2pi)
     viewp = [2,-2,1]
 
 	##
-	unitize(x) = x / norm(x)
-
-	"""Orthogonal projection along the vector viewp"""
-	function make_Pmat(viewp)
-    a = unitize( [-viewp[2], viewp[1], 0] )
-    b = unitize( [-viewp[3]*viewp[1],
-                  -viewp[3]*viewp[2],
-                  viewp[1]^2 + viewp[2]^2] )
-    collect(zip(a,b))
-	end
-
-	#linear projection of R^3 onto R^2
-	function proj(X, viewp)
-		Pmat = make_Pmat(viewp)
-		 x=sum([Pmat[i][1]*X[i] for i in 1:3])
-         y=sum([Pmat[i][2]*X[i] for i in 1:3])
-	(x, y) # a point
-	end
-	proj(X) = proj(X, viewp)
-
-	# discrete determinant of Jacobian; area multiplier?
-	function jac(X, u, v)
-	  ϵ = 0.000001
-      A = map((p,q) -> (p-q)/ϵ, X(u+ϵ/2, v), X(u-ϵ/2, v))
-      B = map((p,q) -> (p-q)/ϵ, X(u, v+ϵ/2), X(u, v-ϵ/2))
-	  return A[1]*B[2]-A[2]*B[1]
-	end
+	proj(X) = _proj(X, viewp)
 
 
 	# surface of revolution
@@ -542,67 +512,64 @@ plt = let
 	psurf(t,z) = proj(surf(t,z))
 	psurf2(t, z) = proj(surf2(t,z))
 
-	bisect(f, a, b) = find_zero(f, (a,b), Bisection())
-	_fold(t, zmin, zmax) =  bisect(z -> jac(psurf, t, z), zmin, zmax)
-
 	# create shape holding project disc
     drawdiscF(t) = Shape(invert([psurf(t, 2*i*pi/100) for i in 1:101])...)
 	drawdiscI(t) = Shape([psurf2(t, 2*i*pi/100) for i in 1:101])
 
-	# project a line between two points
-	pline!(p,q; kwargs...) = plot!([proj(p),proj(q)];
-							   line_style..., kwargs...)
 	α = 1.0
 	line_style = (; line=(:black, 1))
 
 	plot(; empty_style..., aspect_ratio=:equal)
 
-
-
 	# by layering, we get x-axis as desired
-	pline!([-1,0,0], [0,0,0])
+	plot!(pline(viewp, [-1,0,0], [0,0,0]); line_style...)
 	plot!(drawdiscF(0);   fill =(:lightgray, α))
 	plot!(drawdiscI(0); fill=(:white, .5))
-	pline!([0,0,0], [1,0,0])
+
+	plot!(pline(viewp, [0,0,0], [1,0,0]); line_style...)
 	plot!(drawdiscF(1);   fill =(:black, α)) #  black to lightgray gives thickness
 	plot!(drawdiscI(1); fill=(:white, .5))
 	plot!(drawdiscF(1.1); fill=(:lightgray, α))
 	plot!(drawdiscI(1.1); fill=(:white, .5))
-	pline!([1.1,0,0], [2,0,0])
+
+    plot!(pline(viewp, [1.1,0,0], [2,0,0]); line_style...)
 	plot!(drawdiscF(2);   fill=(:lightgray, α))
 	plot!(drawdiscI(2); fill=(:white, .5))
-	pline!([2,0,0], [3,0,0])
+
+    plot!(pline(viewp, [2,0,0], [3,0,0]); line_style...)
 	plot!(drawdiscF(3);   fill=(:lightgray, α))
 	plot!(drawdiscI(3); fill=(:white, .5))
-	pline!([3,0,0], [4,0,0]; arrow=true, side=:head)
-	pline!([0,0,0], [0,0,1.25]; arrow=true, side=:head)
 
+    plot!(pline(viewp, [3,0,0], [4,0,0]); line_style..., arrow=true, side=:head)
+	plot!(pline(viewp, [0,0,0], [0,0,1.25]); line_style..., arrow=true, side=:head)
 
-	tt = range(0, pi, 30)
+    ## bounding curves
+    ### main spine
+	tt = range(trange..., 30)
 	curve = [psurf(t, pi/2) for t in tt]
 	plot!(curve; line=(:black, 2))
 
-	f1 = [[t, _fold(t, 0, pi)] for t in tt]
+    ### the folds
+	f1 = [(t, _fold(psurf, t, 0, pi)) for t in tt]
 	curve = [psurf(f[1], f[2]) for f in f1]
 	plot!(curve; line=(:black,))
 
-	f2 = [[t, _fold(t, pi, 2*pi)] for t in tt]
+	f2 = [(t, _fold(psurf, t, pi, 2*pi)) for t in tt]
     curve = [psurf(f[1], f[2]) for f in f2]
 	plot!(curve; line=(:black,))
 
+    ## add shading
+    ### find bottom edge (t,θ) again
+	f1 = [[t, _fold(psurf, t, pi, 2*pi)] for t in range(trange..., 120)]
 
+	### shade bottom by adding bigger density of lines near bottom
+	for (i,f) ∈ enumerate(f1)
+		λ = iseven(i) ? 6 : 4 # adjust density by have some lines only extend to 6
+		isnan(f[1]) || isnan(f[2]) && continue
 
-	tt= [0.025*i for i in 1:121]
-    f1 = [[t, _fold(t, pi, 2*pi)] for t in tt]
-	for f in f1
- 		plot!([psurf(f[1], f[2]-k*0.01*(4-f[1])) for k in 1:21];
-			  line=(:black,1))
-	end
-	tt= [0.05*i for i in 1:61]
-    f1 = [[t, _fold(t, pi, 2*pi)] for t in tt]
-	for f in f1
-  		plot!([psurf( f[1], f[2]-k*0.01*(6-f[1]) )
-            for k in 1:21]; line=(:black, 1))
+		curve = [psurf(f[1], θ) for θ in range(f[2] - 0.2*(λ - f[1]), f[2], 20)]
+
+		plot!(curve; line=(:black, 1))
 	end
 
 	current()
@@ -686,50 +653,29 @@ Let $h$ be the distance from the apex to the base. Consider cones with the prope
 plt = let
 	gr()
 	rad(t) = 3/2 - t
+    trange = (0, 3/2)
+    θrange = (0, 2pi)
     viewp = [2,-1/1.5,1/2+.2]
 
-	empty_style = (xaxis=([], false),
-                    yaxis=([], false),
-                    framestyle=:origin,
-                    legend=false)
-	axis_style = (arrow=true, side=:head, line=(:gray, 1))
-	unitize(x) = x / norm(x)
-
-	"""Orthogonal projection along the vector viewp"""
-	function make_Pmat(viewp)
-    a = unitize( [-viewp[2], viewp[1], 0] )
-    b = unitize( [-viewp[3]*viewp[1],
-                  -viewp[3]*viewp[2],
-                  viewp[1]^2 + viewp[2]^2] )
-    collect(zip(a,b))
-	end
-
-	#linear projection of R^3 onto R^2
-	function proj(X, viewp)
-		Pmat = make_Pmat(viewp)
-		 x=sum([Pmat[i][1]*X[i] for i in 1:3])
-         y=sum([Pmat[i][2]*X[i] for i in 1:3])
-	(x, y) # a point
-	end
-	proj(X) = proj(X, viewp)
-
-	drawdiscF(t) = Shape([psurf(t, 2*i*pi/100) for i in 1:101])
-
-	# discrete determinant of Jacobian; area multiplier?
-	function jac(X, u, v)
-	  ϵ = 0.000001
-      A = map((p,q) -> (p-q)/ϵ, X(u+ϵ/2, v), X(u-ϵ/2, v))
-      B = map((p,q) -> (p-q)/ϵ, X(u, v+ϵ/2), X(u, v-ϵ/2))
-	  return A[1]*B[2]-A[2]*B[1]
-	end
-
-
+    ##
+	proj(X) = _proj(X, viewp)
 	# our surface
     R, r, rho = 1, 1/4, 1/4
     f(t) = (R-r) * cos(t) + rho * cos((R-r)/r * t)
     g(t) = (R-r) * sin(t) - rho * sin((R-r)/r * t)
 	surf(t, θ) = (rad(t)*f(θ), rad(t)*g(θ), t)
 	psurf(t,θ) = proj(surf(t,θ))
+
+
+	empty_style = (xaxis=([], false),
+                    yaxis=([], false),
+                    framestyle=:origin,
+                    legend=false)
+	axis_style = (arrow=true, side=:head, line=(:gray, 1))
+
+
+	drawdiscF(t) = Shape([psurf(t, 2*i*pi/100) for i in 1:101])
+
 
 	plot(; empty_style..., aspect_ratio=:equal)
 	for (i,t) in enumerate(range(0, 3/2, 30))
@@ -943,38 +889,37 @@ plt = let
 	rad2(t) = 1/2
     viewp = [2,-2,1]
 
+    ##
+    function _proj(X, v)
+        # a is ⟂ to v and b is v × a
+	    vx, vy, vz = v
+	    a = [-vy, vx, 0]
+	    b = cross([vx,vy,vz], a)
+	    a′, b′ = a/norm(a), b/norm(b)
+	    return 	(a′ ⋅ X, b′ ⋅ X)
+    end
+
+    # project a curve in R3 onto R2
+    pline(viewp, ps...) = [_proj(p, viewp) for p in ps]
+
+    # determinant of Jacobian; area multiplier
+    # det(J); used to identify folds
+    function jac(X, u, v)
+	    return det(ForwardDiff.jacobian(xs -> collect(X(xs...)), [u,v]))
+    end
+
+    function _fold(F, t, θmin, θmax)
+	    λ = θ -> jac(F, t, θ) # F is projected surface, psurf
+	    iszero(λ(θmin)) && return θmin
+	    iszero(λ(θmax)) && return θmax
+
+	    return solve(ZeroProblem(λ, (θmin, θmax)))
+    end
+
 	##
-	unitize(x) = x / norm(x)
-
-	"""Orthogonal projection along the vector viewp"""
-	function make_Pmat(viewp)
-    a = unitize( [-viewp[2], viewp[1], 0] )
-    b = unitize( [-viewp[3]*viewp[1],
-                  -viewp[3]*viewp[2],
-                  viewp[1]^2 + viewp[2]^2] )
-    collect(zip(a,b))
-	end
-
-	#linear projection of R^3 onto R^2
-	function proj(X, viewp)
-		Pmat = make_Pmat(viewp)
-		 x=sum([Pmat[i][1]*X[i] for i in 1:3])
-         y=sum([Pmat[i][2]*X[i] for i in 1:3])
-	(x, y) # a point
-	end
-	proj(X) = proj(X, viewp)
-
-	# discrete determinant of Jacobian; area multiplier?
-	function jac(X, u, v)
-	  ϵ = 0.000001
-      A = map((p,q) -> (p-q)/ϵ, X(u+ϵ/2, v), X(u-ϵ/2, v))
-      B = map((p,q) -> (p-q)/ϵ, X(u, v+ϵ/2), X(u, v-ϵ/2))
-	  return A[1]*B[2]-A[2]*B[1]
-	end
-
+    proj(X) = _proj(X, viewp)
 
 	# surface of revolution about the z axis
-
     surf(t, z) = (rad(t)*cos(z), rad(t)*sin(z), t)
 	surf2(t, z) = (rad2(t)*cos(z), rad2(t)*sin(z), t)
 
@@ -983,15 +928,12 @@ plt = let
 	psurf2(t, z) = proj(surf2(t,z))
 
 	bisect(f, a, b) = find_zero(f, (a,b), Bisection())
-	_fold(t, zmin, zmax) =  bisect(z -> jac(psurf, t, z), zmin, zmax)
-	_foldz(z, tmin, tmax) =  bisect(t -> jac(psurf, t, z), tmin, tmax)
+
 	# create shape holding project disc
     drawdiscF(t) = Shape([psurf(t, 2*i*pi/100) for i in 1:101])
 	drawdiscI(t) = Shape([psurf2(t, 2*i*pi/100) for i in 1:101])
 
-	# project a line between two points
-	pline!(p,q; kwargs...) = plot!([proj(p),proj(q)];
-							   line_style..., kwargs...)
+
 	α = 1.0
 	line_style = (; line=(:black, 1))
 
@@ -1014,23 +956,25 @@ plt = let
 	plot!(drawdiscI(x₀); fill=(:white,1.0), line=(:black,1))
 
 	z0 = 3pi/2 - δ
-	pline!(surf(t0, z0), surf(-t0, z0); line=(:black, 1))
-	pline!(surf(t0, z0+pi), surf(-t0, z0+pi); line=(:black, 1))
-
-
-	# boundary of sphere
-	z0 = 3pi/2 - δ
-	curve = [psurf(t, z0) for t in range(-t0, t0, 100)]
-	plot!(curve; line=(:black,3))
-	z0 = 3pi/2 - δ + pi
-	curve = [psurf(t, z0) for t in range(-t0, t0, 100)]
-	plot!(curve; line=(:black,3))
+	plot!(pline(viewp, surf(t0, z0), surf(-t0, z0)); line=(:black, 1))
+	plot!(pline(viewp, surf(t0, z0+pi), surf(-t0, z0+pi)); line=(:black, 1))
 
 	# caps
 	curve = [psurf(t0, θ) for θ in range(0, 2pi, 100)]
 	plot!(curve, line=(:black, 2))
 	curve = [psurf(-t0, θ) for θ in range(0, 2pi, 100)]
 	plot!(curve, line=(:black, 2))
+
+
+    ## folds
+	tθs = [(t, _fold(psurf, t, 0,pi)) for t in range(-t0, t0, 50)]
+	curve = [psurf(t, θ) for (t,θ) ∈ tθs]
+	plot!(curve, line=(:black, 3))
+
+	tθs = [(t, _fold(psurf, t, pi, 2pi)) for t in range(-t0, t0, 50)]
+	curve = [psurf(t, θ) for (t,θ) ∈ tθs]
+	plot!(curve, line=(:black, 3))
+
 
 
 	# Shade lines
@@ -1046,7 +990,7 @@ plt = let
 	end
 
 	#=
-    f1 = [[t, _fold(t, 0, pi/2)] for t in range(-0.5, -0.1, 26)]
+    f1 = [[t, _fold(psurf, t, 0, pi/2)] for t in range(-0.5, -0.1, 26)]
 	for f in f1
   		plot!([psurf( f[1], f[2]-k*0.01*(6-f[1]) )
             for k in 1:21]; line=(:black, 1))

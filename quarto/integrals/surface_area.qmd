@@ -63,7 +63,7 @@ $$
 If the curve is parameterized by $(g(t), f(t))$ between $a$ and $b$ then the surface area is
 
 $$
-\int_a^b 2\pi f(t) \cdot \sqrt{g'(t)^2 + f'(t)^2} dx.
+\int_a^b 2\pi f(t) \cdot \sqrt{g'(t)^2 + f'(t)^2} dt.
 $$
 
 These formulas do not add in the surface area of either of the ends.
@@ -90,11 +90,343 @@ To see why this formula is as it is, we look at the parameterized case, the firs
 
 Let a partition of $[a,b]$ be given by $a = t_0 < t_1 < t_2 < \cdots < t_n =b$. This breaks the curve into a collection of line segments. Consider the line segment connecting $(g(t_{i-1}), f(t_{i-1}))$ to $(g(t_i), f(t_i))$. Rotating this around the $x$ axis will generate something approximating a disc, but in reality will be the frustum of a cone. What will be the surface area?
 
+::: {#fig-surface-area}
+```{julia}
+#| echo: false
+let
+    gr()
+    function projection_plane(v)
+        vx, vy, vz = v
+        a = [-vy, vx, 0] # v ⋅ a = 0
+        b = v × a        # so v ⋅ b = 0
+        return (a/norm(a), b/norm(b))
+    end
+    function project(x, v)
+        â, b̂ = projection_plane(v)
+        (x ⋅ â, x ⋅ b̂)    # (x ⋅ â) â + (x ⋅ b̂) b̂
+    end
+    radius(t) = 1 / (1 + exp(t))
+    t₀, tₙ = 0, 3
+    surf(t, θ) = [t, radius(t)*cos(θ), radius(t)*sin(θ)]
 
-Consider a right-circular cone parameterized by an angle $\theta$ and the largest radius $r$ (so that the height satisfies $r/h=\tan(\theta)$). If this cone were made of paper, cut up a side, and laid out flat, it would form a sector of a circle, whose area would be $R^2\gamma/2$ where $R$ is the radius of the circle (also the side length of our cone), and $\gamma$ an angle that we can figure out from $r$ and $\theta$. To do this, we note that the arc length of the circle's edge is $R\gamma$ and also the circumference of the bottom of the cone so $R\gamma = 2\pi r$. With all this, we can solve to get $A = \pi r^2/\sin(\theta)$. But we have a frustum of a cone with radii $r_0$ and $r_1$, so the surface area is a difference: $A = \pi (r_1^2 - r_0^2) /\sin(\theta)$.
+	v = [2, -2, 1]
+    function plot_axes()
+        empty_style = (xaxis = ([], false),
+                       yaxis = ([], false),
+                       legend=false)
+
+        plt = plot(; empty_style...)
+
+        axis_values = [[(0,0,0), (3.5,0,0)],               # x axis
+                       [(0,0,0), (0, 2.0 * radius(0), 0)], # yaxis
+                       [(0,0,0), (0, 0, 1.5 * radius(0))]] # z axis
+
+        for (ps, ax) ∈ zip(axis_values, ("x", "y", "z"))
+            p0, p1 = ps
+            a, b = project(p0, v), project(p1, v)
+        annotate!([(b...,text(ax, :bottom))])
+            plot!([a, b]; arrow=true, head=:tip, line=(:gray, 1)) # gr() allows arrows
+        end
+
+        plt
+    end
+
+	function psurf(v)
+        (t,θ) -> begin
+            v1, v2 = project(surf(t, θ), v)
+            [v1, v2] # or call collect to make a tuple into a vector
+        end
+    end
+
+    function detJ(F, t, θ)
+        ∂θ = ForwardDiff.derivative(θ -> F(t, θ), θ)
+        ∂t = ForwardDiff.derivative(t -> F(t, θ), t)
+        (ax, ay), (bx, by) = ∂θ, ∂t
+        ax * by - ay * bx
+    end
+
+	function cap!(t, v; kwargs...)
+		θs = range(0, 2pi, 100)
+		S = Shape(project.(surf.(t, θs), (v,)))
+		plot!(S; kwargs...)
+	end
+    ## ----
+
+	G = psurf(v)
+	fold(F, t, θmin, θmax) = find_zero(θ -> detJ(F, t, θ), (θmin, θmax))
+
+    plt = plot_axes()
 
 
-Relating this to our values in terms of $f$ and $g$, we have $r_1=f(t_i)$, $r_0 = f(t_{i-1})$, and $\sin(\theta) = \Delta f / \sqrt{(\Delta g)^2 + (\Delta f)^2}$, where $\Delta f = f(t_i) - f(t_{i-1})$ and similarly for $\Delta g$.
+    ts = range(t₀, tₙ, 100)
+    back_edge = fold.(G, ts, 0, pi)
+    front_edge = fold.(G, ts, pi, 2pi)
+	db = Dict(t => v for (t,v) in zip(ts, back_edge))
+	df = Dict(t => v for (t,v) in zip(ts, front_edge))
+
+    # basic shape
+    plt = plot_axes()
+    plot!(project.(surf.(ts, back_edge), (v,)); line=(:black, 1))
+    plot!(project.(surf.(ts, front_edge), (v,)); line=(:black, 1))
+
+    # add caps
+    cap!(t₀, v; fill=(:gray, 0.33))
+	cap!(tₙ, v; fill=(:gray, 0.33))
+
+
+	# add rotated surface segment
+	i,j = 33,38
+	a = ts[i]
+	θs = range(db[ts[i]], df[ts[i]], 100)
+	θ′s = reverse(range(db[ts[j]], df[ts[j]], 100))
+	function 𝐺(t,θ)
+		v1, v2 = G(t, θ)
+		(v1, v2)
+	end
+	S = Shape(vcat(𝐺.(ts[i], θs), 𝐺.(ts[j], θ′s)))
+	plot!(S)
+
+	θs = range(df[ts[i]], 2pi + db[ts[i]], 100)
+	plot!([𝐺(ts[i], θ) for θ in θs]; line=(:black, 1, :dash))
+
+	θs = range(df[ts[j]], 2pi + db[ts[j]], 100)
+	plot!([𝐺(ts[j], θ) for θ in θs]; line=(:black, 1))
+
+	plot!([project((ts[i], 0,0),v), 𝐺(ts[i],db[ts[i]])]; line=(:black, 1, :dot), arrow=true)
+	plot!([project((ts[j], 0,0),v), 𝐺(ts[j],db[ts[j]])]; line=(:black, 1, :dot), arrow=true)
+
+    # add shading
+	lightpt = [2, -2, 5] # from further above
+	H = psurf(lightpt)
+	light_edge = fold.(H, ts, pi, 2pi);
+
+	for (i, (t, top, bottom)) in enumerate(zip(ts, light_edge, front_edge))
+	    λ = iseven(i) ? 1.0 : 0.8
+	    top = bottom + λ*(top - bottom)
+	    curve = [project(surf(t, θ), v) for θ in range(bottom, top, 20)]
+	    plot!(curve, line=(:black, 1))
+    end
+
+    # annotations
+    _x, _y, _z = surf(ts[i],db[ts[i]])
+	__x, __y = project((_x, _y/2, _z/2), v)
+	_x, _y, _z = surf(ts[j],db[ts[j]])
+	__x′, __y′ = project((_x, _y/2, _z/2), v)
+    # annotations
+	annotate!([
+		(__x, __y, text(L"r_i", :left, :top)),
+		(__x′, __y′, text(L"r_{i+1}",:left, :top)),
+	])
+
+	current()
+end
+```
+
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+Illustration of function $(g(t), f(t))$  rotated about the $x$ axis with a section shaded.
+:::
+
+
+
+Consider a right-circular cone parameterized by an angle $\theta$ which at a given height has radius $r$ and slant height $l$ (so that the height satisfies $r/l=\sin(\theta)$). If this cone were made of paper, cut up a side, and laid out flat, it would form a sector of a circle, as illustrated below:
+
+::: {#fig-frustum-cone-area}
+
+```{julia}
+#| echo: false
+p1 = let
+    gr()
+function projection_plane(v)
+    vx, vy, vz = v
+    a = [-vy, vx, 0] # v ⋅ a = 0
+    b = v × a        # so v ⋅ b = 0
+    return (a/norm(a), b/norm(b))
+end
+function project(x, v)
+    â, b̂ = projection_plane(v)
+    (x ⋅ â, x ⋅ b̂)    # (x ⋅ â) â + (x ⋅ b̂) b̂
+end
+
+function plot_axes(v)
+    empty_style = (xaxis = ([], false),
+                   yaxis = ([], false),
+                   legend=false)
+
+    plt = plot(; empty_style..., aspect_ratio=:equal)
+
+  	a,b,c,d,e = project.([(0,0,2), (0,0,3), surf(3, 3pi/2), surf(2, 3pi/2),(0,0,0)], (v,))
+	pts = [a,b,c,d,a]#project.([a,b,c,d,a], (v,))
+	plot!(pts; line=(:gray, 1))
+	plot!([c,d]; line=(:black, 2))
+	plot!([d, e,a]; line=(:gray, 1,1))
+	#plot!(project.([e,a,d,e],(v,)); line=(:gray, 1))
+
+
+
+    plt
+end
+
+	function psurf(v)
+	    (t,θ) -> begin
+    	    v1, v2 = project(surf(t, θ), v)
+        	[v1, v2] # or call collect to make a tuple into a vector
+	    end
+	end
+function detJ(F, t, θ)
+    ∂θ = ForwardDiff.derivative(θ -> F(t, θ), θ)
+    ∂t = ForwardDiff.derivative(t -> F(t, θ), t)
+    (ax, ay), (bx, by) = ∂θ, ∂t
+    ax * by - ay * bx
+end
+
+	function cap!(t, v; kwargs...)
+		θs = range(0, 2pi, 100)
+		S = Shape(project.(surf.(t, θs), (v,)))
+		plot!(S; kwargs...)
+	end
+
+	function fold(F, t, θmin, θmax)
+		𝐹(θ) = detJ(F, t, θ)
+		𝐹(θmin) * 𝐹(θmax) <= 0 || return NaN
+		find_zero(𝐹, (θmin, θmax))
+	end
+
+
+
+	radius(t) = t/2
+	t₀, tₙ = 0, 3
+	surf(t, θ) = [radius(t)*cos(θ), radius(t)*sin(θ), t] # z axis
+
+	v = [2, -2, 1]
+	G = psurf(v)
+
+
+	ts = range(t₀, tₙ, 100)
+	back_edge = fold.(G, ts, 0, pi)
+	front_edge = fold.(G, ts, pi, 2pi)
+	db = Dict(t => v for (t,v) in zip(ts, back_edge))
+	df = Dict(t => v for (t,v) in zip(ts, front_edge))
+
+	plt = plot_axes(v)
+	plot!(project.(surf.(ts, back_edge), (v,)); line=(:black, 1))
+	plot!(project.(surf.(ts, front_edge), (v,)); line=(:black, 1))
+
+
+	cap!(tₙ, v; fill=(:gray80, 0.33))
+	i = 67
+	tᵢ = ts[i] # tᵢ = 2.0
+	plot!(project.([surf.(tᵢ, θ) for θ in range(df[tᵢ], 2pi + db[tᵢ], 100)], (v,)))
+
+
+
+	# add surface to rotate
+
+	## add light
+	lightpt = [2, -2, 5] # from further above
+	H = psurf(lightpt)
+	light_edge = fold.(H, ts, pi, 2pi);
+
+	for (i, (t, top, bottom)) in enumerate(zip(ts, light_edge, front_edge))
+		λ = iseven(i) ? 1.0 : 0.8
+		(isnan(top) || isnan(bottom)) && continue
+		top = bottom + λ*(top - bottom)
+		curve = [project(surf(t, θ), v) for θ in range(bottom, top, 20)]
+		#plot!(curve, line=(:black, 1))
+	end
+
+	a,b,c = project(surf(tₙ, 3pi/2), v), project(surf(2, 3pi/2),v), project((0,0,0), v)
+	#plot!([a,b], line=(:black, 3))
+	#plot!([b,c]; line=(:black,2))
+
+	# annotations
+	_x,_y,_z = surf(tₙ, 3pi/2)
+	r1 = project((_x/2, _y/2, _z), v)
+	_x,_y,_z = surf(2, 3pi/2)
+	r2 = project((_x/2, _y/2, _z), v)
+	_x, _y, _z = surf(1/2, 3pi/2)
+	theta = project((_x/2, _y/2, _z), v)
+
+	a, b = project.((surf(3, 3pi/2), surf(2, 3pi/2)), (v,))
+
+	annotate!([
+	    (r1..., text(L"r_2",:bottom)),
+		(r2..., text(L"r_1",:bottom)),
+		(theta..., text(L"\theta")),
+		(a..., text(L"l_2",:right, :top)),
+		(b..., text(L"l_1", :right, :top))
+	])
+
+	current()
+end
+
+p2 = let
+	θ = 2pi - pi/3
+
+	θs = range(2pi-θ, 2pi, 100)
+	r1, r2 = 2, 3
+
+
+	empty_style = (xaxis = ([], false),
+                   yaxis = ([], false),
+                   legend=false,
+				  aspect_ratio=:equal)
+
+    plt = plot(; empty_style...)
+
+	plot!(r1.*cos.(θs), r1 .* sin.(θs); line=(:black, 1))
+	plot!(r2.*cos.(θs), r2 .* sin.(θs); line=(:black, 1))
+
+	plot!([(0,0),(r1,0)]; line=(:gray, 1, :dash))
+	plot!([(r1,0),(r2,0)]; line=(:black, 1))
+
+	s, c = sincos(2pi-θ)
+	plot!([(0,0),(r1,0)]; line=(:gray, 1, :dash))
+	plot!([(0,0), (r1*c, r1*s)]; line=(:gray, 1, :dash))
+	plot!([(r1,0),(r2,0)]; line=(:black, 1))
+	plot!([(r1*c, r1*s), (r2*c, r2*s)];  line=(:black, 2))
+
+	s′,c′ = sincos((2pi - θ)/2)
+	annotate!([
+	   (1/2*c′, 1/2*s′, text(L"\gamma")),
+		(r1*c, r1*s, text(L"l_1",:left, :top)),
+		(r2*c, r2*s, text(L"l_2", :left, :top)),
+	])
+
+	#=
+	δ = pi/8
+	scs = reverse(sincos.(range(2pi-θ, 2pi - θ + pi - δ,100)))
+	plot!([1/2 .* (c,s) for (s,c) in scs]; line=(:gray, 1,:dash), arrow=true, side=:head)
+	scs = sincos.(range(2pi - θ + pi + δ, 2pi,100))
+	plot!([1/2 .* (c,s) for (s,c) in scs]; line=(:gray, 1,:dash), arrow=true, side=:head)
+	=#
+end
+
+plot(p1, p2)
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+
+
+The surface of a frustum of a cone and the same area spread out flat. Angle $\gamma = 2\pi(1 - \sin(\theta)$.
+
+:::
+
+
+ By comparing circumferences, it is seen that the angles $\theta$ and $\gamma$ are related by $\gamma = 2\pi(1 - \sin(\theta))$ (as $2\pi r_2 = 2\pi l_2\sin(\theta) = (2\pi-\gamma)/(2\pi) \cdot 2\pi l_2$). The values $l_i$ and $r_i$ are related by $r_i = l_i \sin(\theta)$. The area in both pictures is: $(\pi l_2^2 - \pi l_1^2) \cdot (2\pi-\gamma)/(2\pi)$ which simplifies to $\pi (l_2 + l_1) \cdot \sin(\theta) \cdot (l_2 - l_1)$ or $2\pi \cdot (r_2 - r_1)/2 \cdot \text{slant height}$.
+
+
+Relating this to our values in terms of $f$ and $g$, we have $r_1=f(t_i)$, $r_0 = f(t_{i-1})$, and the slant height is related by $(l_2-l_1)^2 = (g(t_2)-g(t_1))^2 + (f(t_2) - f(t_1))^2$.
 
 
 Putting this altogether we get that the surface area generarated by rotating the line segment around the $x$ axis is
@@ -102,7 +434,7 @@ Putting this altogether we get that the surface area generarated by rotating the
 
 $$
 \text{sa}_i = \pi (f(t_i)^2 - f(t_{i-1})^2) \cdot \sqrt{(\Delta g)^2 + (\Delta f)^2} / \Delta f =
-\pi (f(t_i) + f(t_{i-1})) \cdot \sqrt{(\Delta g)^2 + (\Delta f)^2}.
+2\pi \frac{f(t_i) + f(t_{i-1})}{2} \cdot \sqrt{(\Delta g)^2 + (\Delta f)^2}.
 $$
 
 (This is $2 \pi$ times the average radius times the slant height.)
@@ -122,7 +454,9 @@ $$
 \text{SA} = \int_a^b 2\pi f(t) \sqrt{g'(t)^2 + f'(t)^2} dt.
 $$
 
-If we assume integrability of the integrand, then as our partition size goes to zero, this approximate surface area converges to the value given by the limit.  (As with arc length, this needs a technical adjustment to the Riemann integral theorem as here we are evaluating the integrand function at four points ($t_i$, $t_{i-1}$, $\xi$ and $\psi$) and not just at some $c_i$. An figure appears at the end.
+If we assume integrability of the integrand, then as our partition size goes to zero, this approximate surface area converges to the value given by the limit.  (As with arc length, this needs a technical adjustment to the Riemann integral theorem as here we are evaluating the integrand function at four points ($t_i$, $t_{i-1}$, $\xi$ and $\psi$) and not just at some $c_i$.
+
+
 
 
 #### Examples
@@ -176,7 +510,7 @@ F(1) - F(0)
 ### Plotting surfaces of revolution
 
 
-The commands to plot a surface of revolution will be described more clearly later; for now we present them as simply a pattern to be followed in case plots are desired. Suppose the curve in the $x-y$ plane is given parametrically by $(g(u), f(u))$ for $a \leq u \leq b$.
+The commands to plot a surface of revolution will be described more clearly later; for now we present them as simply a pattern to be followed in case plots are desired. Suppose the curve in the $x-z$ plane is given parametrically by $(g(u), f(u))$ for $a \leq u \leq b$.
 
 
 To be concrete, we parameterize the circle centered at $(6,0)$ with radius $2$ by:
@@ -195,14 +529,14 @@ The plot of this curve is:
 #| hold: true
 us = range(a, b, length=100)
 plot(g.(us), f.(us), xlims=(-0.5, 9), aspect_ratio=:equal, legend=false)
-plot!([0,0],[-3,3], color=:red, linewidth=5)    # y axis emphasis
-plot!([3,9], [0,0], color=:green, linewidth=5)  # x axis emphasis
+plot!([(0, -3), (0, 3)], line=(:red, 5))    # z axis emphasis
+plot!([(3, 0),  (9, 0)], line=(:green, 5))  # x axis emphasis
 ```
 
-Though parametric plots have a convenience constructor, `plot(g, f, a, b)`, we constructed the points with `Julia`'s broadcasting notation, as we will need to do  for a surface of revolution. The `xlims` are adjusted to show the $y$ axis, which is emphasized with a layered line. The line is drawn by specifying two points, $(x_0, y_0)$ and $(x_1, y_1)$ in the form `[x0,x1]` and `[y0,y1]`.
+Though parametric plots have a convenience constructor, `plot(g, f, a, b)`, we constructed the points with `Julia`'s broadcasting notation, as we will need to do  for a surface of revolution. The `xlims` are adjusted to show the $y$ axis, which is emphasized with a layered line. The line is drawn by specifying two points, $(x_0, y_0)$ and $(x_1, y_1)$ using tuples and wrapping in a vector.
 
 
-Now, to rotate this about the $y$ axis, creating a surface plot, we have the following pattern:
+Now, to rotate this about the $z$ axis, creating a surface plot, we have the following pattern:
 
 ```{julia}
 S(u,v) = [g(u)*cos(v), g(u)*sin(v), f(u)]
@@ -210,23 +544,22 @@ us = range(a, b, length=100)
 vs = range(0, 2pi, length=100)
 ws = unzip(S.(us, vs'))   # reorganize data
 surface(ws..., zlims=(-6,6), legend=false)
-plot!([0,0], [0,0], [-3,3], color=:red, linewidth=5) # y axis emphasis
+plot!([(0,0,-3), (0,0,3)], line=(:red, 5)) # z axis emphasis
 ```
 
-The `unzip` function is not part of base `Julia`, rather part of `CalculusWithJulia` (it is really `SplitApplyCombine`'s `invert` function). This function rearranges data into a form consumable by the plotting methods like `surface`. In this case, the result of `S.(us,vs')` is a grid (matrix) of points, the result of `unzip` is three grids of values, one for the $x$ values, one for the $y$ values, and one for the $z$ values.  A manual adjustment to the `zlims` is used, as `aspect_ratio` does not have an effect with the `plotly()` backend and errors on 3d graphics with `pyplot()`.
+The `unzip` function is not part of base `Julia`, rather part of `CalculusWithJulia` (it is really `SplitApplyCombine`'s `invert` function). This function rearranges data into a form consumable by the plotting methods like `surface`. In this case, the result of `S.(us,vs')` is a grid (matrix) of points, the result of `unzip` is three grids of values, one for the $x$ values, one for the $y$ values, and one for the $z$ values.  A manual adjustment to the `zlims` is used, as `aspect_ratio` does not have an effect with the `plotly()` backend.
 
 
 To rotate this about the $x$ axis, we have this pattern:
 
 
 ```{julia}
-#| hold: true
 S(u,v) = [g(u), f(u)*cos(v), f(u)*sin(v)]
 us = range(a, b, length=100)
 vs = range(0, 2pi, length=100)
 ws = unzip(S.(us,vs'))
-surface(ws..., legend=false)
-plot!([3,9], [0,0],[0,0], color=:green, linewidth=5) # x axis emphasis
+plot([(3,0,0), (9,0,0)], line=(:green,5)) # x axis emphasis
+surface!(ws..., legend=false)
 ```
 
 The above pattern covers the case of  rotating the graph of a function $f(x)$ of $a,b$ by taking $g(t)=t$.
@@ -550,47 +883,4 @@ f(t) = sin(t)^5
 a, b = 0, pi
 val, _ = quadgk(t -> 2pi* f(t) * sqrt(g'(t)^2 + f'(t)^2), a, b)
 numericq(val)
-```
-
-
-# Appendix
-
-```{julia}
-#| hold: true
-#| echo: false
-gr()
-## For **some reason** having this in the natural place messes up the plots.
-## {{{approximate_surface_area}}}
-
-xs,ys = range(-1, stop=1, length=50), range(-1, stop=1, length=50)
-f(x,y)= 2 - (x^2 + y^2)
-
-dr = [1/2, 3/4]
-df = [f(dr[1],0), f(dr[2],0)]
-
-function sa_approx_graph(i)
-    p = plot(xs, ys, f, st=[:surface], legend=false)
-    for theta in range(0, stop=i/10*2pi, length=10*i )
-        path3d!(p,sin(theta)*dr, cos(theta)*dr, df)
-    end
-    p
-end
-n = 10
-
-anim = @animate for i=1:n
-    sa_approx_graph(i)
-end
-
-imgfile = tempname() * ".gif"
-gif(anim, imgfile, fps = 1)
-
-
-caption = L"""
-
-Surface of revolution of $f(x) = 2 - x^2$ about the $y$ axis. The lines segments are the images of rotating the secant line connecting $(1/2, f(1/2))$ and $(3/4, f(3/4))$. These trace out the frustum of a cone which approximates the corresponding surface area of the surface of revolution. In the limit, this approximation becomes exact and a formula for the surface area of surfaces of revolution can be used to compute the value.
-
-"""
-
-plotly()
-ImageFile(imgfile, caption)
 ```

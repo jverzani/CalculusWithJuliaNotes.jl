@@ -80,6 +80,7 @@ Vector fields are also useful for other purposes, such as transformations, examp
 
 For transformations, a useful visualization is to plot curves where one variables is fixed. Consider the transformation from polar coordinates to cartesian coordinates $F(r, \theta) = r \langle\cos(\theta),\sin(\theta)\rangle$. The following plot will show in blue fixed values of $r$ (circles) and in red fixed values of $\theta$ (rays).
 
+::: {#fig-transformation-partial-derivative}
 
 ```{julia}
 #| hold: true
@@ -97,9 +98,20 @@ pt = [1, pi/4]
 J = ForwardDiff.jacobian(F, pt)
 arrow!(F(pt...), J[:,1], linewidth=5, color=:red)
 arrow!(F(pt...), J[:,2], linewidth=5, color=:blue)
+
+pt = [0.5, pi/8]
+J = ForwardDiff.jacobian(F, pt)
+arrow!(F(pt...), J[:,1], linewidth=5, color=:red)
+arrow!(F(pt...), J[:,2], linewidth=5, color=:blue)
+
 ```
 
+Plot of a vector field from $R^2 \rightarrow R^2$ illustrated by drawing curves with fixed $r$ and $\theta$. The partial derivatives are added as layers.
+:::
+
 To the plot, we added the partial derivatives with respect to $r$ (in red) and with respect to $\theta$ (in blue). These are found with the soon-to-be discussed Jacobian. From the graph, you can see that these vectors are tangent vectors to the drawn curves.
+
+The curves form a non-rectangular grid. Were the cells exactly parallelograms, the area would be computed taking into account the length of the vectors and the angle between them -- the same values that come out of a cross product.
 
 
 ## Parametrically defined surfaces
@@ -138,7 +150,7 @@ When a surface is described as a level curve, $f(x,y,z) = c$, then the gradient 
 When a surface is described parametrically, there is no "gradient." The *partial* derivatives are of interest, e.g., $\partial{F}/\partial{\theta}$ and $\partial{F}/\partial{\phi}$, vectors defined componentwise. These will be lie in the tangent plane of the surface, as they can be viewed as tangent vectors for parametrically defined curves on the surface. Their cross product will be *normal* to the surface. The magnitude of the cross product, which reflects the angle between the two partial derivatives, will be informative as to the surface area.
 
 
-### Plotting parametrized surfaces in `Julia`
+### Plotting parameterized surfaces in `Julia`
 
 
 Consider the parametrically described surface above. How would it be plotted? Using the `Plots` package, the process is quite similar to how a surface described by a function is plotted, but the $z$ values must be computed prior to plotting.
@@ -235,6 +247,217 @@ surface(xs, ys, zs, legend=false)
 arrow!(Phi(pt...), out₁[:,1], linewidth=3)
 arrow!(Phi(pt...), out₁[:,2], linewidth=3)
 ```
+
+##### Example: A detour into plotting
+
+
+The presentation of a 3D figure in a 2D format requires the use of linear perspective. The `Plots` package adds lighting effects, to nicely render a surface, as seen.
+
+In this example, we see some of the mathematics behind how drawing a surface can be done more primitively to showcase some facts about vectors. We follow a few techniques learned from @Angenent.
+
+```{julia}
+#| echo: false
+gr()
+nothing
+```
+
+For our purposes we wish to mathematically project a figure onto a 2D plane.
+
+
+
+The plane here is described by a view point in 3D space, $\vec{v}$. Taking this as one vector in an orthogonal coordinate system, the other two can be easily produced, the first by switching two coordinates, as would be done in 2D; the second through the cross product:
+
+```{julia}
+function projection_plane(v)
+    vx, vy, vz = v
+    a = [-vy, vx, 0] # v ⋅ a = 0
+    b = v × a        # so v ⋅ b = 0
+    return (a/norm(a), b/norm(b))
+end
+```
+
+Using these two unit vectors to describe the plane, the projection of a point onto the plane is simply found by taking dot products:
+
+```{julia}
+function project(x, v)
+    â, b̂ = projection_plane(v)
+    (x ⋅ â, x ⋅ b̂)    # (x ⋅ â) â + (x ⋅ b̂) b̂
+end
+```
+
+Let's see this in action by plotting a surface of revolution given by
+
+```{julia}
+radius(t) = 1 / (1 + exp(t))
+t₀, tₙ = 0, 3
+surf(t, θ) = [t, radius(t)*cos(θ), radius(t)*sin(θ)]
+```
+
+We begin by fixing a view point and plotting the projected axes. We do the latter with a function for re-use.
+
+```{julia}
+v = [2, -2, 1]
+function plot_axes()
+    empty_style = (xaxis = ([], false),
+                   yaxis = ([], false),
+                   legend=false)
+
+    plt = plot(; empty_style...)
+
+    axis_values = [[(0,0,0), (3.5,0,0)],               # x axis
+                   [(0,0,0), (0, 2.0 * radius(0), 0)], # yaxis
+                   [(0,0,0), (0, 0, 1.5 * radius(0))]] # z axis
+
+    for (ps, ax) ∈ zip(axis_values, ("x", "y", "z"))
+        p0, p1 = ps
+        a, b = project(p0, v), project(p1, v)
+        annotate!([(b...,text(ax, :bottom))])
+        plot!([a, b]; arrow=true, head=:tip, line=(:gray, 1)) # gr() allows arrows
+    end
+
+    plt
+end
+
+plt = plot_axes()
+```
+
+We are using the vector of tuples interface (representing points) to specify the curve to draw.
+
+Now we add on some curves for fixed $t$ and then fixed $\theta$ utilizing the fact that `project` returns a tuple of $x$--$y$ values to display.
+
+```{julia}
+for t in range(t₀, tₙ, 20)
+    curve = [project(surf(t, θ), v) for θ in range(0, 2pi, 100)]
+    plot!(curve; line=(:black, 1))
+end
+for θ in range(0, 2pi, 60)
+    curve = [project(surf(t, θ), v) for t in range(t₀, tₙ, 20)]
+    plot!(curve; line=(:black, 1))
+end
+plt
+```
+
+
+
+The graphic is a little busy!
+
+
+Let's focus on the cells layering the surface. These have equal size in the $t \times \theta$ range, but unequal area on the screen. Where they parallellograms, the area could be found by taking the 2-dimensional cross product of the two partial derivatives, resulting in a formula like: $a_x b_y - a_y b_x$.
+When we discuss integrals related to such figures, this amount of area will be characterized by a computation involving the determinant of the upcoming Jacobian function.
+
+We make a function to close over the viewpoint vector that can be passed to `ForwardDiff`, as it will return a vector and not a tuple.
+
+```{julia}
+function psurf(v)
+    (t,θ) -> begin
+        v1, v2 = project(surf(t, θ), v)
+        [v1, v2] # or call collect to make a tuple into a vector
+    end
+end
+```
+
+The function returned by `psurf` is from $R^2 \rightarrow R^2$. With such a function, the computation of this approximate area becomes:
+
+```{julia}
+function detJ(F, t, θ)
+    ∂θ = ForwardDiff.derivative(θ -> F(t, θ), θ)
+    ∂t = ForwardDiff.derivative(t -> F(t, θ), t)
+    (ax, ay), (bx, by) = ∂θ, ∂t
+    ax * by - ay * bx
+end
+```
+
+For our purposes, we are interested in the sign of the returned value. Plotting, we can see that some "area" is positive, some "negative":
+
+```{julia}
+t = 1
+G = psurf(v)
+plot(θ -> detJ(G, t, θ), 0, 2pi)
+```
+
+With this parameterization and viewpoint, the positive area for the surface is when the normal vector points towards the viewing point. In the following, we only plot such values:
+
+```{julia}
+plt = plot_axes()
+
+function I(F, t, θ)
+    x, y = F(t, θ)
+    detJ(F, t, θ) >= 0 ? (x, y) : (x, NaN) # use NaN for y value
+end
+
+for t in range(t₀, tₙ, 20)
+    curve = [I(G, t, θ) for θ in range(0, 2pi, 100)]
+    plot!(curve; line=(:gray, 1))
+end
+
+for θ in range(0, 2pi, 60)
+    curve = [I(G, t, θ) for t in range(t₀, tₙ, 20)]
+    plot!(curve; line=(:gray, 1))
+end
+
+plt
+```
+
+The values for which `detJ` is zero form the visible boundary of the object. We can plot just those to get an even less busy view. We identify them by finding the value of $\theta$ in $[0,\pi]$ and  $[\pi,2\pi]$ that makes the `detJ` function zero:
+
+```{julia}
+fold(F, t, θmin, θmax) = find_zero(θ -> detJ(F, t, θ), (θmin, θmax))
+
+ts = range(t₀, tₙ, 100)
+back_edge = fold.(G, ts, 0, pi)
+front_edge = fold.(G, ts, pi, 2pi)
+
+plt = plot_axes()
+plot!(project.(surf.(ts, back_edge), (v,)); line=(:black, 1))
+plot!(project.(surf.(ts, front_edge), (v,)); line=(:black, 1))
+```
+
+Adding caps makes the graphic stand out. The caps are just discs (fixed values of $t$) which are filled in with gray using a transparency so that the axes aren't masked.
+
+```{julia}
+θs = range(0, 2pi, 100)
+S = Shape(project.(surf.(t₀, θs), (v,)))
+plot!(S; fill=(:gray, 0.33))
+
+S = Shape(project.(surf.(tₙ, θs), (v,)))
+plot!(S; fill=(:gray, 0.33))
+```
+
+
+Finally, we introduce some shading using the same technique but assuming the light comes from a different position.
+
+```{julia}
+lightpt = [2, -2, 5] # from further above
+H = psurf(lightpt)
+light_edge = fold.(H, ts, pi, 2pi);
+```
+
+Angles between the light edge and the front edge would be in shadow. We indicate this by drawing lines for fixed $t$ values. As denser lines indicate more shadow, we feather how these are drawn:
+
+```{julia}
+for (i, (t, top, bottom)) in enumerate(zip(ts, light_edge, front_edge))
+	λ = iseven(i) ? 1.0 : 0.8
+	top = bottom + λ*(top - bottom)
+	curve = [project(surf(t, θ), v) for θ in range(bottom, top, 20)]
+	plot!(curve, line=(:black, 1))
+end
+plt
+```
+
+We can compare to the graph produced by `surface` for the same function:
+
+```{julia}
+ts = range(t₀, tₙ, 50)
+θs = range(0, 2pi, 100)
+surface(unzip(surf.(ts, θs'))...; legend=false)
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
 
 ## The total derivative
 
