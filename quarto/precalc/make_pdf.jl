@@ -2,13 +2,7 @@ module Make
 # makefile for generating typst pdfs
 # per directory usage
 dir = "precalc"
-files = ("calculator",
-         "variables",
-         "numbers_types",
-         "logical_expressions",
-         "vectors",
-         "ranges",
-         "functions",
+files = ("functions",
          "plotting",
          "transformations",
          "inversefunctions",
