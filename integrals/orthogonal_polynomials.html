@@ -1,0 +1,2686 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.30">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>48&nbsp; Orthogonal polynomials – Calculus with Julia</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../integrals/twelve-qs.html" rel="next">
+<link href="../integrals/surface_area.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-de070a7b0ab54f8780927367ac907214.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-2b3e328b71be8d25427581baeb23079b.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-de070a7b0ab54f8780927367ac907214.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-fc3c171632cd6f9b39f96e8bd14edcbe.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-ead2ac9af0e74c5b0758b4163d044a68.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-fc3c171632cd6f9b39f96e8bd14edcbe.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script async="" src="https://hypothes.is/embed.js"></script>
+<script>
+  window.document.addEventListener("DOMContentLoaded", function (_event) {
+    document.body.classList.add('hypothesis-enabled');
+  });
+</script>
+<script src="https://cdn.plot.ly/plotly-2.6.3.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../logo.png" alt="" class="navbar-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Calculus with Julia</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+    <a href="https://github.com/jverzani/CalculusWithJuliaNotes.jl/tree/main/quarto/" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../integrals.html">Integrals</a></li><li class="breadcrumb-item"><a href="../integrals/orthogonal_polynomials.html"><span class="chapter-number">48</span>&nbsp; <span class="chapter-title">Orthogonal polynomials</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../basics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Mathematical basics</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../basics/calculator.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">From calculator to computer</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../basics/variables.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Variables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../basics/numbers_types.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Number systems</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../basics/logical_expressions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Inequalities, Logical expressions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../basics/vectors.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Vectors and containers</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../basics/ranges.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Ranges and sets</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../precalc.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Precalculus Concepts</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/functions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Functions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/plotting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">The graph of a function</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/transformations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Function manipulations</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/inversefunctions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">The inverse of a function</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/polynomial.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Polynomials</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/polynomial_roots.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Roots of a polynomial</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/polynomials_package.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">The Polynomials package</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/rational_functions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Rational functions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/exp_log_functions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Exponential and logarithmic functions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/trig_functions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Trigonometric functions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/julia_overview.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Overview of Julia commands</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../limits.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Limits</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/limits.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Limits</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/limits_extensions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Limits, issues, extensions of the concept</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/continuity.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Continuity</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/intermediate_value_theorem.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Implications of continuity</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../derivatives.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Derivatives</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/derivatives.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Derivatives</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/numeric_derivatives.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Numeric derivatives</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/symbolic_derivatives.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Symbolic derivatives</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/mean_value_theorem.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">The mean value theorem for differentiable functions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/optimization.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">26</span>&nbsp; <span class="chapter-title">Optimization</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/first_second_derivatives.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">27</span>&nbsp; <span class="chapter-title">The first and second derivatives</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/curve_sketching.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">28</span>&nbsp; <span class="chapter-title">Curve sketching</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/linearization.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">29</span>&nbsp; <span class="chapter-title">Linearization</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/newtons_method.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">30</span>&nbsp; <span class="chapter-title">Newton’s method</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/more_zeros.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">31</span>&nbsp; <span class="chapter-title">Derivative-free alternatives to Newton’s method</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/lhospitals_rule.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">32</span>&nbsp; <span class="chapter-title">L’Hospital’s rule</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/implicit_differentiation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">33</span>&nbsp; <span class="chapter-title">Implicit differentiation</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/related_rates.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">34</span>&nbsp; <span class="chapter-title">Related rates</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/taylor_series_polynomials.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">35</span>&nbsp; <span class="chapter-title">Taylor polynomials and other approximating polynomials</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../integrals.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Integrals</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/area.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">36</span>&nbsp; <span class="chapter-title">Area under a curve</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/ftc.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">37</span>&nbsp; <span class="chapter-title">Fundamental Theorem of Calculus</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/substitution.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">38</span>&nbsp; <span class="chapter-title">Substitution</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/integration_by_parts.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">39</span>&nbsp; <span class="chapter-title">Integration by parts</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/partial_fractions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">40</span>&nbsp; <span class="chapter-title">Partial fractions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/improper_integrals.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">41</span>&nbsp; <span class="chapter-title">Improper integrals</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/mean_value_theorem.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">42</span>&nbsp; <span class="chapter-title">Mean value theorem for integrals</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/area_between_curves.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">43</span>&nbsp; <span class="chapter-title">Area between two curves</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/center_of_mass.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">44</span>&nbsp; <span class="chapter-title">Center of mass</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/volumes_slice.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">45</span>&nbsp; <span class="chapter-title">Volumes by slicing</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/arc_length.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">46</span>&nbsp; <span class="chapter-title">Arc length</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/surface_area.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">47</span>&nbsp; <span class="chapter-title">Surface area</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/orthogonal_polynomials.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">48</span>&nbsp; <span class="chapter-title">Orthogonal polynomials</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/twelve-qs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">49</span>&nbsp; <span class="chapter-title">A dozen minima for a parabola</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../ODEs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ODEs</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/odes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">50</span>&nbsp; <span class="chapter-title">ODEs</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/euler.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">51</span>&nbsp; <span class="chapter-title">Euler’s method</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/solve.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">52</span>&nbsp; <span class="chapter-title">The problem-algorithm-solve interface</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/differential_equations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">53</span>&nbsp; <span class="chapter-title">The <code>DifferentialEquations</code> suite</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../differentiable_vector_calculus.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Differential vector calculus</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/polar_coordinates.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">54</span>&nbsp; <span class="chapter-title">Polar coordinates and curves</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/vectors.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">55</span>&nbsp; <span class="chapter-title">Vectors and matrices</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/vector_valued_functions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">56</span>&nbsp; <span class="chapter-title">Vector-valued functions, <span class="math inline">\(f:R \rightarrow R^n\)</span></span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/scalar_functions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">57</span>&nbsp; <span class="chapter-title">Scalar functions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/scalar_functions_applications.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">58</span>&nbsp; <span class="chapter-title">Applications with scalar functions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/vector_fields.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">59</span>&nbsp; <span class="chapter-title">Functions <span class="math inline">\(R^n \rightarrow R^m\)</span></span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/matrix_calculus_notes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">60</span>&nbsp; <span class="chapter-title">Matrix calculus</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/plots_plotting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">61</span>&nbsp; <span class="chapter-title">2D and 3D plots in Julia with Plots</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../integral_vector_calculus.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Integral vector calculus</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/double_triple_integrals.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">62</span>&nbsp; <span class="chapter-title">Multi-dimensional integrals</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/line_integrals.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">63</span>&nbsp; <span class="chapter-title">Line and surface integrals</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/div_grad_curl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">64</span>&nbsp; <span class="chapter-title">The gradient, divergence, and curl</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/stokes_theorem.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">65</span>&nbsp; <span class="chapter-title">Green’s theorem, Stokes’ theorem, and the divergence theorem</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/review.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">66</span>&nbsp; <span class="chapter-title">Quick review of vector calculus</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../alternatives.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Alternative packages</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../alternatives/symbolics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">67</span>&nbsp; <span class="chapter-title">Symbolics.jl</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../alternatives/SciML.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">68</span>&nbsp; <span class="chapter-title">The SciML suite of packages</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../alternatives/plotly_plotting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">69</span>&nbsp; <span class="chapter-title">JavaScript based plotting libraries</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../alternatives/makie_plotting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">70</span>&nbsp; <span class="chapter-title">Calculus plots with Makie</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/getting_started_with_julia.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">71</span>&nbsp; <span class="chapter-title">Getting started with Julia</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/julia_interfaces.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">72</span>&nbsp; <span class="chapter-title">Julia interfaces</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/calculus_with_julia.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">73</span>&nbsp; <span class="chapter-title">The <code>CalculusWithJulia</code> package</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/unicode.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">74</span>&nbsp; <span class="chapter-title">Usages of Unicode symbols</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/quick_notes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">75</span>&nbsp; <span class="chapter-title">Quick introduction to Calculus with Julia</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#inner-product" id="toc-inner-product" class="nav-link active" data-scroll-target="#inner-product"><span class="header-section-number">48.1</span> Inner product</a></li>
+  <li><a href="#legendre" id="toc-legendre" class="nav-link" data-scroll-target="#legendre"><span class="header-section-number">48.2</span> Legendre</a></li>
+  <li><a href="#general-weight-function" id="toc-general-weight-function" class="nav-link" data-scroll-target="#general-weight-function"><span class="header-section-number">48.3</span> General weight function</a>
+  <ul class="collapse">
+  <li><a href="#three-term-reccurence" id="toc-three-term-reccurence" class="nav-link" data-scroll-target="#three-term-reccurence"><span class="header-section-number">48.3.1</span> Three-term reccurence</a></li>
+  </ul></li>
+  <li><a href="#chebyshev" id="toc-chebyshev" class="nav-link" data-scroll-target="#chebyshev"><span class="header-section-number">48.4</span> Chebyshev</a>
+  <ul class="collapse">
+  <li><a href="#integration" id="toc-integration" class="nav-link" data-scroll-target="#integration"><span class="header-section-number">48.4.1</span> Integration</a></li>
+  <li><a href="#examples-of-quadrature-formula" id="toc-examples-of-quadrature-formula" class="nav-link" data-scroll-target="#examples-of-quadrature-formula"><span class="header-section-number">48.4.2</span> Examples of quadrature formula</a></li>
+  </ul></li>
+  <li><a href="#questions" id="toc-questions" class="nav-link" data-scroll-target="#questions"><span class="header-section-number">48.5</span> Questions</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/jverzani/CalculusWithJuliaNotes.jl/edit/main/quarto/integrals/orthogonal_polynomials.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jverzani/CalculusWithJuliaNotes.jl/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../integrals.html">Integrals</a></li><li class="breadcrumb-item"><a href="../integrals/orthogonal_polynomials.html"><span class="chapter-number">48</span>&nbsp; <span class="chapter-title">Orthogonal polynomials</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">48</span>&nbsp; <span class="chapter-title">Orthogonal polynomials</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>This section uses these add-on packages:</p>
+<div id="14" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">SymPy</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">QuadGK</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Roots</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">ForwardDiff</span>: derivative</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>This section takes a detour to give some background on why the underlying method of <code>quadgk</code> is more efficient than those of Riemann sums. Orthogonal polynomials play a key role. There are many families of such polynomials. We highlight two.</p>
+<section id="inner-product" class="level2" data-number="48.1">
+<h2 data-number="48.1" class="anchored" data-anchor-id="inner-product"><span class="header-section-number">48.1</span> Inner product</h2>
+<p>Define an operation between two integrable, real-valued functions <span class="math inline">\(f(x)\)</span> and <span class="math inline">\(g(x)\)</span> by:</p>
+<p><span class="math display">\[
+\langle f, g \rangle =  \int_{-1}^1 f(x)g(x) dx
+\]</span></p>
+<p>The properties of the integral mean this operation satisfies these three main properties:</p>
+<ul>
+<li>symmetry: <span class="math inline">\(\langle f, g \rangle  = \langle g,f \rangle\)</span></li>
+<li>positive definiteness: <span class="math inline">\(\langle f, f \rangle &gt; 0\)</span> <em>unless</em> <span class="math inline">\(f(x)=0\)</span>.</li>
+<li>linearity: if <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> are scalars, then <span class="math inline">\(\langle af + bg, h \rangle  = a\langle f, h \rangle + b \langle g, h \rangle\)</span>.</li>
+</ul>
+<p>The set of integrable functions forms a <em>vector space</em>, which simply means two such functions can be added to yield another integrable function and an integrable function times a scalar is still an integrable function. Many different collections of objects form a vector space. In particular, other sets of functions form a vector space, for example the collection of polynomials of degree <span class="math inline">\(n\)</span> or less or just the set of all polynomials.</p>
+<p>For a vector space, an operation like the above satisfying these three properties is called an <em>inner product</em>; the combination of an inner product and a vector space is called an <em>inner product space</em>. In the following, we assume <span class="math inline">\(f\)</span> and <span class="math inline">\(g\)</span> are from a vector space with a real-valued inner product.</p>
+<p>Inner products introduce a sense of size through a <em>norm</em>: <span class="math inline">\(\lVert f \rVert = \sqrt{\langle f, f\rangle }\)</span>.</p>
+<p>Norms satisfy two main properties:</p>
+<ul>
+<li>scalar: <span class="math inline">\(\lVert af \rVert = |a|\lVert f\rVert\)</span></li>
+<li>triangle inequality: <span class="math inline">\(\lVert f + g \rVert \leq \lvert f \rVert + \lVert g \rVert\)</span></li>
+</ul>
+<p>Two elements of an inner product space, <span class="math inline">\(f\)</span> and <span class="math inline">\(g\)</span>, are <em>orthogonal</em> if <span class="math inline">\(\langle f, g \rangle = 0\)</span>. This is a generalization of perpendicular. The Pythagorean theorem for orthogonal elements holds: <span class="math inline">\(\lVert f\rVert^2 + \lVert g\rVert^2 = \lVert f+g\rVert^2\)</span>.</p>
+<p>As we assume a real-valued inner product, the angle between two elements can be defined by:</p>
+<p><span class="math display">\[
+\angle(f,g) = \cos^{-1}\left(\frac{\langle f, g\rangle}{\lVert f \rVert \lVert g \rVert}\right).
+\]</span></p>
+<p>This says, the angle between two orthogonal elements is <span class="math inline">\(90\)</span> degrees (in some orientation)</p>
+<p>The Cauchy-Schwarz inequality, <span class="math inline">\(|\langle f, g \rangle| \leq \lVert f \rVert \lVert g\rVert\)</span>, for an inner product space, ensures the argument to <span class="math inline">\(\cos^{-1}\)</span> is between <span class="math inline">\(-1\)</span> and <span class="math inline">\(1\)</span>.</p>
+<p>These properties generalize two-dimensional vectors, with components <span class="math inline">\(\langle x, y\rangle\)</span>. Recall, these can be visualized by placing a tail at the origin and a tip at the point <span class="math inline">\((x,y)\)</span>. Such vectors can be added by placing the tail of one at the tip of the other and using the vector from the other tail to the other tip.</p>
+<p>With this, we have a vector anchored at the origin can be viewed as a line segment with slope <span class="math inline">\(y/x\)</span> (rise over run). A perpendicular line segment would have slope <span class="math inline">\(-x/y\)</span> (the negative reciprocal) which would be associated with the vector <span class="math inline">\(\langle y, -x \rangle\)</span>. The dot product is just the sum of the multiplied components, or for these two vectors <span class="math inline">\(x\cdot y + y\cdot (-x)\)</span>, which is <span class="math inline">\(0\)</span>, as the line segments are perpendicular (orthogonal).</p>
+<p>Consider now two vectors, say <span class="math inline">\(f\)</span>, <span class="math inline">\(g\)</span>. We can make a new vector that is orthogonal to <span class="math inline">\(f\)</span> by combining <span class="math inline">\(g\)</span> with a piece of <span class="math inline">\(f\)</span>. But what piece?</p>
+<p>Consider this</p>
+<p><span class="math display">\[
+\begin{align*}
+\langle f, g - \frac{\langle f,g\rangle}{\langle f, f\rangle} f \rangle
+&amp;= \langle f, g \rangle - \langle f, \frac{\langle f,g\rangle}{\langle f, f\rangle} f \rangle \\
+&amp;= \langle f, g \rangle - \frac{\langle f,g\rangle}{\langle f, f\rangle}\langle f,f \rangle \\
+&amp;= \langle f, g \rangle - \langle f, g \rangle  = 0
+\end{align*}
+\]</span></p>
+<p>Define <span class="math display">\[
+proj_f(g) = \frac{\langle f,g\rangle }{\langle f, f\rangle} f,
+\]</span> then we have <span class="math inline">\(u_1 = f\)</span> and <span class="math inline">\(u_2 = g-proj_f(g)\)</span>, <span class="math inline">\(u_1\)</span> and <span class="math inline">\(u_2\)</span> are orthogonal.</p>
+<p>A similar calculation shows if <span class="math inline">\(h\)</span> is added to the set of elements, then <span class="math inline">\(u_3 = h - proj_{u_1}(h) - proj_{u_2}(h)\)</span> will be orthogonal to <span class="math inline">\(u_1\)</span> and <span class="math inline">\(u_2\)</span>. etc.</p>
+<p>This process, called the <a href="https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process">Gram-Schmidt</a> process, can turn any set of vectors into a set of orthogonal vectors, assuming they are all non zero and no non-trivial linear combination makes them zero.</p>
+</section>
+<section id="legendre" class="level2" data-number="48.2">
+<h2 data-number="48.2" class="anchored" data-anchor-id="legendre"><span class="header-section-number">48.2</span> Legendre</h2>
+<p>Consider now polynomials of degree <span class="math inline">\(n\)</span> or less with the normalization that <span class="math inline">\(p(1) = 1\)</span>. We begin with two such polynomials: <span class="math inline">\(u_0(x) = 1\)</span> and <span class="math inline">\(u_1(x) = x\)</span>.</p>
+<p>These are orthogonal with respect to <span class="math inline">\(\int_{-1}^1 f(x) g(x) dx\)</span>, as</p>
+<p><span class="math display">\[
+\int_{-1}^1 u_0(x) u_1(x) dx =
+\int_{-1}^1 1 \cdot x dx =
+x^2 \mid_{-1}^1 = 1^2 - (-1)^2 = 0.
+\]</span></p>
+<p>Now consider a quadratic polynomial, <span class="math inline">\(u_2(x) =  ax^2 + bx + c\)</span>, we want a polynomial which is orthogonal to <span class="math inline">\(u_0\)</span> and <span class="math inline">\(u_1\)</span> with the extra condition that <span class="math inline">\(u_2(1) = c =1\)</span> (or <span class="math inline">\(c=1\)</span>.). We can do this using Gram-Schmidt as above, or as here through a system of two equations:</p>
+<div id="16" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> a b c d x</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>u0 <span class="op">=</span> <span class="fl">1</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>u1 <span class="op">=</span> x</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>u2 <span class="op">=</span> a<span class="op">*</span>x<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> b<span class="op">*</span>x <span class="op">+</span> c</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>eqs <span class="op">=</span> (<span class="fu">integrate</span>(u0 <span class="op">*</span> u2, (x, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>)) <span class="op">~</span> <span class="fl">0</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>       <span class="fu">integrate</span>(u1 <span class="op">*</span> u2, (x, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>)) <span class="op">~</span> <span class="fl">0</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>sols <span class="op">=</span> <span class="fu">solve</span>(eqs, (a, b, c))     <span class="co"># b =&gt; 0, a =&gt; -3c</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>u2 <span class="op">=</span> <span class="fu">u2</span>(sols<span class="op">...</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>u2 <span class="op">=</span> <span class="fu">simplify</span>(u2 <span class="op">/</span> <span class="fu">u2</span>(x<span class="op">=&gt;</span><span class="fl">1</span>))     <span class="co"># make u2(1) = 1 and fix c</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display cell-output-markdown" data-execution_count="1">
+<p><span class="math inline">\(\frac{3 x^{2}}{2} - \frac{1}{2}\)</span></p>
+</div>
+</div>
+<p>The quadratic polynomial has <span class="math inline">\(3\)</span> unknowns and the orthgonality conditions give two equations. Solving these equations leaves one unknown (<code>c</code>). But the normalization condition (that <span class="math inline">\(u_i(1) = 1\)</span>) allows <code>c</code> to be simplified out.</p>
+<p>We can do this again with <span class="math inline">\(u_3\)</span>:</p>
+<div id="18" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>u3 <span class="op">=</span> a<span class="op">*</span>x<span class="op">^</span><span class="fl">3</span> <span class="op">+</span> b<span class="op">*</span>x<span class="op">^</span><span class="fl">2</span> <span class="op">+</span> c<span class="op">*</span>x <span class="op">+</span> d</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>eqs <span class="op">=</span> (<span class="fu">integrate</span>(u0 <span class="op">*</span> u3, (x, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>)) <span class="op">~</span> <span class="fl">0</span>,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>       <span class="fu">integrate</span>(u1 <span class="op">*</span> u3, (x, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>)) <span class="op">~</span> <span class="fl">0</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>       <span class="fu">integrate</span>(u2 <span class="op">*</span> u3, (x, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>)) <span class="op">~</span> <span class="fl">0</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>sols <span class="op">=</span> <span class="fu">solve</span>(eqs, (a, b, c, d))  <span class="co"># a =&gt; -5c/3, b=&gt;0, d=&gt;0</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>u3 <span class="op">=</span> <span class="fu">u3</span>(sols<span class="op">...</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>u3 <span class="op">=</span> <span class="fu">simplify</span>(u3<span class="op">/</span><span class="fu">u3</span>(x<span class="op">=&gt;</span><span class="fl">1</span>))       <span class="co"># make u3(1) = 1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display cell-output-markdown" data-execution_count="1">
+<p><span class="math inline">\(\frac{x \left(5 x^{2} - 3\right)}{2}\)</span></p>
+</div>
+</div>
+<p>In theory, this can be continued up until any <span class="math inline">\(n\)</span>. The resulting polynomials are called the <a href="https://en.wikipedia.org/wiki/Legendre_polynomials">Legendre</a> polynomials.</p>
+<p>Rather than continue this, we develop easier means to generate these polynomials.</p>
+</section>
+<section id="general-weight-function" class="level2" data-number="48.3">
+<h2 data-number="48.3" class="anchored" data-anchor-id="general-weight-function"><span class="header-section-number">48.3</span> General weight function</h2>
+<p>Let <span class="math inline">\(w(x)\)</span> be some non-negative function and consider the new inner product between two polynomials:</p>
+<p><span class="math display">\[
+\langle p, q\rangle = \int_I p(x) q(x) w(x) dx
+\]</span></p>
+<p>where <span class="math inline">\(I\)</span> is an interval and <span class="math inline">\(w(x)\)</span> is called a weight function. In the above discussion <span class="math inline">\(I=[-1,1]\)</span> and <span class="math inline">\(w(x) = 1\)</span>.</p>
+<p>Suppose we have <em>orthogonal</em> polynomials <span class="math inline">\(p_i(x)\)</span>, <span class="math inline">\(i=0,1, \dots, n\)</span>, where <span class="math inline">\(p_i\)</span> is a polynomial of degree <span class="math inline">\(i\)</span> (<span class="math inline">\(p_i(x) = k_i x^i + \cdots\)</span>, where <span class="math inline">\(k_i \neq 0\)</span>), and</p>
+<p><span class="math display">\[
+\langle p_m, p_n \rangle =
+\int_I p_m(x) p_n(x) w(x) dx =
+\begin{cases}
+0 &amp; m \neq n\\
+h_m &amp; m = n
+\end{cases}
+\]</span></p>
+<p>Unique elements can be defined by specifying some additional property. For Legendre, it was <span class="math inline">\(p_n(1)=1\)</span>, for other orthogonal families this may be specified by having leading coefficient of <span class="math inline">\(1\)</span> (monic), or a norm of <span class="math inline">\(1\)</span> (orthonormal), etc.</p>
+<p>The above is the <em>absolutely continuous</em> case, generalizations of the integral allow this to be more general.</p>
+<p>Orthogonality can be extended: If <span class="math inline">\(q(x)\)</span> is any polynomial of degree <span class="math inline">\(m &lt; n\)</span>, then <span class="math inline">\(\langle q, p_n \rangle = \int_I q(x) p_n(x) w(x) dx = 0\)</span>. (See the questions for more detail.)</p>
+<p>Some names used for the characterizing constants are:</p>
+<ul>
+<li><span class="math inline">\(p_n(x) = k_n x^n + \cdots\)</span> (<span class="math inline">\(k_n\)</span> is the leading term)</li>
+<li><span class="math inline">\(h_n = \langle p_n, p_n\rangle\)</span></li>
+</ul>
+<section id="three-term-reccurence" class="level3" data-number="48.3.1">
+<h3 data-number="48.3.1" class="anchored" data-anchor-id="three-term-reccurence"><span class="header-section-number">48.3.1</span> Three-term reccurence</h3>
+<p>Orthogonal polynomials, as defined above through a weight function, satisfy a <em>three-term recurrence</em>:</p>
+<p><span class="math display">\[
+p_{n+1}(x) = (A_n x + B_n) p_n(x) - C_n p_{n-1}(x),
+\]</span></p>
+<p>where <span class="math inline">\(n \geq 0\)</span> and <span class="math inline">\(p_{n-1}(x) = 0\)</span>.</p>
+<p>(With this and knowledge of <span class="math inline">\(A_n\)</span>, <span class="math inline">\(B_n\)</span>, and <span class="math inline">\(C_n\)</span>, the polynomials can be recursively generated from just specifying a value for the constant <span class="math inline">\(p_0(x)\)</span>.</p>
+<p>First, <span class="math inline">\(p_{n+1}\)</span> has leading term <span class="math inline">\(k_{n+1}x^{n+1}\)</span>. Looking on the right hand side for the coefficient of <span class="math inline">\(x^{n+1}\)</span> we find <span class="math inline">\(A_n k_n\)</span>, so <span class="math inline">\(A_n = k_{n+1}/k_n\)</span>.</p>
+<p>Next, we look at <span class="math inline">\(u(x) = p_{n+1}(x) - A_n x p_n(x)\)</span>, a polynomial of degree <span class="math inline">\(n\)</span> or less.</p>
+<p>As this has degree <span class="math inline">\(n\)</span> or less, it can be expressed in terms of <span class="math inline">\(p_0, p_1, \dots, p_n\)</span>. Write it as <span class="math inline">\(u(x) = \sum_{j=0}^n d_j p_j(x)\)</span>. Now, take any <span class="math inline">\(m &lt; n-1\)</span> and consider <span class="math inline">\(p_m\)</span>. We consider the inner product of <span class="math inline">\(u\)</span> and <span class="math inline">\(p_m\)</span> two ways:</p>
+<p><span class="math display">\[
+\begin{align*}
+\int_I p_m(x) u(x) w(x) dx &amp;=
+\int_I p_m(x) \sum_{j=0}^n p_j(x) w(x) dx \\
+&amp;= \int_I p_m(x) \left(p_m(x) + \textcolor{red}{\sum_{j=0, j\neq m}^{n} p_j(x)}\right) w(x) dx \\
+&amp;= \int_I p_m(x) p_m(x) w(x) dx = h_m
+\end{align*}
+\]</span></p>
+<p>As well</p>
+<p><span class="math display">\[
+\begin{align*}
+\int_I p_m(x) u(x) w(x) dx
+&amp;= \int_I p_m(x) (p_{n+1}(x) - A_n x p_n(x)) w(x) dx \\
+&amp;= \int_I p_m(x) \textcolor{red}{p_{n+1}(x)} w(x) dx -  \int_I p_m(x) A_n x p_n(x) w(x) dx\\
+&amp;= 0 - A_n \int_I (\textcolor{red}{x p_m(x)}) p_n(x) w(x) dx\\
+&amp;= 0
+\end{align*}
+\]</span></p>
+<p>The last integral being <span class="math inline">\(0\)</span> as <span class="math inline">\(xp_m(x)\)</span> has degree <span class="math inline">\(n-1\)</span> or less and hence is orthogonal to <span class="math inline">\(p_n\)</span>.</p>
+<p>That is <span class="math inline">\(p_{n+1} - A_n x p_n(x) = d_n p_n(x) + d_{n-1} p_{n-1}(x)\)</span>. Setting <span class="math inline">\(B_n=d_n\)</span> and <span class="math inline">\(C_{n-1} = -d_{n-1}\)</span> shows the three-term recurrence applies.</p>
+<section id="example-legendre-polynomials" class="level4">
+<h4 class="anchored" data-anchor-id="example-legendre-polynomials">Example: Legendre polynomials</h4>
+<p>With this notation, the Legendre polynomials have:</p>
+<p><span class="math display">\[
+\begin{align*}
+w(x) &amp;= 1\\
+I    &amp;= [-1,1]\\
+A_n  &amp;= \frac{2n+1}{n+1}\\
+B_n  &amp;= 0\\
+C_n  &amp; = \frac{n}{n+1}\\
+k_{n+1}  &amp;= \frac{2n+1}{n+1}k_n - \frac{n}{n-1}k_{n-1}, k_1=k_0=1\\
+h_n  &amp;= \frac{2}{2n+1}
+\end{align*}
+\]</span></p>
+</section>
+<section id="favard-theorem" class="level4">
+<h4 class="anchored" data-anchor-id="favard-theorem">Favard theorem</h4>
+<p>In an efficient review of the subject, <a href="https://arxiv.org/pdf/1303.2825">Koornwinder</a> states conditions on the recurrence that ensure that if a <span class="math inline">\(n\)</span>-th degree polynomials <span class="math inline">\(p_n\)</span> satisfy a three-term recurrence, then there is an associated weight function (suitably generalized). The conditions use this form of a three-term recurrence:</p>
+<p><span class="math display">\[
+\begin{align*}
+xp_n(x) &amp;= a_n p_{n+1}(x) + b_n p_n(x) + c_n p_{n-1}(x),\quad (n &gt; 0)\\
+xp_0(x) &amp;= a_0 p_1(x) + b_0 p_0(x)
+\end{align*}
+\]</span></p>
+<p>where the constants are real and <span class="math inline">\(a_n c_{n+1} &gt; 0\)</span>. These force <span class="math inline">\(a_n = k_n/k_{n+1}\)</span> and <span class="math inline">\(c_n/h_{n+1} = a_n/h_n\)</span></p>
+</section>
+<section id="clenshaw-algorithm" class="level4">
+<h4 class="anchored" data-anchor-id="clenshaw-algorithm">Clenshaw algorithm</h4>
+<p>When introducing polynomials, the synthetic division algorithm was given to compute <span class="math inline">\(p(x) / (x-r)\)</span>. This same algorithm also computed <span class="math inline">\(p(r)\)</span> efficiently and is called Horner’s method. The <code>evalpoly</code> method in <code>Julia</code>’s base implements this.</p>
+<p>For a set of polynomials <span class="math inline">\(p_0(x), p_1(x), \dots, p_n(x)\)</span> satisfying a three-term recurrence <span class="math inline">\(p_{n+1}(x) = (A_n x + B_n) p_n(x) - C_n p_{n-1}(x)\)</span>, the Clenshaw algorithm gives an efficient means to compute an expression of a linear combination of the polynomials, <span class="math inline">\(q(x) = a_0 p_0(x) + a_1 p_1(x) + \cdots + a_n p_n(x)\)</span>.</p>
+<p>The <a href="https://en.wikipedia.org/wiki/Clenshaw_algorithm">method</a> uses a reverse recurrence formula starting with</p>
+<p><span class="math display">\[
+b_{n+1}(x) = b_{n+2}(x) = 0
+\]</span></p>
+<p>and then computing for <span class="math inline">\(k = n, n-1, \dots, 1\)</span></p>
+<p><span class="math display">\[
+b_k(x) = a_k + (A_k x + B_k) b_{k+1}(x) - C_k b_{k+2}(x)
+\]</span></p>
+<p>Finally finishing by computing <span class="math inline">\(a_0 p_0(x)  + b_1 p_1(x) - C(1) p_0(x) b_2\)</span>.</p>
+<p>For example, with the Legendre polynomials, we have</p>
+<div id="20" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">A</span>(n) <span class="op">=</span> (<span class="fl">2</span>n<span class="op">+</span><span class="fl">1</span>)<span class="op">//</span>(n<span class="op">+</span><span class="fl">1</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">B</span>(n) <span class="op">=</span> <span class="fl">0</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">C</span>(n) <span class="op">=</span> n <span class="op">//</span> (n<span class="op">+</span><span class="fl">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>C (generic function with 1 method)</code></pre>
+</div>
+</div>
+<p>Say we want to compute <span class="math inline">\(a_0 u_0(x) + a_1 u_1(x) + a_2 u_2(x) + a_3 u_3(x) + a_4 u_4(x)\)</span>. The necessary inputs are the coefficients, the value of <span class="math inline">\(x\)</span>, and polynomials <span class="math inline">\(p_0\)</span> and <span class="math inline">\(p_1\)</span>.</p>
+<div id="22" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">clenshaw</span>(x, as, p0, p1)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="fu">length</span>(as) <span class="op">-</span> <span class="fl">1</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    bn1, bn2 <span class="op">=</span> <span class="fl">0</span>, <span class="fl">0</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">a</span>(k) <span class="op">=</span> as[k <span class="op">+</span> <span class="fl">1</span>]  <span class="co"># offset</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> k <span class="kw">in</span> n<span class="op">:-</span><span class="fl">1</span><span class="op">:</span><span class="fl">1</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>        bn1, bn2 <span class="op">=</span> <span class="fu">a</span>(k) <span class="op">+</span>  (<span class="fu">A</span>(k) <span class="op">*</span> x <span class="op">+</span> <span class="fu">B</span>(k)) <span class="op">*</span> bn1 <span class="op">-</span> <span class="fu">C</span>(k<span class="op">+</span><span class="fl">1</span>) <span class="op">*</span> bn2, bn1</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    b1, b2 <span class="op">=</span> bn1, bn2</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">p0</span>(x) <span class="op">*</span> <span class="fu">a</span>(<span class="fl">0</span>) <span class="op">+</span> <span class="fu">p1</span>(x) <span class="op">*</span> b1 <span class="op">-</span> <span class="fu">C</span>(<span class="fl">1</span>) <span class="op">*</span> <span class="fu">p0</span>(x) <span class="op">*</span> b2</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>clenshaw (generic function with 1 method)</code></pre>
+</div>
+</div>
+<p>This function can be purposed to generate additional Legendre polynomials. For example, to compute <span class="math inline">\(u_4\)</span> we pass in a symbolic value for <span class="math inline">\(x\)</span> and mask out all by <span class="math inline">\(a_4\)</span> in our coefficients:</p>
+<div id="24" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">p₀</span>(x) <span class="op">=</span> <span class="fl">1</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">p₁</span>(x) <span class="op">=</span> x <span class="co"># Legendre</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="pp">@syms</span> x</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="fu">clenshaw</span>(x, (<span class="fl">0</span>,<span class="fl">0</span>,<span class="fl">0</span>,<span class="fl">0</span>,<span class="fl">1</span>), p₀, p₁) <span class="op">|&gt;</span> expand <span class="op">|&gt;</span> simplify</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display cell-output-markdown" data-execution_count="1">
+<p><span class="math inline">\(\frac{35 x^{4}}{8} - \frac{15 x^{2}}{4} + \frac{3}{8}\)</span></p>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Differential equations approach
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A different description of families of orthogonal polynomials is that they satisfy a differential equation of the type</p>
+<p><span class="math display">\[
+\sigma(x) y''(x) + \tau(x) y'(x) + \lambda_n y(x) = 0,
+\]</span></p>
+<p>where <span class="math inline">\(\sigma(x) = ax^2 + bx + c\)</span>, <span class="math inline">\(\tau(x) = dx + e\)</span>, and <span class="math inline">\(\lambda_n = -(a\cdot n(n-1) + dn)\)</span>.</p>
+<p>With this parameterization, values for <span class="math inline">\(A_n\)</span>, <span class="math inline">\(B_n\)</span>, and <span class="math inline">\(C_n\)</span> can be given in terms of the leading coefficient, <span class="math inline">\(k_n\)</span> (cf.&nbsp;<a href="https://arxiv.org/pdf/math/9612224">Koepf and Schmersau</a>):</p>
+<p><span class="math display">\[
+\begin{align*}
+A_n &amp;= \frac{k_{n+1}}{k_n}\\
+B_n &amp;= \frac{k_{n+1}}{k_n} \frac{2bn(a(n-1)+d) + e(d-2a)}{(2a(n-1) + d)(2an+d)}\\
+C_n &amp;= \frac{k_{n+1}}{k_{n-1}}
+\frac{n(a(n-1) + d)(a(n-2)+d)(n(an+d))(4ac-b^2)+ae^2+cd^2-bde}{
+(a(n-1)+d)(a(2n-1)+d)(a(2n-3)+d)(2a(n-1)+d)^2}
+\end{align*}
+\]</span></p>
+<p>There are other relations between derivatives and the orthogonal polynomials. For example, another three-term recurrence is:</p>
+<p><span class="math display">\[
+\sigma(x) p_n'(x) = (\alpha_n x + \beta_n)p_n(x) + \gamma_n p_{n-1}(x)
+\]</span></p>
+<p>The same reference has formulas for <span class="math inline">\(\alpha\)</span>, <span class="math inline">\(\beta\)</span>, and <span class="math inline">\(\gamma\)</span> in terms of <span class="math inline">\(a,b,c,d\)</span>, and <span class="math inline">\(e\)</span> along with many others.</p>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="chebyshev" class="level2" data-number="48.4">
+<h2 data-number="48.4" class="anchored" data-anchor-id="chebyshev"><span class="header-section-number">48.4</span> Chebyshev</h2>
+<p>The Chebyshev polynomials (of the first kind) satisfy the three-term recurrence</p>
+<p><span class="math display">\[
+T_{n+1}(x) = 2x T_n(x) - T_{n-1}(x)
+\]</span></p>
+<p>with <span class="math inline">\(T_0(x)= 1\)</span> and <span class="math inline">\(T_1(x)=x\)</span>.</p>
+<p>These polynomials have domain <span class="math inline">\((-1,1)\)</span> and weight function <span class="math inline">\((1-x^2)^{-1/2}\)</span>.</p>
+<p>(The Chebyshev polynomials of the second kind satisfy the same three-term recurrence but have <span class="math inline">\(U_0(x)=1\)</span> and <span class="math inline">\(U_1(x)=2x\)</span>.)</p>
+<p>These polynomials are related to trigonometry through</p>
+<p><span class="math display">\[
+T_n(\cos(\theta))  = \cos(n\theta)
+\]</span></p>
+<p>This characterization makes it easy to find the zeros of the polynomial <span class="math inline">\(T_n\)</span>, as they happen when <span class="math inline">\(\cos(n\theta)\)</span> is <span class="math inline">\(0\)</span>, or when <span class="math inline">\(n\theta = \pi/2 + k\pi\)</span> for <span class="math inline">\(k\)</span> in <span class="math inline">\(0\)</span> to <span class="math inline">\(n-1\)</span>. Solving for <span class="math inline">\(\theta\)</span> and taking the cosine, we get the zeros of the <span class="math inline">\(n\)</span>th degree polynomial <span class="math inline">\(T_n\)</span> are <span class="math inline">\(\cos(\pi(k + 1/2)/n)\)</span> for <span class="math inline">\(k\)</span> in <span class="math inline">\(0\)</span> to <span class="math inline">\(n-1\)</span>.</p>
+<p>These evenly spaced angles lead to roots more concentrated at the edges of the interval <span class="math inline">\((-1,1)\)</span>.</p>
+<section id="example" class="level5">
+<h5 class="anchored" data-anchor-id="example">Example</h5>
+<p>Chebyshev polynomials have a minimal property that makes them fundamental for use with interpolation.</p>
+<p>Define the <em>infinity</em> norm over <span class="math inline">\([-1,1]\)</span> to be the maximum value of the absolute value of the function over these values.</p>
+<p>Let <span class="math inline">\(f(x) = 2^{-n+1}T_n(x)\)</span> be a monic version of the Chebyshev polynomial.</p>
+<blockquote class="blockquote">
+<p>If <span class="math inline">\(q(x)\)</span> is any monic polynomial of degree <span class="math inline">\(n\)</span>, then the infinity norm of <span class="math inline">\(q(x)\)</span> is greater than or equal to that of <span class="math inline">\(f\)</span>.</p>
+</blockquote>
+<p>Using the trigonometric representation of <span class="math inline">\(T_n\)</span>, we have</p>
+<ul>
+<li><span class="math inline">\(f(x)\)</span> has infinity norm of <span class="math inline">\(2^{-n+1}\)</span> and these maxima occur at <span class="math inline">\(x=\cos((k\pi)/n)\)</span>, where <span class="math inline">\(0 \leq k \leq n\)</span>. (There is a cosine curve with known peaks, oscillating between <span class="math inline">\(-1\)</span> and <span class="math inline">\(1\)</span>.)</li>
+<li><span class="math inline">\(f(x) &gt; 0\)</span> at <span class="math inline">\(x = \cos((2k\pi)/n)\)</span> for <span class="math inline">\(0 \leq 2k \leq n\)</span></li>
+<li><span class="math inline">\(f(x) &lt; 0\)</span> at <span class="math inline">\(x = \cos(((2k+1)\pi)/n)\)</span> for <span class="math inline">\(0 \leq 2k+1 \leq n\)</span></li>
+</ul>
+<p>Suppose <span class="math inline">\(w(x)\)</span> is a monic polynomial of degree <span class="math inline">\(n\)</span> and suppose it has smaller infinity norm. Consider <span class="math inline">\(u(x) = f(x) - w(x)\)</span>. At the extreme points of <span class="math inline">\(f(x)\)</span>, we must have <span class="math inline">\(|f(x)| \geq |w(x)|\)</span>. But this means</p>
+<ul>
+<li><span class="math inline">\(u(x) &gt; 0\)</span> at <span class="math inline">\(x = \cos((2k\pi)/n)\)</span> for <span class="math inline">\(0 \leq 2k \leq n\)</span></li>
+<li><span class="math inline">\(u(x) &lt; 0\)</span> at <span class="math inline">\(x = \cos(((2k+1)\pi)/n)\)</span> for <span class="math inline">\(0 \leq 2k+1 \leq n\)</span></li>
+</ul>
+<p>As <span class="math inline">\(u\)</span> is continuous, this means there are at least <span class="math inline">\(n\)</span> sign changes, hence <span class="math inline">\(n\)</span> or more zeros. But as both <span class="math inline">\(f\)</span> and <span class="math inline">\(w\)</span> are monic, <span class="math inline">\(u\)</span> is of degree <span class="math inline">\(n-1\)</span>, at most. This is a contradiction unless <span class="math inline">\(u(x)\)</span> is the zero polynomial, which it can’t be by assumption.</p>
+</section>
+<section id="integration" class="level3" data-number="48.4.1">
+<h3 data-number="48.4.1" class="anchored" data-anchor-id="integration"><span class="header-section-number">48.4.1</span> Integration</h3>
+<p>Recall, a Riemann sum can be thought of in terms of weights, <span class="math inline">\(w_i\)</span> and nodes <span class="math inline">\(x_i\)</span> for which <span class="math inline">\(\int_I f(x) dx \approx \sum_{i=0}^{n-1} w_i f(x_i)\)</span>. For a right-Riemann sum with partition given by <span class="math inline">\(a_0 &lt; a_1 &lt; \cdots &lt; a_n\)</span> the nodes are <span class="math inline">\(x_i = a_i\)</span> and the weights are <span class="math inline">\(w_i = (a_i - a_{i-1})\)</span> (or in the evenly spaced case, <span class="math inline">\(w_i = (a_n - a_0)/n\)</span>.</p>
+<p>More generally, this type of expression can represent integrals of the type <span class="math inline">\(\int_I f(x) w(x) dx\)</span>, with <span class="math inline">\(w(x)\)</span> as in an inner product. Call such a sum a Gaussian quadrature.</p>
+<p>We will see that the zeros of orthogonal polynomials have special properties as nodes.</p>
+<blockquote class="blockquote">
+<p>For orthogonal polynomials over the interval <span class="math inline">\(I\)</span> with weight function <span class="math inline">\(w(x)\)</span>, each <span class="math inline">\(p_n\)</span> has <span class="math inline">\(n\)</span> distinct real zeros in <span class="math inline">\(I\)</span>.</p>
+</blockquote>
+<p>Suppose that <span class="math inline">\(p_n\)</span> had only <span class="math inline">\(k&lt;n\)</span> sign changes at <span class="math inline">\(x_1, x_2, \dots, x_k\)</span>. Then for some choice of <span class="math inline">\(\delta\)</span>, <span class="math inline">\((-1)^\delta p(x) (x-x_1)(x-x_2)\cdots(x-x_k) \geq 0\)</span>. Since this is non zero, it must be that</p>
+<p><span class="math display">\[
+(-1)^\delta \int_I p(x) \left( (x-x_1)(x-x_2)\cdots(x-x_k)\right) w(x) dx &gt; 0
+\]</span></p>
+<p>But, the product is of degree <span class="math inline">\(k &lt; n\)</span>, so by orthogonality must be <span class="math inline">\(0\)</span>. Hence, it can’t be that <span class="math inline">\(k &lt; n\)</span>, so there must be <span class="math inline">\(n\)</span> sign changes in <span class="math inline">\(I\)</span> by <span class="math inline">\(p_n\)</span>. Each corresponds to a zero, as <span class="math inline">\(p_n\)</span> is continuous.</p>
+<p>This next statement says that using the zeros of <span class="math inline">\(p_n\)</span> for the nodes of Gaussian quadrature and appropriate weights that the quadrature is exact for higher degree polynomials.</p>
+<blockquote class="blockquote">
+<p>For a fixed <span class="math inline">\(n\)</span>, suppose <span class="math inline">\(p_0, p_1, \dots, p_n\)</span> are orthogonal polynomials over <span class="math inline">\(I\)</span> with weight function <span class="math inline">\(w(x)\)</span>. If the zeros of <span class="math inline">\(p_n\)</span> are the nodes <span class="math inline">\(x_i\)</span>, then there exists <span class="math inline">\(n\)</span> weights so that the any polynomial of degree <span class="math inline">\(2n-1\)</span> or less, the Gaussian quadrature is exact.</p>
+</blockquote>
+<p>That is if <span class="math inline">\(q(x)\)</span> is a polynomial with degree <span class="math inline">\(2n-1\)</span> or less, we have for some choice of <span class="math inline">\(w_i\)</span>:</p>
+<p><span class="math display">\[
+\int_I q(x) w(x) dx = \sum_{i=1}^n w_i q(x_i)
+\]</span></p>
+<p>To compare, recall, Riemann sums (<span class="math inline">\(1\)</span>-node) were exact for constant functions (degree <span class="math inline">\(0\)</span>), the trapezoid rule (<span class="math inline">\(2\)</span>-nodes) is exact for linear polynomials (degree <span class="math inline">\(1\)</span>), and Simpson’s rule (<span class="math inline">\(3\)</span> nodes) are exact for cubic polynomials (degree <span class="math inline">\(3\)</span>).</p>
+<p>We follow <a href="https://en.wikipedia.org/wiki/Gaussian_quadrature#Fundamental_theorem">Wikipedia</a> to see this key fact.</p>
+<p>Take <span class="math inline">\(h(x)\)</span> of degree <span class="math inline">\(2n-1\)</span> or less. Then by polynomial long division, there are polynomials <span class="math inline">\(q(x)\)</span> and <span class="math inline">\(r(x)\)</span> where</p>
+<p><span class="math display">\[
+h(x) = q(x) p_n(x) + r(x)
+\]</span></p>
+<p>and the degree of <span class="math inline">\(r(x)\)</span> is less than <span class="math inline">\(n-1\)</span>, the degree of <span class="math inline">\(p_n(x)\)</span>. Further, the degree of <span class="math inline">\(q(x)\)</span> is also less than <span class="math inline">\(n-1\)</span>, as were it more, then the degree of <span class="math inline">\(q(x)p_n(x)\)</span> would be more than <span class="math inline">\(n-1+n\)</span> or <span class="math inline">\(2n-1\)</span>. Let’s note that if <span class="math inline">\(x_i\)</span> is a zero of <span class="math inline">\(p_n(x)\)</span> that <span class="math inline">\(h(x_i)= r(x_i)\)</span>.</p>
+<p>So</p>
+<p><span class="math display">\[
+\begin{align*}
+\int_I h(x) w(x) dx &amp;= \int_I \textcolor{red}{q(x)} p_n(x) w(x) dx + \int_I r(x)  w(x)dx\\
+&amp;= 0 + \int r(x) w(x) dx.
+\end{align*}
+\]</span></p>
+<p>Now consider the polynomials made from the zeros of <span class="math inline">\(p_n(x)\)</span></p>
+<p><span class="math display">\[
+l_i(x) = \prod_{j \ne i} \frac{x - x_j}{x_i - x_j}
+\]</span></p>
+<p>These are called Lagrange interpolating polynomials and have the property that <span class="math inline">\(l_i(x_i) = 1\)</span> and <span class="math inline">\(l_i(x_j) = 0\)</span> if <span class="math inline">\(i \neq j\)</span>.</p>
+<p>These allow the expression of</p>
+<p><span class="math display">\[
+\begin{align*}
+r(x) &amp;= l_1(x)r(x_1) + l_2(x) r(x_2) + \cdots + l_n(x) r(x_n) \\
+&amp;= \sum_{i=1}^n l_i(x) r(x_i)
+\end{align*}
+\]</span></p>
+<p>This isn’t obviously true, but this expression agrees with an at-most degree <span class="math inline">\(n-1\)</span> polynomial (<span class="math inline">\(r(x)\)</span>) at <span class="math inline">\(n\)</span> points hence it must be the same polynomial.)</p>
+<p>With this representation, the integral becomes</p>
+<p><span class="math display">\[
+\begin{align*}
+\int_I h(x) w(x) dx &amp;= \int_I r(x)  w(x)dx \\
+&amp;= \int_I \sum_{i=1}^n l_i(x) r(x_i) w(x) dx\\
+&amp;= \sum_{i=1}^n r(x_i) \int_I l_i(x) w(x) dx \\
+&amp;= \sum_{i=1}^n r(x_i) w_i\\
+&amp;= \sum_{i=1}^n  w_i h(x_i)
+\end{align*}
+\]</span></p>
+<p>That is there are weights, <span class="math inline">\(w_i = \int_I l_i(x) w(x) dx\)</span>, for which the integration is exactly found by Gaussian quadrature using the roots of <span class="math inline">\(p_n\)</span> as the nodes.</p>
+<p>The general formula for the weights can be written in terms of the polynomials <span class="math inline">\(p_i = k_ix^i + \cdots\)</span>:</p>
+<p><span class="math display">\[
+\begin{align*}
+w_i &amp;= \int_I l_i(x) w(x) dx \\
+&amp;= \frac{k_n}{k_{n-1}}
+\frac{\int_I p_{n-1}(x)^2 w(x) dx}{p'_n(x_i) p_{n-1}(x_i)}.
+\end{align*}
+\]</span></p>
+<p>To see this, consider:</p>
+<p><span class="math display">\[
+\begin{align*}
+\prod_{j \neq i} (x - x_j) &amp;=
+\frac{\prod_j (x-x_j)}{x-x_i} \\
+&amp;= \frac{1}{k_n}\frac{k_n \prod_j (x - x_j)}{x - x_i} \\
+&amp;= \frac{1}{k_n} \frac{p_n(x)}{x-x_i}\\
+&amp;= \frac{1}{k_n} \frac{p_n(x) - p_n(x_i)}{x-x_i}\\
+&amp;\rightarrow \frac{p'_n(x_i)}{k_n}, \text{ as } x \rightarrow x_i.
+\end{align*}
+\]</span></p>
+<p>Thus</p>
+<p><span class="math display">\[
+\prod_{j \neq i} (x_i - x_j)  =  \frac{p'_n(x_i)}{k_n}.
+\]</span></p>
+<p>This gives</p>
+<p><span class="math display">\[
+\begin{align*}
+w_i &amp;= \int_i \frac{k_n \prod_j (x-x_j)}{p'_n(x_i)} w(x) dx\\
+&amp;= \frac{1}{p'_n(x_i)} \int_i \frac{p_n(x)}{x-x_i} w(x) dx
+\end{align*}
+\]</span></p>
+<p>To work on the last term, a trick (see the questions for detail) can show that for any <span class="math inline">\(k \leq n\)</span> that</p>
+<p><span class="math display">\[
+\int_I \frac{x^k p_n(x)}{x - x_i} w(x) dx
+= x_i^k \int_I \frac{p_n(x)}{x - x_i} w(x) dx
+\]</span></p>
+<p>Hence for any degree <span class="math inline">\(n\)</span> or less polynomial: we have</p>
+<p><span class="math display">\[
+q(x_i) \int_I \frac{p_n(x)}{x - x_i} w(x) dx =
+\int_I \frac{q(x) p_n(x)}{x - x_i} w(x) dx
+\]</span>.</p>
+<p>We will use this for <span class="math inline">\(p_{n-1}\)</span>. First, as <span class="math inline">\(x_i\)</span> is a zero of <span class="math inline">\(p_n(x)\)</span> we have</p>
+<p><span class="math display">\[
+\frac{p_n(x)}{x-x_i} = k_n x^{n-1}+ r(x),
+\]</span></p>
+<p>where <span class="math inline">\(r(x)\)</span> has degree <span class="math inline">\(n-2\)</span> at most. This is due to <span class="math inline">\(p_n\)</span> being divided by a monic polynomial, hence leaving a degree <span class="math inline">\(n-1\)</span> polynomial with leading coefficient <span class="math inline">\(k_n\)</span>.</p>
+<p>But then</p>
+<p><span class="math display">\[
+\begin{align*}
+w_i &amp;= \frac{1}{p'_n(x_i)} \int_I \frac{p_n(x)}{x-x_i} w(x) dx \\
+&amp;= \frac{1}{p'_n(x_i)} \frac{1}{p_{n-1}(x_i)} \int_I  \frac{p_{n-1}(x) p_n(x)}{x - x_i} w(x) dx\\
+&amp;= \frac{1}{p'_n(x_i)p_{n-1}(x_i)} \int_I p_{n-1}(x)
+(k_n x^{n-1} + \textcolor{red}{r(x)}) w(x) dx\\
+&amp;= \frac{k_n}{p'_n(x_i)p_{n-1}(x_i)} \int_I p_{n-1}(x) x^{n-1} w(x) dx\\
+&amp;= \frac{k_n}{p'_n(x_i)p_{n-1}(x_i)} \int_I p_{n-1}(x)
+\left(
+\textcolor{red}{\left(x^{n-1} - \frac{p_{n-1}(x)}{k_{n-1}}\right) }
++  \frac{p_{n-1}(x)}{k_{n-1}}\right) w(x) dx\\
+&amp;= \frac{k_n}{p'_n(x_i)p_{n-1}(x_i)} \int_I p_{n-1}(x)\frac{p_{n-1}(x)}{k_{n-1}} w(x) dx\\
+&amp;= \frac{k_n}{k_{n-1}} \frac{1}{p'_n(x_i)p_{n-1}(x_i)}  \int_I p_{n-1}(x)^2 w(x) dx.
+\end{align*}
+\]</span></p>
+</section>
+<section id="examples-of-quadrature-formula" class="level3" data-number="48.4.2">
+<h3 data-number="48.4.2" class="anchored" data-anchor-id="examples-of-quadrature-formula"><span class="header-section-number">48.4.2</span> Examples of quadrature formula</h3>
+<p>The <code>QuadGK</code> package uses a modification to Gauss quadrature to estimate numeric integrals. Let’s see how. Behind the scenes, <code>quadgk</code> calls <code>kronrod</code> to compute nodes and weights.</p>
+<p>We have from earlier that</p>
+<div id="26" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">u₃</span>(x) <span class="op">=</span> <span class="fu">x*</span>(<span class="fl">5</span>x<span class="op">^</span><span class="fl">2</span> <span class="op">-</span> <span class="fl">3</span>)<span class="op">/</span><span class="fl">2</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">u₄</span>(x) <span class="op">=</span> <span class="fl">35</span>x<span class="op">^</span><span class="fl">4</span> <span class="op">/</span> <span class="fl">8</span> <span class="op">-</span> <span class="fl">15</span>x<span class="op">^</span><span class="fl">2</span> <span class="op">/</span> <span class="fl">4</span> <span class="op">+</span> <span class="fl">3</span><span class="op">/</span><span class="fl">8</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>u₄ (generic function with 1 method)</code></pre>
+</div>
+</div>
+<div id="28" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> <span class="fu">find_zeros</span>(u₄, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>4-element Vector{Float64}:
+ -0.8611363115940525
+ -0.33998104358485626
+  0.33998104358485626
+  0.8611363115940525</code></pre>
+</div>
+</div>
+<p>From this we can compute the weights from the derived general formula:</p>
+<div id="30" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>k₃, k₄ <span class="op">=</span> <span class="fl">5</span><span class="op">/</span><span class="fl">2</span>, <span class="fl">35</span><span class="op">/</span><span class="fl">8</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">w</span>(x) <span class="op">=</span> <span class="fl">1</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>I <span class="op">=</span> <span class="fu">first</span>(<span class="fu">quadgk</span>(x <span class="op">-&gt;</span> <span class="fu">u₃</span>(x)<span class="op">^</span><span class="fl">2</span> <span class="op">*</span> <span class="fu">w</span>(x), <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>))</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>ws <span class="op">=</span> [k₄<span class="op">/</span>k₃ <span class="op">*</span> <span class="fl">1</span><span class="op">/</span>(<span class="fu">derivative</span>(u₄,xᵢ) <span class="op">*</span> <span class="fu">u₃</span>(xᵢ)) <span class="op">*</span> I for xᵢ <span class="op">∈</span> xs]</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>(xs, ws)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>([-0.8611363115940525, -0.33998104358485626, 0.33998104358485626, 0.8611363115940525], [0.34785484513745457, 0.652145154862546, 0.652145154862546, 0.34785484513745457])</code></pre>
+</div>
+</div>
+<p>We compare now to the values returned by <code>kronrod</code> in <code>QuadGK</code></p>
+<div id="32" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>kxs, kwts, wts <span class="op">=</span> <span class="fu">kronrod</span>(<span class="fl">4</span>, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>[ws wts xs kxs[<span class="fl">2</span><span class="op">:</span><span class="fl">2</span><span class="op">:</span><span class="kw">end</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>4×4 Matrix{Float64}:
+ 0.347855  0.347855  -0.861136  -0.861136
+ 0.652145  0.652145  -0.339981  -0.339981
+ 0.652145  0.652145   0.339981   0.339981
+ 0.347855  0.347855   0.861136   0.861136</code></pre>
+</div>
+</div>
+<p>(The <code>kronrod</code> function computes <span class="math inline">\(2n-1\)</span> nodes and weights. The Gauss-Legendre nodes are <span class="math inline">\(n\)</span> of those, and extracted by taking the 2nd, 4th, etc.)</p>
+<p>To compare integrations of some smooth function we have</p>
+<div id="34" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">u</span>(x) <span class="op">=</span> <span class="fu">exp</span>(x)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>GL <span class="op">=</span> <span class="fu">sum</span>(wᵢ <span class="op">*</span> <span class="fu">u</span>(xᵢ) <span class="cf">for</span> (xᵢ, wᵢ) <span class="op">∈</span> <span class="fu">zip</span>(xs, ws))</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>KL <span class="op">=</span> <span class="fu">sum</span>(wᵢ <span class="op">*</span> <span class="fu">u</span>(xᵢ) <span class="cf">for</span> (xᵢ, wᵢ) <span class="op">∈</span> <span class="fu">zip</span>(kxs, kwts))</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>QL, esterror <span class="op">=</span> <span class="fu">quadgk</span>(u, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>(; GL, KL, QL, esterror)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>(GL = 2.3504020921563784, KL = 2.3504023872876036, QL = 2.3504023872876028, esterror = 2.220446049250313e-15)</code></pre>
+</div>
+</div>
+<p>The first two are expected to not be as accurate, as they utilize a fixed number of nodes.</p>
+</section>
+</section>
+<section id="questions" class="level2" data-number="48.5">
+<h2 data-number="48.5" class="anchored" data-anchor-id="questions"><span class="header-section-number">48.5</span> Questions</h2>
+<section id="question" class="level6">
+<h6 class="anchored" data-anchor-id="question">Question</h6>
+<p>Let <span class="math inline">\(p_i\)</span> for <span class="math inline">\(i\)</span> in <span class="math inline">\(0\)</span> to <span class="math inline">\(n\)</span> be polynomials of degree <span class="math inline">\(i\)</span>. It is true that for any polynomial <span class="math inline">\(q(x)\)</span> of degree <span class="math inline">\(k \leq n\)</span> that there is a linear combination such that <span class="math inline">\(q(x) = a_0 p_0(x) + \cdots + a_k p_k(x)\)</span>.</p>
+<p>First it is enough to do this for a monic polynomial <span class="math inline">\(x^k\)</span>, why?</p>
+<div id="36" class="cell" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "rlgKBIDF"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="rlgKBIDF" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_rlgKBIDF" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <fieldset style="border:0px">
+<legend style="display: none" aria-label="Select an item">Select an item</legend>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_rlgKBIDF_1">
+    <input class="form-check-input" type="radio" name="radio_rlgKBIDF" id="radio_rlgKBIDF_1" value="1">
+    
+    <span class="label-body px-1">
+        It isn't true
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_rlgKBIDF_2">
+    <input class="form-check-input" type="radio" name="radio_rlgKBIDF" id="radio_rlgKBIDF_2" value="2">
+    
+    <span class="label-body px-1">
+        If you can do it for each \(x^i\) then if \(q(x) = b_0 + b_1x + b_2x^2 + \cdots + b_k x^k\) we just multiply the coefficients for each \(x^i\) by \(b_i\) and add.
+    </span>
+    </label>
+</div>
+</fieldset>
+
+         </div>
+    </div>
+    <div id="rlgKBIDF_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_rlgKBIDF').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_rlgKBIDF')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_rlgKBIDF"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('rlgKBIDF_message');
+    
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_rlgKBIDF")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_rlgKBIDF")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+})});
+
+</script>
+</div>
+</div></form>
+<p>Suppose <span class="math inline">\(p_0 = k_0\)</span> and <span class="math inline">\(p_1 = k_1x + a\)</span>. How would you make <span class="math inline">\(x=x^1\)</span>?</p>
+<div id="38" class="cell" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "piawWrZs"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="piawWrZs" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_piawWrZs" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <fieldset style="border:0px">
+<legend style="display: none" aria-label="Select an item">Select an item</legend>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_piawWrZs_1">
+    <input class="form-check-input" type="radio" name="radio_piawWrZs" id="radio_piawWrZs_1" value="1">
+    
+    <span class="label-body px-1">
+        \((p1 - (a/k_0) p_0)/k_1\)
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_piawWrZs_2">
+    <input class="form-check-input" type="radio" name="radio_piawWrZs" id="radio_piawWrZs_2" value="2">
+    
+    <span class="label-body px-1">
+        \(p1 - p0\)
+    </span>
+    </label>
+</div>
+</fieldset>
+
+         </div>
+    </div>
+    <div id="piawWrZs_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_piawWrZs').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_piawWrZs')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_piawWrZs"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('piawWrZs_message');
+    
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_piawWrZs")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_piawWrZs")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+})});
+
+</script>
+</div>
+</div></form>
+<p>Let <span class="math inline">\(p_i = k_i x^i + \cdots\)</span> (<span class="math inline">\(k_i\)</span> is the leading term) To reduce <span class="math inline">\(p_3 = k_3x^3 + a_2x^2 + a_1x^1 + a_0\)</span> to <span class="math inline">\(k_3x^3\)</span> we could try:</p>
+<ul>
+<li>form <span class="math inline">\(q_3 = p_3 - p_2 (a_2/k_2)\)</span>. As <span class="math inline">\(p_2\)</span> is degree <span class="math inline">\(2\)</span>, this leaves <span class="math inline">\(k_3x^3\)</span> alone, but it</li>
+</ul>
+<div id="40" class="cell" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "OGDJwSvV"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="OGDJwSvV" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_OGDJwSvV" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <fieldset style="border:0px">
+<legend style="display: none" aria-label="Select an item">Select an item</legend>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_OGDJwSvV_1">
+    <input class="form-check-input" type="radio" name="radio_OGDJwSvV" id="radio_OGDJwSvV_1" value="1">
+    
+    <span class="label-body px-1">
+        It leaves \(0\) as the coefficient of \(x^2\)
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_OGDJwSvV_2">
+    <input class="form-check-input" type="radio" name="radio_OGDJwSvV" id="radio_OGDJwSvV_2" value="2">
+    
+    <span class="label-body px-1">
+        It leaves all the other terms as \(0\)
+    </span>
+    </label>
+</div>
+</fieldset>
+
+         </div>
+    </div>
+    <div id="OGDJwSvV_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_OGDJwSvV').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_OGDJwSvV')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_OGDJwSvV"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('OGDJwSvV_message');
+    
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_OGDJwSvV")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_OGDJwSvV")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+})});
+
+</script>
+</div>
+</div></form>
+<ul>
+<li>We then use <span class="math inline">\(p_1\)</span> times some multiple <span class="math inline">\(a/k_1\)</span> to remove the <span class="math inline">\(x\)</span> term</li>
+<li>we then use <span class="math inline">\(p_0\)</span> times some multiple <span class="math inline">\(a/k_0\)</span> to remove the constant term</li>
+</ul>
+<p>Would this strategy work to reduce <span class="math inline">\(p_n\)</span> to <span class="math inline">\(k_n x^n\)</span>?</p>
+<div id="42" class="cell" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "yquFWZqx"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="yquFWZqx" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_yquFWZqx" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <fieldset style="border:0px">
+<legend style="display: none" aria-label="Select an item">Select an item</legend>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_yquFWZqx_1">
+    <input class="form-check-input" type="radio" name="radio_yquFWZqx" id="radio_yquFWZqx_1" value="1">
+    
+    <span class="label-body px-1">
+        Yes
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_yquFWZqx_2">
+    <input class="form-check-input" type="radio" name="radio_yquFWZqx" id="radio_yquFWZqx_2" value="2">
+    
+    <span class="label-body px-1">
+        No
+    </span>
+    </label>
+</div>
+</fieldset>
+
+         </div>
+    </div>
+    <div id="yquFWZqx_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_yquFWZqx').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_yquFWZqx')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_yquFWZqx"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('yquFWZqx_message');
+    
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_yquFWZqx")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_yquFWZqx")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+})});
+
+</script>
+</div>
+</div></form>
+</div></div></div></div></div></div></div></div></section>
+<section id="question-1" class="level6">
+<h6 class="anchored" data-anchor-id="question-1">Question</h6>
+<p>Suppose <span class="math inline">\(p(x)\)</span> and <span class="math inline">\(q(x)\)</span> are polynomials of degree <span class="math inline">\(n\)</span> and there are <span class="math inline">\(n+1\)</span> points for which <span class="math inline">\(p(x_i) = q(x_i)\)</span>.</p>
+<p>First, is it true or false that a polynomial of degree <span class="math inline">\(n\)</span> has <em>at most</em> n zeros?</p>
+<div id="44" class="cell" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "GAyRzuC5"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="GAyRzuC5" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_GAyRzuC5" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <fieldset style="border:0px">
+<legend style="display: none" aria-label="Select an item">Select an item</legend>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_GAyRzuC5_1">
+    <input class="form-check-input" type="radio" name="radio_GAyRzuC5" id="radio_GAyRzuC5_1" value="1">
+    
+    <span class="label-body px-1">
+        false
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_GAyRzuC5_2">
+    <input class="form-check-input" type="radio" name="radio_GAyRzuC5" id="radio_GAyRzuC5_2" value="2">
+    
+    <span class="label-body px-1">
+        true, unless it is the zero polynomial
+    </span>
+    </label>
+</div>
+</fieldset>
+
+         </div>
+    </div>
+    <div id="GAyRzuC5_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_GAyRzuC5').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_GAyRzuC5')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_GAyRzuC5"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('GAyRzuC5_message');
+    
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_GAyRzuC5")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_GAyRzuC5")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+})});
+
+</script>
+</div>
+</div></form>
+<p>What is the degree of <span class="math inline">\(h(x) = p(x) - q(x)\)</span>?</p>
+<div id="46" class="cell" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "L1fzxkGl"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="L1fzxkGl" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_L1fzxkGl" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <fieldset style="border:0px">
+<legend style="display: none" aria-label="Select an item">Select an item</legend>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_L1fzxkGl_1">
+    <input class="form-check-input" type="radio" name="radio_L1fzxkGl" id="radio_L1fzxkGl_1" value="1">
+    
+    <span class="label-body px-1">
+        At least \(n+1\)
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_L1fzxkGl_2">
+    <input class="form-check-input" type="radio" name="radio_L1fzxkGl" id="radio_L1fzxkGl_2" value="2">
+    
+    <span class="label-body px-1">
+        At most \(n\)
+    </span>
+    </label>
+</div>
+</fieldset>
+
+         </div>
+    </div>
+    <div id="L1fzxkGl_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_L1fzxkGl').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_L1fzxkGl')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_L1fzxkGl"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('L1fzxkGl_message');
+    
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_L1fzxkGl")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_L1fzxkGl")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+})});
+
+</script>
+</div>
+</div></form>
+<p>At least how many zeros does the polynomial <span class="math inline">\(h(x)\)</span> have?</p>
+<div id="48" class="cell" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "pqfMcJg3"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="pqfMcJg3" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_pqfMcJg3" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <fieldset style="border:0px">
+<legend style="display: none" aria-label="Select an item">Select an item</legend>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_pqfMcJg3_1">
+    <input class="form-check-input" type="radio" name="radio_pqfMcJg3" id="radio_pqfMcJg3_1" value="1">
+    
+    <span class="label-body px-1">
+        At most \(n\)
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_pqfMcJg3_2">
+    <input class="form-check-input" type="radio" name="radio_pqfMcJg3" id="radio_pqfMcJg3_2" value="2">
+    
+    <span class="label-body px-1">
+        At least \(n+1\)
+    </span>
+    </label>
+</div>
+</fieldset>
+
+         </div>
+    </div>
+    <div id="pqfMcJg3_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_pqfMcJg3').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_pqfMcJg3')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_pqfMcJg3"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('pqfMcJg3_message');
+    
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_pqfMcJg3")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_pqfMcJg3")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+})});
+
+</script>
+</div>
+</div></form>
+<p>Is <span class="math inline">\(p(x) = q(x)\)</span> with these assumptions?</p>
+<div id="50" class="cell" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "MFcZKi5O"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="MFcZKi5O" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_MFcZKi5O" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <fieldset style="border:0px">
+<legend style="display: none" aria-label="Select an item">Select an item</legend>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_MFcZKi5O_1">
+    <input class="form-check-input" type="radio" name="radio_MFcZKi5O" id="radio_MFcZKi5O_1" value="1">
+    
+    <span class="label-body px-1">
+        no
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_MFcZKi5O_2">
+    <input class="form-check-input" type="radio" name="radio_MFcZKi5O" id="radio_MFcZKi5O_2" value="2">
+    
+    <span class="label-body px-1">
+        yes
+    </span>
+    </label>
+</div>
+</fieldset>
+
+         </div>
+    </div>
+    <div id="MFcZKi5O_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_MFcZKi5O').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_MFcZKi5O')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_MFcZKi5O"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('MFcZKi5O_message');
+    
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_MFcZKi5O")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_MFcZKi5O")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+})});
+
+</script>
+</div>
+</div></form>
+</div></div></div></div></div></div></div></div></section>
+<section id="question-2" class="level6">
+<h6 class="anchored" data-anchor-id="question-2">Question</h6>
+<p>We wish to show that for any <span class="math inline">\(k \leq n\)</span> that</p>
+<p><span class="math display">\[
+\int_I \frac{x^k p_n(x)}{x - x_i} w(x) dx
+= x_i^k \int_I \frac{p_n(x)}{x - x_i} w(x) dx
+\]</span></p>
+<p>We have for <span class="math inline">\(u=x/x_i\)</span> that</p>
+<p><span class="math display">\[
+\frac{1}{x - x_i} = \frac{1 - u^k}{x - x_i} + \frac{u^k}{x - x_i}
+\]</span></p>
+<p>But the first term, <span class="math inline">\((1-u^k)/(x-x_i)\)</span> is a polynomial of degree <span class="math inline">\(k-1\)</span>. Why?</p>
+<div id="52" class="cell" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "iRPZuTIx"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="iRPZuTIx" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_iRPZuTIx" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <fieldset style="border:0px">
+<legend style="display: none" aria-label="Select an item">Select an item</legend>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_iRPZuTIx_1">
+    <input class="form-check-input" type="radio" name="radio_iRPZuTIx" id="radio_iRPZuTIx_1" value="1">
+    
+    <span class="label-body px-1">
+        It isn't true, it clearly has degree \(k\)
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_iRPZuTIx_2">
+    <input class="form-check-input" type="radio" name="radio_iRPZuTIx" id="radio_iRPZuTIx_2" value="2">
+    
+    <span class="label-body px-1">
+        Because we can express this as \(x_i^k - x^k\) which factors as \((x_i - x) \cdot u(x)\) where \(u(x)\) has degree \(k-1\), at most.
+    </span>
+    </label>
+</div>
+</fieldset>
+
+         </div>
+    </div>
+    <div id="iRPZuTIx_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_iRPZuTIx').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_iRPZuTIx')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_iRPZuTIx"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('iRPZuTIx_message');
+    
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_iRPZuTIx")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_iRPZuTIx")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+})});
+
+</script>
+</div>
+</div></form>
+<p>This gives if <span class="math inline">\(k \leq n\)</span> and with <span class="math inline">\(u=x/x_i\)</span>:</p>
+<p><span class="math display">\[
+\begin{align*}
+\int_I \frac{p_n(x)}{x - x_i} w(x) dx
+&amp;= \int_I p_n(x) \left( \textcolor{red}{\frac{1 - u^k}{x - x_i}} + \frac{u^k}{x - x_i} \right) w(x) dx\\
+&amp;= \int_I p_n(x)  \frac{\frac{x^k}{x_i^k}}{x - x_i} w(x) dx\\
+&amp;= \frac{1}{x_i^k} \int_I \frac{x^k p_n(x)}{x - x_i} w(x) dx
+\end{align*}
+\]</span></p>
+
+
+</div></div></section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../integrals/surface_area.html" class="pagination-link" aria-label="Surface area">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">47</span>&nbsp; <span class="chapter-title">Surface area</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../integrals/twelve-qs.html" class="pagination-link" aria-label="A dozen minima for a parabola">
+        <span class="nav-page-text"><span class="chapter-number">49</span>&nbsp; <span class="chapter-title">A dozen minima for a parabola</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>Copyright 2022-25, John Verzani</p>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/jverzani/CalculusWithJuliaNotes.jl/edit/main/quarto/integrals/orthogonal_polynomials.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jverzani/CalculusWithJuliaNotes.jl/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

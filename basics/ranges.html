@@ -1,0 +1,3835 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.30">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>6&nbsp; Ranges and sets – Calculus with Julia</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../precalc.html" rel="next">
+<link href="../basics/vectors.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-de070a7b0ab54f8780927367ac907214.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-2b3e328b71be8d25427581baeb23079b.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-de070a7b0ab54f8780927367ac907214.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-fc3c171632cd6f9b39f96e8bd14edcbe.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-ead2ac9af0e74c5b0758b4163d044a68.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-fc3c171632cd6f9b39f96e8bd14edcbe.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script async="" src="https://hypothes.is/embed.js"></script>
+<script>
+  window.document.addEventListener("DOMContentLoaded", function (_event) {
+    document.body.classList.add('hypothesis-enabled');
+  });
+</script>
+<script src="https://cdn.plot.ly/plotly-2.6.3.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../logo.png" alt="" class="navbar-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Calculus with Julia</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+    <a href="https://github.com/jverzani/CalculusWithJuliaNotes.jl/tree/main/quarto/" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../basics.html">Mathematical basics</a></li><li class="breadcrumb-item"><a href="../basics/ranges.html"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Ranges and sets</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../basics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Mathematical basics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../basics/calculator.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">From calculator to computer</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../basics/variables.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Variables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../basics/numbers_types.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Number systems</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../basics/logical_expressions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Inequalities, Logical expressions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../basics/vectors.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Vectors and containers</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../basics/ranges.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Ranges and sets</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../precalc.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Precalculus Concepts</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/functions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Functions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/plotting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">The graph of a function</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/transformations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Function manipulations</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/inversefunctions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">The inverse of a function</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/polynomial.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Polynomials</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/polynomial_roots.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Roots of a polynomial</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/polynomials_package.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">The Polynomials package</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/rational_functions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Rational functions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/exp_log_functions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Exponential and logarithmic functions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/trig_functions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Trigonometric functions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../precalc/julia_overview.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Overview of Julia commands</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../limits.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Limits</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/limits.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">Limits</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/limits_extensions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Limits, issues, extensions of the concept</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/continuity.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Continuity</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../limits/intermediate_value_theorem.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">Implications of continuity</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../derivatives.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Derivatives</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/derivatives.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Derivatives</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/numeric_derivatives.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Numeric derivatives</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/symbolic_derivatives.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Symbolic derivatives</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/mean_value_theorem.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">The mean value theorem for differentiable functions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/optimization.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">26</span>&nbsp; <span class="chapter-title">Optimization</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/first_second_derivatives.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">27</span>&nbsp; <span class="chapter-title">The first and second derivatives</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/curve_sketching.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">28</span>&nbsp; <span class="chapter-title">Curve sketching</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/linearization.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">29</span>&nbsp; <span class="chapter-title">Linearization</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/newtons_method.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">30</span>&nbsp; <span class="chapter-title">Newton’s method</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/more_zeros.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">31</span>&nbsp; <span class="chapter-title">Derivative-free alternatives to Newton’s method</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/lhospitals_rule.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">32</span>&nbsp; <span class="chapter-title">L’Hospital’s rule</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/implicit_differentiation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">33</span>&nbsp; <span class="chapter-title">Implicit differentiation</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/related_rates.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">34</span>&nbsp; <span class="chapter-title">Related rates</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../derivatives/taylor_series_polynomials.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">35</span>&nbsp; <span class="chapter-title">Taylor polynomials and other approximating polynomials</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../integrals.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Integrals</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/area.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">36</span>&nbsp; <span class="chapter-title">Area under a curve</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/ftc.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">37</span>&nbsp; <span class="chapter-title">Fundamental Theorem of Calculus</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/substitution.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">38</span>&nbsp; <span class="chapter-title">Substitution</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/integration_by_parts.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">39</span>&nbsp; <span class="chapter-title">Integration by parts</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/partial_fractions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">40</span>&nbsp; <span class="chapter-title">Partial fractions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/improper_integrals.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">41</span>&nbsp; <span class="chapter-title">Improper integrals</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/mean_value_theorem.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">42</span>&nbsp; <span class="chapter-title">Mean value theorem for integrals</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/area_between_curves.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">43</span>&nbsp; <span class="chapter-title">Area between two curves</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/center_of_mass.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">44</span>&nbsp; <span class="chapter-title">Center of mass</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/volumes_slice.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">45</span>&nbsp; <span class="chapter-title">Volumes by slicing</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/arc_length.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">46</span>&nbsp; <span class="chapter-title">Arc length</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/surface_area.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">47</span>&nbsp; <span class="chapter-title">Surface area</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/orthogonal_polynomials.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">48</span>&nbsp; <span class="chapter-title">Orthogonal polynomials</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integrals/twelve-qs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">49</span>&nbsp; <span class="chapter-title">A dozen minima for a parabola</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../ODEs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ODEs</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/odes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">50</span>&nbsp; <span class="chapter-title">ODEs</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/euler.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">51</span>&nbsp; <span class="chapter-title">Euler’s method</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/solve.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">52</span>&nbsp; <span class="chapter-title">The problem-algorithm-solve interface</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../ODEs/differential_equations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">53</span>&nbsp; <span class="chapter-title">The <code>DifferentialEquations</code> suite</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../differentiable_vector_calculus.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Differential vector calculus</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/polar_coordinates.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">54</span>&nbsp; <span class="chapter-title">Polar coordinates and curves</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/vectors.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">55</span>&nbsp; <span class="chapter-title">Vectors and matrices</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/vector_valued_functions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">56</span>&nbsp; <span class="chapter-title">Vector-valued functions, <span class="math inline">\(f:R \rightarrow R^n\)</span></span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/scalar_functions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">57</span>&nbsp; <span class="chapter-title">Scalar functions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/scalar_functions_applications.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">58</span>&nbsp; <span class="chapter-title">Applications with scalar functions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/vector_fields.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">59</span>&nbsp; <span class="chapter-title">Functions <span class="math inline">\(R^n \rightarrow R^m\)</span></span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/matrix_calculus_notes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">60</span>&nbsp; <span class="chapter-title">Matrix calculus</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../differentiable_vector_calculus/plots_plotting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">61</span>&nbsp; <span class="chapter-title">2D and 3D plots in Julia with Plots</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../integral_vector_calculus.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Integral vector calculus</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/double_triple_integrals.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">62</span>&nbsp; <span class="chapter-title">Multi-dimensional integrals</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/line_integrals.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">63</span>&nbsp; <span class="chapter-title">Line and surface integrals</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/div_grad_curl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">64</span>&nbsp; <span class="chapter-title">The gradient, divergence, and curl</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/stokes_theorem.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">65</span>&nbsp; <span class="chapter-title">Green’s theorem, Stokes’ theorem, and the divergence theorem</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../integral_vector_calculus/review.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">66</span>&nbsp; <span class="chapter-title">Quick review of vector calculus</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../alternatives.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Alternative packages</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../alternatives/symbolics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">67</span>&nbsp; <span class="chapter-title">Symbolics.jl</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../alternatives/SciML.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">68</span>&nbsp; <span class="chapter-title">The SciML suite of packages</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../alternatives/plotly_plotting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">69</span>&nbsp; <span class="chapter-title">JavaScript based plotting libraries</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../alternatives/makie_plotting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">70</span>&nbsp; <span class="chapter-title">Calculus plots with Makie</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/getting_started_with_julia.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">71</span>&nbsp; <span class="chapter-title">Getting started with Julia</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/julia_interfaces.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">72</span>&nbsp; <span class="chapter-title">Julia interfaces</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/calculus_with_julia.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">73</span>&nbsp; <span class="chapter-title">The <code>CalculusWithJulia</code> package</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/unicode.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">74</span>&nbsp; <span class="chapter-title">Usages of Unicode symbols</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../misc/quick_notes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">75</span>&nbsp; <span class="chapter-title">Quick introduction to Calculus with Julia</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#arithmetic-sequences" id="toc-arithmetic-sequences" class="nav-link active" data-scroll-target="#arithmetic-sequences"><span class="header-section-number">6.1</span> Arithmetic sequences</a>
+  <ul class="collapse">
+  <li><a href="#the-colon-operator" id="toc-the-colon-operator" class="nav-link" data-scroll-target="#the-colon-operator"><span class="header-section-number">6.1.1</span> The colon operator</a></li>
+  <li><a href="#the-range-function" id="toc-the-range-function" class="nav-link" data-scroll-target="#the-range-function"><span class="header-section-number">6.1.2</span> The range function</a></li>
+  </ul></li>
+  <li><a href="#modifying-sequences" id="toc-modifying-sequences" class="nav-link" data-scroll-target="#modifying-sequences"><span class="header-section-number">6.2</span> Modifying sequences</a>
+  <ul class="collapse">
+  <li><a href="#filtering" id="toc-filtering" class="nav-link" data-scroll-target="#filtering"><span class="header-section-number">6.2.1</span> Filtering</a></li>
+  <li><a href="#comprehensions" id="toc-comprehensions" class="nav-link" data-scroll-target="#comprehensions"><span class="header-section-number">6.2.2</span> Comprehensions</a></li>
+  <li><a href="#generators" id="toc-generators" class="nav-link" data-scroll-target="#generators"><span class="header-section-number">6.2.3</span> Generators</a></li>
+  <li><a href="#filtering-generated-expressions" id="toc-filtering-generated-expressions" class="nav-link" data-scroll-target="#filtering-generated-expressions"><span class="header-section-number">6.2.4</span> Filtering generated expressions</a></li>
+  </ul></li>
+  <li><a href="#random-numbers" id="toc-random-numbers" class="nav-link" data-scroll-target="#random-numbers"><span class="header-section-number">6.3</span> Random numbers</a></li>
+  <li><a href="#questions" id="toc-questions" class="nav-link" data-scroll-target="#questions"><span class="header-section-number">6.4</span> Questions</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/jverzani/CalculusWithJuliaNotes.jl/edit/main/quarto/basics/ranges.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jverzani/CalculusWithJuliaNotes.jl/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../basics.html">Mathematical basics</a></li><li class="breadcrumb-item"><a href="../basics/ranges.html"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Ranges and sets</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Ranges and sets</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="arithmetic-sequences" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="arithmetic-sequences"><span class="header-section-number">6.1</span> Arithmetic sequences</h2>
+<p>Sequences of numbers are prevalent in math. A simple one is just counting by ones:</p>
+<p><span class="math display">\[
+1, 2, 3, 4, 5, 6, 7, 8, 9, 10, \dots
+\]</span></p>
+<p>Or counting by sevens:</p>
+<p><span class="math display">\[
+7, 14, 21, 28, 35, 42, 49, \dots
+\]</span></p>
+<p>More challenging for humans is <a href="http://www.psychpage.com/learning/library/assess/mse.htm">counting backwards</a> by 7:</p>
+<p><span class="math display">\[
+100, 93, 86, 79, \dots
+\]</span></p>
+<p>These are examples of <a href="http://en.wikipedia.org/wiki/Arithmetic_progression">arithmetic sequences</a>. The form of the first <span class="math inline">\(n+1\)</span> terms in such a sequence is:</p>
+<p><span class="math display">\[
+a_0, a_0 + h, a_0 + 2h, a_0 + 3h, \dots, a_0 + nh
+\]</span></p>
+<p>The formula for the <span class="math inline">\(a_n\)</span>th term can be written in terms of <span class="math inline">\(a_0\)</span>, or any other <span class="math inline">\(0 \leq m \leq n\)</span> with <span class="math inline">\(a_n = a_m + (n-m)\cdot h\)</span>.</p>
+<p>A typical question might be: The first term of an arithmetic sequence is equal to <span class="math inline">\(200\)</span> and the common difference is equal to <span class="math inline">\(-10\)</span>. Find the value of <span class="math inline">\(a_{20}\)</span>. We could find this using <span class="math inline">\(a_n = a_0 + n\cdot h\)</span>:</p>
+<div id="14" class="cell" data-hold="true" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>a0, h, n <span class="op">=</span> <span class="fl">200</span>, <span class="op">-</span><span class="fl">10</span>, <span class="fl">20</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>a0 <span class="op">+</span> n <span class="op">*</span> h</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>0</code></pre>
+</div>
+</div>
+<p>More complicated questions involve an unknown first value, as with: an arithmetic sequence has a common difference equal to <span class="math inline">\(10\)</span> and its <span class="math inline">\(6\)</span>th term is equal to <span class="math inline">\(52\)</span>. Find its <span class="math inline">\(15\)</span>th term, <span class="math inline">\(a_{15}\)</span>. Here we have to answer: <span class="math inline">\(a_0 + 15 \cdot 10\)</span>. Either we could find <span class="math inline">\(a_0\)</span> (using <span class="math inline">\(52 = a_0 + 6\cdot(10)\)</span>) or use the above formula</p>
+<div id="16" class="cell" data-hold="true" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>a6, h, m, n <span class="op">=</span> <span class="fl">52</span>, <span class="fl">10</span>, <span class="fl">6</span>, <span class="fl">15</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>a15 <span class="op">=</span> a6 <span class="op">+</span> (n<span class="op">-</span>m)<span class="op">*</span>h</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>142</code></pre>
+</div>
+</div>
+<section id="the-colon-operator" class="level3" data-number="6.1.1">
+<h3 data-number="6.1.1" class="anchored" data-anchor-id="the-colon-operator"><span class="header-section-number">6.1.1</span> The colon operator</h3>
+<p>Rather than express sequences by the <span class="math inline">\(a_0\)</span>, <span class="math inline">\(h\)</span>, and <span class="math inline">\(n\)</span>, <code>Julia</code> uses the starting point (<code>a</code>), the difference (<code>h</code>) and a <em>suggested</em> stopping value (<code>b</code>). That is, we need three values to specify these ranges of numbers: a <code>start</code>, a <code>step</code>, and an <code>endof</code>. <code>Julia</code> gives a convenient syntax for this: <code>a:h:b</code>. When the difference is just <span class="math inline">\(1\)</span>, all numbers between the start and end are specified by <code>a:b</code>, as in</p>
+<div id="18" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1</span><span class="op">:</span><span class="fl">10</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>1:10</code></pre>
+</div>
+</div>
+<p>But wait, nothing different printed? This is because <code>1:10</code> is efficiently stored. Basically, a recipe to generate the next number from the previous number is created and <code>1:10</code> just stores the start and end points (the step size is implicit in how this is stored) and that recipe is used to generate the set of all values. To expand the values, you have to ask for them to be <code>collect</code>ed (though this typically isn’t needed in practice, as values are usually <em>iterated</em> over):</p>
+<div id="20" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">collect</span>(<span class="fl">1</span><span class="op">:</span><span class="fl">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>10-element Vector{Int64}:
+  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10</code></pre>
+</div>
+</div>
+<p>When a non-default step size is needed, it goes in the middle, as in <code>a:h:b</code>. For example, counting by sevens from <span class="math inline">\(1\)</span> to <span class="math inline">\(50\)</span> is achieved by:</p>
+<div id="22" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">collect</span>(<span class="fl">1</span><span class="op">:</span><span class="fl">7</span><span class="op">:</span><span class="fl">50</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>8-element Vector{Int64}:
+  1
+  8
+ 15
+ 22
+ 29
+ 36
+ 43
+ 50</code></pre>
+</div>
+</div>
+<p>Or counting down from 100:</p>
+<div id="24" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">collect</span>(<span class="fl">100</span><span class="op">:-</span><span class="fl">7</span><span class="op">:</span><span class="fl">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>15-element Vector{Int64}:
+ 100
+  93
+  86
+  79
+  72
+  65
+  58
+  51
+  44
+  37
+  30
+  23
+  16
+   9
+   2</code></pre>
+</div>
+</div>
+<p>In this last example, we said end with <span class="math inline">\(1\)</span>, but it ended with <span class="math inline">\(2\)</span>. The ending value in the range is a suggestion to go up to, but not exceed. Negative values for <code>h</code> are used to make decreasing sequences.</p>
+</section>
+<section id="the-range-function" class="level3" data-number="6.1.2">
+<h3 data-number="6.1.2" class="anchored" data-anchor-id="the-range-function"><span class="header-section-number">6.1.2</span> The range function</h3>
+<p>For generating points to make graphs, a natural set of points to specify is <span class="math inline">\(n\)</span> evenly spaced points between <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>. We can mimic creating this set with the range operation by solving for the correct step size. We have <span class="math inline">\(a_0=a\)</span> and <span class="math inline">\(a_0 + (n-1) \cdot h = b\)</span>. (Why <span class="math inline">\(n-1\)</span> and not <span class="math inline">\(n\)</span>?) Solving yields <span class="math inline">\(h = (b-a)/(n-1)\)</span>. To be concrete we might ask for <span class="math inline">\(9\)</span> points between <span class="math inline">\(-1\)</span> and <span class="math inline">\(1\)</span>:</p>
+<div id="26" class="cell" data-hold="true" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>a, b, n <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">9</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>h <span class="op">=</span> (b<span class="op">-</span>a)<span class="op">/</span>(n<span class="op">-</span><span class="fl">1</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">collect</span>(a<span class="op">:</span>h<span class="op">:</span>b)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>9-element Vector{Float64}:
+ -1.0
+ -0.75
+ -0.5
+ -0.25
+  0.0
+  0.25
+  0.5
+  0.75
+  1.0</code></pre>
+</div>
+</div>
+<p>Pretty neat. If we were doing this many times - such as once per plot - we’d want to encapsulate this into a function, for example using a comprehension:</p>
+<div id="28" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">evenly_spaced</span>(a, b, n)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    h <span class="op">=</span> (b<span class="op">-</span>a)<span class="op">/</span>(n<span class="op">-</span><span class="fl">1</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    [a <span class="op">+</span> i<span class="op">*</span>h for i <span class="kw">in</span> <span class="fl">0</span><span class="op">:</span>n<span class="op">-</span><span class="fl">1</span>]</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>evenly_spaced (generic function with 1 method)</code></pre>
+</div>
+</div>
+<p>Great, let’s try it out:</p>
+<div id="30" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">evenly_spaced</span>(<span class="fl">0</span>, <span class="fl">2</span>pi, <span class="fl">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>5-element Vector{Float64}:
+ 0.0
+ 1.5707963267948966
+ 3.141592653589793
+ 4.71238898038469
+ 6.283185307179586</code></pre>
+</div>
+</div>
+<p>Now, our implementation was straightforward, but only because it avoids somethings. Look at something simple:</p>
+<div id="32" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">evenly_spaced</span>(<span class="fl">1</span><span class="op">/</span><span class="fl">5</span>, <span class="fl">3</span><span class="op">/</span><span class="fl">5</span>, <span class="fl">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>3-element Vector{Float64}:
+ 0.2
+ 0.4
+ 0.6</code></pre>
+</div>
+</div>
+<p>It seems to work as expected. But looking just at the algorithm it isn’t quite so clear:</p>
+<div id="34" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fl">1</span><span class="op">/</span><span class="fl">5</span> <span class="op">+</span> <span class="fl">2</span><span class="op">*</span><span class="fl">1</span><span class="op">/</span><span class="fl">5</span> <span class="co"># last value if h is exactly 1/5 or 0.2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>0.6000000000000001</code></pre>
+</div>
+</div>
+<p>Floating point roundoff leads to the last value <em>exceeding</em> <code>0.6</code>, so should it be included? Well, here it is pretty clear it <em>should</em> be, but better to have something programmed that hits both <code>a</code> and <code>b</code> and adjusts <code>h</code> accordingly. Something which isn’t subject to the vagaries of <code>(3/5 - 1/5)/2</code> not being <code>0.2</code>.</p>
+<p>Enter the base function <code>range</code> which solves this seemingly simple - but not really - task. It can use <code>a</code>, <code>b</code>, and <code>n</code>. Like the range operation, this function returns a generator which can be collected to realize the values.</p>
+<p>The number of points is specified as a third argument (though keyword arguments can be given):</p>
+<div id="36" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> <span class="fu">range</span>(<span class="fl">1</span><span class="op">/</span><span class="fl">5</span>, <span class="fl">3</span><span class="op">/</span><span class="fl">5</span>, <span class="fl">3</span>) <span class="op">|&gt;</span> collect</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>3-element Vector{Float64}:
+ 0.2
+ 0.4
+ 0.6</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>There is also the <code>LinRange(a, b, n)</code> function which can be more performant than <code>range</code>, as it doesn’t try to correct for floating point errors.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="modifying-sequences" class="level2" data-number="6.2">
+<h2 data-number="6.2" class="anchored" data-anchor-id="modifying-sequences"><span class="header-section-number">6.2</span> Modifying sequences</h2>
+<p>Now we concentrate on some more general styles to modify a sequence to produce a new sequence.</p>
+<section id="filtering" class="level3" data-number="6.2.1">
+<h3 data-number="6.2.1" class="anchored" data-anchor-id="filtering"><span class="header-section-number">6.2.1</span> Filtering</h3>
+<p>The act of throwing out elements of a collection based on some condition is called <em>filtering</em>.</p>
+<p>For example, another way to get the values between <span class="math inline">\(0\)</span> and <span class="math inline">\(100\)</span> that are multiples of <span class="math inline">\(7\)</span> is to start with all <span class="math inline">\(101\)</span> values and throw out those that don’t match. To check if a number is divisible by <span class="math inline">\(7\)</span>, we could use the <code>rem</code> function. It gives the remainder upon division. Multiples of <code>7</code> match <code>rem(m, 7) == 0</code>. Checking for divisibility by seven is unusual enough there is nothing built in for that, but checking for division by <span class="math inline">\(2\)</span> is common, and for that, there is a built-in function <code>iseven</code>.</p>
+<p>The <code>filter</code> function does this in <code>Julia</code>; the basic syntax being <code>filter(predicate_function, collection)</code>. The “<code>predicate_function</code>” is one that returns either <code>true</code> or <code>false</code>, such as <code>iseven</code>. The output of <code>filter</code> consists of the new collection of values - those where the predicate returns <code>true</code>.</p>
+<p>To see it used, lets start with the numbers between <code>0</code> and <code>25</code> (inclusive) and filter out those that are even:</p>
+<div id="38" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(iseven, <span class="fl">0</span><span class="op">:</span><span class="fl">25</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>13-element Vector{Int64}:
+  0
+  2
+  4
+  6
+  8
+ 10
+ 12
+ 14
+ 16
+ 18
+ 20
+ 22
+ 24</code></pre>
+</div>
+</div>
+<p>To get the numbers between <span class="math inline">\(1\)</span> and <span class="math inline">\(100\)</span> that are divisible by <span class="math inline">\(7\)</span> requires us to write a function akin to <code>iseven</code>, which isn’t hard (e.g., <code>is_seven(x) = x%7 == 0</code> or if being fancy <code>Base.Fix2(iszero∘rem, 7)</code>), but isn’t something we continue with just yet.</p>
+<p>For another example, here is an inefficient way to list the prime numbers between <span class="math inline">\(100\)</span> and <span class="math inline">\(200\)</span>. This uses the <code>isprime</code> function from the <code>Primes</code> package</p>
+<div id="40" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Primes</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="42" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(isprime, <span class="fl">100</span><span class="op">:</span><span class="fl">200</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>21-element Vector{Int64}:
+ 101
+ 103
+ 107
+ 109
+ 113
+ 127
+ 131
+ 137
+ 139
+ 149
+   ⋮
+ 163
+ 167
+ 173
+ 179
+ 181
+ 191
+ 193
+ 197
+ 199</code></pre>
+</div>
+</div>
+<p>Illustrating <code>filter</code> at this point is mainly a motivation to illustrate that we can start with a regular set of numbers and then modify or filter them. The function takes on more value once we discuss how to write predicate functions.</p>
+</section>
+<section id="comprehensions" class="level3" data-number="6.2.2">
+<h3 data-number="6.2.2" class="anchored" data-anchor-id="comprehensions"><span class="header-section-number">6.2.2</span> Comprehensions</h3>
+<p>Let’s return to the case of the set of even numbers between <span class="math inline">\(0\)</span> and <span class="math inline">\(100\)</span>. We have many ways to describe this set:</p>
+<ul>
+<li>The collection of numbers <span class="math inline">\(0, 2, 4, 6 \dots, 100\)</span>, or the arithmetic sequence with step size <span class="math inline">\(2\)</span>, which is returned by <code>0:2:100</code>.</li>
+<li>The numbers between <span class="math inline">\(0\)</span> and <span class="math inline">\(100\)</span> that are even, that is <code>filter(iseven, 0:100)</code>.</li>
+<li>The set of numbers <span class="math inline">\(\{2k: k=0, \dots, 50\}\)</span>.</li>
+</ul>
+<p>While <code>Julia</code> has a special type for dealing with sets, we will use a vector for such a set. (Unlike a set, vectors can have repeated values, but, as vectors are more widely used, we demonstrate them.) Vectors are described more fully in a previous section, but as a reminder, vectors are constructed using square brackets: <code>[]</code> (a special syntax for <a href="http://docs.julialang.org/en/latest/manual/arrays/#concatenation">concatenation</a>). Square brackets are used in different contexts within <code>Julia</code>, in this case we use them to create a <em>collection</em>. If we separate single values in our collection by commas (or semicolons), we will create a vector:</p>
+<div id="44" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> [<span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">6</span>, <span class="fl">8</span>, <span class="fl">10</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>6-element Vector{Int64}:
+  0
+  2
+  4
+  6
+  8
+ 10</code></pre>
+</div>
+</div>
+<p>That is of course only part of the set of even numbers we want. Creating more might be tedious were we to type them all out, as above. In such cases, it is best to <em>generate</em> the values.</p>
+<p>For this simple case, a range can be used, but more generally a <a href="https://docs.julialang.org/en/v1/manual/arrays/#man-comprehensions">comprehension</a> provides this ability using a construct that closely mirrors a set definition, such as <span class="math inline">\(\{2k: k=0, \dots, 50\}\)</span>. The simplest use of a comprehension takes this form (as we described in the section on vectors):</p>
+<p><code>[expr for variable in collection]</code></p>
+<p>The expression typically involves the variable specified after the keyword <code>for</code>. The collection can be a range, a vector, or many other items that are <em>iterable</em>. Here is how the mathematical set <span class="math inline">\(\{2k: k=0, \dots, 50\}\)</span> may be generated by a comprehension:</p>
+<div id="46" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>[<span class="fl">2</span>k for k <span class="kw">in</span> <span class="fl">0</span><span class="op">:</span><span class="fl">50</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>51-element Vector{Int64}:
+   0
+   2
+   4
+   6
+   8
+  10
+  12
+  14
+  16
+  18
+   ⋮
+  84
+  86
+  88
+  90
+  92
+  94
+  96
+  98
+ 100</code></pre>
+</div>
+</div>
+<p>The expression is <code>2k</code>, the variable <code>k</code>, and the collection is the range of values, <code>0:50</code>. The syntax is basically identical to how the math expression is typically read aloud.</p>
+<p>For some other examples, here is how we can create the first <span class="math inline">\(10\)</span> numbers divisible by <span class="math inline">\(7\)</span>:</p>
+<div id="48" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>[<span class="fl">7</span>k for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>10-element Vector{Int64}:
+  7
+ 14
+ 21
+ 28
+ 35
+ 42
+ 49
+ 56
+ 63
+ 70</code></pre>
+</div>
+</div>
+<p>Here is how we can square the numbers between <span class="math inline">\(1\)</span> and <span class="math inline">\(10\)</span>:</p>
+<div id="50" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>[x<span class="op">^</span><span class="fl">2</span> for x <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>10-element Vector{Int64}:
+   1
+   4
+   9
+  16
+  25
+  36
+  49
+  64
+  81
+ 100</code></pre>
+</div>
+</div>
+<p>To generate other progressions, such as powers of <span class="math inline">\(2\)</span>, we could do:</p>
+<div id="52" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>[<span class="fl">2</span><span class="op">^</span>i for i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>10-element Vector{Int64}:
+    2
+    4
+    8
+   16
+   32
+   64
+  128
+  256
+  512
+ 1024</code></pre>
+</div>
+</div>
+<p>Here are decreasing powers of <span class="math inline">\(2\)</span>:</p>
+<div id="54" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>[<span class="fl">1</span><span class="op">/</span><span class="fl">2</span><span class="op">^</span>i for i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>10-element Vector{Float64}:
+ 0.5
+ 0.25
+ 0.125
+ 0.0625
+ 0.03125
+ 0.015625
+ 0.0078125
+ 0.00390625
+ 0.001953125
+ 0.0009765625</code></pre>
+</div>
+</div>
+<p>Sometimes, the comprehension does not produce the type of output that may be expected. This is related to <code>Julia</code>’s more limited abilities to infer types at the command line. If the output type is important, the extra prefix of <code>T[]</code> can be used, where <code>T</code> is the desired type.</p>
+</section>
+<section id="generators" class="level3" data-number="6.2.3">
+<h3 data-number="6.2.3" class="anchored" data-anchor-id="generators"><span class="header-section-number">6.2.3</span> Generators</h3>
+<p>A typical pattern would be to generate a collection of numbers and then apply a function to them. For example, here is one way to sum the powers of <span class="math inline">\(2\)</span>:</p>
+<div id="56" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>([<span class="fl">2</span><span class="op">^</span>i for i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>2046</code></pre>
+</div>
+</div>
+<p>Conceptually this is easy to understand: one step generates the numbers, the other adds them up. Computationally it is a bit inefficient. The generator syntax allows this type of task to be done more efficiently. To use this syntax, we just need to drop the <code>[]</code>:</p>
+<div id="58" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fl">2</span><span class="op">^</span>i <span class="cf">for</span> i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>2046</code></pre>
+</div>
+</div>
+<p>The difference being no intermediate object is created to store the collection of all values specified by the generator. Not all functions allow generators as arguments, but most common reductions do.</p>
+</section>
+<section id="filtering-generated-expressions" class="level3" data-number="6.2.4">
+<h3 data-number="6.2.4" class="anchored" data-anchor-id="filtering-generated-expressions"><span class="header-section-number">6.2.4</span> Filtering generated expressions</h3>
+<p>Both comprehensions and generators allow for filtering through the keyword <code>if</code>. The basic pattern is</p>
+<p><code>[expr for variable in collection if expr]</code></p>
+<p>The following shows <em>one</em> way to add the prime numbers in <span class="math inline">\([1,100]\)</span>:</p>
+<div id="60" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(p <span class="cf">for</span> p <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">100</span> <span class="cf">if</span> <span class="fu">isprime</span>(p))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>1060</code></pre>
+</div>
+</div>
+<p>The value on the other side of <code>if</code> should be an expression that evaluates to either <code>true</code> or <code>false</code> for a given <code>p</code> (like a predicate function, but here specified as an expression). The value returned by <code>isprime(p)</code> is such.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>In these notes we primarily use functions rather than expressions for various actions. We will see creating a function is not much more difficult than specifying an expression, though there is additional notation necessary. Generators are one very useful means to use expressions, symbolic math will be seen as another.</p>
+</div>
+</div>
+<p>In this example, we use the fact that <code>rem(k, 7)</code> returns the remainder found from dividing <code>k</code> by <code>7</code>, and so is <code>0</code> when <code>k</code> is a multiple of <code>7</code>:</p>
+<div id="62" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(k <span class="cf">for</span> k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">100</span> <span class="cf">if</span> <span class="fu">rem</span>(k,<span class="fl">7</span>) <span class="op">==</span> <span class="fl">0</span>)  <span class="co">## add multiples of 7</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>735</code></pre>
+</div>
+</div>
+<p>The same <code>if</code> can be used in a comprehension. For example, this is an alternative to <code>filter</code> for identifying the numbers divisible by <code>7</code> in a range of numbers:</p>
+<div id="64" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>[k for k <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">100</span> if <span class="fu">rem</span>(k,<span class="fl">7</span>) <span class="op">==</span> <span class="fl">0</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>14-element Vector{Int64}:
+  7
+ 14
+ 21
+ 28
+ 35
+ 42
+ 49
+ 56
+ 63
+ 70
+ 77
+ 84
+ 91
+ 98</code></pre>
+</div>
+</div>
+<section id="example-making-change" class="level4">
+<h4 class="anchored" data-anchor-id="example-making-change">Example: Making change</h4>
+<p>This example of Stefan Karpinski’s comes from a <a href="http://julialang.org/blog/2016/10/julia-0.5-highlights">blog</a> post highlighting changes to the <code>Julia</code> language with version <code>v"0.5.0"</code>, which added features to comprehensions that made this example possible.</p>
+<p>First, a simple question: using pennies, nickels, dimes, and quarters how many different ways can we generate one dollar? Clearly <span class="math inline">\(100\)</span> pennies, or <span class="math inline">\(20\)</span> nickels, or <span class="math inline">\(10\)</span> dimes, or <span class="math inline">\(4\)</span> quarters will do this, so the answer is at least four, but how much more than four?</p>
+<p>Well, we can use a comprehension to enumerate the possibilities. This example illustrates how comprehensions and generators can involve one or more variable for the iteration. By judiciously choosing what is iterated over, the entire set can be described.</p>
+<p>First, we either have <span class="math inline">\(0,1,2,3\)</span>, or <span class="math inline">\(4\)</span> quarters, or <span class="math inline">\(0\)</span>, <span class="math inline">\(25\)</span> cents, <span class="math inline">\(50\)</span> cents, <span class="math inline">\(75\)</span> cents, or a dollar’s worth. If we have, say, <span class="math inline">\(1\)</span> quarter, then we need to make up <span class="math inline">\(75\)</span> cents with the rest. If we had <span class="math inline">\(3\)</span> dimes, then we need to make up <span class="math inline">\(45\)</span> cents out of nickels and pennies, if we then had <span class="math inline">\(6\)</span> nickels, we know we must need <span class="math inline">\(15\)</span> pennies.</p>
+<p>The following expression shows how counting this can be done through enumeration. Here <code>q</code> is the amount contributed by quarters, <code>d</code> the amount from dimes, <code>n</code> the amount from nickels, and <code>p</code> the amount from pennies. <code>q</code> ranges over <span class="math inline">\(0, 25, 50, 75, 100\)</span> or <code>0:25:100</code>, etc. If we know that the sum of quarters, dimes, nickels contributes a certain amount, then the number of pennies must round things up to <span class="math inline">\(100\)</span>.</p>
+<div id="66" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>ways <span class="op">=</span> [(q, d, n, p)</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>        for q <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">25</span><span class="op">:</span><span class="fl">100</span></span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>        for d <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">10</span><span class="op">:</span>(<span class="fl">100</span> <span class="op">-</span> q)</span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>        for n <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">5</span><span class="op">:</span>(<span class="fl">100</span> <span class="op">-</span> q <span class="op">-</span> d)</span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>        for p <span class="op">=</span> (<span class="fl">100</span> <span class="op">-</span> q <span class="op">-</span> d <span class="op">-</span> n)]</span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(ways)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>242</code></pre>
+</div>
+</div>
+<p>There are <span class="math inline">\(242\)</span> distinct cases. The first three are:</p>
+<div id="68" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>ways[<span class="fl">1</span><span class="op">:</span><span class="fl">3</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>3-element Vector{NTuple{4, Int64}}:
+ (0, 0, 0, 100)
+ (0, 0, 5, 95)
+ (0, 0, 10, 90)</code></pre>
+</div>
+</div>
+<p>The generating expression reads naturally. It introduces the use of multiple <code>for</code> statements, each subsequent one depending on the value of the previous (working left to right).</p>
+<p>The cashier might like to know the number of coins, not the dollar amount:</p>
+<div id="70" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>[amt <span class="op">./</span> [<span class="fl">25</span>, <span class="fl">10</span>, <span class="fl">5</span>, <span class="fl">1</span>] for amt <span class="kw">in</span> ways[<span class="fl">1</span><span class="op">:</span><span class="fl">3</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>3-element Vector{Vector{Float64}}:
+ [0.0, 0.0, 0.0, 100.0]
+ [0.0, 0.0, 1.0, 95.0]
+ [0.0, 0.0, 2.0, 90.0]</code></pre>
+</div>
+</div>
+<p>There are various ways to get integer values, and not floating point values. One way is to call <code>round</code>. Here though, we use the integer division operator, <code>div</code>, through its infix operator <code>÷</code>:</p>
+<div id="72" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>[amt <span class="op">.÷</span> [<span class="fl">25</span>, <span class="fl">10</span>, <span class="fl">5</span>, <span class="fl">1</span>] for amt <span class="kw">in</span> ways[<span class="fl">1</span><span class="op">:</span><span class="fl">3</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>3-element Vector{Vector{Int64}}:
+ [0, 0, 0, 100]
+ [0, 0, 1, 95]
+ [0, 0, 2, 90]</code></pre>
+</div>
+</div>
+<p>Now suppose, we want to ensure that the amount in pennies is less than the amount in nickels, etc. We could use <code>filter</code> somehow to do this for our last answer, but using <code>if</code> allows for filtering while the events are generating. Here our condition is simply expressed: <code>q &gt; d &gt; n &gt; p</code>:</p>
+<div id="74" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>[(q, d, n, p)</span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a> for q <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">25</span><span class="op">:</span><span class="fl">100</span></span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a> for d <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">10</span><span class="op">:</span>(<span class="fl">100</span> <span class="op">-</span> q)</span>
+<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a> for n <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">5</span><span class="op">:</span>(<span class="fl">100</span> <span class="op">-</span> q <span class="op">-</span> d)</span>
+<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a> for p <span class="op">=</span> (<span class="fl">100</span> <span class="op">-</span> q <span class="op">-</span> d <span class="op">-</span> n)</span>
+<span id="cb60-6"><a href="#cb60-6" aria-hidden="true" tabindex="-1"></a> if q <span class="op">&gt;</span> d <span class="op">&gt;</span> n <span class="op">&gt;</span> p]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>4-element Vector{NTuple{4, Int64}}:
+ (50, 30, 15, 5)
+ (50, 30, 20, 0)
+ (50, 40, 10, 0)
+ (75, 20, 5, 0)</code></pre>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="random-numbers" class="level2" data-number="6.3">
+<h2 data-number="6.3" class="anchored" data-anchor-id="random-numbers"><span class="header-section-number">6.3</span> Random numbers</h2>
+<p>We have been discussing structured sets of numbers. On the opposite end of the spectrum are random numbers. <code>Julia</code> makes them easy to generate, especially random numbers chosen uniformly from <span class="math inline">\([0,1)\)</span>.</p>
+<ul>
+<li>The <code>rand()</code> function returns a randomly chosen number in <span class="math inline">\([0,1)\)</span>.</li>
+<li>The <code>rand(n)</code> function returns a vector of <code>n</code> randomly chosen numbers in <span class="math inline">\([0,1)\)</span>.</li>
+</ul>
+<p>To illustrate, this will command return a single number</p>
+<div id="76" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rand</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>0.8698828959125827</code></pre>
+</div>
+</div>
+<p>If the command is run again, it is almost certain that a different value will be returned:</p>
+<div id="78" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rand</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>0.49016396096343096</code></pre>
+</div>
+</div>
+<p>This call will return a vector of <span class="math inline">\(10\)</span> such random numbers:</p>
+<div id="80" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rand</span>(<span class="fl">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>10-element Vector{Float64}:
+ 0.3690020761596001
+ 0.5245947917618119
+ 0.9617217974477631
+ 0.5234506818013076
+ 0.8095814156415709
+ 0.5900058693048436
+ 0.9990950261874554
+ 0.2914927697968789
+ 0.2882797250903303
+ 0.3942053287268489</code></pre>
+</div>
+</div>
+<p>The <code>rand</code> function is easy to use. The only common source of confusion is the subtle distinction between <code>rand()</code> and <code>rand(1)</code>, as the latter is a vector of <span class="math inline">\(1\)</span> random number and the former just <span class="math inline">\(1\)</span> random number.</p>
+</section>
+<section id="questions" class="level2" data-number="6.4">
+<h2 data-number="6.4" class="anchored" data-anchor-id="questions"><span class="header-section-number">6.4</span> Questions</h2>
+<section id="question" class="level6">
+<h6 class="anchored" data-anchor-id="question">Question</h6>
+<p>Which of these will produce the odd numbers between <span class="math inline">\(1\)</span> and <span class="math inline">\(99\)</span>?</p>
+<div id="82" class="cell" data-hold="true" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "ebGa46NT"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="ebGa46NT" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_ebGa46NT" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <fieldset style="border:0px">
+<legend style="display: none" aria-label="Select an item">Select an item</legend>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_ebGa46NT_1">
+    <input class="form-check-input" type="radio" name="radio_ebGa46NT" id="radio_ebGa46NT_1" value="1">
+    
+    <span class="label-body px-1">
+        <code>1:2:99</code>
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_ebGa46NT_2">
+    <input class="form-check-input" type="radio" name="radio_ebGa46NT" id="radio_ebGa46NT_2" value="2">
+    
+    <span class="label-body px-1">
+        <code>1:99</code>
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_ebGa46NT_3">
+    <input class="form-check-input" type="radio" name="radio_ebGa46NT" id="radio_ebGa46NT_3" value="3">
+    
+    <span class="label-body px-1">
+        <code>1:3:99</code>
+    </span>
+    </label>
+</div>
+</fieldset>
+
+         </div>
+    </div>
+    <div id="ebGa46NT_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_ebGa46NT').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_ebGa46NT')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_ebGa46NT"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('ebGa46NT_message');
+    
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_ebGa46NT")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_ebGa46NT")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+})});
+
+</script>
+</div>
+</div></form>
+</div></div></section>
+<section id="question-1" class="level6">
+<h6 class="anchored" data-anchor-id="question-1">Question</h6>
+<p>Which of these will create the sequence <span class="math inline">\(2, 9, 16, 23, \dots, 72\)</span>?</p>
+<div id="84" class="cell" data-hold="true" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "h63w7AS4"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="h63w7AS4" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_h63w7AS4" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <fieldset style="border:0px">
+<legend style="display: none" aria-label="Select an item">Select an item</legend>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_h63w7AS4_1">
+    <input class="form-check-input" type="radio" name="radio_h63w7AS4" id="radio_h63w7AS4_1" value="1">
+    
+    <span class="label-body px-1">
+        <code>2:7:72</code>
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_h63w7AS4_2">
+    <input class="form-check-input" type="radio" name="radio_h63w7AS4" id="radio_h63w7AS4_2" value="2">
+    
+    <span class="label-body px-1">
+        <code>2:72</code>
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_h63w7AS4_3">
+    <input class="form-check-input" type="radio" name="radio_h63w7AS4" id="radio_h63w7AS4_3" value="3">
+    
+    <span class="label-body px-1">
+        <code>2:9:72</code>
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_h63w7AS4_4">
+    <input class="form-check-input" type="radio" name="radio_h63w7AS4" id="radio_h63w7AS4_4" value="4">
+    
+    <span class="label-body px-1">
+        <code>72:-7:2</code>
+    </span>
+    </label>
+</div>
+</fieldset>
+
+         </div>
+    </div>
+    <div id="h63w7AS4_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_h63w7AS4').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_h63w7AS4')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_h63w7AS4"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('h63w7AS4_message');
+    
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_h63w7AS4")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_h63w7AS4")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+})});
+
+</script>
+</div>
+</div></form>
+</div></div></section>
+<section id="question-2" class="level6">
+<h6 class="anchored" data-anchor-id="question-2">Question</h6>
+<p>How many numbers are in the sequence produced by <code>0:19:1000</code>?</p>
+<div id="86" class="cell" data-hold="true" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "M84xCWRv"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="M84xCWRv" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_M84xCWRv" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <br>
+<div class="input-group" aria-label="Input form: Numeric answer">
+    <input id="M84xCWRv" type="number" step="any" class="form-control qqinput" placeholder="Numeric answer" aria-label="Numeric answer">
+</div>
+
+         </div>
+    </div>
+    <div id="M84xCWRv_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_M84xCWRv').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_M84xCWRv')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.getElementById("M84xCWRv").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 53) <= 0);
+  var msgBox = document.getElementById('M84xCWRv_message');
+  
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_M84xCWRv")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_M84xCWRv")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+});
+
+</script>
+</div>
+</div></form>
+</div></div></section>
+<section id="question-3" class="level6">
+<h6 class="anchored" data-anchor-id="question-3">Question</h6>
+<p>The range operation (<code>a:h:b</code>) can also be used to countdown. Which of these will do so, counting down from <code>10</code> to <code>1</code>? (You can call <code>collect</code> to visualize the generated numbers.)</p>
+<div id="88" class="cell" data-hold="true" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "AIffYcN8"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="AIffYcN8" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_AIffYcN8" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <fieldset style="border:0px">
+<legend style="display: none" aria-label="Select an item">Select an item</legend>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_AIffYcN8_1">
+    <input class="form-check-input" type="radio" name="radio_AIffYcN8" id="radio_AIffYcN8_1" value="1">
+    
+    <span class="label-body px-1">
+        <code>10:1</code>
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_AIffYcN8_2">
+    <input class="form-check-input" type="radio" name="radio_AIffYcN8" id="radio_AIffYcN8_2" value="2">
+    
+    <span class="label-body px-1">
+        <code>10:-1:1</code>
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_AIffYcN8_3">
+    <input class="form-check-input" type="radio" name="radio_AIffYcN8" id="radio_AIffYcN8_3" value="3">
+    
+    <span class="label-body px-1">
+        <code>1:10</code>
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_AIffYcN8_4">
+    <input class="form-check-input" type="radio" name="radio_AIffYcN8" id="radio_AIffYcN8_4" value="4">
+    
+    <span class="label-body px-1">
+        <code>1:-1:10</code>
+    </span>
+    </label>
+</div>
+</fieldset>
+
+         </div>
+    </div>
+    <div id="AIffYcN8_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_AIffYcN8').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_AIffYcN8')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_AIffYcN8"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('AIffYcN8_message');
+    
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_AIffYcN8")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_AIffYcN8")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+})});
+
+</script>
+</div>
+</div></form>
+</div></div></section>
+<section id="question-4" class="level6">
+<h6 class="anchored" data-anchor-id="question-4">Question</h6>
+<p>What is the last number generated by <code>1:4:7</code>?</p>
+<div id="90" class="cell" data-hold="true" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "thRQUb5z"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="thRQUb5z" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_thRQUb5z" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <br>
+<div class="input-group" aria-label="Input form: Numeric answer">
+    <input id="thRQUb5z" type="number" step="any" class="form-control qqinput" placeholder="Numeric answer" aria-label="Numeric answer">
+</div>
+
+         </div>
+    </div>
+    <div id="thRQUb5z_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_thRQUb5z').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_thRQUb5z')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.getElementById("thRQUb5z").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 5) <= 0);
+  var msgBox = document.getElementById('thRQUb5z_message');
+  
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_thRQUb5z")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_thRQUb5z")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+});
+
+</script>
+</div>
+</div></form>
+</div></div></section>
+<section id="question-5" class="level6">
+<h6 class="anchored" data-anchor-id="question-5">Question</h6>
+<p>While the range operation can generate vectors by collecting, do the objects themselves act like vectors?</p>
+<p>Does scalar multiplication work as expected? In particular, is the result of <code>2*(1:5)</code> <em>basically</em> the same as <code>2 * [1,2,3,4,5]</code>?</p>
+<div id="92" class="cell" data-hold="true" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "fDINFiSs"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="fDINFiSs" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_fDINFiSs" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <fieldset style="border:0px">
+<legend style="display: none" aria-label="Select an item">Select an item</legend>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_fDINFiSs_1">
+    <input class="form-check-input" type="radio" name="radio_fDINFiSs" id="radio_fDINFiSs_1" value="1">
+    
+    <span class="label-body px-1">
+        Yes
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_fDINFiSs_2">
+    <input class="form-check-input" type="radio" name="radio_fDINFiSs" id="radio_fDINFiSs_2" value="2">
+    
+    <span class="label-body px-1">
+        No
+    </span>
+    </label>
+</div>
+</fieldset>
+
+         </div>
+    </div>
+    <div id="fDINFiSs_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_fDINFiSs').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_fDINFiSs')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_fDINFiSs"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('fDINFiSs_message');
+    
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_fDINFiSs")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_fDINFiSs")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+})});
+
+</script>
+</div>
+</div></form>
+<p>Does vector addition work? as expected? In particular, is the result of <code>(1:4) + (2:5)</code> <em>basically</em> the same as <code>[1,2,3,4]</code> + <code>[2,3,4,5]</code>?</p>
+<div id="94" class="cell" data-hold="true" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "JEpc22U0"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="JEpc22U0" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_JEpc22U0" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <fieldset style="border:0px">
+<legend style="display: none" aria-label="Select an item">Select an item</legend>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_JEpc22U0_1">
+    <input class="form-check-input" type="radio" name="radio_JEpc22U0" id="radio_JEpc22U0_1" value="1">
+    
+    <span class="label-body px-1">
+        Yes
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_JEpc22U0_2">
+    <input class="form-check-input" type="radio" name="radio_JEpc22U0" id="radio_JEpc22U0_2" value="2">
+    
+    <span class="label-body px-1">
+        No
+    </span>
+    </label>
+</div>
+</fieldset>
+
+         </div>
+    </div>
+    <div id="JEpc22U0_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_JEpc22U0').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_JEpc22U0')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_JEpc22U0"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('JEpc22U0_message');
+    
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_JEpc22U0")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_JEpc22U0")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+})});
+
+</script>
+</div>
+</div></form>
+<p>What if parentheses are left off? Explain the output of <code>1:4 + 2:5</code>?</p>
+<div id="96" class="cell" data-hold="true" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "T0VYwtuE"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="T0VYwtuE" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_T0VYwtuE" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <fieldset style="border:0px">
+<legend style="display: none" aria-label="Select an item">Select an item</legend>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_T0VYwtuE_1">
+    <input class="form-check-input" type="radio" name="radio_T0VYwtuE" id="radio_T0VYwtuE_1" value="1">
+    
+    <span class="label-body px-1">
+        It is just random
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_T0VYwtuE_2">
+    <input class="form-check-input" type="radio" name="radio_T0VYwtuE" id="radio_T0VYwtuE_2" value="2">
+    
+    <span class="label-body px-1">
+        It gives the correct answer, a generator for the vector <code>[3,5,7,9]</code>
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_T0VYwtuE_3">
+    <input class="form-check-input" type="radio" name="radio_T0VYwtuE" id="radio_T0VYwtuE_3" value="3">
+    
+    <span class="label-body px-1">
+        Addition happens prior to the use of <code>:</code> so this is like <code>1:(4+2):5</code>
+    </span>
+    </label>
+</div>
+</fieldset>
+
+         </div>
+    </div>
+    <div id="T0VYwtuE_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_T0VYwtuE').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_T0VYwtuE')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_T0VYwtuE"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 3;
+    var msgBox = document.getElementById('T0VYwtuE_message');
+    
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_T0VYwtuE")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_T0VYwtuE")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+})});
+
+</script>
+</div>
+</div></form>
+</div></div></div></div></div></div></section>
+<section id="question-6" class="level6">
+<h6 class="anchored" data-anchor-id="question-6">Question</h6>
+<p>How is <code>a:b-1</code> interpreted:</p>
+<div id="98" class="cell" data-hold="true" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "nn1kQ1Rd"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="nn1kQ1Rd" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_nn1kQ1Rd" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <fieldset style="border:0px">
+<legend style="display: none" aria-label="Select an item">Select an item</legend>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_nn1kQ1Rd_1">
+    <input class="form-check-input" type="radio" name="radio_nn1kQ1Rd" id="radio_nn1kQ1Rd_1" value="1">
+    
+    <span class="label-body px-1">
+        as <code>a:(b-1)</code>
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_nn1kQ1Rd_2">
+    <input class="form-check-input" type="radio" name="radio_nn1kQ1Rd" id="radio_nn1kQ1Rd_2" value="2">
+    
+    <span class="label-body px-1">
+        as <code>(a:b) - 1</code>, which is <code>(a-1):(b-1)</code>
+    </span>
+    </label>
+</div>
+</fieldset>
+
+         </div>
+    </div>
+    <div id="nn1kQ1Rd_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_nn1kQ1Rd').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_nn1kQ1Rd')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_nn1kQ1Rd"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('nn1kQ1Rd_message');
+    
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_nn1kQ1Rd")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_nn1kQ1Rd")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+})});
+
+</script>
+</div>
+</div></form>
+</div></div></section>
+<section id="question-7" class="level6">
+<h6 class="anchored" data-anchor-id="question-7">Question</h6>
+<p>An arithmetic sequence (<span class="math inline">\(a_0\)</span>, <span class="math inline">\(a_1 = a_0 + h\)</span>, <span class="math inline">\(a_2=a_0 + 2h, \dots,\)</span> <span class="math inline">\(a_n=a_0 + n\cdot h\)</span>) is specified with a starting point (<span class="math inline">\(a_0\)</span>), a step size (<span class="math inline">\(h\)</span>), and a number of points <span class="math inline">\((n+1)\)</span>. This is not the case with the colon constructor which take a starting point, a step size, and a suggested last value. This is not the case a with the default for the <code>range</code> function, with signature <code>range(start, stop, length)</code>. However, the documentation for <code>range</code> shows that indeed the three values (<span class="math inline">\(a_0\)</span>, <span class="math inline">\(h\)</span>, and <span class="math inline">\(n\)</span>) can be passed in. Which signature (from the docs) would allow this:</p>
+<div id="100" class="cell" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "U8uTwIpK"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="U8uTwIpK" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_U8uTwIpK" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <div id="buttongroup_U8uTwIpK" class="btn-group-vertical w-100">
+  <button type="button" class="btn toggle-btn px-4 my-1 btn-light btn-block active qqbutton" aria-pressed="false" id="button_U8uTwIpK_1" value="incorrect" style="width:100%;text-align:left; padding-left:10px; background:#4063D81A" onclick="return false;">
+     <code>range(start, stop, length)</code> 
+
+  </button>
+  <button type="button" class="btn toggle-btn px-4 my-1 btn-light btn-block active qqbutton" aria-pressed="false" id="button_U8uTwIpK_2" value="incorrect" style="width:100%;text-align:left; padding-left:10px; background:#4063D81A" onclick="return false;">
+     <code>range(start, stop; length, step)</code> 
+
+  </button>
+  <button type="button" class="btn toggle-btn px-4 my-1 btn-light btn-block active qqbutton" aria-pressed="false" id="button_U8uTwIpK_3" value="correct" style="width:100%;text-align:left; padding-left:10px; background:#4063D81A" onclick="return false;">
+     <code>range(start; length, stop, step)</code> 
+
+  </button>
+  <button type="button" class="btn toggle-btn px-4 my-1 btn-light btn-block active qqbutton" aria-pressed="false" id="button_U8uTwIpK_4" value="incorrect" style="width:100%;text-align:left; padding-left:10px; background:#4063D81A" onclick="return false;">
+     <code>range(;start, length, stop, step)</code> 
+
+  </button>
+</div>
+<script>
+document.querySelectorAll('[id^="button_U8uTwIpK_"]').forEach(function(btn) {
+    btn.addEventListener("click", function(btn) {
+    var correct = this.value == "correct";
+    var id = this.id;
+
+    if (!correct) {
+              const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+        this.style.background = "#CB3C331A";
+        var text = this.innerHTML;
+        this.innerHTML = "<em>⨉</em>&nbsp;" + text ;
+            var explanation = document.getElementById("explanation_U8uTwIpK")
+            if (explanation != null) {
+               explanation.style.display = "block";
+            }
+    } else {
+            const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+        }
+    document.querySelectorAll('[id^="button_U8uTwIpK_"]').forEach(function(btn) {
+        btn.disabled = true;
+            btn.setAttribute("aria-pressed", "true");
+        if (btn.value == "correct") {
+                btn.style.background = "#3898261A";
+        var text = btn.innerHTML;
+        btn.innerHTML =  " <em>✓</em>&nbsp;" + text ;
+        btn.style.fontSize = "1.1rem";
+        btn.style.color = "black";
+                btn.style.borderRadius = "12px";
+        }
+    });
+    });
+})
+</script>
+
+         </div>
+    </div>
+    <div id="U8uTwIpK_message" class="qqmessage" style="padding-bottom: 15px">
+     <div id="explanation_U8uTwIpK" class="pluto-output admonition alert alert-danger qqexplanation" style="display:none;background-color:#9558B21A;">
+      This is a somewhat vague question, but the use of <code>range(a0; length=n+1, step=h)</code> will produce the arithmetic sequence with this parameterization. 
+
+     </div>
+    </div>
+
+<script>
+document.getElementById('controls_U8uTwIpK').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_U8uTwIpK')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+
+</script>
+</div>
+</div></form>
+</div></div></section>
+<section id="question-8" class="level6">
+<h6 class="anchored" data-anchor-id="question-8">Question</h6>
+<p>Create the sequence <span class="math inline">\(10, 100, 1000, \dots, 1,000,000\)</span> using a list comprehension. Which of these works?</p>
+<div id="102" class="cell" data-hold="true" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "vOLVUw5I"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="vOLVUw5I" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_vOLVUw5I" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <fieldset style="border:0px">
+<legend style="display: none" aria-label="Select an item">Select an item</legend>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_vOLVUw5I_1">
+    <input class="form-check-input" type="radio" name="radio_vOLVUw5I" id="radio_vOLVUw5I_1" value="1">
+    
+    <span class="label-body px-1">
+        <code>[10^i for i in [10, 100, 1000]]</code>
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_vOLVUw5I_2">
+    <input class="form-check-input" type="radio" name="radio_vOLVUw5I" id="radio_vOLVUw5I_2" value="2">
+    
+    <span class="label-body px-1">
+        <code>[10^i for i in 1:6]</code>
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_vOLVUw5I_3">
+    <input class="form-check-input" type="radio" name="radio_vOLVUw5I" id="radio_vOLVUw5I_3" value="3">
+    
+    <span class="label-body px-1">
+        <code>[i^10 for i in [1:6]]</code>
+    </span>
+    </label>
+</div>
+</fieldset>
+
+         </div>
+    </div>
+    <div id="vOLVUw5I_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_vOLVUw5I').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_vOLVUw5I')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_vOLVUw5I"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('vOLVUw5I_message');
+    
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_vOLVUw5I")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_vOLVUw5I")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+})});
+
+</script>
+</div>
+</div></form>
+</div></div></section>
+<section id="question-9" class="level6">
+<h6 class="anchored" data-anchor-id="question-9">Question</h6>
+<p>Create the sequence <span class="math inline">\(0.1, 0.01, 0.001, \dots, 0.0000001\)</span> using a list comprehension. Which of these will work:</p>
+<div id="104" class="cell" data-hold="true" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "KDXhDK5P"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="KDXhDK5P" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_KDXhDK5P" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <fieldset style="border:0px">
+<legend style="display: none" aria-label="Select an item">Select an item</legend>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_KDXhDK5P_1">
+    <input class="form-check-input" type="radio" name="radio_KDXhDK5P" id="radio_KDXhDK5P_1" value="1">
+    
+    <span class="label-body px-1">
+        <code>[i^(1/10) for i in 1:7]</code>
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_KDXhDK5P_2">
+    <input class="form-check-input" type="radio" name="radio_KDXhDK5P" id="radio_KDXhDK5P_2" value="2">
+    
+    <span class="label-body px-1">
+        <code>[(1/10)^i for i in 1:7]</code>
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_KDXhDK5P_3">
+    <input class="form-check-input" type="radio" name="radio_KDXhDK5P" id="radio_KDXhDK5P_3" value="3">
+    
+    <span class="label-body px-1">
+        <code>[10^-i for i in 1:7]</code>
+    </span>
+    </label>
+</div>
+</fieldset>
+
+         </div>
+    </div>
+    <div id="KDXhDK5P_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_KDXhDK5P').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_KDXhDK5P')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_KDXhDK5P"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 2;
+    var msgBox = document.getElementById('KDXhDK5P_message');
+    
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_KDXhDK5P")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_KDXhDK5P")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+})});
+
+</script>
+</div>
+</div></form>
+</div></div></section>
+<section id="question-10" class="level6">
+<h6 class="anchored" data-anchor-id="question-10">Question</h6>
+<p>Evaluate the expression <span class="math inline">\(x^3 - 2x + 3\)</span> for each of the values <span class="math inline">\(-5, -4, \dots, 4, 5\)</span> using a comprehension. Which of these will work?</p>
+<div id="106" class="cell" data-hold="true" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "UOoJsZ1S"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="UOoJsZ1S" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_UOoJsZ1S" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <fieldset style="border:0px">
+<legend style="display: none" aria-label="Select an item">Select an item</legend>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_UOoJsZ1S_1">
+    <input class="form-check-input" type="radio" name="radio_UOoJsZ1S" id="radio_UOoJsZ1S_1" value="1">
+    
+    <span class="label-body px-1">
+        <code>[x^3 - 2x + 3 for x in -(5:5)]</code>
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_UOoJsZ1S_2">
+    <input class="form-check-input" type="radio" name="radio_UOoJsZ1S" id="radio_UOoJsZ1S_2" value="2">
+    
+    <span class="label-body px-1">
+        <code>[x^3 - 2x + 3 for i in -5:5]</code>
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_UOoJsZ1S_3">
+    <input class="form-check-input" type="radio" name="radio_UOoJsZ1S" id="radio_UOoJsZ1S_3" value="3">
+    
+    <span class="label-body px-1">
+        <code>[x^3 - 2x + 3 for x in -5:5]</code>
+    </span>
+    </label>
+</div>
+</fieldset>
+
+         </div>
+    </div>
+    <div id="UOoJsZ1S_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_UOoJsZ1S').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_UOoJsZ1S')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_UOoJsZ1S"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 3;
+    var msgBox = document.getElementById('UOoJsZ1S_message');
+    
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_UOoJsZ1S")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_UOoJsZ1S")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+})});
+
+</script>
+</div>
+</div></form>
+</div></div></section>
+<section id="question-11" class="level6">
+<h6 class="anchored" data-anchor-id="question-11">Question</h6>
+<p>How many prime numbers are there between <span class="math inline">\(1100\)</span> and <span class="math inline">\(1200\)</span>? (Use <code>filter</code> and <code>isprime</code>)</p>
+<div id="108" class="cell" data-hold="true" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "kNHaJwDY"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="kNHaJwDY" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_kNHaJwDY" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <br>
+<div class="input-group" aria-label="Input form: Numeric answer">
+    <input id="kNHaJwDY" type="number" step="any" class="form-control qqinput" placeholder="Numeric answer" aria-label="Numeric answer">
+</div>
+
+         </div>
+    </div>
+    <div id="kNHaJwDY_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_kNHaJwDY').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_kNHaJwDY')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.getElementById("kNHaJwDY").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 12) <= 0);
+  var msgBox = document.getElementById('kNHaJwDY_message');
+  
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_kNHaJwDY")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_kNHaJwDY")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+});
+
+</script>
+</div>
+</div></form>
+</div></div></section>
+<section id="question-12" class="level6">
+<h6 class="anchored" data-anchor-id="question-12">Question</h6>
+<p>Which has more prime numbers the range <code>1000:2000</code> or the range <code>11000:12000</code>?</p>
+<div id="110" class="cell" data-hold="true" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "Ce6LRy8S"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="Ce6LRy8S" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_Ce6LRy8S" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <fieldset style="border:0px">
+<legend style="display: none" aria-label="Select an item">Select an item</legend>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_Ce6LRy8S_1">
+    <input class="form-check-input" type="radio" name="radio_Ce6LRy8S" id="radio_Ce6LRy8S_1" value="1">
+    
+    <span class="label-body px-1">
+        <code>1000:2000</code>
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_Ce6LRy8S_2">
+    <input class="form-check-input" type="radio" name="radio_Ce6LRy8S" id="radio_Ce6LRy8S_2" value="2">
+    
+    <span class="label-body px-1">
+        <code>11000:12000</code>
+    </span>
+    </label>
+</div>
+</fieldset>
+
+         </div>
+    </div>
+    <div id="Ce6LRy8S_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_Ce6LRy8S').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_Ce6LRy8S')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_Ce6LRy8S"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('Ce6LRy8S_message');
+    
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_Ce6LRy8S")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_Ce6LRy8S")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+})});
+
+</script>
+</div>
+</div></form>
+</div></div></section>
+<section id="question-13" class="level6">
+<h6 class="anchored" data-anchor-id="question-13">Question</h6>
+<p>We can easily add an arithmetic progression with the <code>sum</code> function. For example, <code>sum(1:100)</code> will add the numbers <span class="math inline">\(1, 2, ..., 100\)</span>.</p>
+<p>What is the sum of the odd numbers between <span class="math inline">\(0\)</span> and <span class="math inline">\(100\)</span>?</p>
+<div id="112" class="cell" data-hold="true" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "0CrSfF1Q"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="0CrSfF1Q" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_0CrSfF1Q" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <br>
+<div class="input-group" aria-label="Input form: Numeric answer">
+    <input id="0CrSfF1Q" type="number" step="any" class="form-control qqinput" placeholder="Numeric answer" aria-label="Numeric answer">
+</div>
+
+         </div>
+    </div>
+    <div id="0CrSfF1Q_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_0CrSfF1Q').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_0CrSfF1Q')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.getElementById("0CrSfF1Q").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 2500) <= 0);
+  var msgBox = document.getElementById('0CrSfF1Q_message');
+  
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_0CrSfF1Q")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_0CrSfF1Q")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+});
+
+</script>
+</div>
+</div></form>
+</div></div></section>
+<section id="question-14" class="level6">
+<h6 class="anchored" data-anchor-id="question-14">Question</h6>
+<p>The sum of the arithmetic progression <span class="math inline">\(a, a+h, \dots, a+n\cdot h\)</span> has a simple formula. Using a few cases, can you tell if this is the correct one:</p>
+<p><span class="math display">\[
+(n+1)\cdot a + h \cdot n(n+1)/2
+\]</span></p>
+<div id="114" class="cell" data-hold="true" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "D44zuasQ"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="D44zuasQ" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_D44zuasQ" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <fieldset style="border:0px">
+<legend style="display: none" aria-label="Select an item">Select an item</legend>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_D44zuasQ_1">
+    <input class="form-check-input" type="radio" name="radio_D44zuasQ" id="radio_D44zuasQ_1" value="1">
+    
+    <span class="label-body px-1">
+        Yes, this is true
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_D44zuasQ_2">
+    <input class="form-check-input" type="radio" name="radio_D44zuasQ" id="radio_D44zuasQ_2" value="2">
+    
+    <span class="label-body px-1">
+        No, this is false
+    </span>
+    </label>
+</div>
+</fieldset>
+
+         </div>
+    </div>
+    <div id="D44zuasQ_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_D44zuasQ').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_D44zuasQ')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_D44zuasQ"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('D44zuasQ_message');
+    
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_D44zuasQ")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_D44zuasQ")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+})});
+
+</script>
+</div>
+</div></form>
+</div></div></section>
+<section id="question-15" class="level6">
+<h6 class="anchored" data-anchor-id="question-15">Question</h6>
+<p>A <em>geometric progression</em> is of the form <span class="math inline">\(a^0, a^1, a^2, \dots, a^n\)</span>. These are easily generated by comprehensions of the form <code>[a^i for i in 0:n]</code>. Find the sum of the geometric progression <span class="math inline">\(1, 2^1, 2^2, \dots, 2^{10}\)</span>.</p>
+<div id="116" class="cell" data-hold="true" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "RxKnJg5M"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="RxKnJg5M" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_RxKnJg5M" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <br>
+<div class="input-group" aria-label="Input form: Numeric answer">
+    <input id="RxKnJg5M" type="number" step="any" class="form-control qqinput" placeholder="Numeric answer" aria-label="Numeric answer">
+</div>
+
+         </div>
+    </div>
+    <div id="RxKnJg5M_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_RxKnJg5M').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_RxKnJg5M')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.getElementById("RxKnJg5M").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 2047) <= 0);
+  var msgBox = document.getElementById('RxKnJg5M_message');
+  
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_RxKnJg5M")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_RxKnJg5M")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+});
+
+</script>
+</div>
+</div></form>
+<p>Is your answer of the form <span class="math inline">\((1 - a^{n+1}) / (1-a)\)</span>?</p>
+<div id="118" class="cell" data-hold="true" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "TCLardps"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="TCLardps" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_TCLardps" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <fieldset style="border:0px">
+<legend style="display: none" aria-label="Select an item">Select an item</legend>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_TCLardps_1">
+    <input class="form-check-input" type="radio" name="radio_TCLardps" id="radio_TCLardps_1" value="1">
+    
+    <span class="label-body px-1">
+        Yes
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_TCLardps_2">
+    <input class="form-check-input" type="radio" name="radio_TCLardps" id="radio_TCLardps_2" value="2">
+    
+    <span class="label-body px-1">
+        No
+    </span>
+    </label>
+</div>
+</fieldset>
+
+         </div>
+    </div>
+    <div id="TCLardps_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_TCLardps').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_TCLardps')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_TCLardps"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('TCLardps_message');
+    
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_TCLardps")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_TCLardps")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+})});
+
+</script>
+</div>
+</div></form>
+</div></div></div></div></section>
+<section id="question-16" class="level6">
+<h6 class="anchored" data-anchor-id="question-16">Question</h6>
+<p>The <a href="http://en.wikipedia.org/wiki/Arithmetic_progression">product</a> of the terms in an arithmetic progression has a known formula. The product can be found by an expression of the form <code>prod(a:h:b)</code>. Find the product of the terms in the sequence <span class="math inline">\(1,3,5,\dots,19\)</span>.</p>
+<div id="120" class="cell" data-hold="true" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "Ei7V4ImC"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="Ei7V4ImC" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_Ei7V4ImC" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <br>
+<div class="input-group" aria-label="Input form: Numeric answer">
+    <input id="Ei7V4ImC" type="number" step="any" class="form-control qqinput" placeholder="Numeric answer" aria-label="Numeric answer">
+</div>
+
+         </div>
+    </div>
+    <div id="Ei7V4ImC_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_Ei7V4ImC').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_Ei7V4ImC')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.getElementById("Ei7V4ImC").addEventListener("change", function() {
+  var correct = (Math.abs(this.value - 654729075) <= 0);
+  var msgBox = document.getElementById('Ei7V4ImC_message');
+  
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_Ei7V4ImC")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_Ei7V4ImC")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+});
+
+</script>
+</div>
+</div></form>
+</div></div></section>
+<section id="question-17" class="level5">
+<h5 class="anchored" data-anchor-id="question-17">Question</h5>
+<p>Credit card numbers have a check digit to ensure data entry of a 16-digit number is correct. How does it work? The <a href="https://en.wikipedia.org/wiki/Luhn_algorithm">Luhn Algorithm</a>.</p>
+<p>Let’s see if <code>4137 8947 1175 5804</code> is a valid credit card number?</p>
+<p>First, we enter it as a value and immediately break the number into its digits:</p>
+<div id="122" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> <span class="fl">4137_8947_1175_5804</span>  <span class="co"># _ in a number is ignored by parser</span></span>
+<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> <span class="fu">digits</span>(x)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>16-element Vector{Int64}:
+ 4
+ 0
+ 8
+ 5
+ 5
+ 7
+ 1
+ 1
+ 7
+ 4
+ 9
+ 8
+ 7
+ 3
+ 1
+ 4</code></pre>
+</div>
+</div>
+<p>We reverse the order, so the first number in digits is the largest place value in <code>xs</code></p>
+<div id="124" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb70"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="fu">reverse!</span>(xs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>16-element Vector{Int64}:
+ 4
+ 1
+ 3
+ 7
+ 8
+ 9
+ 4
+ 7
+ 1
+ 1
+ 7
+ 5
+ 5
+ 8
+ 0
+ 4</code></pre>
+</div>
+</div>
+<p>Now, the 1st, 3rd, 5th, … digit is doubled. We do this through indexing:</p>
+<div id="126" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb72"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">:</span><span class="fu">length</span>(xs)</span>
+<span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a>    xs[i] <span class="op">=</span> <span class="fl">2</span> <span class="op">*</span> xs[i]</span>
+<span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Numbers greater than 9, have their digits added, then all the resulting numbers are added. This can be done with a generator:</p>
+<div id="128" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb73"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> <span class="fu">sum</span>(<span class="fu">sum</span>(<span class="fu">digits</span>(xi)) <span class="cf">for</span> xi <span class="kw">in</span> xs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>79</code></pre>
+</div>
+</div>
+<p>If this sum has a remainder of 0 when dividing by 10, the credit card number is possibly valid, if not it is definitely invalid. (The check digit is the last number and is set so that the above applied to the first 15 digits <em>plus</em> the check digit results in a multiple of 10.)</p>
+<div id="130" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb75"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="fu">iszero</span>(<span class="fu">rem</span>(z,<span class="fl">10</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<pre><code>false</code></pre>
+</div>
+</div>
+<p>Darn. A typo. is <code>4137 8047 1175 5804</code> a possible credit card number?</p>
+<div id="132" class="cell" data-hold="true" data-execution_count="1">
+<div class="cell-output cell-output-display" data-execution_count="1">
+<script>
+var ID = "2EHpvrV0"
+</script>
+<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="2EHpvrV0" data-controltype="" onsubmit="return false;">
+  <div class="form-group ">
+    <div class="controls">
+      <div class="form" id="controls_2EHpvrV0" correct="-1" attempts="0">
+
+    <div style="padding-top: 5px">
+    <fieldset style="border:0px">
+<legend style="display: none" aria-label="Select an item">Select an item</legend>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_2EHpvrV0_1">
+    <input class="form-check-input" type="radio" name="radio_2EHpvrV0" id="radio_2EHpvrV0_1" value="1">
+    
+    <span class="label-body px-1">
+        true
+    </span>
+    </label>
+</div>
+<div class="form-check">
+    <label class="form-check-label qqradio" for="radio_2EHpvrV0_2">
+    <input class="form-check-input" type="radio" name="radio_2EHpvrV0" id="radio_2EHpvrV0_2" value="2">
+    
+    <span class="label-body px-1">
+        false
+    </span>
+    </label>
+</div>
+</fieldset>
+
+         </div>
+    </div>
+    <div id="2EHpvrV0_message" class="qqmessage" style="padding-bottom: 15px">
+    </div>
+
+<script>
+document.getElementById('controls_2EHpvrV0').addEventListener("quizquestion_answer", (e) => {
+          var o = document.getElementById('controls_2EHpvrV0')
+          var atts = Number(o.getAttribute("attempts"))
+          o.setAttribute("correct",  e.detail.correct);
+          o.setAttribute("attempts", atts + 1)
+      }, true)
+</script>
+
+<script text="text/javascript">
+document.querySelectorAll('input[name="radio_2EHpvrV0"]').forEach(function(rb) {
+rb.addEventListener("change", function() {
+    var correct = rb.value == 1;
+    var msgBox = document.getElementById('2EHpvrV0_message');
+    
+  if(correct) {
+    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
+    var explanation = document.getElementById("explanation_2EHpvrV0")
+    if (explanation != null) {
+       explanation.style.display = "none";
+    }
+      const correct_answer   = new CustomEvent("quizquestion_answer",
+          {bubbles:true, detail:{correct: 1}}
+  );
+  this.dispatchEvent(correct_answer);
+
+  } else {
+    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
+    var explanation = document.getElementById("explanation_2EHpvrV0")
+    if (explanation != null) {
+       explanation.style.display = "block";
+    }
+      const incorrect_answer = new CustomEvent("quizquestion_answer",
+           {bubbles:true, detail:{correct: 0}}
+  );
+  this.dispatchEvent(incorrect_answer);
+
+  }
+
+})});
+
+</script>
+</div>
+</div></form>
+
+
+</div></div></section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../basics/vectors.html" class="pagination-link" aria-label="Vectors and containers">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Vectors and containers</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../precalc.html" class="pagination-link" aria-label="Precalculus Concepts">
+        <span class="nav-page-text">Precalculus Concepts</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>Copyright 2022-25, John Verzani</p>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/jverzani/CalculusWithJuliaNotes.jl/edit/main/quarto/basics/ranges.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/jverzani/CalculusWithJuliaNotes.jl/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
