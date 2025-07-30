@@ -34,12 +34,37 @@ For a right triangle with angles $\theta$, $\pi/2 - \theta$, and $\pi/2$ ($0 < \
 ```{julia}
 #| hide: true
 #| echo: false
-p = plot(legend=false, xlim=(-1/4,5), ylim=(-1/2, 3),
-         xticks=nothing, yticks=nothing, border=:none)
-plot!([0,4,4,0],[0,0,3,0], linewidth=3)
-del = .25
-plot!([4-del, 4-del,4], [0, del, del], color=:black, linewidth=3)
-annotate!([(.75, .25, "θ"), (4.0, 1.25, "opposite"), (2, -.25, "adjacent"), (1.5, 1.25, "hypotenuse")])
+let
+    gr()
+	p = plot(;legend=false,
+	         xticks=nothing, yticks=nothing,
+			 border=:none,
+			xlim=(-1/4,5), ylim=(-1/2, 3))
+	plot!([0,4,4,0],[0,0,3,0], linewidth=3)
+	θ = atand(3,4)
+	del = .25
+	plot!([4-del, 4-del,4], [0, del, del], color=:black, linewidth=3)
+	theta = pi/20
+	r = sqrt((3/4)^2 + (1/4)^2)
+	ts = range(0, theta, 20)
+		plot!(r*cos.(ts), r*sin.(ts); line=(:gray, 1))
+	ts = range(atan(3/4) - theta, atan(3,4), 20)
+		plot!(r*cos.(ts), r*sin.(ts); line=(:gray, 1))
+
+annotate!([
+	(.75, .25, L"\theta"),
+	(4.0, 1.5+.1, text("opposite", rotation=90,:top)),
+	(2, -.25, "adjacent"),
+	(2, 1.5+.1, text("hypotenuse", rotation=θ,:bottom))
+])
+
+end
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
 ```
 
 With these, the basic definitions for the primary trigonometric functions are
@@ -77,9 +102,13 @@ gr()
 
 function plot_angle(m)
     r = m*pi
+	n,d = numerator(m), denominator(m)
 
-    ts = range(0, stop=2pi, length=100)
-    tit = "$m ⋅ pi -> ($(round(cos(r), digits=2)), $(round(sin(r), digits=2)))"
+	tit = latexstring("\\frac{$n}{$d}") *
+		L"\cdot\pi\rightarrow (" *
+		latexstring("$(round(cos(r), digits=2)),$(round(sin(r), digits=2)))")
+
+	ts = range(0, 2pi, 151)
     p = plot(cos.(ts), sin.(ts), legend=false, aspect_ratio=:equal,title=tit)
     plot!(p, [-1,1], [0,0], color=:gray30)
     plot!(p,  [0,0], [-1,1], color=:gray30)
@@ -95,12 +124,10 @@ function plot_angle(m)
     plot!(p, [0,l*cos(r)], [0,l*sin(r)], color=:green, linewidth=4)
 
     scatter!(p, [cos(r)], [sin(r)], markersize=5)
-    annotate!(p, [(1/4+cos(r), sin(r), "(x,y)")])
+    annotate!(p, [(1/4+cos(r), sin(r), L"(x,y)")])
 
     p
 end
-
-
 
 ## different linear graphs
 anim = @animate for m in  -4//3:1//6:10//3
@@ -242,7 +269,7 @@ plot(sin, 0, 4pi)
 The graph shows two periods. The wavy aspect of the graph is why this function is used to model periodic motions, such as the amount of sunlight in a day, or the alternating current powering a computer.
 
 
-From this graph - or considering when the $y$ coordinate is $0$ - we see that the sine function has zeros at any integer multiple of $\pi$, or $k\pi$, $k$ in $\dots,-2,-1, 0, 1, 2, \dots$.
+From this graph---or considering when the $y$ coordinate is $0$---we see that the sine function has zeros at any integer multiple of $\pi$, or $k\pi$, $k$ in $\dots,-2,-1, 0, 1, 2, \dots$.
 
 
 The cosine function is similar, in that it has the same domain and range, but is "out of phase" with the sine curve. A graph of both shows the two are related:
@@ -406,7 +433,7 @@ Suppose both $\alpha$ and $\beta$ are positive with $\alpha + \beta \leq \pi/2$.
 
 ```{julia}
 #| echo: false
-
+gr()
 using Plots, LaTeXStrings
 
 # two angles
@@ -425,7 +452,10 @@ color1 = :royalblue
 color2 = :forestgreen
 color3 = :brown3
 color4 = :mediumorchid2
-canvas() = plot(axis=([],false), legend=false, aspect_ratio=:equal)
+canvas() = plot(;
+				axis=([],false),
+				legend=false,
+				aspect_ratio=:equal)
 p1 = canvas()
 plot!(Shape([A,B,F]), fill=(color4, 0.15))
 
@@ -440,29 +470,29 @@ ddf = sqrt(sum((D.-F).^2))
 Δ = 0.0
 
 alphabeta = (r*cos(α/2 + β/2), r*sin(α/2 + β/2),
-             text("α + β",:hcenter; rotation=pi/2))
-cosαβ = (B[1]/2, 0, text("cos(α + β)", :top))
-sinαβ = (B[1], F[2]/2, text("sin(α + β)"))
+             text(L"\alpha + \beta",:left, rotation=pi/2))
+cosαβ = (B[1]/2, 0, text(L"\cos(\alpha + \beta)", :top))
+sinαβ = (B[1], F[2]/2, text(L"\sin(\alpha + \beta)", rotation=90,:top))
 
 txtpoints = (
-    one = (F[1]/2, F[2]/2, "1",:right),
+    one = (F[1]/2, F[2]/2, text(L"1", :bottom)),
     beta=(r*cos(α + β/2), r*sin(α + β/2),
-          text("β", :hcenter)),
+          text(L"\beta", :hcenter)),
     alpha = (r*cos(α/2), r*sin(α/2),
-             text("α",:hcenter)),
+             text(L"\alpha",:hcenter)),
     alphaa = (F[1] + r*sin(α/2), F[2] - r*cos(α/2) ,
-              text("α"),:hcenter),
+              text(L"\alpha"),:hcenter),
     cosβ = (dae/2*cos(α),dae/2*sin(α) + Δ,
-            text("cos(β)",:hcenter)),
+            text(L"\cos(\beta)",:bottom, rotation=rad2deg(α))),
     sinβ = (B[1] + dbc/2 + Δ/2, D[2] + ddf/2 + Δ/2,
-            text("sin(β)",:bottom)),
-    cosαcosβ = (C[1]/2, 0 - Δ, text("cos(α)cos(β)", :top)),
-    sinαcosβ = (cos(α)*cos(β) - 0.1, dce/2 ,
-                text("sin(α)cos(β)", :hcenter)),
+            text(L"\sin(\beta)",:bottom, rotation=-(90-rad2deg(α)))),
+    cosαcosβ = (C[1]/2, 0 - Δ, text(L"\cos(\alpha)\cos(\beta)", :top)),
+    sinαcosβ = (cos(α)*cos(β), dce/2 ,
+                text(L"\sin(\alpha)\cos(\beta)", :top, rotation=90)),
     cosαsinβ = (D[1] - Δ, D[2] +  ddf/2 ,
-                text("cos(α)sin(β)", :top)),
+                text(L"\cos(\alpha)\sin(\beta)", :bottom, 10, rotation=90)),
     sinαsinβ = (D[1] + dde/2, D[2] + Δ ,
-                text("sin(α)sin(β)", :top)),
+                text(L"\sin(\alpha)\sin(\beta)", 10, :top)),
 )
 
 # Plot 1
@@ -574,6 +604,12 @@ $$
 $$
 :::
 
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
 ##### Example
 
 
@@ -657,14 +693,144 @@ atan(y, x)
 ##### Example
 
 
-A (white) light shining through a [prism](http://tinyurl.com/y8sczg4t) will be deflected depending on the material of the prism and the angles involved (refer to the link for a figure). The relationship can be analyzed by tracing a ray through the figure and utilizing Snell's law. If the prism has index of refraction $n$ then the ray will deflect by an amount $\delta$ that depends on the angle, $\alpha$ of the prism and the initial angle ($\theta_0$) according to:
+A (white) light shining through a [dispersive prism](https://en.wikipedia.org/wiki/Dispersive_prism) will be deflected depending on the material of the prism and the angles involved. The relationship can be analyzed by tracing a ray through the figure and utilizing Snell's law which relates the angle of incidence with the angle of refraction through two different media through:
 
 
 $$
-\delta = \theta_0 - \alpha  + \arcsin(n \sin(\alpha - \arcsin(\frac{1}{n}\sin(\theta_0)))).
+n_0 \sin(\theta_0) = n_1 \sin(\theta_1)
 $$
 
-If $n=1.5$ (glass), $\alpha = \pi/3$ and $\theta_0=\pi/6$, find the deflection (in radians).
+
+:::{#fig-snells-law-prism}
+```{julia}
+#| echo: false
+p1 = let
+    gr()
+
+	plot(; empty_style..., aspect_ratio=:equal)
+	n₀,n₁,n₂ = 1,3, 1
+	θ₀ = pi/7
+	α = pi/8
+	θ₁ = asin(n₀/n₁* θ₀)
+	θ₁′ = α - θ₁
+	θ₂′ = asin(n₁/n₂ * θ₁′)
+	θ₂ = θ₂′ - α
+
+	plot!([(-1,0), (1,0)]; line=(:black, 1))
+	plot!([(0,-1),(0,1)]; line=(:black, 1))
+	plot!([(0,1), (2tan(α),-1)]; line=(:black, 1))
+	S = Shape([(0,-1),(2tan(α),-1),(0,1)])
+	plot!(S, fill=(:gray80, 0.25), line=nothing)
+
+
+	xx = tan(α)/ (1 + tan(α)*tan(θ₁))
+	sl(x) = 1 - x/tan(α)
+	yy = sl(xx)
+	plot!(sl, xx-1/8, xx+1/9; line=(:red,3))
+	plot!(x -> yy + tan(α)*(x-xx), xx-1/4, xx+1/4; line=(:red, 3))
+
+
+	plot!([(-1,-sin(θ₀)), (0,0)]; line=(:black, 2))
+	plot!([(0,0), (xx, xx*tan(θ₁))]; line=(:black, 2))
+	plot!([(xx,yy), (xx + 5/8, yy - 5/8*tan(θ₂))]; line=(:black, 2))
+
+
+
+
+	annotate!([
+		(-1/2,1/2*sin(pi + θ₀/2), text(L"\theta_0")),
+		(1/5, 1/5*sin(θ₁/2), text(L"\theta_1")),
+		(2tan(α), -0.075, text(L"\theta_2")),
+		(-1/2, -3/4, text(L"n_0")),
+		(2tan(α/2), -3/4, text(L"n_1")),
+		(1 - (1-2tan(α))/2, -3/4, text(L"n_2"))
+
+	])
+    current()
+end
+p2 = let
+	plot(; empty_style..., aspect_ratio=:equal)
+	n₀,n₁,n₂ = 1,3, 1
+	θ₀ = pi/7
+	α = pi/8
+	θ₁ = asin(n₀/n₁* θ₀)
+	θ₁′ = α - θ₁
+	θ₂′ = asin(n₁/n₂ * θ₁′)
+	θ₂ = θ₂′ - α
+
+
+
+	xx = tan(α)/ (1 + tan(α)*tan(θ₁))
+	sl(x) = 1 - x/tan(α)
+	yy = sl(xx)
+	plot!(sl, xx-1/8, xx+1/9; line=(:red,3))
+	plot!(x -> yy + tan(α)*(x-xx), xx-1/4, xx+1/4; line=(:red, 3))
+
+	S = Shape([(0, sl(xx-1/8)), (xx-1/8,sl(xx-1/8)),
+				(xx+1/9, sl(xx+1/9)), (0, sl(xx+1/9))])
+	plot!(S, fill=(:gray80, 0.25), line=nothing)
+
+	#plot!([(-1,-sin(θ₀)), (0,0)]; line=(:black, 2))
+	plot!([(0,0), (xx, xx*tan(θ₁))]; line=(:black, 2))
+	plot!([(xx,yy), (xx + 2/8, yy - 2/8*tan(θ₂))]; line=(:black, 2))
+
+	annotate!([
+	(1/5, .1*sin(θ₁/2), text(L"\theta_1\prime")),
+		(xx + .1, 0.06, text(L"\theta_2\prime")),
+		(2tan(α/2), -1/8, text(L"n_1")),
+		(17/32, -1/8, text(L"n_2"))
+	])
+    current()
+end
+plot(p1, p2; layout=(1,2))
+```
+
+Light bending through a prism. The right graphic shows the second bending.
+:::
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+Following Wikipedia, we have
+
+
+
+$$
+\theta_1 = \sin^{-1}\left( \frac{n_0}{n_1} \sin(\theta_0) \right)
+$$
+
+Both $\theta_0$ and $\theta_1$ are measured with respect to the coordinate system that looks like the $x-y$ plane. The red coordinate system is used to identify the angle of incidence for the second bending. Some right-triangle geometry relates the new angle $\theta'_1$ with $\theta_1$ through $\theta'_1 = \alpha - \theta_1$. With this new angle of incidence, the angle of refraction, $\theta'_2$, satisfies:
+
+$$
+n1 \sin(\theta'_1) = n2 \sin(\theta'_2)
+$$
+
+Or
+
+$$
+\theta'_2 = \sin^{-1}\left(\frac{n_1}{n_2}\sin(\theta'_1) \right)
+$$
+
+Finally, using right-triangle geometry, the angle $\theta_2 = \theta'_2 - \alpha$ can be identified.
+
+For a prism, in air, we would have $n_0 = n_2 = 1$. Letting $n_1 = n$, and combining we get
+
+$$
+\begin{align*}
+\delta &= \theta_0 + \theta_2\\
+&=\theta_0 + \sin^{-1}\left(\frac{n_1}{n_2}\sin(\theta'_1) \right)- \alpha\\
+&= \theta_0 - \alpha + \sin^{-1}\left(\frac{n}{1}\sin(\alpha -\theta_1) \right)\\
+&= \theta_0 - \alpha + \sin^{-1}\left(n\sin\left(\alpha - \sin^{-1}\left( \frac{n_0}{n_1} \sin(\theta_0) \right)\right)\right)\\
+&= \theta_0 - \alpha + \sin^{-1}\left(n\sin\left(\alpha -\sin^{-1}\left( \frac{1}{n} \sin(\theta_0) \right)\right) \right)
+\end{align*}
+$$
+
+If the prism has index of refraction $n$ then the ray will deviate by this amount $\delta$ that depends on the initial incidence angle, $\alpha$ of the prism and $n$.
+
+When $n=1.5$ (glass), $\alpha = \pi/3$ and $\theta_0=\pi/6$, find the deflection (in radians).
 
 
 We have:
@@ -758,6 +924,8 @@ q(x) = (x+3/5)*(x+1/5)*(x-1/5)*(x-3/5)
 plot(abs ∘ T4, -1,1, label="|T₄|")
 plot!(abs ∘ q, -1,1, label="|q|")
 ```
+
+We will return to this family of polynomials in the section on Orthogonal Polynomials.
 
 ## Hyperbolic trigonometric functions
 
@@ -1028,4 +1196,3 @@ Is this identical to the pattern for the regular sine function?
 #| echo: false
 yesnoq(false)
 ```
-

@@ -51,7 +51,12 @@ $$
 gr()
 anim = @animate for m in  2:2:10
     fn = x -> x^m
-    plot(fn, -1, 1, size = fig_size, legend=false, title="graph of x^{$m}", xlims=(-1,1), ylims=(-.1,1))
+    title = L"graph of $x^{%$m}$"
+    plot(fn, -1, 1;
+         size = fig_size,
+         legend=false,
+         title=title,
+         xlims=(-1,1), ylims=(-.1,1))
 end
 
 imgfile = tempname() * ".gif"
@@ -96,7 +101,12 @@ $$
 gr()
 anim = @animate for m in  [-5, -2, -1, 1, 2, 5, 10, 20]
     fn = x -> m * x
-    plot(fn, -1, 1, size = fig_size, legend=false, title="m = $m", xlims=(-1,1), ylims=(-20, 20))
+    title = L"m = %$m"
+    plot(fn, -1, 1;
+         size = fig_size,
+         legend=false,
+         title=title,
+         xlims=(-1,1), ylims=(-20, 20))
 end
 
 imgfile = tempname() * ".gif"
@@ -301,7 +311,9 @@ float(y)
 
 
 
-The use of the generic `float` method returns a floating point number. `SymPy` objects have their own internal types. To preserve these on conversion to a related `Julia` value, the `N` function from  `SymPy` is useful:
+The use of the generic `float` method returns a floating point number. (The `.evalf()` method of `SymPy` objects uses `SymPy` to produce floating point versions of symbolic values.
+
+`SymPy` objects have their own internal types. To preserve these on conversion to a related `Julia` value, the `N` function from  `SymPy` is useful:
 
 
 ```{julia}
@@ -310,14 +322,7 @@ p = -16x^2 + 100
 N(p(2))
 ```
 
-Where `convert(T, x)` requires a specification of the type to convert `x` to, `N` attempts to match the data type used by SymPy to store the number. As such, the output type of `N` may vary (rational, a BigFloat, a float, etc.) For getting more digits of accuracy, a precision can be passed to `N`. The following command will take the symbolic value for $\pi$, `PI`, and produce about $60$ digits worth as a `BigFloat` value:
-
-
-```{julia}
-N(PI, 60)
-```
-
-Conversion by `N` will fail if the value to be converted contains free symbols, as would be expected.
+Where `convert(T, x)` requires a specification of the type to convert `x` to, `N` attempts to match the data type used by SymPy to store the number. As such, the output type of `N` may vary (rational, a BigFloat, a float, etc.) Conversion by `N` will fail if the value to be converted contains free symbols, as would be expected.
 
 
 ### Converting symbolic expressions into Julia functions
@@ -362,6 +367,8 @@ pp = lambdify(p, (x,a,b))
 pp(1,2,3) # computes 2*1^2 + 3
 ```
 
+(We suggest using the pair notation when there is more than one variable.)
+
 ## Graphical properties of polynomials
 
 
@@ -394,7 +401,12 @@ To investigate this last point, let's consider the case of the monomial $x^n$. W
 gr()
 anim = @animate for m in  0:2:12
     fn = x -> x^m
-    plot(fn, -1.2, 1.2, size = fig_size, legend=false, xlims=(-1.2, 1.2), ylims=(0, 1.2^12), title="x^{$m} over [-1.2, 1.2]")
+    title = L"$x^{%$m}$ over $[-1.2, 1.2]$"
+    plot(fn, -1.2, 1.2;
+         size = fig_size,
+         legend=false,
+         xlims=(-1.2, 1.2), ylims=(0, 1.2^12),
+         title=title)
 end
 
 imgfile = tempname() * ".gif"
@@ -433,8 +445,13 @@ anim = @animate for n in 1:6
     m = [1, .5, -1, -5, -20, -25]
     M = [2, 4,    5, 10, 25, 30]
     fn = x -> (x-1)*(x-2)*(x-3)*(x-5)
+    title = L"Graph of on $(%$(m[n]), %$(M[n]))$"
 
-    plt = plot(fn, m[n], M[n], size=fig_size, legend=false, linewidth=2, title ="Graph of on ($(m[n]), $(M[n]))")
+    plt = plot(fn, m[n], M[n];
+               size=fig_size,
+               legend=false,
+               linewidth=2,
+               title=title)
     if n > 1
         plot!(plt, fn, m[n-1], M[n-1], color=:red, linewidth=4)
     end
@@ -468,11 +485,20 @@ The following graphic illustrates the $4$ basic *overall* shapes that can result
 
 ```{julia}
 #| echo: false
-plot(; layout=4)
-plot!(x -> x^4,  -3,3, legend=false, xticks=false, yticks=false, subplot=1, title="n = even, aₙ > 0")
-plot!(x -> x^5,  -3,3, legend=false, xticks=false, yticks=false, subplot=2, title="n = odd, aₙ > 0")
-plot!(x -> -x^4, -3,3, legend=false, xticks=false, yticks=false, subplot=3, title="n = even, aₙ < 0")
-plot!(x -> -x^5, -3,3, legend=false, xticks=false, yticks=false, subplot=4, title="n = odd, aₙ < 0")
+let
+    gr()
+    plot(; layout=4)
+    plot!(x -> x^4,  -3,3, legend=false, xticks=false, yticks=false, subplot=1, title=L"$n = $ even, $a_n > 0$")
+    plot!(x -> x^5,  -3,3, legend=false, xticks=false, yticks=false, subplot=2, title=L"$n = $ odd, $a_m > 0$")
+    plot!(x -> -x^4, -3,3, legend=false, xticks=false, yticks=false, subplot=3, title=L"$n = $ even, $a_n < 0$")
+    plot!(x -> -x^5, -3,3, legend=false, xticks=false, yticks=false, subplot=4, title=L"$n = $ odd, $a_n < 0$")
+end
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
 ```
 
 ##### Example
@@ -513,14 +539,15 @@ This observation is the start of Descartes' rule of [signs](http://sepwww.stanfo
 Among numerous others, there are two common ways of representing a non-zero polynomial:
 
 
-  * expanded form, as in $a_n x^n + a_{n-1}x^{n-1} + \cdots + a_1 x + a_0, a_n \neq 0$; or
-  * factored form, as in $a\cdot(x-r_1)\cdot(x-r_2)\cdots(x-r_n), a \neq 0$.
+  * expanded form, as in $a_n x^n + a_{n-1}x^{n-1} + \cdots + a_1 x + a_0,\quad a_n \neq 0$; or
+  * factored form, as in $a\cdot(x-r_1)\cdot(x-r_2)\cdots(x-r_n), \quad a \neq 0$.
 
 
+The former uses the *standard basis* to represent the polynomial $p$.
 The latter writes $p$ as a product of linear factors, though this is only possible in general if we consider complex roots. With real roots only, then the factors are either linear or quadratic, as will be discussed later.
 
 
-There are values to each representation. One value of the expanded form is that polynomial addition and scalar multiplication is much easier than in factored form. For example, adding polynomials just requires matching up the monomials of similar powers. For the factored form, polynomial multiplication is much easier than expanded form. For the factored form it is easy to read off *roots* of the polynomial (values of $x$ where $p$ is $0$), as a product is $0$ only if a term is $0$, so any zero must be a zero of a factor. Factored form has other technical advantages. For example, the polynomial $(x-1)^{1000}$ can be compactly represented using the factored form, but would require $1001$ coefficients to store in expanded form. (As well, due to floating point differences, the two would evaluate quite differently as one would require over a $1000$ operations to compute, the other just two.)
+There are values to each representation. One value of the expanded form is that polynomial addition and scalar multiplication is much easier than in factored form. For example, adding polynomials just requires matching up the monomials of similar powers. (These can be realized easily as vector operations.) For the factored form, polynomial multiplication is much easier than expanded form. For the factored form it is easy to read off *roots* of the polynomial (values of $x$ where $p$ is $0$), as a product is $0$ only if a term is $0$, so any zero must be a zero of a factor. Factored form has other technical advantages. For example, the polynomial $(x-1)^{1000}$ can be compactly represented using the factored form, but would require $1001$ coefficients to store in expanded form. (As well, due to floating point differences, the two would evaluate quite differently as one would require over a $1000$ operations to compute, the other just two.)
 
 
 Translating from factored form to expanded form can be done by carefully following the distributive law of multiplication. For example, with some care it can be shown that:
@@ -587,7 +614,7 @@ It is easy to create a symbolic expression from a function - just evaluate the f
 f(x)
 ```
 
-This is easy - but can also be confusing. The function object is `f`, the expression is `f(x)` - the function evaluated on a symbolic object. Moreover, as seen, the symbolic expression can be evaluated using the same syntax as a function call:
+This is easy---but can also be confusing. The function object is `f`, the expression is `f(x)`---the function evaluated on a symbolic object. Moreover, as seen, the symbolic expression can be evaluated using the same syntax as a function call:
 
 
 ```{julia}

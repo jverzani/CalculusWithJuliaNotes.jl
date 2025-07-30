@@ -1,0 +1,724 @@
+# Orthogonal polynomials
+
+{{< include ../_common_code.qmd >}}
+
+This section uses these add-on packages:
+
+
+```{julia}
+using SymPy
+using QuadGK
+using Roots
+using ForwardDiff: derivative
+```
+
+This section takes a detour to give some background on why the underlying method of `quadgk` is more efficient than those of Riemann sums. Orthogonal polynomials play a key role. There are many families of such polynomials. We highlight two.
+
+
+## Inner product
+
+Define an operation between two integrable, real-valued functions $f(x)$ and $g(x)$ by:
+
+$$
+\langle f, g \rangle =  \int_{-1}^1 f(x)g(x) dx
+$$
+
+The properties of the integral mean this operation satisfies these three main properties:
+
+* symmetry: $\langle f, g \rangle  = \langle g,f \rangle$
+* positive definiteness: $\langle f, f \rangle > 0$ *unless* $f(x)=0$.
+* linearity: if $a$ and $b$ are scalars, then $\langle af + bg, h \rangle  = a\langle f, h \rangle + b \langle g, h \rangle$.
+
+
+The set of integrable functions forms a *vector space*, which simply means two such functions can be added to yield another integrable function and an integrable function times a scalar is still an integrable function. Many different collections of objects form a vector space. In particular, other sets of functions form a vector space, for example the collection of polynomials of degree $n$ or less or just the set of all polynomials.
+
+For a vector space, an operation like the above satisfying these three properties is called an *inner product*; the combination of an inner product and a vector space is called an *inner product space*. In the following, we assume $f$ and $g$ are from a vector space with a real-valued inner product.
+
+Inner products introduce a sense of size through a *norm*:
+$\lVert f \rVert = \sqrt{\langle f, f\rangle }$.
+
+Norms satisfy two main properties:
+
+* scalar: $\lVert af \rVert = |a|\lVert f\rVert$
+* triangle inequality: $\lVert f + g \rVert \leq \lvert f \rVert + \lVert g \rVert$
+
+Two elements of an inner product space, $f$ and $g$, are *orthogonal* if $\langle f, g \rangle = 0$. This is a generalization of perpendicular. The Pythagorean theorem for orthogonal elements holds: $\lVert f\rVert^2 + \lVert g\rVert^2 = \lVert f+g\rVert^2$.
+
+As we assume a real-valued inner product, the angle between two elements can be defined by:
+
+$$
+\angle(f,g) = \cos^{-1}\left(\frac{\langle f, g\rangle}{\lVert f \rVert \lVert g \rVert}\right).
+$$
+
+This says, the angle between two orthogonal elements is $90$ degrees (in some orientation)
+
+The Cauchy-Schwarz inequality, $|\langle f, g \rangle| \leq \lVert f \rVert \lVert g\rVert$, for an inner product space, ensures the argument to $\cos^{-1}$ is between $-1$ and $1$.
+
+These properties generalize two-dimensional vectors, with components $\langle x, y\rangle$. Recall, these can be visualized by placing a tail at the origin and a tip at the point $(x,y)$. Such vectors can be added by placing the tail of one at the tip of the other and using the vector from the other tail to the other tip.
+
+With this, we have a vector anchored at the origin can be viewed as a line segment with slope $y/x$ (rise over run). A perpendicular line segment would have slope $-x/y$ (the negative reciprocal) which would be associated with the vector $\langle y, -x \rangle$. The dot product is just the sum of the multiplied components, or for these two vectors $x\cdot y + y\cdot (-x)$, which is $0$, as the line segments are perpendicular (orthogonal).
+
+Consider now two vectors, say $f$, $g$. We can make a new vector that is orthogonal to $f$ by combining $g$ with a piece of $f$. But what piece?
+
+Consider this
+
+$$
+\begin{align*}
+\langle f, g - \frac{\langle f,g\rangle}{\langle f, f\rangle} f \rangle
+&= \langle f, g \rangle - \langle f, \frac{\langle f,g\rangle}{\langle f, f\rangle} f \rangle \\
+&= \langle f, g \rangle - \frac{\langle f,g\rangle}{\langle f, f\rangle}\langle f,f \rangle \\
+&= \langle f, g \rangle - \langle f, g \rangle  = 0
+\end{align*}
+$$
+
+Define
+$$
+proj_f(g) = \frac{\langle f,g\rangle }{\langle f, f\rangle} f,
+$$
+then we have $u_1 = f$ and $u_2 = g-proj_f(g)$, $u_1$ and $u_2$ are orthogonal.
+
+A similar calculation shows if $h$ is added to the set of elements, then
+$u_3 = h - proj_{u_1}(h) - proj_{u_2}(h)$ will be orthogonal to $u_1$ and $u_2$. etc.
+
+This process, called the [Gram-Schmidt](https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process) process, can turn any set of vectors into a set of orthogonal vectors, assuming they are all non zero and no non-trivial linear combination makes them zero.
+
+## Legendre
+
+Consider now polynomials of degree $n$ or less with the normalization that $p(1) = 1$. We begin with two such polynomials: $u_0(x) = 1$ and $u_1(x) = x$.
+
+These are orthogonal with respect to $\int_{-1}^1 f(x) g(x) dx$, as
+
+$$
+\int_{-1}^1 u_0(x) u_1(x) dx =
+\int_{-1}^1 1 \cdot x dx =
+x^2 \mid_{-1}^1 = 1^2 - (-1)^2 = 0.
+$$
+
+Now consider a quadratic polynomial, $u_2(x) =  ax^2 + bx + c$, we want a polynomial which is orthogonal to $u_0$ and $u_1$ with the extra condition that $u_2(1) = c =1$ (or $c=1$.). We can do this using Gram-Schmidt as above, or as here through a system of two equations:
+
+```{julia}
+@syms a b c d x
+u0 = 1
+u1 = x
+u2 = a*x^2 + b*x + c
+eqs = (integrate(u0 * u2, (x, -1, 1)) ~ 0,
+       integrate(u1 * u2, (x, -1, 1)) ~ 0)
+sols = solve(eqs, (a, b, c))     # b => 0, a => -3c
+u2 = u2(sols...)
+u2 = simplify(u2 / u2(x=>1))     # make u2(1) = 1 and fix c
+```
+
+The quadratic polynomial has $3$ unknowns and the orthgonality conditions give two equations. Solving these equations leaves one unknown (`c`). But the normalization condition (that $u_i(1) = 1$) allows `c` to be simplified out.
+
+We can do this again with $u_3$:
+
+```{julia}
+u3 = a*x^3 + b*x^2 + c*x + d
+eqs = (integrate(u0 * u3, (x, -1, 1)) ~ 0,
+       integrate(u1 * u3, (x, -1, 1)) ~ 0,
+       integrate(u2 * u3, (x, -1, 1)) ~ 0)
+sols = solve(eqs, (a, b, c, d))  # a => -5c/3, b=>0, d=>0
+u3 = u3(sols...)
+u3 = simplify(u3/u3(x=>1))       # make u3(1) = 1
+```
+
+In theory, this can be continued up until any $n$. The resulting
+polynomials are called the
+[Legendre](https://en.wikipedia.org/wiki/Legendre_polynomials)
+polynomials.
+
+Rather than continue this, we develop easier means to generate these polynomials.
+
+## General weight function
+
+Let $w(x)$ be some non-negative function and consider the new inner product between two polynomials:
+
+$$
+\langle p, q\rangle = \int_I p(x) q(x) w(x) dx
+$$
+
+where $I$ is an interval and $w(x)$ is called a weight function. In the above discussion $I=[-1,1]$ and $w(x) = 1$.
+
+Suppose we have *orthogonal* polynomials $p_i(x)$, $i=0,1, \dots, n$, where $p_i$ is a polynomial of degree $i$ ($p_i(x) = k_i x^i + \cdots$, where $k_i \neq 0$), and
+
+$$
+\langle p_m, p_n \rangle =
+\int_I p_m(x) p_n(x) w(x) dx =
+\begin{cases}
+0 & m \neq n\\
+h_m & m = n
+\end{cases}
+$$
+
+Unique elements can be defined by specifying some additional property. For Legendre, it was $p_n(1)=1$, for other orthogonal families this may be specified by having leading coefficient of $1$ (monic), or a norm of $1$ (orthonormal), etc.
+
+The above is the *absolutely continuous* case, generalizations of the integral allow this to be more general.
+
+Orthogonality can be extended: If $q(x)$ is any polynomial of degree $m < n$, then
+$\langle q, p_n \rangle = \int_I q(x) p_n(x) w(x) dx = 0$. (See the questions for more detail.)
+
+
+Some names used for the characterizing constants are:
+
+* $p_n(x) = k_n x^n + \cdots$ ($k_n$ is the leading term)
+* $h_n = \langle p_n, p_n\rangle$
+
+
+
+### Three-term reccurence
+
+Orthogonal polynomials, as defined above through a weight function, satisfy a  *three-term recurrence*:
+
+$$
+p_{n+1}(x) = (A_n x + B_n) p_n(x) - C_n p_{n-1}(x),
+$$
+
+where $n \geq 0$ and $p_{n-1}(x) = 0$.
+
+(With this and knowledge of $A_n$, $B_n$, and $C_n$, the polynomials can be recursively generated from just specifying a value for the constant $p_0(x)$.
+
+First, $p_{n+1}$ has leading term $k_{n+1}x^{n+1}$. Looking on the right hand side for the coefficient of $x^{n+1}$ we find $A_n k_n$, so $A_n = k_{n+1}/k_n$.
+
+Next, we look at $u(x) = p_{n+1}(x) - A_n x p_n(x)$, a polynomial of degree $n$ or less.
+
+As this has degree $n$ or less, it can be expressed in terms of $p_0, p_1, \dots, p_n$. Write it as $u(x) = \sum_{j=0}^n d_j p_j(x)$. Now, take any $m < n-1$ and consider $p_m$. We consider the inner product of $u$ and $p_m$ two ways:
+
+$$
+\begin{align*}
+\int_I p_m(x) u(x) w(x) dx &=
+\int_I p_m(x) \sum_{j=0}^n p_j(x) w(x) dx \\
+&= \int_I p_m(x) \left(p_m(x) + \textcolor{red}{\sum_{j=0, j\neq m}^{n} p_j(x)}\right) w(x) dx \\
+&= \int_I p_m(x) p_m(x) w(x) dx = h_m
+\end{align*}
+$$
+
+As well
+
+$$
+\begin{align*}
+\int_I p_m(x) u(x) w(x) dx
+&= \int_I p_m(x) (p_{n+1}(x) - A_n x p_n(x)) w(x) dx \\
+&= \int_I p_m(x) \textcolor{red}{p_{n+1}(x)} w(x) dx -  \int_I p_m(x) A_n x p_n(x) w(x) dx\\
+&= 0 - A_n \int_I (\textcolor{red}{x p_m(x)}) p_n(x) w(x) dx\\
+&= 0
+\end{align*}
+$$
+
+The last integral being $0$ as $xp_m(x)$ has degree $n-1$ or less and hence is orthogonal to $p_n$.
+
+That is $p_{n+1} - A_n x p_n(x) = d_n p_n(x) + d_{n-1} p_{n-1}(x)$. Setting $B_n=d_n$ and $C_{n-1} = -d_{n-1}$ shows the three-term recurrence applies.
+
+
+#### Example: Legendre polynomials
+
+
+With this notation, the Legendre polynomials have:
+
+$$
+\begin{align*}
+w(x) &= 1\\
+I    &= [-1,1]\\
+A_n  &= \frac{2n+1}{n+1}\\
+B_n  &= 0\\
+C_n  & = \frac{n}{n+1}\\
+k_{n+1}  &= \frac{2n+1}{n+1}k_n - \frac{n}{n-1}k_{n-1}, k_1=k_0=1\\
+h_n  &= \frac{2}{2n+1}
+\end{align*}
+$$
+
+
+#### Favard theorem
+
+In an efficient review of the subject, [Koornwinder](https://arxiv.org/pdf/1303.2825) states conditions on the recurrence that ensure that if a $n$-th degree polynomials $p_n$ satisfy a three-term recurrence, then there is an associated weight function (suitably generalized). The conditions use this form of a three-term recurrence:
+
+$$
+\begin{align*}
+xp_n(x) &= a_n p_{n+1}(x) + b_n p_n(x) + c_n p_{n-1}(x),\quad (n > 0)\\
+xp_0(x) &= a_0 p_1(x) + b_0 p_0(x)
+\end{align*}
+$$
+
+where the constants are real and $a_n c_{n+1} > 0$. These force $a_n = k_n/k_{n+1}$ and $c_n/h_{n+1} = a_n/h_n$
+
+
+#### Clenshaw algorithm
+
+When introducing polynomials, the synthetic division algorithm was given to compute $p(x) / (x-r)$. This same algorithm also computed $p(r)$ efficiently and is called Horner's method. The `evalpoly` method in `Julia`'s base implements this.
+
+For a set of polynomials $p_0(x), p_1(x), \dots, p_n(x)$ satisfying a three-term recurrence $p_{n+1}(x) = (A_n x + B_n) p_n(x) - C_n p_{n-1}(x)$, the Clenshaw algorithm gives an efficient means to compute an expression of a linear combination of the polynomials, $q(x) = a_0 p_0(x) + a_1 p_1(x) + \cdots + a_n p_n(x)$.
+
+The [method](https://en.wikipedia.org/wiki/Clenshaw_algorithm) uses a reverse recurrence formula starting with
+
+$$
+b_{n+1}(x) = b_{n+2}(x) = 0
+$$
+
+and then computing for $k = n, n-1, \dots, 1$
+
+$$
+b_k(x) = a_k + (A_k x + B_k) b_{k+1}(x) - C_k b_{k+2}(x)
+$$
+
+
+Finally finishing by computing $a_0 p_0(x)  + b_1 p_1(x) - C(1) p_0(x) b_2$.
+
+For example, with the Legendre polynomials, we have
+
+```{julia}
+A(n) = (2n+1)//(n+1)
+B(n) = 0
+C(n) = n // (n+1)
+```
+
+Say we want to compute $a_0 u_0(x) + a_1 u_1(x) + a_2 u_2(x) + a_3 u_3(x) + a_4 u_4(x)$. The necessary inputs are the coefficients, the value of $x$, and polynomials $p_0$ and $p_1$.
+
+```{julia}
+function clenshaw(x, as, p0, p1)
+    n = length(as) - 1
+    bn1, bn2 = 0, 0
+    a(k) = as[k + 1]  # offset
+    for k in n:-1:1
+        bn1, bn2 = a(k) +  (A(k) * x + B(k)) * bn1 - C(k+1) * bn2, bn1
+    end
+    b1, b2 = bn1, bn2
+    p0(x) * a(0) + p1(x) * b1 - C(1) * p0(x) * b2
+end
+```
+
+This function can be purposed to generate additional Legendre polynomials. For example, to compute $u_4$ we pass in a symbolic value for $x$ and mask out all by $a_4$ in our coefficients:
+
+```{julia}
+p₀(x) = 1
+p₁(x) = x # Legendre
+@syms x
+clenshaw(x, (0,0,0,0,1), p₀, p₁) |> expand |> simplify
+```
+
+:::{.callout-note}
+### Differential equations approach
+
+A different description of families of orthogonal polynomials is that they satisfy a differential equation of the type
+
+$$
+\sigma(x) y''(x) + \tau(x) y'(x) + \lambda_n y(x) = 0,
+$$
+
+where $\sigma(x) = ax^2 + bx + c$, $\tau(x) = dx + e$, and $\lambda_n = -(a\cdot n(n-1) + dn)$.
+
+With this parameterization, values for $A_n$, $B_n$, and $C_n$ can be given in terms of the leading coefficient, $k_n$ (cf. [Koepf and Schmersau](https://arxiv.org/pdf/math/9612224)):
+
+$$
+\begin{align*}
+A_n &= \frac{k_{n+1}}{k_n}\\
+B_n &= \frac{k_{n+1}}{k_n} \frac{2bn(a(n-1)+d) + e(d-2a)}{(2a(n-1) + d)(2an+d)}\\
+C_n &= \frac{k_{n+1}}{k_{n-1}}
+\frac{n(a(n-1) + d)(a(n-2)+d)(n(an+d))(4ac-b^2)+ae^2+cd^2-bde}{
+(a(n-1)+d)(a(2n-1)+d)(a(2n-3)+d)(2a(n-1)+d)^2}
+\end{align*}
+$$
+
+There are other relations between derivatives and the orthogonal polynomials. For example, another three-term recurrence is:
+
+$$
+\sigma(x) p_n'(x) = (\alpha_n x + \beta_n)p_n(x) + \gamma_n p_{n-1}(x)
+$$
+
+The same reference has formulas for $\alpha$, $\beta$, and $\gamma$  in terms of $a,b,c,d$, and $e$ along with many others.
+:::
+
+
+
+## Chebyshev
+
+The Chebyshev polynomials (of the first kind) satisfy the three-term recurrence
+
+$$
+T_{n+1}(x) = 2x T_n(x) - T_{n-1}(x)
+$$
+
+with $T_0(x)= 1$ and $T_1(x)=x$.
+
+These polynomials have domain $(-1,1)$ and weight function $(1-x^2)^{-1/2}$.
+
+(The Chebyshev polynomials of the second kind satisfy the same three-term recurrence but have $U_0(x)=1$ and $U_1(x)=2x$.)
+
+
+These polynomials are related to trigonometry through
+
+$$
+T_n(\cos(\theta))  = \cos(n\theta)
+$$
+
+
+This characterization makes it easy to find the zeros of the
+polynomial $T_n$, as they happen when $\cos(n\theta)$ is $0$, or when
+$n\theta = \pi/2 + k\pi$ for $k$ in $0$ to $n-1$. Solving for $\theta$
+and taking the cosine, we get the zeros of the $n$th degree polynomial
+$T_n$ are $\cos(\pi(k + 1/2)/n)$ for $k$ in $0$ to $n-1$.
+
+These evenly spaced angles lead to roots more concentrated at the edges of the interval $(-1,1)$.
+
+
+##### Example
+
+Chebyshev polynomials have a minimal property that makes them fundamental for use with interpolation.
+
+Define the *infinity* norm over $[-1,1]$ to be the maximum value of the absolute value of the function over these values.
+
+Let $f(x) = 2^{-n+1}T_n(x)$ be a monic version of the Chebyshev polynomial.
+
+> If $q(x)$ is any monic polynomial of degree $n$, then the infinity norm of $q(x)$ is greater than or equal to that of $f$.
+
+Using the trigonometric representation of $T_n$, we have
+
+* $f(x)$ has infinity norm of $2^{-n+1}$ and these maxima occur at $x=\cos((k\pi)/n)$, where $0 \leq k \leq n$. (There is a cosine curve with known peaks, oscillating between $-1$ and $1$.)
+* $f(x) > 0$ at $x = \cos((2k\pi)/n)$ for $0 \leq 2k \leq n$
+* $f(x) < 0$ at $x = \cos(((2k+1)\pi)/n)$ for $0 \leq 2k+1 \leq n$
+
+Suppose $w(x)$ is a monic polynomial of degree $n$ and suppose it has smaller infinity norm. Consider $u(x) = f(x) - w(x)$. At the extreme points of $f(x)$, we must have $|f(x)| \geq |w(x)|$. But this means
+
+* $u(x) > 0$ at $x = \cos((2k\pi)/n)$ for $0 \leq 2k \leq n$
+* $u(x) < 0$ at $x = \cos(((2k+1)\pi)/n)$ for $0 \leq 2k+1 \leq n$
+
+As $u$ is continuous, this means there are at least $n$ sign changes, hence $n$ or more zeros. But as both $f$ and $w$ are monic, $u$ is of degree $n-1$, at most. This is a contradiction unless $u(x)$ is the zero polynomial, which it can't be by assumption.
+
+
+
+
+### Integration
+
+Recall, a Riemann sum can be thought of in terms of weights, $w_i$ and nodes $x_i$ for which $\int_I f(x) dx \approx \sum_{i=0}^{n-1} w_i f(x_i)$.
+For a right-Riemann sum with partition given by $a_0 < a_1 < \cdots < a_n$ the nodes are $x_i = a_i$ and the weights are $w_i = (a_i - a_{i-1})$ (or in the evenly spaced case, $w_i = (a_n - a_0)/n$.
+
+More generally, this type of expression can represent integrals of the type $\int_I f(x) w(x) dx$, with $w(x)$ as in an inner product. Call such a sum a Gaussian quadrature.
+
+We will see that the zeros of orthogonal polynomials have special properties as nodes.
+
+> For orthogonal polynomials over the interval $I$ with weight function $w(x)$, each $p_n$ has $n$ distinct real zeros in $I$.
+
+Suppose that $p_n$ had only $k<n$ sign changes at $x_1, x_2, \dots, x_k$. Then for some choice of $\delta$, $(-1)^\delta p(x) (x-x_1)(x-x_2)\cdots(x-x_k) \geq 0$. Since this is non zero, it must be that
+
+$$
+(-1)^\delta \int_I p(x) \left( (x-x_1)(x-x_2)\cdots(x-x_k)\right) w(x) dx > 0
+$$
+
+But, the product is of degree $k < n$, so by orthogonality must be $0$. Hence, it can't be that $k < n$, so there must be $n$ sign changes in $I$ by $p_n$. Each corresponds to a zero, as $p_n$ is continuous.
+
+
+This next statement says that using the zeros of $p_n$ for the nodes of  Gaussian quadrature and appropriate weights that the quadrature is exact for higher degree polynomials.
+
+> For a fixed $n$, suppose $p_0, p_1, \dots, p_n$ are orthogonal polynomials over $I$ with weight function $w(x)$. If the zeros of $p_n$ are the nodes $x_i$, then there exists $n$ weights so that the any polynomial of degree $2n-1$ or less, the Gaussian quadrature is exact.
+
+That is if $q(x)$ is a polynomial with degree $2n-1$ or less, we have for some choice of $w_i$:
+
+$$
+\int_I q(x) w(x) dx = \sum_{i=1}^n w_i q(x_i)
+$$
+
+
+To compare, recall, Riemann sums ($1$-node) were exact for constant functions (degree $0$), the trapezoid rule ($2$-nodes) is exact for linear polynomials (degree $1$), and Simpson's rule ($3$ nodes) are exact for cubic polynomials (degree $3$).
+
+
+We follow [Wikipedia](https://en.wikipedia.org/wiki/Gaussian_quadrature#Fundamental_theorem) to see this key fact.
+
+
+Take $h(x)$ of degree $2n-1$ or less. Then by polynomial long division, there are polynomials $q(x)$ and $r(x)$ where
+
+$$
+h(x) = q(x) p_n(x) + r(x)
+$$
+
+and the degree of $r(x)$ is less than $n-1$, the degree of $p_n(x)$. Further, the degree of $q(x)$ is also less than $n-1$, as were it more, then the degree of $q(x)p_n(x)$ would be more than $n-1+n$ or $2n-1$. Let's note that if $x_i$ is a zero of $p_n(x)$ that $h(x_i)= r(x_i)$.
+
+So
+
+$$
+\begin{align*}
+\int_I h(x) w(x) dx &= \int_I \textcolor{red}{q(x)} p_n(x) w(x) dx + \int_I r(x)  w(x)dx\\
+&= 0 + \int r(x) w(x) dx.
+\end{align*}
+$$
+
+Now consider the polynomials made from the zeros of $p_n(x)$
+
+$$
+l_i(x) = \prod_{j \ne i} \frac{x - x_j}{x_i - x_j}
+$$
+
+These are called Lagrange interpolating polynomials and have the property that $l_i(x_i) = 1$ and $l_i(x_j) = 0$ if $i \neq j$.
+
+These allow the expression of
+
+$$
+\begin{align*}
+r(x) &= l_1(x)r(x_1) + l_2(x) r(x_2) + \cdots + l_n(x) r(x_n) \\
+&= \sum_{i=1}^n l_i(x) r(x_i)
+\end{align*}
+$$
+
+This isn't obviously true, but this expression agrees with an at-most degree $n-1$ polynomial ($r(x)$) at $n$ points hence it  must be the same polynomial.)
+
+With this representation, the integral becomes
+
+$$
+\begin{align*}
+\int_I h(x) w(x) dx &= \int_I r(x)  w(x)dx \\
+&= \int_I \sum_{i=1}^n l_i(x) r(x_i) w(x) dx\\
+&= \sum_{i=1}^n r(x_i) \int_I l_i(x) w(x) dx \\
+&= \sum_{i=1}^n r(x_i) w_i\\
+&= \sum_{i=1}^n  w_i h(x_i)
+\end{align*}
+$$
+
+
+
+That is there are weights, $w_i = \int_I l_i(x) w(x) dx$, for which the integration is exactly found by Gaussian quadrature using the roots of $p_n$ as the nodes.
+
+
+The general formula for the weights can be written in terms of the polynomials $p_i = k_ix^i + \cdots$:
+
+$$
+\begin{align*}
+w_i &= \int_I l_i(x) w(x) dx \\
+&= \frac{k_n}{k_{n-1}}
+\frac{\int_I p_{n-1}(x)^2 w(x) dx}{p'_n(x_i) p_{n-1}(x_i)}.
+\end{align*}
+$$
+
+To see this, consider:
+
+$$
+\begin{align*}
+\prod_{j \neq i} (x - x_j) &=
+\frac{\prod_j (x-x_j)}{x-x_i} \\
+&= \frac{1}{k_n}\frac{k_n \prod_j (x - x_j)}{x - x_i} \\
+&= \frac{1}{k_n} \frac{p_n(x)}{x-x_i}\\
+&= \frac{1}{k_n} \frac{p_n(x) - p_n(x_i)}{x-x_i}\\
+&\rightarrow \frac{p'_n(x_i)}{k_n}, \text{ as } x \rightarrow x_i.
+\end{align*}
+$$
+
+Thus
+
+$$
+\prod_{j \neq i} (x_i - x_j)  =  \frac{p'_n(x_i)}{k_n}.
+$$
+
+This gives
+
+$$
+\begin{align*}
+w_i &= \int_i \frac{k_n \prod_j (x-x_j)}{p'_n(x_i)} w(x) dx\\
+&= \frac{1}{p'_n(x_i)} \int_i \frac{p_n(x)}{x-x_i} w(x) dx
+\end{align*}
+$$
+
+To work on the last term, a trick (see the questions for detail) can show that for any $k \leq n$ that
+
+$$
+\int_I \frac{x^k p_n(x)}{x - x_i} w(x) dx
+= x_i^k \int_I \frac{p_n(x)}{x - x_i} w(x) dx
+$$
+
+Hence for any degree $n$ or less polynomial: we have
+
+$$
+q(x_i) \int_I \frac{p_n(x)}{x - x_i} w(x) dx =
+\int_I \frac{q(x) p_n(x)}{x - x_i} w(x) dx
+$$.
+
+We will use this for $p_{n-1}$. First, as $x_i$ is a zero of $p_n(x)$ we have
+
+$$
+\frac{p_n(x)}{x-x_i} = k_n x^{n-1}+ r(x),
+$$
+
+where $r(x)$ has degree $n-2$ at most. This is due to $p_n$ being divided by a monic polynomial, hence leaving a degree $n-1$ polynomial with leading coefficient $k_n$.
+
+But then
+
+$$
+\begin{align*}
+w_i &= \frac{1}{p'_n(x_i)} \int_I \frac{p_n(x)}{x-x_i} w(x) dx \\
+&= \frac{1}{p'_n(x_i)} \frac{1}{p_{n-1}(x_i)} \int_I  \frac{p_{n-1}(x) p_n(x)}{x - x_i} w(x) dx\\
+&= \frac{1}{p'_n(x_i)p_{n-1}(x_i)} \int_I p_{n-1}(x)
+(k_n x^{n-1} + \textcolor{red}{r(x)}) w(x) dx\\
+&= \frac{k_n}{p'_n(x_i)p_{n-1}(x_i)} \int_I p_{n-1}(x) x^{n-1} w(x) dx\\
+&= \frac{k_n}{p'_n(x_i)p_{n-1}(x_i)} \int_I p_{n-1}(x)
+\left(
+\textcolor{red}{\left(x^{n-1} - \frac{p_{n-1}(x)}{k_{n-1}}\right) }
++  \frac{p_{n-1}(x)}{k_{n-1}}\right) w(x) dx\\
+&= \frac{k_n}{p'_n(x_i)p_{n-1}(x_i)} \int_I p_{n-1}(x)\frac{p_{n-1}(x)}{k_{n-1}} w(x) dx\\
+&= \frac{k_n}{k_{n-1}} \frac{1}{p'_n(x_i)p_{n-1}(x_i)}  \int_I p_{n-1}(x)^2 w(x) dx.
+\end{align*}
+$$
+
+### Examples of quadrature formula
+
+The `QuadGK` package uses a modification to Gauss quadrature to estimate numeric integrals. Let's see how. Behind the scenes, `quadgk` calls `kronrod` to compute nodes and weights.
+
+We have from earlier that
+
+```{julia}
+u₃(x) = x*(5x^2 - 3)/2
+u₄(x) = 35x^4 / 8 - 15x^2 / 4 + 3/8
+```
+
+```{julia}
+xs = find_zeros(u₄, -1, 1)
+```
+
+From this we can compute the weights from the derived general formula:
+
+```{julia}
+k₃, k₄ = 5/2, 35/8
+w(x) = 1
+I = first(quadgk(x -> u₃(x)^2 * w(x), -1, 1))
+ws = [k₄/k₃ * 1/(derivative(u₄,xᵢ) * u₃(xᵢ)) * I for xᵢ ∈ xs]
+(xs, ws)
+```
+
+We compare now to the values returned by `kronrod` in `QuadGK`
+
+```{julia}
+kxs, kwts, wts = kronrod(4, -1, 1)
+[ws wts xs kxs[2:2:end]]
+```
+
+(The `kronrod` function computes $2n-1$ nodes and weights. The Gauss-Legendre nodes are $n$ of those, and extracted by taking the 2nd, 4th, etc.)
+
+To compare integrations of some smooth function we have
+
+
+```{julia}
+u(x) = exp(x)
+GL = sum(wᵢ * u(xᵢ) for (xᵢ, wᵢ) ∈ zip(xs, ws))
+KL = sum(wᵢ * u(xᵢ) for (xᵢ, wᵢ) ∈ zip(kxs, kwts))
+QL, esterror = quadgk(u, -1, 1)
+(; GL, KL, QL, esterror)
+```
+
+The first two are expected to not be as accurate, as they utilize a fixed number of nodes.
+
+
+## Questions
+
+###### Question
+
+Let $p_i$ for $i$ in $0$ to $n$ be polynomials of degree $i$. It is true that for any polynomial $q(x)$ of degree $k \leq n$  that there is a linear combination such that $q(x) = a_0 p_0(x) + \cdots + a_k p_k(x)$.
+
+First it is enough to do this for a monic polynomial $x^k$, why?
+
+```{julia}
+#| echo: false
+choices = [raw"If you can do it for each $x^i$ then if $q(x) = b_0 + b_1x + b_2x^2 + \cdots + b_k x^k$ we just multiply the coefficients for each $x^i$ by $b_i$ and add.",
+           raw"It isn't true"]
+radioq(choices, 1)
+```
+
+Suppose $p_0 = k_0$ and $p_1 = k_1x + a$. How would you make $x=x^1$?
+
+```{julia}
+#| echo: false
+choices = [raw"$(p1 - (a/k_0) p_0)/k_1$",
+           raw"$p1 - p0$"]
+radioq(choices, 1)
+```
+
+Let $p_i = k_i x^i + \cdots$ ($k_i$ is the leading term)
+To reduce $p_3 = k_3x^3 + a_2x^2 + a_1x^1 + a_0$ to $k_3x^3$ we could try:
+
+* form $q_3 = p_3 - p_2 (a_2/k_2)$. As $p_2$ is degree $2$, this leaves $k_3x^3$ alone, but it
+
+```{julia}
+#| echo: false
+choices = [raw"It leaves $0$ as the coefficient of $x^2$",
+           raw"It leaves all the other terms as $0$"]
+radioq(choices, 1)
+```
+
+* We then use $p_1$ times some multiple $a/k_1$ to remove the $x$ term
+* we then use $p_0$ times some multiple $a/k_0$ to remove the constant term
+
+Would this strategy work to reduce $p_n$ to $k_n x^n$?
+
+```{julia}
+#| echo: false
+radioq(["Yes", "No"], 1)
+```
+
+
+###### Question
+
+Suppose $p(x)$ and $q(x)$ are polynomials of degree $n$ and there are $n+1$ points for which $p(x_i) = q(x_i)$.
+
+First, is it true or false that a polynomial of degree $n$ has *at most* n zeros?
+
+```{julia}
+#| echo: false
+radioq(["true, unless it is the zero polynomial", "false"], 1)
+```
+
+What is the degree of $h(x) = p(x) - q(x)$?
+
+```{julia}
+#| echo: false
+radioq([raw"At least $n+1$", raw"At most $n$"], 2)
+```
+
+At least how many zeros does the polynomial $h(x)$ have?
+
+```{julia}
+#| echo: false
+radioq([raw"At least $n+1$", raw"At most $n$"], 1)
+```
+
+Is $p(x) = q(x)$ with these assumptions?
+
+
+```{julia}
+#| echo: false
+radioq(["yes", "no"], 1)
+```
+
+
+
+
+###### Question
+
+We wish to show that for any $k \leq n$ that
+
+$$
+\int_I \frac{x^k p_n(x)}{x - x_i} w(x) dx
+= x_i^k \int_I \frac{p_n(x)}{x - x_i} w(x) dx
+$$
+
+We have for $u=x/x_i$ that
+
+$$
+\frac{1}{x - x_i} = \frac{1 - u^k}{x - x_i} + \frac{u^k}{x - x_i}
+$$
+
+But the first term, $(1-u^k)/(x-x_i)$ is a polynomial of degree $k-1$. Why?
+
+```{julia}
+#| echo: false
+choices = [raw"""
+Because we can express this as $x_i^k - x^k$ which factors as $(x_i - x) \cdot u(x)$ where $u(x)$ has degree $k-1$, at most.
+""",
+           raw"""
+It isn't true, it clearly has degree $k$
+"""]
+radioq(choices, 1)
+```
+
+This gives if $k \leq n$ and with $u=x/x_i$:
+
+$$
+\begin{align*}
+\int_I \frac{p_n(x)}{x - x_i} w(x) dx
+&= \int_I p_n(x) \left( \textcolor{red}{\frac{1 - u^k}{x - x_i}} + \frac{u^k}{x - x_i} \right) w(x) dx\\
+&= \int_I p_n(x)  \frac{\frac{x^k}{x_i^k}}{x - x_i} w(x) dx\\
+&= \frac{1}{x_i^k} \int_I \frac{x^k p_n(x)}{x - x_i} w(x) dx
+\end{align*}
+$$

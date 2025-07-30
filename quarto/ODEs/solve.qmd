@@ -118,10 +118,10 @@ function solve(prob::Problem, alg::EulerMethod)
 end
 ```
 
-The post has a more elegant means to unpack the parameters from the structures, but for each of the above, the parameters are unpacked, and then the corresponding algorithm employed. As of version `v1.7` of `Julia`, the syntax `(;g,y0,v0,tspan) = prob` could also be employed.
+The post has a more elegant means to unpack the parameters from the structures, but for each of the above, the parameters are unpacked using the dot notation for `getproperty`, and then the corresponding algorithm employed. As of version `v1.7` of `Julia`, the syntax `(;g,y0,v0,tspan) = prob` could also have been employed.
 
 
-The exact formulas, `y(t) = y0 + v0*(t - t0) - g*(t - t0)^2/2` and `v(t) = v0 - g*(t - t0)`, follow from well-known physics formulas. Each answer is wrapped in a `Solution` type so that the answers found can be easily extracted in a uniform manner.
+The exact answers, `y(t) = y0 + v0*(t - t0) - g*(t - t0)^2/2` and `v(t) = v0 - g*(t - t0)`, follow from well-known physics formulas for constant-acceleration motion. Each answer is wrapped in a `Solution` type so that the answers found can be easily extracted in a uniform manner.
 
 
 For example, plots of each can be obtained through:
@@ -138,7 +138,9 @@ plot!(sol_exact.t, sol_exact.y; label="exact solution", ls=:auto)
 title!("On the Earth"; xlabel="t", legend=:bottomleft)
 ```
 
-Following the post, since the time step `dt = 0.1` is not small enough, the error of the Euler method is rather large. Next we change the algorithm parameter, `dt`, to be smaller:
+Following the post, since the time step `dt = 0.1` is not small enough, the error of the Euler method is readily identified.
+
+Next we change the algorithm parameter, `dt`, to be smaller:
 
 
 ```{julia}
@@ -155,7 +157,7 @@ title!("On the Earth"; xlabel="t", legend=:bottomleft)
 It is worth noting that only the first line is modified, and only the method requires modification.
 
 
-Were the moon to be considered, the gravitational constant would need adjustment. This parameter is part of the problem, not the solution algorithm.
+Were the moon to be considered, the gravitational constant would need adjustment. This parameter is a property of the problem, not the solution algorithm, as `dt` is.
 
 
 Such adjustments are made by passing different values to the `Problem` constructor:
@@ -175,7 +177,9 @@ title!("On the Moon"; xlabel="t", legend=:bottomleft)
 The code above also adjusts the time span in addition to the graviational constant. The algorithm for exact formula is set to use the `dt` value used in the `euler` formula, for easier comparison. Otherwise, outside of the labels, the patterns are the same. Only those things that need changing are changed, the rest comes from defaults.
 
 
-The above shows the benefits of using a common interface. Next, the post illustrates how *other* authors could extend this code, simply by adding a *new* `solve` method. For example,
+The above shows the benefits of using a common interface.
+
+Next, the post illustrates how *other* authors could extend this code, simply by adding a *new* `solve` method. For example, a sympletic method conserves a quantity, so can track long-term evolution without drift.
 
 
 ```{julia}

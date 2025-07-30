@@ -1,0 +1,41 @@
+# Appendix
+
+```{julia}
+#| hold: true
+#| echo: false
+gr()
+## For **some reason** having this in the natural place messes up the plots.
+## {{{approximate_surface_area}}}
+
+xs,ys = range(-1, stop=1, length=50), range(-1, stop=1, length=50)
+f(x,y)= 2 - (x^2 + y^2)
+
+dr = [1/2, 3/4]
+df = [f(dr[1],0), f(dr[2],0)]
+
+function sa_approx_graph(i)
+    p = plot(xs, ys, f, st=[:surface], legend=false)
+    for theta in range(0, stop=i/10*2pi, length=10*i )
+        path3d!(p,sin(theta)*dr, cos(theta)*dr, df)
+    end
+    p
+end
+n = 10
+
+anim = @animate for i=1:n
+    sa_approx_graph(i)
+end
+
+imgfile = tempname() * ".gif"
+gif(anim, imgfile, fps = 1)
+
+
+caption = L"""
+
+Surface of revolution of $f(x) = 2 - x^2$ about the $y$ axis. The lines segments are the images of rotating the secant line connecting $(1/2, f(1/2))$ and $(3/4, f(3/4))$. These trace out the frustum of a cone which approximates the corresponding surface area of the surface of revolution. In the limit, this approximation becomes exact and a formula for the surface area of surfaces of revolution can be used to compute the value.
+
+"""
+
+plotly()
+ImageFile(imgfile, caption)
+```

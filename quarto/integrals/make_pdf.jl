@@ -15,7 +15,8 @@ files = (
         "center_of_mass",
         "volumes_slice",
         "arc_length",
-        "surface_area",
+    "surface_area",
+    "orthogonal_polynomials",
         "twelve-qs",
 )
 

@@ -6,30 +6,45 @@ This section uses these packages:
 using SymPy
 using Plots
 using Roots
-plotly()
 ```
 
-----
+```{julia}
+#| echo: false
+using LaTeXStrings
+gr();
+```
+
+---
 
 In the March 2003 issue of the College Mathematics Journal, Leon M Hall posed 12 questions related to the following figure:
 
 ```{julia}
 #| echo: false
-f(x) = x^2
-fp(x) = 2x
 a₀ = 7/8
 q₀ = -a₀ - 1/(2a₀)
+f(x) = x^2
+fp(x) = 2x
 tangent(x) = f(a₀) + fp(a₀) * (x - a₀)
 normal(x) = f(a₀) - (1 / fp(a₀)) * (x - a₀)
-function make_plot(a₀=7/8, q₀=-a₀ - 1/2a₀)
-    plt = plot(; xlim=(-2,2), ylim=(-1, (1.5)^2),
-               xticks=nothing, yticks=nothing,
-               aspect_ratio=:equal, border=:none, legend=false)
+
+function make_plot()
+    empty_style = (xaxis=([], false),
+                   yaxis=([], false),
+                   framestyle=:origin,
+                   legend=false)
+    axis_style = (arrow=true, side=:head, line=(:gray, 1))
+
+    tangent(x) = f(a₀) + fp(a₀) * (x - a₀)
+    normal(x) = f(a₀) - (1 / fp(a₀)) * (x - a₀)
+
+    plt = plot(; empty_style...,
+               xlims=(-2,2), ylims=(-1, (1.5)^2))
+
     f(x) = x^2
     fp(x) = 2x
 
-    plot!(f, -1.5, 1.5, line=(1, :royalblue))
-    plot!(zero, line=(1, :black))
+    plot!(f, -1.5, 1.5, line=(2, :black))
+    plot!([-1.6, 1.6], [0,0]; axis_style...)
 
     tl = x -> f(a₀) + fp(a₀) * (x-a₀)
     nl = x -> f(a₀) - 1/(fp(a₀)) * (x-a₀)
@@ -40,9 +55,10 @@ function make_plot(a₀=7/8, q₀=-a₀ - 1/2a₀)
     # add in right triangle
     scatter!([a₀, q₀], f.([a₀, q₀]), markersize=5)
     Δ = 0.01
-    annotate!([(a₀ + Δ, nl(a₀+Δ), "P", :bottom),
-               (q₀ - Δ, nl(q₀-Δ), "Q", :top)])
-    plt
+    annotate!([(a₀ + Δ, nl(a₀+Δ), text(L"P", :top)),
+               (q₀ - Δ, nl(q₀-Δ), text(L"Q", :bottom, :left))
+			  ])
+    current()
 end
 make_plot()
 ```
@@ -64,7 +80,7 @@ zs = solve(f(x) ~ nl, x)
 q = only(filter(!=(a), zs))
 ```
 
-----
+---
 
 The first question is simply:
 
@@ -99,7 +115,7 @@ In the remaining examples we don't show the code by default.
 
 :::
 
-----
+---
 
 > 1b. The length of the line segment $PQ$
 
@@ -117,7 +133,7 @@ lseg = sqrt((f(a) - f(q))^2 + (a - q)^2);
 ```
 
 
-----
+---
 
 > 2a. The horizontal distance between $P$ and $Q$
 
@@ -135,7 +151,7 @@ plot!([q₀, a₀], [f(a₀), f(a₀)], linewidth=5)
 
 hd = a - q;
 ```
-----
+---
 
 > 2b. The area of the parabolic segment
 
@@ -156,7 +172,7 @@ plot!(xs, ys, fill=(:green, 0.25, 0))
 A = simplify(integrate(nl - f(x), (x, q, a)));
 ```
 
-----
+---
 
 > 2c. The volume of the rotated solid formed by revolving the parabolic segment around the vertical line $k$ units to the right of $P$ or to the left of $Q$ where $k > 0$.
 
@@ -169,7 +185,7 @@ A = simplify(integrate(nl - f(x), (x, q, a)));
 V = simplify(integrate(2PI*(nl-f(x))*(a - x + k),(x, q, a)));
 ```
 
-----
+---
 
 > 3. The $y$ coordinate of the centroid of the parabolic segment
 
@@ -198,7 +214,7 @@ yₘ = integrate( (1//2) * (nl^2 - f(x)^2), (x, q, a)) / A
 yₘ = simplify(yₘ);
 ```
 
-----
+---
 
 > 4. The length of the arc of the parabola between $P$ and $Q$
 
@@ -217,7 +233,7 @@ p
 L = integrate(sqrt(1 + fp(x)^2), (x, q, a));
 ```
 
-----
+---
 
 > 5. The $y$ coordinate of the midpoint of the line segment $PQ$
 
@@ -238,7 +254,7 @@ p
 mp = nl(x => (a + q)/2);
 ```
 
-----
+---
 
 > 6. The area of the trapezoid bound by the normal line, the $x$-axis, and the vertical lines through $P$ and $Q$.
 
@@ -257,7 +273,7 @@ p
 trap = 1//2 * (f(q) + f(a)) * (a - q);
 ```
 
-----
+---
 
 > 7. The area bounded by the parabola and the $x$ axis and the vertical lines through $P$ and $Q$
 
@@ -279,7 +295,7 @@ p
 pa = integrate(x^2, (x, q, a));
 ```
 
-----
+---
 
 > 8. The area of the surface formed by revolving the arc of the parabola between $P$ and $Q$ around the vertical line through $P$
 
@@ -305,7 +321,7 @@ vv(x) = f(a - uu(x))
 SA = 2PI * integrate(uu(x) * sqrt(diff(uu(x),x)^2 + diff(vv(x),x)^2), (x, q, a));
 ```
 
-----
+---
 
 > 9. The height of the parabolic segment (i.e. the distance between the normal line and the tangent line to the parabola that is parallel to the normal line)
 
@@ -334,7 +350,7 @@ segment_height = sqrt((b-b′)^2 + (f(b) - nl(x=>b′))^2);
 ```
 
 
-----
+---
 
 > 10. The volume of the solid formed by revolving the parabolic segment around the $x$-axis
 
@@ -355,7 +371,7 @@ end
 Vₓ = integrate(pi * (nl^2 - f(x)^2), (x, q, a));
 ```
 
-----
+---
 
 > 11. The area of the triangle bound by the normal line, the vertical line through $Q$ and the $x$-axis
 
@@ -376,7 +392,7 @@ plot!([p₀,q₀,q₀,p₀], [0,f(q₀),0,0];
 triangle = 1/2 * f(q) * (a - f(a)/(-1/fp(a)) - q);
 ```
 
-----
+---
 
 > 12. The area of the quadrilateral bound by the normal line, the tangent line, the vertical line through $Q$ and the $x$-axis
 
@@ -401,7 +417,7 @@ x₁,x₂,x₃,x₄ = (a,q,q,tl₀)
 y₁, y₂, y₃, y₄ = (f(a), f(q), 0, 0)
 quadrilateral = (x₁ - x₂)*(y₁ - y₃)/2 - (x₁ - x₃)*(y₁ - y₂)/2 + (x₁ - x₃)*(y₁ - y₄)/2 - (x₁ - x₄)*(y₁ - y₃)/2;
 ```
-----
+---
 
 The answers appear here in sorted order, some given as approximate floating point values:
 

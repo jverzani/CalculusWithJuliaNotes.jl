@@ -1,0 +1,1244 @@
+# Vectors and containers
+
+
+{{< include ../_common_code.qmd >}}
+
+```{julia}
+#| echo: false
+#| results: "hidden"
+using CalculusWithJulia
+using Plots
+plotly()
+using Measures
+using LaTeXStrings
+
+nothing
+```
+
+One of the first models learned in physics are the equations governing the laws of motion with constant acceleration: $x(t) = x_0 + v_0 t + 1/2 \cdot a t^2$. This is a consequence of Newton's second [law](http://tinyurl.com/8ylk29t) of motion applied to the constant acceleration case. A related formula for the velocity is $v(t) = v_0 + at$. The following figure is produced using these formulas applied to both the vertical position and the horizontal position:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+
+gr()
+px = 0.26mm
+x0 = [0, 64]
+v0 = [20, 0]
+g  = [0, -32]
+
+unit(v::Vector) = v / norm(v)
+x_ticks = collect(0:10:80)
+y_ticks = collect(0:10:80)
+
+
+function make_plot(t)
+
+    xn = (t) -> x0 + v0*t + 1/2*g*t^2
+    vn = (t) -> v0 + g*t
+    an = (t) -> g
+
+
+    t = 1/10 + t*2/10
+
+    ts = range(0, stop=2, length=100)
+    xys = map(xn, ts)
+
+    xs, ys = [p[1] for p in xys], [p[2] for p in xys]
+
+    plt = plot(xs, ys, legend=false, size=fig_size, xlims=(0,45), ylims=(0,70))
+    plot!(plt, zero, extrema(xs)...)
+    arrow!(xn(t), 10*unit(xn(t)), color="black")
+    arrow!(xn(t), 10*unit(vn(t)), color="red")
+    arrow!(xn(t), 10*unit(an(t)), color="green")
+
+    plt
+
+
+end
+
+imgfile = tempname() * ".gif"
+caption = """
+
+Position, velocity, and acceleration vectors (scaled) for projectile
+motion. Vectors are drawn with tail on the projectile. The position
+vector (black) points from the origin to the projectile, the velocity
+vector (red) is in the direction of the trajectory, and the
+acceleration vector (green) is a constant pointing downward.
+
+"""
+
+n = 8
+anim = @animate for i=1:n
+    make_plot(i)
+end
+
+gif(anim, imgfile, fps = 1)
+
+plotly()
+ImageFile(imgfile, caption)
+```
+
+For the motion in the above figure, the object's $x$ and $y$ values change according to the same rule, but, as the acceleration is different in each direction, we get different formula, namely: $x(t) = x_0 + v_{0x} t$ and $y(t) = y_0 + v_{0y}t - 1/2 \cdot gt^2$.
+
+
+It is common to work with *both* formulas at once. Mathematically, when graphing, we naturally pair off two values using Cartesian coordinates (e.g., $(x,y)$). Another means of combining related values is to use a *vector*. The notation for a vector varies, but to distinguish them from a point we will use $\langle x,~ y\rangle$. With this notation, we can use it to represent the position, the velocity, and the acceleration at time $t$ through:
+
+
+$$
+\begin{align*}
+\vec{x} &= \langle x_0 + v_{0x}t,~ -(1/2) g t^2 + v_{0y}t  + y_0 \rangle,\\
+\vec{v} &= \langle v_{0x},~ -gt + v_{0y} \rangle, \text{ and }\\
+\vec{a} &= \langle 0,~ -g \rangle.
+\end{align*}
+$$
+
+
+
+Don't spend time thinking about the formulas if they are unfamiliar. The point emphasized here is that we have used the notation $\langle x,~ y \rangle$ to collect the two values into a single object, which we indicate through a label on the variable name. These are vectors, and we shall see they find use far beyond this application.
+
+
+Initially, our primary use of vectors will be as containers, but it is worthwhile to spend some time to discuss properties of vectors and their visualization.
+
+
+A line segment in the plane connects two points $(x_0, y_0)$ and $(x_1, y_1)$. The length of a line segment (its magnitude) is given by the distance formula $\sqrt{(x_1 - x_0)^2 + (y_1 - y_0)^2}$.  A line segment can be given a direction by assigning an initial point and a terminal point. A directed line segment has both a direction and a magnitude. A vector is an abstraction where just these two properties $-$ a **direction** and a **magnitude** $-$ are intrinsic. While a directed line segment can be represented by a vector, a single vector describes all such line segments found by translation. That is, how the the vector is located when visualized is for convenience, it is not a characteristic of the vector. In the figure above, all vectors are drawn with their tails at the position of the projectile over time.
+
+
+We can visualize a (two-dimensional) vector as an arrow in space. This arrow has two components. We represent a vector mathematically as $\langle x,~ y \rangle$. For example, the vector connecting the point $(x_0, y_0)$ to $(x_1, y_1)$ is $\langle x_1 - x_0,~ y_1 - y_0 \rangle$.
+
+
+The magnitude of a vector comes from the distance formula applied to a line segment, and is $\| \vec{v} \| = \sqrt{x^2 + y^2}$.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+## generic vector
+gr()
+
+p0 = [0,0]
+a1 = [4,1]
+b1 = [-2,2]
+unit(v::Vector) = v / norm(v)
+
+plt = plot(legend=false, size=fig_size)
+arrow!(p0, a1, color="blue")
+arrow!([1,1], unit(a1), color="red")
+annotate!([(2, .4, L"v"), (1.6, 1.05, L"\hat{v}")])
+
+imgfile = tempname() * ".png"
+png(plt, imgfile)
+
+caption = "A vector and its unit vector. They share the same direction, but the unit vector has a standardized magnitude."
+
+plotly()
+ImageFile(imgfile, caption)
+```
+
+We call the values $x$ and $y$ of the vector $\vec{v} = \langle x,~ y \rangle$ the components of the $v$.
+
+
+Two operations on vectors are fundamental.
+
+
+* *Scalar multiplication*: Vectors can be multiplied by a scalar (a real number): $c\vec{v} = \langle cx,~ cy \rangle$. Geometrically this scales the vector by a factor of $\lvert c \rvert$ and switches the direction of the vector by $180$ degrees (in the $2$-dimensional case) when $c < 0$. A *unit vector* is one with magnitude $1$, and, except for the $\vec{0}$ vector, can be formed from $\vec{v}$ by dividing $\vec{v}$ by its magnitude. A vector's two parts are summarized by its direction given by a unit vector **and** its magnitude given by the norm.
+
+* *Vector addition*: Vectors can be added: $\vec{v} + \vec{w} = \langle v_x + w_x,~ v_y + w_y \rangle$. That is, each corresponding component adds to form a new vector. Similarly for subtraction. The $\vec{0}$ vector then would be just $\langle 0,~ 0 \rangle$ and would satisfy $\vec{0} + \vec{v} = \vec{v}$ for any vector $\vec{v}$. Vector addition, $\vec{v} + \vec{w}$, is visualized by placing the tail of $\vec{w}$ at the tip of $\vec{v}$ and then considering the new vector with tail coming from $\vec{v}$ and tip coming from the position of the tip of $\vec{w}$. Subtraction is different, place both the tails of $\vec{v}$ and $\vec{w}$ at the same place and the new vector has tail at the tip of $\vec{w}$ and tip at the tip of $\vec{v}$.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+## vector_addition_image
+gr()
+p0 = [0,0]
+a1 = [4,1]
+b1 = [-2,2]
+
+
+plt = plot(legend=false, size=fig_size)
+arrow!(p0, a1, color="blue")
+arrow!(p0+a1, b1, color="red")
+arrow!(p0, a1+b1, color="black")
+annotate!([(2, .25, L"a"), (3, 2.25, L"b"), (1.35, 1.5, L"a+b")])
+
+imgfile = tempname() * ".png"
+png(plt, imgfile)
+
+caption = "The sum of two vectors can be visualized by placing the tail of one at the tip of the other"
+
+plotly()
+ImageFile(imgfile, caption)
+```
+
+```{julia}
+#| hold: true
+#| echo: false
+## vector_subtraction_image
+gr()
+p0 = [0,0]
+a1 = [-2,2]
+b1 = [4,1]
+
+plt = plot(legend=false, size=fig_size)
+arrow!(p0, a1, color="blue")
+arrow!(p0, b1, color="red")
+arrow!(b1, a1-b1, color="black")
+annotate!(plt, [(-1, .5, L"a"), (2.45, .5, L"b"), (1, 1.75, L"a-b")])
+
+
+imgfile = tempname() * ".png"
+png(plt, imgfile)
+
+caption = "The difference of two vectors can be visualized by placing the tail of one at the tip of the other"
+plotly()
+ImageFile(imgfile, caption)
+```
+
+The concept of scalar multiplication and addition, allow the decomposition of vectors into standard vectors. The standard unit vectors in two dimensions are $e_x = \langle 1,~ 0 \rangle$ and $e_y = \langle 0,~ 1 \rangle$. Any two dimensional vector can be written uniquely as $a e_x + b e_y$ for some pair of scalars $a$ and $b$ (or as, $\langle a, b \rangle$). This is true more generally where the two vectors are not the standard unit vectors - they can be *any* two non-parallel vectors.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+### {{{vector_decomp}}}
+gr()
+p0 = [0,0]
+aa = [1,2]
+bb = [2,1]
+cc = [4,3]
+alpha = 2/3
+beta = 5/3
+
+plt = plot(legend=false, size=fig_size)
+arrow!(p0, cc, color="black", width=1)
+arrow!(p0, aa, color="black", width=1)
+arrow!(alpha*aa, bb, color="black", width=1)
+arrow!(p0, alpha*aa, color="orange", width=4, opacity=0.5)
+arrow!(alpha*aa, beta*bb, color="orange", width=4, opacity=0.5)
+#annotate!(collect(zip([2, .5, 1.75], [1.25,1.0,2.25], [L"c",L"2/3 \cdot a", L"5/3 \cdot b"])))
+
+
+imgfile = tempname() * ".png"
+png(plt, imgfile)
+
+caption = raw"""
+
+The vector ``\langle 4,3 \rangle`` is written as
+``2/3 \cdot\langle 1,2 \rangle + 5/3 \cdot\langle 2,1 \rangle``.
+Any vector ``\vec{c}``
+can be written uniquely as
+``\alpha\cdot\vec{a} + \beta \cdot \vec{b}``
+provided ``\vec{a}`` and ``\vec{b}`` are not parallel.
+
+"""
+plotly()
+ImageFile(imgfile, caption)
+```
+
+The two operations of scalar multiplication and vector addition are defined in a component-by-component basis. We will see that there are many other circumstances where performing the same action on each component in a vector is desirable.
+
+
+---
+
+
+When a vector is placed with its tail at the origin, it can be described in terms of the angle it makes with the $x$ axis, $\theta$, and its length, $r$. The following formulas apply:
+
+
+$$
+r = \sqrt{x^2 + y^2}, \quad \tan(\theta) = y/x.
+$$
+
+If we are given $r$ and $\theta$, then the vector is $v = \langle r \cdot \cos(\theta),~ r \cdot \sin(\theta) \rangle$.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+## vector_rtheta
+gr()
+p0 = [0,0]
+
+plt = plot(legend=false, size=fig_size)
+arrow!(p0, [2,3], color="black")
+arrow!(p0, [2,0], color="orange")
+arrow!(p0+[2,0], [0,3], color="orange")
+annotate!(plt, collect(zip([.25, 1,1,1.75], [.15, 1.85,.25,1], [L"\theta",L"r", L"r \cdot \cos(\theta)", L"r \cdot \sin(\theta)"]))) #["θ","r", "r ⋅ cos(θ)", "r ⋅ sin(θ)"]
+
+imgfile = tempname() * ".png"
+png(plt, imgfile)
+
+caption = raw"""
+
+A vector ``\langle x, y \rangle`` can be written as ``\langle r\cdot
+\cos(\theta), r\cdot\sin(\theta) \rangle`` for values ``r`` and
+``\theta``. The value ``r`` is a magnitude, the direction parameterized by
+``\theta``."""
+
+plotly()
+ImageFile(imgfile, caption)
+```
+
+## Vectors in Julia
+
+
+A vector in `Julia` can be represented by its individual components, but it is more convenient to combine them into a collection using the `[,]` notation:
+
+
+```{julia}
+x, y = 1, 2
+v = [x, y]        # square brackets, not angles
+```
+
+The basic vector operations are implemented for vector objects. For example, the vector `v` has scalar multiplication defined for it:
+
+
+```{julia}
+10 * v
+```
+
+The `norm` function returns the magnitude of the vector (by default):
+
+
+```{julia}
+import LinearAlgebra: norm
+```
+
+```{julia}
+norm(v)
+```
+
+A unit vector is then found by scaling by the reciprocal of the magnitude:
+
+
+```{julia}
+v / norm(v)
+```
+
+In addition, if `w` is another vector, we can add and subtract:
+
+
+```{julia}
+w = [3, 2]
+v + w, v - 2w
+```
+
+We see above that scalar multiplication, addition, and subtraction can be done without new notation. This is because the usual operators have methods defined for vectors.
+
+
+Finally, to find an angle $\theta$ from a vector $\langle x,~ y\rangle$, we can employ the `atan` function using two arguments:
+
+
+```{julia}
+norm(v), atan(y, x) # v  = [x, y]
+```
+
+### Higher dimensional vectors
+
+
+Mathematically, vectors can be generalized to more than $2$ dimensions. For example, using $3$-dimensional vectors are common when modeling events happening in space, and $4$-dimensional vectors are common when modeling space and time.
+
+
+In `Julia` there are many uses for vectors outside of physics applications. A vector in `Julia` is just a one-dimensional collection of similarly typed values and a special case of an array. Such objects find widespread usage. For example:
+
+
+  * In plotting graphs with `Julia`, vectors are used to hold the $x$ and $y$ coordinates of a collection of points to plot and connect with straight lines. There can be hundreds of such points in a plot.
+  * Vectors are a natural container to hold the roots of a polynomial or zeros of a function.
+  * Vectors may be used to record the state of an iterative process.
+  * Vectors are naturally used to represent a data set, such as arise when collecting survey data.
+
+
+Creating higher-dimensional vectors is similar to creating a two-dimensional vector, we just include more components:
+
+
+```{julia}
+fibs = [1, 1, 2, 3, 5, 8, 13]
+```
+
+Later we will discuss different ways to modify the values of a vector to create new ones, similar to how scalar multiplication does.
+
+
+As mentioned, vectors in  `Julia`  are comprised of elements of a similar type, but the type is not limited to numeric values. Some examples:
+
+* a vector of strings might be useful for text processing, For example, the `WordTokenizers.jl` package takes text and produces tokens from the words.
+
+* a vector of Boolean values can naturally arise and is widely used within Julia's `DataFrames.jl` package.
+
+* some applications are even naturally represented in terms of vectors of vectors (such as happens when plotting a collection points).
+
+
+Look at the output of these two vectors, in particular how the underlying type of the components is described on printing.
+
+
+```{julia}
+["one", "two", "three"]  # Array{T, 1} is shorthand for Vector{T}. Here T - the type - is String
+```
+
+```{julia}
+[true, false, true]		# vector of Bool values
+```
+
+
+
+Finally, we mention that if `Julia` has values of different types it will promote them to a common type, as possible. Here we combine three types of numbers, and see that each is promoted to `Float64`:
+
+
+```{julia}
+[1, 2.0, 3//1]
+```
+
+Whereas, in this example where there is no common type to promote the values to, a catch-all type of `Any` is used to hold the components.
+
+
+```{julia}
+["one", 2, 3.0, 4//1]
+```
+
+## Other container types
+
+We end this section with some general comments that are for those interested in a bit more, but in general aren't needed to understand most all of what follows later.
+
+Vectors in `Julia` are a container for values. Vectors are
+one of many different types of containers. The `Julia` manual uses the word "collection" to refer to a container of values that has properties like a vector.
+Here we briefly review some alternate container types that are common in Julia and find use in these notes.
+
+First, here are some of the properties of a *vector*:
+
+* Vectors are *homogeneous*. That is, the container holding the vectors all have a common type. This type might be an abstract type, but for high performance, concrete types (like 64-bit floating point or 64-bit integers) are more typical.
+
+* Vectors are $1$-dimensional.
+
+* Vectors are ordered and *indexable* by their order. In Julia, the default indexing for vectors is $1$-based (starting) with one, with numeric access to the first, second, third, ..., last entries.
+
+* Vectors are *mutable*. That is, their elements may be changed; the container may be grown or shrunk
+
+* Vectors are *iterable*. That is, their values can be accessed one-by-one in various manners.
+
+These  properties may not all be desirable for one reason or the other and `Julia` has developed a large number of alternative container types of which we describe a few here.
+
+### Arrays
+
+Vectors are $1$-dimensional, but there are desires for other dimensions. Vectors are a implemented as a special case of a more general array type. Arrays are of dimension $N$ for various non-negative values of $N$. A common, and somewhat familiar, mathematical use of a $2$-dimensional array is a matrix.
+
+Arrays can have their entries accessed by dimension and within that dimension their components. By default these are $1$-based, but other offsets are possible through the `OffsetArrays.jl` package. A matrix can refer to its values either by row and column indices or, as a matrix has linear indexing by a single index.
+
+For large collections of data with many entries being $0$ a sparse array is beneficial for less memory intensive storage. These are implemented in the `SparseArrays.jl` package.
+
+There are numerous array types available. `Julia` has a number of *generic* methods for working with different arrays. An example would be `eachindex`, which provides an iterator interface to the underlying array access by index in an efficient manner.
+
+### Tuples
+
+Tuples are fixed-length containers where there is no expectation or enforcement of their having a common type. Tuples just combine values together in an *immutable* container. Like vectors they can be accessed by index (also $1$-based). Unlike vectors, the containers are *immutable* - elements can not be changed and the length of the container may not change. This has benefits for performance purposes. (For fixed length, mutable containers that have the benefits of tuples and vectors, the `StaticArrays.jl` package is available).
+
+While a vector is formed by placing comma-separated values within a `[]` pair (e.g., `[1,2,3]`), a tuple is formed by placing comma-separated values within a `()` pair.  A tuple of length $1$ uses a convention of a trailing comma to distinguish it from a parenthesized expression (e.g. `(1,)` is a tuple, `(1)` is just the value `1`).
+
+
+Vectors and tuples can appear at the same time: a vector of tuples---each of length $n$---can be used in plotting to specify points.
+
+:::{.callout-note}
+## Well, actually...
+Technically, the tuple is formed just by the use of commas, which separate different expressions. The parentheses are typically used, as they clarify the intent and disambiguate some usage. In a notebook interface, it is useful to just use commas to separate values to output, as typically the only the last command is displayed. This usage just forms a tuple of the values and displays that.
+
+:::
+
+#### Named tuples
+
+There are *named tuples* where each component has an associated name. Like a tuple these can be indexed by number and unlike regular tuples also by name.
+
+
+For example, here a named tuple is constructed, and then its elements referenced:
+
+
+```{julia}
+nt = (one=1, two="two", three=:three)  # heterogeneous values (Int, String, Symbol)
+nt.one, nt[2], nt[end]                 # named tuples have name or index access
+```
+
+
+::: {.callout-note}
+## Named tuple and destructuring
+
+A *named* tuple is a container that allows access by index *or* by name. They are easily constructed. For example:
+
+```{julia}
+nt = (x0 = 1, x1 = 4, y0 = 2, y1 = 6)
+```
+
+The values in a named tuple can be accessed using the "dot" notation:
+
+```{julia}
+nt.x1
+```
+
+Alternatively, the index notation---using a *symbol* for the name---can be used:
+
+```{julia}
+nt[:x1]
+```
+
+(Indexing is described a bit later, but it is a way to pull elements out of a collection.)
+
+Named tuples are employed to pass parameters to functions. To find the slope, we could do:
+
+```{julia}
+(nt.y1 - nt.y0) / (nt.x1 - nt.x0)
+```
+
+
+However, more commonly used is destructuring, where named variables are extracted by name when the left hand side matches the right hand side:
+
+```{julia}
+(;x0, x1) = nt # only extract what is desired
+x1 - x0
+```
+
+(This works for named tuples and other iterable containers in `Julia`. It also works the other way, if `x0` and `x1` are defined then `(;x0, x1)` creates a named tuple with those values.)
+
+:::
+
+
+### Pairs, associative arrays
+
+Named tuples associate a name (in this case a symbol) to a value. More generally an associative array associates to each key a value, where the keys and values may be of different types.
+
+The `pair` notation, `key => value`, is used to make one association between the first and second value.
+
+A *dictionary* is used to have a container of associations.
+
+This example constructs a simple dictionary associating a spelled out name with a numeric value:
+
+```{julia}
+d = Dict("one" => 1, "two" => 2, "three" => 3)
+```
+
+The print out shows the keys are of type `String`, the values of type `Int64`, in this case. There are a number of different means to construct dictionaries.
+
+
+The values in a dictionary can be accessed by name:
+
+
+```{julia}
+d["two"]
+```
+
+Named tuples are associative arrays where the keys are restricted to symbols. There are other types of associative arrays, specialized cases of the `AbstractDict` type with performance benefits for specific use cases. In these notes, dictionaries appear as output in some function calls.
+
+Unlike vectors and tuples, dictionaries are not currently supported by broadcasting. (To be described in the next section.) This causes no loss in usefulness, as the values can easily be iterated over, but the convenience of the dot notation is lost.
+
+
+## The container interface in Julia
+
+There are numerous generic functions for working across the many different types of containers. Some are specific to containers which can be modified, some to associative arrays. But it is expected for different container types to implement as many as possible. We list a few here for completeness. Only a few will be used in these notes.
+
+### Indexing
+
+Vectors have an implied order: first element, second, last, etc. Tuples do as well. Matrices have two orders: by a row-column pair or by linear order where the first column precedes the second etc. Arrays are similar in that they have a linear order and can be accessed by their individual dimensions.
+
+To access an element in a vector, say the second, the underlying `getindex` function is used. This is rarely typed, as the `[` notation is used. This notation is used in a style similar to a function call, the indexes go between matching pairs.
+
+For example, we create a vector, tuple, and matrix:
+
+```{julia}
+v = [1,2,3,4]
+t = (1,2,3,4)
+m = [1 2; 3 4]
+```
+
+The second element of each is accessed similarly:
+
+```{julia}
+v[2], t[2], m[2]
+```
+
+(All of `v`, `t`, and `m` have $1$-based indexing.)
+
+There is special syntax to reference the last index when used within the square braces:
+
+```{julia}
+v[end], t[end], m[end]
+```
+
+The last element is also returned by `last`:
+
+```{julia}
+last(v), last(t), last(m)
+```
+
+These use `lastindex` behind the scenes. There is also a `firstindex` which is associated with the `first` method:
+
+
+```{julia}
+first(v), first(t), first(m)
+```
+
+For indexing by a numeric index, a container of numbers may be used. Containers can be generated different ways, here we just use a vector to get the second and third elements:
+
+```{julia}
+I = [2,3]
+v[I], t[I], m[I]
+```
+
+When indexing by a vector, the value will not be a scalar, even if there is only one element indicated.
+
+Indexing can also be done by a mask of Boolean values with a matching length. This following mask should do the same as indexing by `I` above:
+
+```{julia}
+J = [false, true, true, false]
+v[J], t[J], m[J]
+```
+
+For the matrix, values can be referenced by row/column values. The following will extract the second row, first column:
+
+```{julia}
+m[2, 1]
+```
+
+*If* a container has *only* one entry, then the `only` method will return that element (not within the container). Here we use a tuple to illustrate to emphasize the trailing comma in construction:
+
+```{julia}
+s = ("one", )
+```
+
+```{julia}
+only(s)
+```
+
+There will be an error with `only` should the container not have just one element.
+
+### Mutating values
+
+Vectors and matrices can have their elements changed or mutated; tuples can not. The process is similar to assignment---using an equals sign---but the left hand side has indexing notation to reference which values within the container are to be updated.
+
+To change the last element of `v` to `0` we have:
+
+```{julia}
+v[end] = 0
+v
+```
+
+We might read this as assignment, but what happens is the underlying container has an element indicated by the index mutated. The `setindex!` function is called behind the scenes.
+
+
+The `setindex!` function will try to  promote the value (`0` above) to the element type of the container. This can throw an error if the promotion isn't possible. For example, to specify an element as `missing` with `v[end] = missing` will error, as missing can't be promoted to an integer.
+
+If more than one value is referenced in the assignment, then more than one value can be specified on the right-hand side.
+
+Mutation is different from reassignment. A command like `v=[1,2,3,0]` would have had the same effect as `v[end] = 0`, but would be quite different. The first *replaces* the binding to `v` with a new container, the latter reaches into the container and replaces just a value it holds.
+
+### Size and type
+
+The `length` of a container is the number of elements in linear order:
+
+```{julia}
+length(v), length(t), length(m)
+```
+
+The `isempty` method will indicate if the length is 0, perhaps in a performant way:
+
+```{julia}
+isempty(v), isempty([]), isempty(t), isempty(())
+```
+
+
+The `size` of a container, when defined,  takes into account its shape or the dimensions:
+
+```{julia}
+size(v), size(m) # no size defined for tuples
+```
+
+Arrays, and hence vectors and matrices have an element type given by `eltype` (the `typeof` method returns the container type:
+
+```{julia}
+eltype(v), eltype(t), eltype(m)
+```
+
+(The element type of the tuple is `Int64`, but this is only because of this particular tuple. Tuples are typically heterogeneous containers---not homogeneous like vectors---and do not expect to have a common type. The `NTuple` type is for tuples with elements of the same type.)
+
+### Modifying the length of a container
+
+Vectors and some other containers allow elements to be added on or elements to be taken off. In computer science a queue is a collection that is ordered and has addition at one or the other end. Vectors can be used as a queue, though for just that task, there are more performant structures available.
+
+Two key methods for queues are `push!` and `pop!`. We `push!` elements onto the end of the queue:
+
+```{julia}
+push!(v, 5)
+```
+
+The output is expected---`5` was added to the end of `v`. What might not be expected is the underlying `v` is changed without assignment. (Actually `mutated`, the underlying container assigned to the symbol `v` is extended, not replaced.)
+
+:::{.callout-note}
+## Trailing exclamation point convention
+The function `push!` has a trailing exclamation point which is a `Julia` convention to indicate one of the underlying arguments (traditionally the first) will be *mutated* by the function call.
+:::
+
+The `pop!` function is somewhat of a reverse: it takes the last element and "pops" it off the queue, leaving the queue one element shorter and returning the last element.
+
+```{julia}
+pop!(v)
+```
+
+```{julia}
+v
+```
+
+There are also `pushfirst!`, `popfirst!`, `insert!` and `deleteat!` methods.
+
+
+### Iteration
+
+A very fundamental operation is to iterate over the elements of a collection one by one.
+
+In computer science the `for` loop is the basic construct to iterate over values. This example will iterate over `v` and add each value to `tot` which is initialized to be `0`:
+
+```{julia}
+tot = 0
+for e in v
+    tot = tot + e
+end
+tot
+```
+
+The `for` loop construct is central in many programming languages; in `Julia` for loops are very performant and very flexible, however, they are more verbose than needed. (In the above example we had to initialize an accumulator and then write three lines for the loop, whereas `sum(v)` would do the same---and in this case more flexibly, with just a single call.) Alternatives are usually leveraged---we mention a few.
+
+Iterating over a vector can be done by *value*, as above, or by *index*.  For the latter the `eachindex` method creates an iterable for the indices of the container. For rectangular objects, like matrices, there are also many uses for `eachrow` and `eachcol`, though not in these notes.
+
+
+There are a few basic patterns where alternatives to a `for` loop exist. We discuss two:
+
+* mapping a function or expression over each element in the collection
+* a reduction where a larger dimensional object is summarized by a lower dimensional one. In the example above, the $1$-dimensional vector is reduced to a $0$-dimensional scalar by summing the elements.
+
+#### Comprehensions
+
+In mathematics, set notation is often used to describe elements in a set.
+
+For example, the first $5$ cubed numbers can be described by:
+
+
+$$
+\{x^3: x \text{ in } 1, 2,\dots, 5\}
+$$
+
+Comprehension notation is similar. The above could be created in `Julia` with:
+
+
+```{julia}
+xs = [1, 2, 3, 4, 5]
+[x^3 for x in xs]
+```
+
+Comprehensions are one way of iterating over a collection and evaluating an expression on each element.
+
+In the above, the value `x` takes on each value in `xs`. The variables may be tuples, as well.
+
+The `enumerate` method wraps a container  (or iterable) and iterates both the index and the value. This is useful, say for polynomials:
+
+```{julia}
+x = 3
+as = [1, 2, 3] # evaluate a₀⋅x⁰, a₁⋅x¹, a₂⋅x²
+[a*x^(i-1) for (i, a) in enumerate(as)]
+```
+
+(These values can then be easily summed to evaluate the polynomial.)
+
+When iterating over `enumerate` a tuple is returned. The use of `(i, a)` to iterate over these tuples destructures the tuple into parts to be used in the expression.
+
+The `zip` function also is useful to *pair* off iterators. Redoing the above to have the powers iterated over:
+
+```{julia}
+as = [1, 2, 3]
+inds = [0, 1, 2]
+[a*x^i for (i, a) in zip(inds, as)]
+```
+
+Like `enumerate`, the `zip` iterator has elements which are tuples.
+
+
+:::{.callout-note}
+## Note
+The style generally employed herein is to use plural variable names for a collection of values, such as the vector of $y$ values and singular names when a single value is being referred to, leading to expressions like "`x in xs`".
+
+:::
+
+
+
+#### Broadcasting a function call
+
+If we have a vector, `xs`, and a function, `f`, to apply to each value, there is a simple means to achieve this task that is shorter than a `for` loop or the comprehension `[f(x) for x in s]`. By adding a "dot" between the function name and the parenthesis that enclose the arguments, instructs `Julia` to "broadcast" the function call. The details allow for more much flexibility, but, for this purpose, broadcasting will take each value in `xs` and apply `f` to it, returning a vector of the same size as `xs`. When more than one argument is involved, broadcasting will try to pad out different sized objects to the same shape. Broadcasting can also *fuse* combined function calls.
+
+
+For example, the following will find,  using `sqrt`, the square root of each value in a vector:
+
+
+```{julia}
+xs = [1, 1, 3, 4, 7]
+sqrt.(xs)
+```
+
+This call finds the sine of each number in `xs`:
+
+
+```{julia}
+sin.(xs)
+```
+
+For each function call, the `.(` (and not `(`) after the name is the surface syntax for broadcasting.
+
+
+The `^` operator is an *infix* operator. Infix operators can be broadcast, as well, by using the form `.` prior to the operator, as in:
+
+
+```{julia}
+xs .^ 2
+```
+
+Here is an example involving the logarithm of a set of numbers. In astronomy, a logarithm with base $100^{1/5}$ is used for star [brightness](http://tinyurl.com/ycp7k8ay). We can use broadcasting to find this value for several values at once through:
+
+
+```{julia}
+ys = [1/5000, 1/500, 1/50, 1/5, 5, 50]
+base = (100)^(1/5)
+log.(base, ys)
+```
+
+Broadcasting with multiple arguments allows for mixing of vectors and scalar values, as above, making it convenient when parameters are used. In broadcasting, there are times where it is desirable to treat a container as a scalar-like argument, a common idiom is to wrap that container in a 1-element tuple.
+
+
+As a final example, the task from statistics of centering and then squaring can be done with broadcasting. We go a bit further, showing how to compute the  [sample variance](http://tinyurl.com/p6wa4r8) of a data set. This has the formula
+
+
+$$
+\frac{1}{n-1}\cdot ((x_1-\bar{x})^2 + \cdots + (x_n - \bar{x})^2).
+$$
+
+This can be computed, with broadcasting, through:
+
+
+```{julia}
+#| hold: true
+import Statistics: mean
+xs = [1, 1, 2, 3, 5, 8, 13]
+n = length(xs)
+(1/(n-1)) * sum(abs2.(xs .- mean(xs)))
+```
+
+This shows many of the manipulations that can be made with vectors. Rather than write `.^2`, we follow the  definition of `var` and chose the possibly more performant `abs2` function which, in general, efficiently finds $|x|^2$ for various number types. The `.-` uses broadcasting to subtract a scalar (`mean(xs)`) from a vector (`xs`). Without the `.`, this would error.
+
+Broadcasting is a widely used and powerful surface syntax which we will employ occasionally in the sequel.
+
+
+#### Mapping a function over a collection
+
+The `map` function is very much related to broadcasting. Similarly named functions are found in many different programming languages. (The "dot" broadcast is mostly limited to `Julia` and mirrors a similar usage of a dot in `MATLAB`.) For those familiar with other programming languages, using `map` may seem more natural. Its syntax is `map(f, xs)`. There may be one or more iterable passed to `map`.
+
+
+For example, this will map `sin` over each value in `xs`, computing the same things as `sin.(xs)`:
+
+```{julia}
+map(sin, xs)
+```
+
+The `map` function can be used with one or more iterators.
+
+The `map` function can also be used in combination with `reduce`, a reduction. Reductions take a container with one or more dimensions and reduces the number of dimensions. A example might be:
+
+```{julia}
+sum(map(sin, xs))
+```
+
+This has a performance drawback---there are two passes through the container, one to apply `sin` another to add.
+
+The `mapreduce` function combines the map and reduce operations in one pass. It takes a third argument to reduce by in the second position. This is a *binary* operator. So this combination will map `sin` over `xs` and then add the results up:
+
+```{julia}
+mapreduce(sin, +, xs)
+```
+
+There are other specialized reduction functions that reverse the order of the mapper and the reducer. For example, we have `sum` (used above) and `prod` for adding and multiplying values in a collection:
+
+```{julia}
+sum(xs), prod(xs)
+```
+
+These are reductions, which which fall back to a `mapreduce` call. They require a starting value (`init`) of `0` and `1` (which in this case can be determined from `xs`). The `sum` and `prod` function also allow as a first argument an initial function to map over the collection:
+
+```{julia}
+sum(sin, xs)
+```
+
+
+#### Other reductions
+
+There are other reductions, which summarize a container. We mention those related to the maximum or minimum of a collection. For these examples, we have
+
+```{julia}
+v = [1, 2, 3, 4]
+```
+
+The largest value in a numeric collection is returned by `maximum`:
+
+```{julia}
+maximum(v)
+```
+
+Where this maximum occurred is returned by `argmax`:
+
+```{julia}
+argmax(v)
+```
+
+For `v` these are the same. But if we were to apply `sin` to `v` say, then the result may not be in order. This can be done with, say, a call to `map` and then `maximum`, but the functions allow an initial function to be specified:
+
+```{julia}
+maximum(sin, v), argmax(sin, v)
+```
+
+This combination is also the duty of `findmax`:
+
+```{julia}
+findmax(sin, v)
+```
+
+There are also `minimum`, `argmin`, and `findmin`.
+
+The `extrema` function returns the maximum and minimum of the collection:
+
+```{julia}
+extrema(v)
+```
+
+:::{.callout-note}
+## `maximum` and `max`
+In `Julia` there are two related functions: `maximum` and `max`. The `maximum` function generically returns the largest element in a collection. The `max` function returns the maximum of its *arguments*.
+
+That is, these return identical values:
+
+```{julia}
+xs = [1, 3, 2]
+maximum(xs), max(1, 3, 2), max(xs...)
+```
+
+The latter using *splatting* to iterate over each value in `xs` and pass it to `max` as an argument.
+:::
+
+### Predicate functions
+
+A few reductions work with *predicate* functions---those that return `true` or `false`. Let's use `iseven` as an example, which tests if a number is even.
+
+We can check if *all* the elements of a container are even or if *any* of the elements of a container are even with `all` and `even`:
+
+```{julia}
+xs = [1, 1, 2, 3, 5]
+all(iseven, xs), any(iseven, xs)
+```
+
+
+Related, we can count the number of `true` responses of the predicate function:
+
+```{julia}
+count(iseven, xs)
+```
+
+
+#### methods for associative arrays
+
+For dictionaries, the collection is unordered (by default), but iteration can still be done over "key-value" pairs.
+
+In `Julia` a `Pair` matches a key and a value into one entity. Pairs are made with the `=>` notation with the `key` on the left and the value on the right.
+
+
+Dictionaries are a collection of pairs. The `Dict` constructor can be passed pairs directly:
+
+```{julia}
+ascii = Dict("a"=>97, "b"=>98, "c"=>99) # etc.
+```
+
+To iterate over these, the `pairs` iterator is useful:
+
+```{julia}
+collect(pairs(ascii))
+```
+
+(We used `collect` to iterate over values and return them as a vector.)
+
+The keys are returned by `keys`, the values by `values`:
+
+```{julia}
+keys(ascii)
+```
+
+
+
+## Questions
+
+
+###### Question
+
+
+Which command will create the vector $\vec{v} = \langle 4,~ 3 \rangle$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+q"v = [4,3]",
+q"v = {4, 3}",
+q"v = '4, 3'",
+q"v = (4,3)",
+q"v = <4,3>"]
+answ = 1
+radioq(choices, answ)
+```
+
+###### Question
+
+
+Which command will create the vector with components "4,3,2,1"?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [q"v = [4,3,2,1]", q"v = (4,3,2,1)", q"v = {4,3,2,1}", q"v = '4, 3, 2, 1'", q"v = <4,3,2,1>"]
+answ = 1
+radioq(choices, answ)
+```
+
+###### Question
+
+
+What is the magnitude of the vector $\vec{v} = \langle 10,~ 15 \rangle$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+v = [10, 15]
+val = norm(v)
+numericq(val)
+```
+
+###### Question
+
+
+Which of the following is the unit vector in the direction of $\vec{v} = \langle 3,~ 4 \rangle$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [q"[3, 4]", q"[0.6, 0.8]", q"[1.0, 1.33333]", q"[1, 1]"]
+answ = 2
+radioq(choices, answ)
+```
+
+###### Question
+
+
+What vector is in the same direction as $\vec{v} = \langle 3,~ 4 \rangle$ but is 10 times as long?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [q"[3, 4]", q"[30, 40]", q"[9.48683, 12.6491 ]", q"[10, 10]"]
+answ = 2
+radioq(choices, answ)
+```
+
+###### Question
+
+
+If $\vec{v} = \langle 3,~ 4 \rangle$ and $\vec{w} = \langle 1,~ 2 \rangle$  find $2\vec{v} + 5 \vec{w}$.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [q"[4, 6]", q"[6, 8]", q"[11, 18]", q"[5, 10]"]
+answ = 3
+radioq(choices, answ)
+```
+
+###### Question
+
+
+Let `v` be defined by:
+
+
+```{julia}
+#| hold: true
+#| eval: false
+v = [1, 1, 2, 3, 5, 8, 13, 21]
+```
+
+What is the length of `v`?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+v = [1, 1, 2, 3, 5, 8, 13, 21]
+val = length(v)
+numericq(val)
+```
+
+What is the `sum` of `v`?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+v = [1, 1, 2, 3, 5, 8, 13, 21]
+val = sum(v)
+numericq(val)
+```
+
+What is the `prod` of `v`?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+v = [1,1,2,3,5,8,13,21]
+val = prod(v)
+numericq(val)
+```
+
+###### Question
+
+
+From [transum.org](http://www.transum.org/Maths/Exam/Online_Exercise.asp?Topic=Vectors).
+
+
+```{julia}
+#| hold: true
+#| echo: false
+let
+    gr()
+p = plot(xlim=(0,10), ylim=(0,5), legend=false, framestyle=:none)
+for j in (-3):10
+    plot!(p, [j, j + 5], [0, 5*sqrt(3)], color=:blue, alpha=0.5)
+    plot!(p, [j - 5, j], [5*sqrt(3), 0], color=:blue, alpha=0.5)
+end
+for i in 1/2:1/2:3
+    plot!(p, [0,10],sqrt(3)*[i,i], color=:blue, alpha=0.5)
+end
+
+quiver!(p, [(3/2, 3/2*sqrt(3))], quiver=[(1,0)], color=:black,  linewidth=5)        # a
+quiver!(p, [(2, sqrt(3))], quiver=[(1/2,-sqrt(3)/2)], color=:black,  linewidth=5)   # b
+
+quiver!(p, [(3 + 3/2, 3/2*sqrt(3))], quiver=[(3,0)], color=:black,  linewidth=5)        # c
+quiver!(p, [(4 , sqrt(3))], quiver=[(3/2,-sqrt(3)/2)], color=:black,  linewidth=5)        # d
+quiver!(p, [(6+1/2 , sqrt(3)/2)], quiver=[(1/2, sqrt(3)/2)], color=:black,  linewidth=5)        # e
+
+delta = 1/4
+annotate!(p, [(2, 3/2*sqrt(3) -delta, L"a"),
+              (2+1/4, sqrt(3), L"b"),
+              (3+3/2+3/2, 3/2*sqrt(3)-delta, L"c"),
+              (4+3/4, sqrt(3) - sqrt(3)/4-delta, L"d"),
+              (6+3/4+delta, sqrt(3)/2 + sqrt(3)/4-delta, L"e")
+              ])
+
+
+    p
+end
+```
+
+The figure shows $5$ vectors.
+
+
+Express vector **c** in terms of **a** and **b**:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = ["3a", "3b", "a + b", "a - b", "b-a"]
+answ = 1
+radioq(choices, answ)
+```
+
+Express vector **d** in terms of **a** and **b**:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = ["3a", "3b", "a + b", "a - b", "b-a"]
+answ = 3
+radioq(choices, answ)
+```
+
+Express vector **e** in terms of **a** and **b**:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = ["3a", "3b", "a + b", "a - b", "b-a"]
+answ = 4
+radioq(choices, answ)
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+###### Question
+
+
+If `xs=[1, 2, 3, 4]` and `f(x) = x^2` which of these will not produce the vector `[1, 4, 9, 16]`?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [q"f.(xs)", q"map(f, xs)", q"[f(x) for x in xs]", "All three of them work"]
+answ = 4
+radioq(choices, answ, keep_order=true)
+```
+
+###### Question
+
+
+Let $f(x) = \sin(x)$ and $g(x) = \cos(x)$. In the interval $[0, 2\pi]$ the zeros of $g(x)$ are given by
+
+
+```{julia}
+zs = [pi/2, 3pi/2]
+```
+
+What construct will give the function values of $f$ at the zeros of $g$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [q"sin(zs)", q"sin.(zs)", q"sin(.zs)", q".sin(zs)"]
+answ = 2
+radioq(choices, answ, keep_order=true)
+```
+
+###### Question
+
+
+If `zs = [1,4,9,16]` which of these commands will return `[1.0, 2.0, 3.0, 4.0]`?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+q"sqrt(zs)",
+q"sqrt.(zs)",
+q"zs^(1/2)",
+q"zs^(1./2)"
+]
+answ = 2
+radioq(choices, answ, keep_order=true)
+```

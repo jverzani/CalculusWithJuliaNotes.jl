@@ -11,6 +11,8 @@ using CalculusWithJulia
 nothing
 ```
 
+
+
 The [`Julia`](http://www.julialang.org) programming language is well suited as a computer accompaniment while learning the concepts of calculus. The following overview covers the language-specific aspects of the pre-calculus part of the [Calculus with Julia](calculuswithjulia.github.io) notes.
 
 
@@ -34,35 +36,29 @@ The [https://mybinder.org/](https://mybinder.org/) service in particular allows 
 
 [Google colab](https://colab.research.google.com/) offers a free service with more computing power than `binder`, though setup is a bit more fussy. To use `colab` along with these notes, you need to execute a command that downloads `Julia` and installs the `CalculusWithJulia` package and a plotting package. (Modify the `pkg"add ..."` command to add other desired packages; update the julia version as necessary):
 
-```
-# Installation cell
-%%capture
-%%shell
-if ! command -v julia 3>&1 > /dev/null
-then
-    wget -q 'https://julialang-s3.julialang.org/bin/linux/x64/1.10/julia-1.10.2-linux-x86_64.tar.gz' \
-        -O /tmp/julia.tar.gz
-    tar -x -f /tmp/julia.tar.gz -C /usr/local --strip-components 1
-    rm /tmp/julia.tar.gz
-fi
-julia -e 'using Pkg; pkg"add IJulia CalculusWithJulia; precompile;"'
-julia -e 'using Pkg; Pkg.add(url="https://github.com/mth229/BinderPlots.jl")'
-echo 'Now change the runtime type'
-```
 
-	(The `BinderPlots` is a light-weight, barebones, plotting package that uses `PlotlyLight` to render graphics with commands mostly following those of the `Plots` package. Though suitable for most examples herein, the `Plots` package could instead be installed)
+> Go to google colab:
+
+[https://colab.research.google.com/](https://colab.research.google.com/)
 
 
-After this executes (which can take quite some time, as in a few minutes) under the `Runtime` menu select `Change runtime type` and then select `Julia`.
+> Click on "Runtime" menu and then "Change Runtime Type"
 
-After that, in a cell execute these commands to load the two installed packages:
+> Select Julia as the "Runtime Type" then save
+
+
+> Copy and paste then run this set of commands
 
 ```
+using Pkg
+Pkg.add("Plots")
+Pkg.add("CalculusWithJulia")
 using CalculusWithJulia
-using BinderPlots
+using Plots
 ```
 
-As mentioned, other packages can be chosen for installation.
+
+This may take 2-3 minutes to load. The `plotly()` backend doesn't work out of the box. Use `gr()` to recover if that command is issued.
 
 
 
@@ -85,7 +81,7 @@ $ julia
   (_)     | (_) (_)    |
    _ _   _| |_  __ _   |  Type "?" for help, "]?" for Pkg help.
   | | | | | | |/ _` |  |
-  | | |_| | | | (_| |  |  Version 1.11.1 (2024-10-16)
+  | | |_| | | | (_| |  |  Version 1.11.6 (2025-07-09)
  _/ |\__'_|_|_|\__'_|  |  Official https://julialang.org/ release
 |__/                   |
 
@@ -97,7 +93,7 @@ julia> 2 + 2
 
 
   * An IDE. For programmers, an integrated development environment is often used to manage bigger projects. `Julia` has `Juno` and `VSCode`.
-  * A notebook. The [Project Juptyer](https://jupyter.org/) provides a notebook interface for interacting with `Julia` and a more `IDE` style `jupyterlab` interface. A jupyter notebook has cells where commands are typed and immediately following is the printed output returned by `Julia`. The output of a cell depends on the state of the kernel when the cell is computed, not the order of the cells in the notebook. Cells have a number attached, showing the execution order. The `Juypter` notebook is used by `binder` and can be used locally through the `IJulia` package. This notebook has the ability to display many different types of outputs in addition to plain text, such as images, marked up math text, etc.
+  * A notebook. The [Project Jupyter](https://jupyter.org/) provides a notebook interface for interacting with `Julia` and a more `IDE` style `jupyterlab` interface. A jupyter notebook has cells where commands are typed and immediately following is the printed output returned by `Julia`. The output of a cell depends on the state of the kernel when the cell is computed, not the order of the cells in the notebook. Cells have a number attached, showing the execution order. The `Juypter` notebook is used by `binder` and can be used locally through the `IJulia` package. This notebook has the ability to display many different types of outputs in addition to plain text, such as images, marked up math text, etc.
   * The [Pluto](https://github.com/fonsp/Pluto.jl) package provides a *reactive* notebook interface. Reactive means when one "cell" is modified and executed, the new values cascade to all other dependent cells which in turn are updated. This is very useful for exploring a parameter space, say. Pluto notebooks can be exported as HTML files which make them easy to read online and – by clever design – embed the `.jl` file that can run through `Pluto` if it is downloaded.
 
 
@@ -280,7 +276,7 @@ Values will be promoted to a common type (or type `Any` if none exists). For exa
 (Vectors are used as a return type from some functions, as such, some familiarity is needed.)
 
 
-Other common container types are variables of vectors (higher-dimensional arrarys, offset arrays, etc.)  tuples (for heterogeneous, immutable, indexed values); named tuples (which add a name to each value in a tuple); and dictionaries (for associative relationships between a key and a value).
+Other common container types are variables of vectors (higher-dimensional arrays, offset arrays, etc.)  tuples (for heterogeneous, immutable, indexed values); named tuples (which add a name to each value in a tuple); and dictionaries (for associative relationships between a key and a value).
 
 
 Regular arithmetic sequences can be defined by either:
@@ -452,7 +448,7 @@ a = 4
 f(3)  # now 2 * 4 + 3
 ```
 
-User-defined functions can have $0$, $1$ or more positional arguments:
+User-defined functions can have $0$, $1$, or more positional arguments:
 
 
 ```{julia}
@@ -573,7 +569,7 @@ With `Plots` loaded, we can plot a function by passing the function object by na
 
 
 ```{julia}
-plot(sin, 0, 2pi) # plot a function - by name - over an interval [a,b]
+plot(sin, 0, 2pi)
 ```
 
 ::: {.callout-note}
@@ -629,7 +625,7 @@ ys = f.(xs)
 plot(f, a, b)                   # recipe for a function
 plot(xs, f)                     # alternate recipe
 plot(xs, ys)                    # plot coordinates as two vectors
-plot([(x,f(x)) for x in xs])    # plot a vector o points
+plot([(x,f(x)) for x in xs])    # plot a vector of points
 ```
 
 The choice should depend on convenience.
@@ -637,7 +633,7 @@ The choice should depend on convenience.
 ## Equations
 
 
-Notation for `Julia` and math is *similar* for functions - but not for equations. In math, an equation  might look like:
+Notation for `Julia` and math is *similar* for functions---but not for equations. In math, an equation  might look like:
 
 
 $$
@@ -664,12 +660,14 @@ using SymPy
 (A macro rewrites values into other commands before they are interpreted. Macros are prefixed with the `@` sign. In this use, the "macro" `@syms` translates `x a b c` into a command involving `SymPy`s `symbols` function.)
 
 
-Symbolic expressions - unlike numeric expressions - are not immediately evaluated, though they may be  simplified:
+Symbolic expressions---unlike numeric expressions---are not immediately evaluated, though they may be  simplified:
 
 
 ```{julia}
 p = a*x^2 + b*x + c
 ```
+
+The above command illustrates that the mathematical operations of `*`, `^`, and `+` work with symbolic objects. This is the case for most mathematical functions as well.
 
 To substitute a value, we can use `Julia`'s `pair` notation (`variable=>value`):
 

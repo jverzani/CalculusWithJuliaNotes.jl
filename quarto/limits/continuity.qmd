@@ -72,7 +72,7 @@ The definition says three things
   * The value of the limit is the same as $f(c)$.
 
 
-The defined speaks to continuity at a point, we can extend it to continuity over an interval $(a,b)$ by saying:
+The definition speaks to continuity at a point, we can extend it to continuity over an interval $(a,b)$ by saying:
 
 ::: {.callout-note icon=false}
 ## Definition of continuity over an open interval
@@ -130,9 +130,9 @@ There are various reasons why a function may not be continuous.
 
 $$
 f(x) = \begin{cases}
-         -1 & x < 0 \\
-          0 & x = 0 \\
-          1 & x > 0
+         -1 &~ x < 0 \\
+          0 &~ x = 0 \\
+          1 &~ x > 0
 \end{cases}
 $$
 
@@ -148,25 +148,57 @@ is implemented by `Julia`'s `sign` function. It has a value at $0$, but no limit
 plot([-1,-.01], [-1,-.01], legend=false, color=:black)
 plot!([.01, 1], [.01, 1], color=:black)
 scatter!([0], [1/2], markersize=5, markershape=:circle)
+ts = range(0, 2pi, 100)
+C = Shape(0.02 * sin.(ts), 0.03 * cos.(ts))
+plot!(C, fill=(:white,1), line=(:black, 1))
 ```
 
 is not continuous at $x=0$. It has a limit of $0$ at $0$, a function value $f(0) =1/2$, but the limit and the function value are not equal.
 
 
-  * The `floor` function, which rounds down to the nearest integer, is also not continuous at the integers, but is right continuous at the integers, as, for example, $\lim_{x \rightarrow 0+} f(x) = f(0)$. This graph emphasizes the right continuity by placing a point for the value of the function when there is a jump:
-
+  * The `floor` function, which rounds down to the nearest integer, is also not continuous at the integers, but is right continuous at the integers, as, for example, $\lim_{x \rightarrow 0+} f(x) = f(0)$. This graph emphasizes the right continuity by placing a filled marker for the value of the function when there is a jump and an open marker where the function is not that value.
 
 ```{julia}
-#| hold: true
 #| echo: false
-x = [0,1]; y=[0,0]
-plt = plot(x.-2, y.-2, color=:black, legend=false)
-plot!(plt, x.-1, y.-1, color=:black)
-plot!(plt, x.-0, y.-0, color=:black)
-plot!(plt, x.+1, y.+1, color=:black)
-plot!(plt, x.+2, y.+2, color=:black)
-scatter!(plt, [-2,-1,0,1,2], [-2,-1,0,1,2], markersize=5, markershape=:circle)
+plt = let
+    empty_style = (xticks=-4:4, yticks=-4:4,
+                    framestyle=:origin,
+                    legend=false)
+	axis_style = (arrow=true, side=:head, line=(:gray, 1))
+	text_style = (10,)
+	fn_style =  (;line=(:black, 3))
+	fn2_style =  (;line=(:red, 4))
+	mark_style = (;line=(:gray, 1, :dot))
+	domain_style = (;fill=(:orange, 0.35), line=nothing)
+	range_style = (; fill=(:blue, 0.35), line=nothing)
+
+	ts = range(0, 2pi, 100)
+	xys = sincos.(ts)
+	xys = [.1 .* xy for xy in xys]
+
+	plot(; empty_style..., aspect_ratio=:equal)
+	plot!([-4.25,4.25], [0,0]; axis_style...)
+	plot!([0,0], [-4.25, 4.25]; axis_style...)
+
+	for k in -4:4
+		P,Q = (k,k),(k+1,k)
+		plot!([P,Q], line=(:black,1))
+		S = Shape([k .+ xy for xy in xys])
+		plot!(S; fill=(:black,))
+		S = Shape([(k+1,k) .+ xy for xy in xys])
+		plot!(S; fill=(:white,), line=(:black,1))
+	end
+
+
+	current()
+end
 plt
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
 ```
 
   * The function $f(x) = 1/x^2$ is not continuous at $x=0$: $f(x)$ is not defined at $x=0$ and $f(x)$ has no limit at $x=0$ (in the usual sense).
@@ -176,8 +208,8 @@ plt
 $$
 f(x) =
 \begin{cases}
-0 & \text{if } x \text{ is irrational,}\\
-1 & \text{if } x \text{ is rational.}
+0 &~ \text{if } x \text{ is irrational,}\\
+1 &~ \text{if } x \text{ is rational.}
 \end{cases}
 $$
 
@@ -192,8 +224,8 @@ Let a function be defined by cases:
 
 $$
 f(x) = \begin{cases}
-3x^2 + c & x \geq 0,\\
-2x-3 & x < 0.
+3x^2 + c &~ x \geq 0,\\
+2x-3 &~ x < 0.
 \end{cases}
 $$
 
@@ -383,8 +415,8 @@ Let $f(x)$ be defined by
 
 $$
 f(x) = \begin{cases}
-c + \sin(2x - \pi/2) & x > 0\\
-3x - 4 & x \leq 0.
+c + \sin(2x - \pi/2) &~ x > 0\\
+3x - 4               &~ x \leq 0.
 \end{cases}
 $$
 
@@ -423,12 +455,22 @@ Consider the function $f(x)$ given by the following graph
 ```{julia}
 #| hold: true
 #| echo: false
-xs = range(0, stop=2, length=50)
-plot(xs, [sqrt(1 - (x-1)^2) for x in xs], legend=false, xlims=(0,4))
-plot!([2,3], [1,0])
-scatter!([3],[0], markersize=5)
-plot!([3,4],[1,0])
-scatter!([4],[0], markersize=5)
+let
+	xs = range(0, stop=2, length=50)
+
+	plot(xs, [sqrt(1 - (x-1)^2) for x in xs];
+		 line=(:black,1),
+		 legend=false, xlims=(-0.1,4.1))
+	plot!([2,3], [1,0]; line=(:black,1))
+	plot!([3,4],[1,0]; line=(:black,1))
+
+	scatter!([(0,0)], markersize=5, markercolor=:black)
+	scatter!([(2,0)], markersize=5, markercolor=:white)
+	scatter!([(2, 1)], markersize=5; markercolor=:black)
+	scatter!([(3,0)], markersize=5; markercolor=:black)
+	scatter!([(3,1)], markersize=5; markercolor=:white)
+	scatter!([(4,0)], markersize=5; markercolor=:black)
+end
 ```
 
 The function $f(x)$ is continuous at $x=1$?
@@ -512,4 +554,30 @@ choices = ["Can't tell",
 ]
 answ = 1
 radioq(choices, answ)
+```
+
+
+###### Question
+
+
+A parametric equation is specified by a parameterization $(f(t), g(t)), a \leq t \leq b$. The parameterization will be continuous if and only if each function is continuous.
+
+
+Suppose $k_x$ and $k_y$ are positive integers and $a, b$ are positive numbers, will the [Lissajous](https://en.wikipedia.org/wiki/Parametric_equation#Lissajous_Curve) curve given by $(a\cos(k_x t), b\sin(k_y t))$ be continuous?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+yesnoq(true)
+```
+
+Here is a sample graph for $a=1, b=2, k_x=3, k_y=4$:
+
+
+```{julia}
+#| hold: true
+a,b = 1, 2
+k_x, k_y = 3, 4
+plot(t -> a * cos(k_x *t), t-> b * sin(k_y * t), 0, 4pi)
 ```

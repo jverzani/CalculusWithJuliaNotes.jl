@@ -1,6 +1,5 @@
 # Calculus plots with Makie
 
-
 {{< include ../_common_code.qmd >}}
 
 The [Makie.jl webpage](https://github.com/JuliaPlots/Makie.jl) says
@@ -36,8 +35,7 @@ using GLMakie
 import LinearAlgebra: norm
 ```
 
-The `Makie` developers have workarounds for the delayed time to first plot, but without utilizing these the time to load the package is lengthy.
-
+The package load time as of recent version of `Makie` is quite reasonable for a complicated project. (The time to first plot is under 3 seconds on a typical machine.)
 
 ## Points (`scatter`)
 
@@ -158,7 +156,8 @@ A point is drawn with a "marker" with a certain size and color. These attributes
 
 ```{julia}
 scatter(xs, ys;
-        marker=[:x,:cross, :circle], markersize=25,
+        marker=[:x,:cross, :circle],
+        markersize=25,
         color=:blue)
 ```
 
@@ -176,7 +175,7 @@ A single value will be repeated. A vector of values of a matching size will spec
 ## Curves
 
 
-The curves of calculus are lines. The `lines` command of `Makie` will render a curve by connecting a series of points with straight-line segments. By taking a sufficient number of points the connect-the-dot figure can appear curved.
+A visualization of a curve in calculus is comprised of line segments. The `lines` command of `Makie` will render a curve by connecting a series of points with straight-line segments. By taking a sufficient number of points the connect-the-dot figure can appear curved.
 
 
 ### Plots of univariate functions
@@ -304,7 +303,6 @@ current_figure()
 
 ### Text (`annotations`)
 
-
 Text can be placed at a point, as a marker is. To place text, the desired text and a position need to be specified along with any adjustments to the default attributes.
 
 
@@ -315,23 +313,41 @@ For example:
 xs = 1:5
 pts = Point2.(xs, xs)
 scatter(pts)
-annotations!("Point " .* string.(xs), pts;
-             fontsize = 50 .- 2*xs,
-             rotation = 2pi ./ xs)
+annotation!(pts;
+            text = "Point " .* string.(xs),
+            fontsize = 30 .- 5*xs)
 
 current_figure()
 ```
 
-The graphic shows that `fontsize` adjusts the displayed size and `rotation` adjusts the orientation. (The graphic also shows a need to manually override the limits of the `y` axis, as the `Point 5` is chopped off; the `ylims!` function to do so will be shown later.)
+The graphic shows that `fontsize` adjusts the displayed size.
 
 
 Attributes for `text`, among many others, include:
 
 
   * `align` Specify the text alignment through `(:pos, :pos)`, where `:pos` can be `:left`, `:center`, or `:right`.
-  * `rotation` to indicate how the text is to be rotated
   * `fontsize` the font point size for the text
   * `font` to indicate the desired font
+
+
+Annotations with an arrow can be useful to highlight a feature of a graph. This example is modified from the documentation and utilizes some interval functions to draw an arrow with an arc:
+
+```{julia}
+g(x) = cos(6x) * exp(x)
+xs = 0:0.01:4
+
+_, ax, _ = lines(xs, g.(xs); axis = (; xgridvisible = false, ygridvisible = false))
+
+annotation!(ax, 1, 20, 2.1, g(2.1),
+    text = "A relative maximum",
+    path = Ann.Paths.Arc(0.3),
+    style = Ann.Styles.LineArrow(),
+    labelspace = :data
+)
+
+current_figure()
+```
 
 
 #### Line attributes
@@ -666,6 +682,7 @@ A surface of revolution for $g(u)$ revolved about the $z$ axis can be visualized
 ```{julia}
 g(u) = u^2 * exp(-u)
 r(u,v) = (g(u)*sin(v), g(u)*cos(v), u)
+
 us = range(0, 3, length=10)
 vs = range(0, 2pi, length=10)
 xs, ys, zs = parametric_grid(us, vs, r)
@@ -681,6 +698,7 @@ A torus with big radius $2$ and inner radius $1/2$ can be visualized as follows
 ```{julia}
 r1, r2 = 2, 1/2
 r(u,v) = ((r1 + r2*cos(v))*cos(u), (r1 + r2*cos(v))*sin(u), r2*sin(v))
+
 us = vs = range(0, 2pi, length=25)
 xs, ys, zs = parametric_grid(us, vs, r)
 
@@ -696,6 +714,7 @@ A Möbius strip can be produced with:
 ws = range(-1/4, 1/4, length=8)
 thetas = range(0, 2pi, length=30)
 r(w, θ) = ((1+w*cos(θ/2))*cos(θ), (1+w*cos(θ/2))*sin(θ), w*sin(θ/2))
+
 xs, ys, zs = parametric_grid(ws, thetas, r)
 
 surface(xs, ys, zs)
@@ -865,20 +884,19 @@ end
 #### Implicitly defined surfaces, $F(x,y,z)=0$
 
 
-To plot the equation $F(x,y,z)=0$, for $F$ a scalar-valued function, again the implicit function theorem says that, under conditions, near any solution $(x,y,z)$, $z$ can be represented as a function of $x$ and $y$, so the graph will look likes surfaces stitched together.  The `Implicit3DPlotting` package takes an approach like `ImplicitPlots` to represent these surfaces. It replaces the `Contour` package computation with a $3$-dimensional alternative provided through the `Meshing` and `GeometryBasics` packages.
+To plot the equation $F(x,y,z)=0$, for $F$ a scalar-valued function, again the implicit function theorem says that, under conditions, near any solution $(x,y,z)$, $z$ can be represented as a function of $x$ and $y$, so the graph will look like surfaces stitched together.
+
+With `Makie`, many implicitly defined surfaces can be adequately represented using `countour` with the attribute `levels=[0]`. We will illustrate this technique.
+
+The `Implicit3DPlotting` package takes an approach like `ImplicitPlots` to represent these surfaces. It replaces the `Contour` package computation with a $3$-dimensional alternative provided through the `Meshing` and `GeometryBasics` packages. This package has a `plot_implicit_surface` function that does something similar to below. We don't illustrate it, as it *currently* doesn't work with the latest version of `Makie`.
+
+To begin, we plot a sphere implicitly as a solution to $F(x,y,z) = x^2 + y^2 + z^2 - 1 = 0$>
+
 
 ```{julia}
-using Implicit3DPlotting
-```
-
-
-This example, plotting an implicitly defined sphere, comes from the documentation of `Implicit3DPlotting`. The `f` to be plotted is a scalar-valued function of a vector:
-
-
-```{julia}
-f(x) = sum(x.^2) - 1
-xlims = ylims = zlims = (-5, 5)
-plot_implicit_surface(f; xlims, ylims, zlims)
+f(x,y,z) = x^2 + y^2 + z^2 - 1
+xs = ys = zs = range(-3/2, 3/2, 100)
+contour(xs, ys, zs, f; levels=[0])
 ```
 
 
@@ -887,11 +905,13 @@ Here we visualize an intersection of a sphere with another figure:
 
 
 ```{julia}
-r₂(x) = sum(x.^2) - 5/4 # a sphere
+r₂(x) = sum(x.^2) - 2 # a sphere
 r₄(x) = sum(x.^4) - 1
-xlims = ylims = zlims = (-2, 2)
-p = plot_implicit_surface(r₂; xlims, ylims, zlims, color=:yellow)
-plot_implicit_surface!(p, r₄; xlims, ylims, zlims, color=:red)
+ϕ(x,y,z) = (x,y,z)
+
+xs = ys = zs = range(-2, 2, 100)
+contour(xs, ys, zs, r₂∘ϕ; levels = [0], colormap=:RdBu)
+contour!(xs, ys, zs, r₄∘ϕ; levels = [0], colormap=:viridis)
 current_figure()
 ```
 
@@ -900,11 +920,12 @@ This example comes from [Wikipedia](https://en.wikipedia.org/wiki/Implicit_surfa
 
 ```{julia}
 f(x,y,z) = 2y*(y^2 -3x^2)*(1-z^2) + (x^2 +y^2)^2 - (9z^2-1)*(1-z^2)
-xlims = ylims = zlims = (-5/2, 5/2)
-plot_implicit_surface(x -> f(x...); xlims, ylims, zlims)
+xs = ys = zs = range(-5/2, 5/2, 100)
+contour(xs, ys, zs, f; levels=[0], colormap=:RdBu)
+
 ```
 
-(This figure does not render well through `contour(xs, ys, zs, f, levels=[0])`, as the hole is not shown.)
+(This figure does not render well though, as the hole is not shown.)
 
 
 For one last example from Wikipedia, we have the Cassini oval which "can be defined as the point set for which the *product* of the distances to $n$ given points is constant." That is:
@@ -915,8 +936,8 @@ function cassini(λ, ps = ((1,0,0), (-1, 0, 0)))
     n = length(ps)
     x -> prod(norm(x .- p) for p ∈ ps) - λ^n
 end
-xlims = ylims = zlims = (-2, 2)
-plot_implicit_surface(cassini(1.05); xlims, ylims, zlims)
+xs = ys = zs = range(-2, 2, 100)
+contour(xs, ys, zs, cassini(0.80) ∘ ϕ; levels=[0], colormap=:RdBu)
 ```
 
 ## Vector fields. Visualizations of $f:R^2 \rightarrow R^2$
@@ -1064,7 +1085,7 @@ F
 ### Observables
 
 
-The basic components of a plot in `Makie` can be updated [interactively](https://makie.juliaplots.org/stable/documentation/nodes/index.html#observables_interaction). `Makie` uses the `Observables` package which allows complicated interactions to be modeled quite naturally. In the following we give a simple example.
+The basic components of a plot in `Makie` can be updated [interactively](https://makie.juliaplots.org/stable/documentation/nodes/index.html#observables_interaction). Historically `Makie` used the `Observables` package which allows complicated interactions to be modeled quite naturally. In the following we give a simple example, though newer versions of `Makie` rely on a different mechanism.
 
 
 In Makie, an `Observable` is a structure that allows its value to be updated, similar to an array.  When changed, observables can trigger an event. Observables can rely on other observables, so events can be cascaded.
@@ -1123,6 +1144,7 @@ end
 
 lines!(ax, xs, f)
 lines!(ax, points)
+scatter!(ax, points; markersize=10)
 current_figure()
 ```
 

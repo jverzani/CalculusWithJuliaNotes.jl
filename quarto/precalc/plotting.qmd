@@ -1,4 +1,4 @@
-# The Graph of a Function
+# The graph of a function
 
 
 {{< include ../_common_code.qmd >}}
@@ -9,7 +9,7 @@ This section will use the following packages:
 ```{julia}
 using CalculusWithJulia
 using Plots
-plotly()
+plotly();
 ```
 
 ```{julia}
@@ -18,6 +18,7 @@ plotly()
 using Roots
 using SymPy
 using DataFrames
+using Latexify
 
 nothing
 ```
@@ -83,7 +84,7 @@ plotly()
 
 (Certain graphics are produced with the `gr()` backend.)
 
-With `Plots` loaded, it is straightforward to graph a function.
+With `Plots` loaded and a backend chosen, it is straightforward to graph a function.
 
 
 For example, to graph $f(x) = 1 - x^2/2$ over the interval $[-3,3]$ we have:
@@ -97,8 +98,9 @@ plot(f, -3, 3)
 The `plot` command does the hard work behind the scenes. It needs $2$ pieces of information declared:
 
 
-  * **What** to plot. With this invocation, this detail is expressed by passing a function object to `plot`
-  * **Where** to plot; the `xmin` and `xmax` values. As with a sketch, it is impossible in this case to render a graph with all possible $x$ values in the domain of $f$, so we need to pick some viewing window. In the example this is $[-3,3]$ which is expressed by passing the two endpoints as the second and third arguments.
+* **What** to plot. With this invocation, this detail is expressed by passing a function object to `plot`
+
+* **Where** to plot; the `xmin` and `xmax` values. As with a sketch, it is impossible in this case to render a graph with all possible $x$ values in the domain of $f$, so we need to pick some viewing window. In the example this has $x$ limits of $[-3,3]$; expressed by passing the two endpoints as the second and third arguments.
 
 
 Plotting a function is then this simple: `plot(f, xmin, xmax)`.
@@ -108,11 +110,6 @@ Plotting a function is then this simple: `plot(f, xmin, xmax)`.
 
 
 
-:::{.callout-note}
-## Note
-The time to first plot can feel sluggish, but subsequent plots will be speedy. See the technical note at the end of this section for an explanation.
-
-:::
 
 Let's see some other graphs.
 
@@ -193,10 +190,74 @@ Some types we will encounter, such as the one for symbolic values or the special
 
 :::
 
+:::{.callout-note}
+## Viewing window
+
+The default style for `Plots.jl` is to use a frame style where the viewing window is emphasized. This is a rectangular region, $[x_0, x_1] \times [y_0, y_1]$, which is seen through the tick labeling, the bounding scales on the left and bottom, and emphasized through the grid.
+
+This choices does *not* show the $x-y$ axes. As such, we might layer on the axes when these are of interest.
+
+To emphasize concepts, we may stylize a function graph, rather than display the basic graphic. For example, in this graphic highlighting the amount the function goes up as it moves from $1$ to $x$:
+
+```{julia}
+#| echo: false
+plt = let
+    gr()
+	f(x) = x^2
+
+	empty_style = (xaxis=([], false),
+                    yaxis=([], false),
+                    framestyle=:origin,
+                    legend=false)
+	axis_style = (arrow=true, side=:head, line=(:gray, 1))
+	text_style = (10,)
+	fn_style =  (;line=(:black, 3))
+	fn2_style =  (;line=(:red, 4))
+	mark_style = (;line=(:gray, 1, :dot))
+
+	plot(; empty_style..., aspect_ratio=:equal)
+	a, b = 0, 1.25
+	x = 1.15
+
+	plot!(f, a, b; fn_style...)
+	plot!([-.1, 1.5], [0,0]; axis_style...)
+	plot!([0,0], [-.1, f(1.35)]; axis_style...)
+
+	plot!([1,x,x], [f(1),f(1),f(x)]; line=(:black, 1))
+	plot!([1,1],[0,f(1)]; mark_style...)
+	plot!([x,x],[0,f(1)]; mark_style...)
+	plot!([0,1],[f(1),f(1)]; mark_style...)
+	plot!([0,x],[f(x),f(x)]; mark_style...)
+
+	annotate!([
+	    (1, 0, text(L"1", 10, :top)),
+		(x, 0, text(L"x", 10, :top)),
+		(0, f(1), text(L"1", 10, :right)),
+		(0, f(x), text(L"x^2", 10, :right)),
+		(1, f(1), text(L"P", 10, :right, :bottom)),
+		(x, f(x), text(L"Q", 10, :right, :bottom)),
+		((1 + x)/2, f(1), text(L"\Delta x", 10, :top)),
+		(x, (f(1) + f(x))/2, text(L"\Delta y", 10, :left))
+	])
+    current()
+end
+plt
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+:::
+
+
+
 ---
 
 
-Making a graph with `Plots` is easy, but producing a graph that is informative can be a challenge, as the choice of a viewing window can make a big difference in what is seen. For example, trying to make a graph of $f(x) = \tan(x)$, as below, will result in a bit of a mess - the chosen viewing window crosses several places where the function blows up:
+Making a graph with `Plots` is easy, but producing a graph that is informative can be a challenge, as the choice of a viewing window can make a big difference in what is seen. For example, trying to make a graph of $f(x) = \tan(x)$, as below, will result in a bit of a mess---the chosen viewing window crosses several places where the function blows up:
 
 
 ```{julia}
@@ -255,6 +316,7 @@ plot(xs, ys)
 ```
 
 This plots the points as pairs and then connects them in order using straight lines. Basically, it creates a dot-to-dot graph. The above graph looks primitive, as it doesn't utilize enough points.
+
 
 
 ##### Example: Reflections
@@ -338,17 +400,16 @@ The graph is that of the "inverse function" for $\sin(x), x \text{ in } [-\pi/2,
 When plotting a univariate function there are three basic patterns that can be employed. We have examples above of:
 
 
-  * `plot(f, xmin, xmax)` uses an adaptive algorithm to identify values for $x$ in the interval `[xmin, xmas]`,
-  * `plot(xs, f.(xs))` to manually choose the values of $x$ to plot points for, and
+* `plot(f, xmin, xmax)` uses a recipe implementing an adaptive algorithm to identify values for $x$ in the interval `[xmin, xmas]`,
+
+* `plot(xs, f.(xs))` to manually choose the values of $x$ to plot points for, and
+
+Finally, there is a merging of the first two following the pattern:
+
+* `plot(xs, f)`
 
 
-Finally there is a merging of these following either of these patterns:
-
-
-  * `plot(f, xs)` *or*  `plot(xs, f)`
-
-
-Both require a manual choice of the values of the $x$-values to plot, but the broadcasting is carried out in the `plot` command. This style is convenient, for example, to down sample the $x$ range to see the plotting mechanics, such as:
+All require a manual choice of the values of the $x$-values to plot, but the broadcasting is carried out in the `plot` command. This style is convenient, for example, to down sample the $x$ range to see the plotting mechanics, such as:
 
 
 ```{julia}
@@ -358,10 +419,10 @@ plot(0:pi/4:2pi, sin)
 #### NaN values
 
 
-At times it is not desirable to draw lines between each successive point. For example, if there is a discontinuity in the function or if there were a vertical asymptote, such as what happens at $0$ with $f(x) = 1/x$.
+At times it is not desirable to draw lines between each successive point. For example, if there is a discontinuity in the function or if there were a vertical asymptote.
 
 
-The most straightforward plot is dominated by the vertical asymptote at $x=0$:
+For example,what happens at $0$ with $f(x) = 1/x$. The most straightforward plot is dominated by the vertical asymptote at $x=0$:
 
 
 ```{julia}
@@ -379,10 +440,10 @@ As we see, even with this adjustment, the spurious line connecting the points wi
 plot(q, -1, 1, ylims=(-10,10))
 ```
 
-The dot-to-dot algorithm, at some level, assumes the underlying function is continuous; here $q(x)=1/x$ is not.
+The dot-to-dot algorithm, at some level, assumes the underlying function is *continuous*; here $q(x)=1/x$ is not.
 
 
-There is a convention for most plotting programs that **if** the $y$ value for a point is `NaN` that no lines will connect to that point, `(x,NaN)`. `NaN` conveniently appears in many cases where a plot may have an issue, though not with $1/x$ as `1/0` is `Inf` and not `NaN`. (Unlike, say, `0/0` which is NaN.)
+There is a convention for most plotting programs that **if** the $y$ value for a point is `NaN` then no lines will connect to that point, `(x,NaN)`. `NaN` conveniently appears in many cases where a plot may have an issue, though not with $1/x$ as `1/0` is `Inf` and not `NaN`. (Unlike, say, `0/0` which is NaN.)
 
 
 Here is one way to plot $q(x) = 1/x$ over $[-1,1]$ taking advantage of this convention:
@@ -399,7 +460,7 @@ plot(xs, ys)
 By using an odd number of points, we should have that $0.0$ is amongst the `xs`. The next to last line replaces the $y$ value that would be infinite with `NaN`.
 
 
-As a recommended alternative, we might modify the function so that if it is too large, the values are replaced by `NaN`. Here is one such function consuming a function and returning a modified function put to use to make this graph:
+The above is fussy. As a recommended alternative, we might modify the function so that if it is too large, the values are replaced by `NaN`. Here is one such function consuming a function and returning a modified function put to use to make this graph:
 
 
 ```{julia}
@@ -413,7 +474,7 @@ plot(rangeclamp(x -> 1/x), -1, 1)
 ## Layers
 
 
-Graphing more than one function over the same viewing window is often desirable. Though this is easily done in `Plots` by specifying a vector of functions as the first argument to `plot` instead of a single function object, we instead focus on building the graph layer by layer.
+Graphing more than one function over the same viewing window is often desirable. Though this is easily done all at once in `Plots` by specifying a vector of functions as the first argument to `plot` instead of a single function object, we instead focus on building the graph layer by layer.^[The style of `Plots` is to combine multiple *series* to plot into one object and let `Plots` sort out which (every column is treated as a separate series). This can be very efficient from a programming perspective, but we leave it for power users. The use of layers, seems much easier to understand.]
 
 
 For example, to see that a polynomial and the cosine function are "close" near $0$, we can plot *both* $\cos(x)$ and the function $f(x) = 1 - x^2/2$ over $[-\pi/2,\pi/2]$:
@@ -447,8 +508,8 @@ For another example, suppose we wish to plot the function $f(x)=x\cdot(x-1)$ ove
 
 ```{julia}
 #| hold: true
-f(x) = x*(x-1)
-plot(f, -1, 2, legend=false)   # turn off legend
+f(x) = x * (x-1)
+plot(f, -1, 2; legend=false)   # turn off legend
 plot!(zero)
 scatter!([0,1], [0,0])
 ```
@@ -456,43 +517,53 @@ scatter!([0,1], [0,0])
 The $3$ main functions used in these notes for adding layers are:
 
 
-  * `plot!(f, a, b)` to add the graph of the function `f`; also `plot!(xs, ys)`
-  * `scatter!(xs, ys)` to add points $(x_1, y_1), (x_2, y_2), \dots$.
-  * `annotate!((x,y, label))` to add a label at $(x,y)$
+* `plot!(f, a, b)` to add the graph of the function `f`; also `plot!(xs, ys)`
+
+* `scatter!(xs, ys)` to add points $(x_1, y_1), (x_2, y_2), \dots$.
+
+* `annotate!((x,y, label))` to add a label at $(x,y)$
 
 
 :::{.callout-warning}
-## Warning
+## Trailing ! convention
 Julia has a convention to use functions named with a `!` suffix to indicate that they mutate some object. In this case, the object is the current graph, though it is implicit. Both `plot!`, `scatter!`, and `annotate!` (others too) do this by adding a layer.
 
 :::
 
 ## Additional arguments
 
+The `Plots` package uses positional arguments for input data and keyword arguments for [attributes](https://docs.juliaplots.org/latest/attributes/).
+The `Plots` package provides many such arguments for adjusting a graphic, here we mention just a few:
 
-The `Plots` package provides many arguments for adjusting a graphic, here we mention just a few of the [attributes](https://docs.juliaplots.org/latest/attributes/):
 
-
-  * `plot(..., title="main title", xlab="x axis label", ylab="y axis label")`: add title and label information to a graphic
-  * `plot(..., color="green")`: this argument can be used to adjust the color of the drawn figure (color can be a string,`"green"`, or a symbol, `:green`, among other specifications)
-  * `plot(..., linewidth=5)`: this argument can be used to adjust the width of drawn lines
-  * `plot(..., xlims=(a,b), ylims=(c,d))`: either or both `xlims` and `ylims` can be used to control the viewing window
-  * `plot(..., linestyle=:dash)`: will change the line style of the plotted lines to dashed lines. Also `:dot`, ...
-  * `plot(..., aspect_ratio=:equal)`: will keep $x$ and $y$ axis on same scale so that squares look square.
-  * `plot(..., legend=false)`: by default, different layers will be indicated with a legend, this will turn off this feature
-  * `plot(..., label="a label")` the `label` attribute will show up when a legend is present. Using an empty string, `""`, will suppress add the layer to the legend.
+  * `plot(...; title="main title", xlabel="x axis label", ylabel="y axis label")`: add title and label information to a graphic
+  * `plot(...; label="a label")` the `label` attribute will show up when a legend is present. Using an empty string, `""`, will suppress add the layer to the legend.
+  * `plot(...; legend=false)`: by default, different layers will be indicated with a legend, this will turn off this feature
+  * `plot(...; xlims=(a,b), ylims=(c,d))`: either or both `xlims` and `ylims` can be used to control the viewing window
+  * `plot(...; xticks=[xs..], yticks=[ys...]: either or both `xticks` and `yticks` can be used to specify where the tick marks are to be drawn
+  * `plot(...; aspect_ratio=:equal)`: will keep $x$ and $y$ axis on same scale so that squares look square.
+  * `plot(...; framestyle=:origin)`: The default `framestyle` places $x$-$y$ guides on the edges; this specification places them on the $x-y$ plane.
+  * `plot(...; color="green")`: this argument can be used to adjust the color of the drawn figure (color can be a string,`"green"`, or a symbol, `:green`, among other specifications)
+  * `plot(...; linewidth=5)`: this argument can be used to adjust the width of drawn lines
+  * `plot(...; linestyle=:dash)`: will change the line style of the plotted lines to dashed lines. Also `:dot`, ...
 
 
 For plotting points with `scatter`, or `scatter!` the markers can be adjusted via
 
 
-  * `scatter(..., markersize=5)`: increase marker size
-  * `scatter(..., marker=:square)`: change the marker (uses a symbol, not a string to specify)
+  * `scatter(...; markersize=5)`: increase marker size
+  * `scatter(...; marker=:square)`: change the marker (uses a symbol, not a string to specify)
 
 
 Of course, zero, one, or more of these can be used on any given call to `plot`, `plot!`, `scatter`, or `scatter!`.
 
-There are also several *shorthands* in `Plots` that allows several related attributes to be specified to a single argument that is disambiguated using the type of the value. (Eg. `line=(5, 0.25, "blue")` will specify the line have width `5`, color `blue`, and alpha-transparency `0.25`.)
+### Shorthands
+
+There are also several *shorthands* in `Plots` that allows several related attributes to be specified to a single argument that is disambiguated using the type of the value. A few used herein are:
+
+* `line`. For example, `line=(5, 0.25, "blue")` will specify `linewidth=5` (integer), `linecolor="blue"` (string or symbol), `linealpha=0.25` (floating point)
+* `marker`. For example `marker=(:star, 5)` will specify `markerstyle=:star` (symbol) and `markersize=5` (integer).
+* `fill`. For example `fill=(:blue, 0.25)` will specify `fillcolor=:blue` (string or symbol) and `fillalpha=0.25` (floating point).
 
 #### Example: Bresenham's algorithm
 
@@ -512,7 +583,7 @@ With these assumptions, we have an initial decision to make:
 We re-express our equation $y=f(x)= mx+b$ in general form $f(x,y) = 0 = Ax + By + C$. Using the other point on the line $A=-(y_1-y_0)$, $B=(x_1-x_0)$, and $C = -x_1y_0  + x_0 y_1$. In particular, by assumption both $A$ and $B$ are positive.
 
 
-With this, we have $f(x_0,y_0) = 0$. But moreover, any point with $y>y_0$ will have $f(x_0,y)>0$ and if $y < y_0$ the opposite. That is this equation divides the plane into two pieces depending on whether $f$ is positive, the line is the dividing boundary.
+With this, we have $f(x_0,y_0) = 0$. But moreover, any point $(x_0,y)$ with $y>y_0$ will have $f(x_0,y)>0$ and if $y < y_0$ the opposite. That is this equation divides the plane into two pieces depending on whether $f$ is positive---the line is the dividing boundary.
 
 For the algorithm, we start at $(x_0, y_0)$ and ask if the pixel $(x_0 + 1, y_0)$ or $(x_0 + 1, y_0 - 1)$ will be lit, then we continue to the right.
 
@@ -549,9 +620,9 @@ p = plot(f, x₀, x₁; legend=false, aspect_ratio=:equal,
 col = RGBA(.64,.64,.64, 0.25)
 for xy ∈ xs
     x, y = xy
-    scatter!([x], [y]; markersize=5)
-    scatter!([x+1], [y - 1/2], markersize=5, markershape=:star7)
-    plot!(Shape(x .+ [0, 1, 1, 0], y .+ [0, 0, -1, -1]), color=col)
+    scatter!([x], [y]; marker=(5,))
+    scatter!([x+1], [y - 1/2]; marker=(5,:star))
+    plot!(Shape(x .+ [0, 1, 1, 0], y .+ [0, 0, -1, -1]); color=col)
 end
 p
 ```
@@ -560,14 +631,46 @@ We see a number of additional arguments used: different marker sizes and shapes 
 
 Of course, generalizations for positive slope and slope with magnitude greater than $1$ are needed. As well, this basic algorithm could be optimized, especially if it is part of a lower-level drawing primitive. But this illustrates the considerations involved.
 
+## Points, lines, polygons
+
+Two basic objects to graph are points and lines. Add to these polygons.
+
+A point in two-dimensional space has two coordinates, often denoted by $(x,y)$. In `Julia`, the same notation produces a `tuple`. Using square brackets, as in `[x,y]`, produces a vector. Vectors are are more commonly used in these notes, as we have seen there are algebraic operations defined for them. However, tuples have other advantages and  are how `Plots` designates a point.
+
+The plot command `plot(xs, ys)` plots the points $(x_1,y_1), \dots, (x_n, y_n)$ and then connects adjacent points with lines. The command `scatter(xs, ys)` just plots the points.
+
+However, the points might be more naturally specified as coordinate pairs. If tuples are used to pair them off, then `Plots` will plot a vector of tuples as a sequence of points through `plot([(x1,y1), (x2, y2), ..., (xn, yn)])`:
+
+```{julia}
+pts = [( 1, 0), ( 1/4,  1/4), (0,  1), (-1/4,  1/4),
+       (-1, 0), (-1/4, -1/4), (0, -1), ( 1/4, -1/4)]
+scatter(pts; legend=false)
+```
+
+A line segment simply connects two points. While these can be specified as vectors of $x$ and $y$ values, again it may be more convenient to use coordinate pairs to specify the points. Continuing the above, we can connect adjacent points with line segments:
+
+```{julia}
+plot!(pts; line=(:gray, 0.5, :dash))
+```
+
+This uses the shorthand notation of `Plots` to specify `linecolor=:gray, linealpha=0.5, linestyle=:dash`. To plot just a line segment, just specifying two points suffices.
+
+The four-pointed star is not closed off, as there isn't a value from the last point to the first point. A polygon closes itself off. The `Shape` function can take a vector of points or a pair of `xs` and `ys` to specify a polygon. When these are plotted, the arguments to `fill` describe the interior of the polygon, the arguments to `line` the boundary:
+
+
+```{julia}
+plot(Shape(pts); fill=(:gray, 0.25), line=(:black, 2), legend=false)
+scatter!(pts)
+```
+
 
 ## Graphs of parametric equations
 
 
-If we have two functions $f(x)$ and $g(x)$ there are a few ways to investigate their joint behavior. As just mentioned, we can graph both $f$ and $g$ over the same interval using layers. Such a graph allows an easy comparison of the shape of the two functions and can be useful in solving $f(x) = g(x)$. For the latter, the graph of $h(x) = f(x) - g(x)$ is also of value: solutions to $f(x)=g(x)$ appear as crossing points on the graphs of `f` and `g`, whereas they appear as zeros (crossings of the $x$-axis) when `h` is plotted.
+If we have two functions $f(x)$ and $g(x)$ there are a few ways to investigate their joint behavior. As mentioned, we can graph both $f$ and $g$ over the same interval using layers. Such a graph allows an easy comparison of the shape of the two functions and can be useful in solving $f(x) = g(x)$, as the $x$ solutions are where the two curves intersect.
 
 
-A different graph can be made to compare the two functions side-by-side. This is a parametric plot. Rather than plotting points $(x,f(x))$ and $(x,g(x))$ with two separate graphs, the graph consists of points $(f(x), g(x))$. We illustrate with some examples below:
+A different graph can be made to compare the two functions side-by-side. This is a parametric plot. Rather than plotting points $(x,f(x))$ and $(x,g(x))$ with two separate graphs, the graph consists of points $(f(x), g(x))$ over a range of $x$ values. We illustrate with some examples below:
 
 
 ##### Example
@@ -585,7 +688,7 @@ plot(f.(ts), g.(ts), aspect_ratio=:equal)   # make equal axes
 Any point $(a,b)$ on this graph is represented by $(\cos(t), \sin(t))$ for some value of $t$, and in fact multiple values of $t$, since $t + 2k\pi$ will produce the same $(a,b)$ value as $t$ will.
 
 
-Making the parametric plot is similar to creating a plot using lower level commands. There  a sequence of values is generated to approximate the $x$ values in the graph (`xs`), a set of commands to create the corresponding function values (e.g., `f.(xs)`), and some instruction on how to represent the values, in this case with lines connecting the points (the default for `plot` for two sets of numbers).
+Making the parametric plot is similar to creating a plot using lower level commands. There  a sequence of values is generated to approximate the $x$ values in the graph (`xs`), a set of commands to create the corresponding function values (e.g., `f.(xs)`), and some instruction on how to represent the values, in this case with lines connecting the points (the default for `plot` for two vectors of numbers).
 
 
 In this next plot, the angle values are chosen to be the familiar ones, so the mechanics of the graph can be emphasized. Only the upper half is plotted:
@@ -595,7 +698,7 @@ In this next plot, the angle values are chosen to be the familiar ones, so the m
 #| hold: true
 #| echo: false
 θs =[0, PI/6, PI/4, PI/3, PI/2, 2PI/3, 3PI/4,5PI/6, PI]
-DataFrame(θ=θs, x=cos.(θs), y=sin.(θs))
+latexify(DataFrame(θ=θs, x=cos.(θs), y=sin.(θs)))
 ```
 
 ```{julia}
@@ -608,7 +711,7 @@ scatter!(f.(θs), g.(θs))
 ---
 
 
-As with the plot of a univariate function, there is a convenience interface for these plots - just pass the two functions in:
+As with the plot of a univariate function, there is a convenience interface for these plots---just pass the two functions in:
 
 
 ```{julia}
@@ -660,7 +763,7 @@ This graph is *nearly* a straight line. At the point $(0,0)=(f(0), g(0))$, we se
 ##### Example: Etch A Sketch
 
 
-[Etch A sketch](http://en.wikipedia.org/wiki/Etch_A_Sketch) is a drawing toy where two knobs control the motion of a pointer, one knob controlling the $x$ motion, the other the $y$ motion. The trace of the movement of the pointer is recorded until the display is cleared by shaking. Shake to clear is now a motion incorporated by some smart-phone apps.
+[Etch A Sketch](http://en.wikipedia.org/wiki/Etch_A_Sketch) is a drawing toy where two knobs control the motion of a pointer, one knob controlling the $x$ motion, the other the $y$ motion. The trace of the movement of the pointer is recorded until the display is cleared by shaking. Shake to clear is now a motion incorporated by some smart-phone apps.
 
 
 Playing with the toy makes a few things become clear:
@@ -674,8 +777,9 @@ Playing with the toy makes a few things become clear:
 
 These all apply to parametric plots, as the Etch A Sketch trace is no more than a plot of $(f(t), g(t))$ over some range of values for $t$, where $f$ describes the movement in time of the left knob and $g$ the movement in time of the right.
 
+---
 
-Now, we revisit the last problem in the context of this. We saw in the last problem that the parametric graph was nearly a line - so close the eye can't really tell otherwise. That means that the growth in  both $f(t) = t^3$ and $g(t)=t - \sin(t)$ for $t$ around $0$ are in a nearly fixed ratio, as otherwise the graph would have more curve in it.
+Now, we revisit the last problem in the context of this. We saw in the last problem that the parametric graph was nearly a line---so close the eye can't really tell otherwise. That means that the growth in  both $f(t) = t^3$ and $g(t)=t - \sin(t)$ for $t$ around $0$ are in a nearly fixed ratio, as otherwise the graph would have more curve in it.
 
 
 ##### Example: Spirograph
@@ -697,6 +801,8 @@ plot(f, g, 0, max((R-r)/r, r/(R-r))*2pi)
 ```
 
 In the above, one can fix $R=1$. Then different values for `r` and `rho` will produce different graphs. These graphs will be periodic if $(R-r)/r$ is a rational. (Nothing about these equations requires $\rho < r$.)
+
+
 
 
 ## Questions
@@ -1031,14 +1137,3 @@ choices = [
 answ = 5
 radioq(choices, answ, keep_order=true)
 ```
-
----
-
-
-## Technical note
-
-
-The slow "time to first plot" in `Julia` is a well-known hiccup that is related to how `Julia` can be so fast. Loading Plots and the making the first plot are both somewhat time consuming, though the second and subsequent plots are speedy. Why?
-
-
-`Julia` is an interactive language that attains its speed by compiling functions on the fly using the [llvm](llvm.org) compiler. When `Julia` encounters a new combination of a function method and argument types it will compile and cache a function for subsequent speedy execution. The first plot is slow, as there are many internal functions that get compiled. This has sped up of late, as excessive recompilations have been trimmed down, but still has a way to go. This is different from "precompilation" which also helps trim down time for initial executions. There are also some more technically challenging means to create `Julia` images for faster start up that can be pursued if needed.

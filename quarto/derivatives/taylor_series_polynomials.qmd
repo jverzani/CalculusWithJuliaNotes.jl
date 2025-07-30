@@ -1,4 +1,4 @@
-# Taylor Polynomials and other Approximating Polynomials
+# Taylor polynomials and other approximating polynomials
 
 
 {{< include ../_common_code.qmd >}}
@@ -42,12 +42,14 @@ gr()
 taylor(f, x, c, n) = series(f, x, c, n+1).removeO()
 function make_taylor_plot(u, a, b, k)
     k = 2k
-    plot(u, a, b, title="plot of T_$k", linewidth=5, legend=false, size=fig_size, ylim=(-2,2.5))
-    if k == 1
-        plot!(zero, range(a, stop=b, length=100))
-    else
-        plot!(taylor(u, x, 0, k), range(a, stop=b, length=100))
-    end
+    plot(u, a, b;
+         title = L"plot of $T_{%$k}$",
+         line = (:black, 3),
+         legend = false,
+         size = fig_size,
+         ylim = (-2,2.5))
+    fn = k == 1 ? zero : taylor(u, x, 0, k)
+    plot!(fn, range(a, stop=b, length=100); line=(:red,2))
 end
 
 
@@ -76,7 +78,7 @@ ImageFile(imgfile, caption)
 ## The secant line and the tangent line
 
 
-We approach this general problem **much** more indirectly than is needed. We introduce notations that are attributed to Newton and proceed from there. By leveraging `SymPy` we avoid tedious computations and *hopefully* gain some insight.
+Heads up: we approach this general problem **much** more indirectly than is needed by introducing notations that are attributed to Newton and proceed from there. By leveraging `SymPy` we avoid tedious computations and *hopefully* gain some insight.
 
 
 Suppose $f(x)$ is a function which is defined in a neighborhood of $c$ and has as many continuous derivatives as we care to take at $c$.
@@ -102,7 +104,10 @@ $$
 tl(x) = f(c) + f'(c) \cdot(x - c).
 $$
 
-The key is the term multiplying $(x-c)$ for the secant line this is an approximation to the related term for the tangent line. That is, the secant line approximates the tangent line, which is the linear function that best approximates the function at the point $(c, f(c))$. This is quantified by the *mean value theorem* which states under our assumptions on $f(x)$ that there exists some $\xi$ between $x$ and $c$ for which:
+The key is the term multiplying $(x-c)$---for the secant line this is an approximation to the related term for the tangent line. That is, the secant line approximates the tangent line, which is the linear function that best approximates the function at the point $(c, f(c))$.
+
+
+This is quantified by the *mean value theorem* which states under our assumptions on $f(x)$ that there exists some $\xi$ between $x$ and $c$ for which:
 
 
 $$
@@ -189,7 +194,7 @@ function divided_differences(f, x, xs...)
 end
 ```
 
-In the following, by adding a `getindex` method, we enable the  `[]` notation of Newton to work with symbolic functions, like `u()` defined below, which is used in place of $f$:
+In the following---even though it is *type piracy*---by adding a `getindex` method, we enable the  `[]` notation of Newton to work with symbolic functions, like `u()` defined below, which is used in place of $f$:
 
 
 ```{julia}
@@ -199,48 +204,38 @@ Base.getindex(u::SymFunction, xs...) = divided_differences(u, xs...)
 ex = u[c, c+h]
 ```
 
-We can take a limit and see the familiar (yet differently represented) value of $u'(c)$:
+A limit as $h\rightarrow 0$ would show a value of $u'(c)$.
 
 
-```{julia}
-limit(ex, h => 0)
-```
-
-The choice of points is flexible. Here we use $c-h$ and $c+h$:
-
-
-```{julia}
-limit(u[c-h, c+h], h=>0)
-```
 
 Now, let's look at:
 
 
 ```{julia}
 ex₂ = u[c, c+h, c+2h]
-simplify(ex₂)
 ```
 
-Not so bad after simplification. The limit shows this to be an approximation to the second derivative divided by $2$:
-
+If multiply by $2$ and simplify, a discrete approximation for the second derivative---the second order forward [difference equation](http://tinyurl.com/n4235xy)---is seen:
 
 ```{julia}
-limit(ex₂, h => 0)
+simplify(2ex₂)
 ```
-
-(The expression is, up to a divisor of $2$, the second order forward [difference equation](http://tinyurl.com/n4235xy), a well-known approximation to $f''$.)
 
 
 This relationship between higher-order divided differences and higher-order derivatives generalizes. This is expressed in this [theorem](http://tinyurl.com/zjogv83):
 
 
-> Suppose $m=x_0 < x_1 < x_2 < \dots < x_n=M$ are distinct points. If $f$ has $n$ continuous derivatives then there exists a value $\xi$, where $m < \xi < M$, satisfying:
+:::{.callout-note}
+## Mean value theorem for Divided differences
+
+Suppose $m=x_0 < x_1 < x_2 < \dots < x_n=M$ are distinct points. If $f$ has $n$ continuous derivatives then there exists a value $\xi$, where $m < \xi < M$, satisfying:
 
 
 
 $$
 f[x_0, x_1, \dots, x_n] = \frac{1}{n!} \cdot f^{(n)}(\xi).
 $$
+:::
 
 This immediately applies to the above, where we parameterized by $h$: $x_0=c, x_1=c+h, x_2 = c+2h$. For then, as $h$ goes to $0$, it must be that $m, M \rightarrow c$, and so the limit of the divided differences must converge to $(1/2!) \cdot f^{(2)}(c)$, as $f^{(2)}(\xi)$ converges to $f^{(2)}(c)$.
 
@@ -496,16 +491,20 @@ f[x_0] &+ f[x_0,x_1] \cdot (x - x_0) + f[x_0, x_1, x_2] \cdot (x - x_0)\cdot(x-x
 $$
 
 
-and taking $x_i = c + i\cdot h$, for a given $n$, we have in the limit as $h > 0$ goes to zero that coefficients of this polynomial converge to the coefficients of the *Taylor Polynomial of degree n*:
+and taking $x_i = c + i\cdot h$, for a given $n$, we have in the limit as $h > 0$ goes to zero that coefficients of this polynomial converge:
 
 
-
+:::{.callout-note}
+## Taylor polynomial of degree $n$
+Suppose $f(x)$ has $n+1$ derivatives (continuous on $c$ and $x$), then
 
 $$
-f(c) + f'(c)\cdot(x-c) + \frac{f''(c)}{2!}(x-c)^2 + \cdots + \frac{f^{(n)}(c)}{n!} (x-c)^n.
+T_n(x) = f(c) + f'(c)\cdot(x-c) + \frac{f''(c)}{2!}(x-c)^2 + \cdots + \frac{f^{(n)}(c)}{n!} (x-c)^n,
 $$
 
-This polynomial will be the best approximation of degree $n$ or less to the function $f$, near $c$. The error will be given - again by an application of the Cauchy mean value theorem:
+will be the best approximation of degree $n$ or less to $f$, near $c$.
+
+The error will be given - again by an application of the Cauchy mean value theorem:
 
 
 $$
@@ -513,9 +512,10 @@ $$
 $$
 
 for some $\xi$ between $c$ and $x$.
+:::
 
 
-The Taylor polynomial for $f$ about $c$ of degree $n$ can be computed by taking $n$ derivatives. For such a task, the computer is very helpful. In `SymPy` the `series` function will compute the Taylor polynomial for a given $n$. For example, here is the series expansion to 10 terms of the function $\log(1+x)$ about $c=0$:
+The Taylor polynomial for $f$ about $c$ of degree $n$ can be computed by taking $n$ derivatives. For such a task, the computer is very helpful. In `SymPy` the `series` function will compute the Taylor polynomial for a given $n$. For example, here is the series expansion to $10$ terms of the function $\log(1+x)$ about $c=0$:
 
 
 ```{julia}
@@ -794,7 +794,7 @@ This is re-expressed as $2s + s \cdot p$ with $p$ given by:
 
 
 ```{julia}
-cancel((a_b - 2s)/s)
+p = cancel((a_b - 2s)/s)
 ```
 
 Now, $2s = m - s\cdot m$, so the above can be reworked to be $\log(1+m) = m - s\cdot(m-p)$.
@@ -803,36 +803,28 @@ Now, $2s = m - s\cdot m$, so the above can be reworked to be $\log(1+m) = m - s\
 (For larger values of $m$, a similar, but different approximation, can be used to minimize floating point errors.)
 
 
-How big can the error be between this *approximations* and $\log(1+m)$? We plot to see how big $s$ can be:
+How big can the error be between this *approximations* and $\log(1+m)$? The expression $m/(2+m)$ increases for $m > 0$, so, on this interval $s$ is as big as
 
 
 ```{julia}
-@syms v
-plot(v/(2+v), sqrt(2)/2 - 1, sqrt(2)-1)
-```
-
-This shows, $s$ is as big as
-
-
-```{julia}
-Max = (v/(2+v))(v => sqrt(2) - 1)
+Max = (x/(2+x))(x => sqrt(2) - 1)
 ```
 
 The error term is like $2/19 \cdot \xi^{19}$ which  is largest at this value of $M$. Large is relative - it is really small:
 
 
 ```{julia}
-(2/19)*Max^19
+(2/19) * Max^19
 ```
 
 Basically that is machine precision. Which means, that as far as can be told on the computer, the value produced by $2s + s \cdot p$ is about as accurate as can be done.
 
 
-To try this out to compute $\log(5)$. We have $5 = 2^2(1+0.25)$, so $k=2$ and $m=0.25$.
+We try this out to compute $\log(5)$. We have $5 = 2^2(1+ 1/4)$, so $k=2$ and $m=1/4$.
 
 
 ```{julia}
-k, m = 2, 0.25
+k, m = 2, 1/4
 s = m / (2+m)
 pₗ = 2 * sum(s^(2i)/(2i+1) for i in 1:8)  # where the polynomial approximates the logarithm...
 
@@ -1209,7 +1201,10 @@ $$
 
 
 $$
-h(x)=b_0 + b_1 (x-x_n) + b_2(x-x_n)(x-x_{n-1}) + \cdots + b_n (x-x_n)(x-x_{n-1})\cdot\cdots\cdot(x-x_1).
+\begin{align*}
+h(x)&=b_0 + b_1 (x-x_n) + b_2(x-x_n)(x-x_{n-1}) + \cdots \\
+&+ b_n (x-x_n)(x-x_{n-1})\cdot\cdots\cdot(x-x_1).
+\end{align*}
 $$
 
 These two polynomials are of degree $n$ or less and have $u(x) = h(x)-g(x)=0$, by uniqueness. So the coefficients of $u(x)$ are $0$. We have that the coefficient of $x^n$ must be $a_n-b_n$ so $a_n=b_n$. Our goal is to express $a_n$ in terms of $a_{n-1}$ and $b_{n-1}$. Focusing on the $x^{n-1}$ term, we have:

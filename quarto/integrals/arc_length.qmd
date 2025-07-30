@@ -76,21 +76,34 @@ To see why, any partition of the interval $[a,b]$ by $a = t_0 < t_1 < \cdots < t
 ## {{{arclength_graph}}}
 gr()
 function make_arclength_graph(n)
+	x(t) = cos(t)/t
+    y(t) = sin(t)/t
+	a, b = 1, 4pi
+	ns = [10,15,20, 30, 50]
+    empty_style = (xaxis=([], false),
+                    yaxis=([], false),
+                    framestyle=:origin,
+                    legend=false)
 
-    ns = [10,15,20, 30, 50]
+	plot(; empty_style..., aspect_ratio=:equal, size=fig_size)
+	title!("Approximate arc length with $(ns[n]) points")
 
-    g(t) = cos(t)/t
-    f(t) = sin(t)/t
+	ts = range(a, b, 250)
+	plot!(x.(ts), y.(ts); line=(:black,2))
+	pttn = range(a, b, ns[n])
+	plot!(x.(pttn), y.(pttn); line=(:red, 2))
 
-    ts = range(1, stop=4pi, length=200)
-    tis = range(1, stop=4pi, length=ns[n])
+	ts = range(0, 2pi, 100)
 
-    p = plot(g, f, 1, 4pi, legend=false, size=fig_size,
-             title="Approximate arc length with $(ns[n]) points")
-    plot!(p,  map(g, tis), map(f, tis), color=:orange)
+	λ = 0.01
+    C = Plots.scale(Shape(:circle), λ)
 
-    p
+	for (u,v) ∈ zip(x.(pttn), y.(pttn))
+        S = Plots.translate(C, u,v)
+		plot!(S; fill=(:white,), line=(:black,2))
+	end
 
+	current()
 end
 
 n = 5
@@ -542,7 +555,9 @@ plot(t -> g(𝒔(t)), t -> f(𝒔(t)), 0, sinv(2*pi))
 Following (faithfully) [Kantorwitz and Neumann](https://www.researchgate.net/publication/341676916_The_English_Galileo_and_His_Vision_of_Projectile_Motion_under_Air_Resistance), we consider a function $f(x)$ with the property that **both** $f$ and $f'$ are strictly concave down on $[a,b]$ and suppose $f(a) = f(b)$. Further, assume $f'$ is continuous. We will see this implies facts about arc-length and other integrals related to $f$.
 
 
-The following figure is clearly of a concave down function. The asymmetry about the critical point will be seen to be a result of the derivative also being concave down. This asymmetry will be characterized in several different ways in the following including showing that the arc length from $(a,0)$ to $(c,f(c))$ is longer than from $(c,f(c))$ to $(b,0)$.
+@fig-kantorwitz-neumann is clearly of a concave down function. The asymmetry about the critical point will be seen to be a result of the derivative also being concave down. This asymmetry will be characterized in several different ways in the following including showing that the arc length from $(a,0)$ to $(c,f(c))$ is longer than from $(c,f(c))$ to $(b,0)$.
+
+::: {#fig-kantorwitz-neumann}
 
 
 ```{julia}
@@ -577,7 +592,12 @@ plot!(zero)
 annotate!([(0, 𝒚, "a"), (152, 𝒚, "b"), (u, 𝒚, "u"), (v, 𝒚, "v"), (c, 𝒚, "c")])
 ```
 
-Take $a < u < c < v < b$ with $f(u) = f(v)$ and $c$ a critical point, as in the picture. There must be a critical point by Rolle's theorem, and it must be unique, as the derivative, which exists by the assumptions, must be strictly decreasing due to concavity of $f$ and hence there can be at most $1$ critical point.
+Graph of function $f(x)$ with both $f$ and $f'$ strictly concave down.
+:::
+
+By Rolle's theorem there exists $c$ in $(a,b)$, a critical point, as in the picture. There must be a critical point by Rolle's theorem, and it must be unique, as the derivative, which exists by the assumptions, must be strictly decreasing due to concavity of $f$ and hence there can be at most $1$ critical point.
+
+Take $a < u < c < v < b$ with $f(u) = f(v)$.
 
 
 Some facts about this picture can be proven from the definition of concavity:
@@ -640,7 +660,7 @@ By the fundamental theorem of calculus:
 
 
 $$
-(f_1^{-1}(y) + f_2^{-1}(y))\big|_\alpha^\beta > 0
+(f_1^{-1}(y) + f_2^{-1}(y))\Big|_\alpha^\beta > 0
 $$
 
 On rearranging:

@@ -9,6 +9,7 @@ files = (
     "scalar_functions",
     "scalar_functions_applications",
     "vector_fields",
+    "matrix_calculus_notes.qmd",
     "plots_plotting",
 )
 

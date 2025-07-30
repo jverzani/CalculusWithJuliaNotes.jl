@@ -11,7 +11,7 @@ typst_tpl = mt"""
 ---
 title: {{:title}}
 date: today
-jupyter: julia-1.11
+engine: julia
 execute:
   daemon: false
 format:
@@ -25,6 +25,11 @@ format:
         #set figure(placement: auto)
 bibliography: references.bib
 ---
+```{julia}
+#| echo: false
+import Plots; Plots.plotly() = Plots.gr();
+nothing
+```
 """
 
 index = "_pdf_index"

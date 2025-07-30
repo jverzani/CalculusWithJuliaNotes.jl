@@ -1,4 +1,4 @@
-# The mean value theorem for differentiable functions.
+# The mean value theorem for differentiable functions
 
 
 {{< include ../_common_code.qmd >}}
@@ -277,6 +277,13 @@ For $f$ differentiable on $(a,b)$ and continuous on $[a,b]$, if $f(a)=f(b)$, the
 
 :::
 
+::: {#fig-l-hospital-144}
+
+![Figure from L'Hospital's calculus book](figures/lhopital-144.png)
+
+Figure from L'Hospital's calculus book showing Rolle's theorem where $c=E$ in the labeling.
+:::
+
 This modest observation opens the door to many relationships between a function and its derivative, as it ties the two together in one statement.
 
 
@@ -323,46 +330,71 @@ The mean value theorem is a direct generalization of Rolle's theorem.
 ::: {.callout-note icon=false}
 ## Mean value theorem
 
-Let $f(x)$ be differentiable on $(a,b)$ and continuous on $[a,b]$. Then there exists a value $c$ in $(a,b)$ where $f'(c) = (f(b) - f(a)) / (b - a)$.
+Let $f(x)$ be differentiable on $(a,b)$ and continuous on $[a,b]$. Then there exists a value $c$ in $(a,b)$ where
+
+$$
+f'(c) = (f(b) - f(a)) / (b - a).
+$$
 
 :::
 
 This says for any secant line between $a < b$ there will be a parallel tangent line at some $c$ with $a < c < b$ (all provided $f$ is differentiable on $(a,b)$ and continuous on $[a,b]$).
 
 
-Figure @fig-mean-value-theorem illustrates the theorem. The blue line is the secant line. A parallel line tangent to the graph is guaranteed by the mean value theorem. In this figure, there are two such lines, rendered using brown.
+@fig-mean-value-theorem illustrates the theorem. The secant line between $a$ and $b$ is dashed.  For this function there are two values of $c$ where the slope of the tangent line is seen to be the same as the slope of this secant line. At least one is guaranteed by the theorem.
 
 
 ```{julia}
 #| hold: true
 #| echo: false
 #| label: fig-mean-value-theorem
-f(x) = x^3 - x
-a, b = -2, 1.75
-m = (f(b) - f(a)) / (b-a)
-cps = find_zeros(x -> f'(x) - m, a, b)
+let
+	# mean value theorem
+    gr()
+	f(x) = x^3 -4x^2 + 3x - 1
+	a, b = -3/4, 3+3/4
+	plot(; axis=([], nothing),
+		 legend=false,
+		 xlims=(-1.1,4),
+		 framestyle=:none)
+	y₀ = 0.3  + f(-1)
 
-p = plot(f, a-0.75, b+1,
-         color=:mediumorchid3,
-         linewidth=3, legend=false,
-         axis=([],false),
-         )
+	plot!(f, -1, 4; line=(:black, 2))
+	plot!([-1.1, 4], y₀*[1,1]; line=(:black, 1), arrow=true, head=:top)
+	p,q = (a,f(a)), (b, f(b))
+	scatter!([p,q]; marker=(:circle, 4, :red))
+	plot!([p,q]; line=(:gray, 2, :dash))
+	m = (f(b) - f(a))/(b-a)
+	c₁, c₂ = find_zeros(x -> f'(x) - m, (a,b))
+
+	Δ = 2/3
+	for c ∈ (c₁, c₂)
+		plot!(tangent(f,c), c-Δ, c+Δ; line=(:gray, 2))
+		plot!([(c, y₀), (c, f(c))]; line=(:gray, 1, :dash))
+	end
+
+	for c ∈ (a,b)
+		plot!([(c, y₀), (c, f(c))]; line=(:gray, 1))
+	end
+
+	annotate!([
+		(a, y₀, text(L"a", :top)),
+		(b, y₀, text(L"b", :top)),
+		(c₁, y₀, text(L"c_1", :top)),
+		(c₂, y₀, text(L"c_2", :top)),
+
+	])
+
+	current()
 
 
-plot!(x -> f(a) + m*(x-a),  a-1, b+1,   linewidth=5, color=:royalblue)
-scatter!([a,b], [f(a), f(b)])
-annotate!([(a, f(a), text("a", :bottom)),
-           (b, f(b), text("b", :bottom))])
-
-
-for cp in cps
-    plot!(x -> f(cp) + f'(cp)*(x-cp), a-1, b+1, color=:brown3)
 end
+```
 
-scatter!(cps, f.(cps))
-subsscripts = collect("₀₁₂₃₄₅₆₇₈₉")
-annotate!([(cp, f(cp), text("c"*subsscripts[i], :bottom)) for (i,cp) ∈ enumerate(cps)])
-p
+```{julia}
+#| echo: false
+plotly()
+nothing
 ```
 
 Like Rolle's theorem this is a guarantee that something exists, not a recipe to find it. In fact, the mean value theorem is just Rolle's theorem applied to:
@@ -506,7 +538,7 @@ function parametric_fns_graph(n)
                xlim=(-1.1,1.1), ylim=(-pi/2-.1, pi/2+.1))
     scatter!(plt, [f(ts[end])], [g(ts[end])], color=:orange, markersize=5)
     val = @sprintf("% 0.2f", ts[end])
-    annotate!(plt, [(0, 1, "t = $val")])
+    annotate!(plt, [(0, 1, L"t = %$val")])
 end
 caption = L"""
 

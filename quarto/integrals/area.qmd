@@ -16,6 +16,8 @@ using Roots
 
 ---
 
+![A jigsaw puzzle needs a certain amount of area to complete. For a traditional rectangular puzzle, this area is comprised of the sum of the areas for each piece. Decomposing a total area into the sum of smaller, known, ones---even if only approximate---is the basis of definite integration.](figures/jigsaw.png)
+
 
 The question of area has long fascinated human culture. As children, we learn early on the formulas for the areas of some geometric figures: a square is $b^2$, a rectangle $b\cdot h$, a triangle $1/2 \cdot b \cdot h$ and for a circle, $\pi r^2$. The area of a rectangle is often the intuitive basis for illustrating multiplication. The area of a triangle has been known for ages. Even complicated expressions, such as [Heron's](http://tinyurl.com/mqm9z) formula which relates the area of a triangle with measurements from its perimeter have been around for 2000 years. The formula for the area of a circle is also quite old. Wikipedia dates it as far back as the [Rhind](http://en.wikipedia.org/wiki/Rhind_Mathematical_Papyrus) papyrus for 1700 BC, with the approximation of $256/81$ for $\pi$.
 
@@ -82,37 +84,44 @@ f(x) = x^2
 colors = [:black, :blue, :orange, :red, :green, :orange, :purple]
 
 ## Area of parabola
-
-## Area of parabola
 function make_triangle_graph(n)
     title = "Area of parabolic cup ..."
-    n==1 && (title = "Area = 1/2")
-    n==2 && (title = "Area = previous + 1/8")
-    n==3 && (title = "Area = previous + 2*(1/8)^2")
-    n==4 && (title = "Area = previous + 4*(1/8)^3")
-    n==5 && (title = "Area = previous + 8*(1/8)^4")
-    n==6 && (title = "Area = previous + 16*(1/8)^5")
-    n==7 && (title = "Area = previous + 32*(1/8)^6")
+    n==1 && (title = L"Area $= 1/2$")
+    n==2 && (title = L"Area $=$ previous $+\; \frac{1}{8}$")
+    n==3 && (title = L"Area $=$ previous $+\; 2\cdot\frac{1}{8^2}$")
+    n==4 && (title = L"Area $=$ previous $+\; 4\cdot\frac{1}{8^3}$")
+    n==5 && (title = L"Area $=$ previous $+\; 8\cdot\frac{1}{8^4}$")
+    n==6 && (title = L"Area $=$ previous $+\; 16\cdot\frac{1}{8^5}$")
+    n==7 && (title = L"Area $=$ previous $+\; 32\cdot\frac{1}{8^6}$")
 
 
 
-    plt = plot(f, 0, 1, legend=false, size = fig_size, linewidth=2)
-    annotate!(plt, [(0.05, 0.9, text(title,:left))])  # if in title, it grows funny with gr
-    n >= 1 && plot!(plt, [1,0,0,1, 0], [1,1,0,1,1], color=colors[1], linetype=:polygon, fill=colors[1], alpha=.2)
-    n == 1 && plot!(plt, [1,0,0,1, 0], [1,1,0,1,1], color=colors[1], linewidth=2)
+    plt = plot(f, 0, 1;
+			   legend=false,
+			   size = fig_size,
+			   linewidth=2)
+    annotate!(plt, [
+		(0.05, 0.9, text(title,:left))
+	])  # if in title, it grows funny with gr
+    n >= 1 && plot!(plt, [1,0,0,1, 0], [1,1,0,1,1];
+					color=colors[1], linetype=:polygon,
+					fill=colors[1], alpha=.2)
+    n == 1 && plot!(plt, [1,0,0,1, 0], [1,1,0,1,1];
+					color=colors[1], linewidth=2)
     for k in 2:n
         xs = range(0, stop=1, length=1+2^(k-1))
-        ys = map(f, xs)
-        k < n && plot!(plt, xs, ys, linetype=:polygon, fill=:black, alpha=.2)
+        ys = f.(xs)
+        k < n && plot!(plt, xs, ys;
+					   linetype=:polygon, fill=:black, alpha=.2)
         if k == n
-            plot!(plt, xs, ys, color=colors[k], linetype=:polygon, fill=:black, alpha=.2)
-            plot!(plt, xs, ys, color=:black, linewidth=2)
+            plot!(plt, xs, ys;
+				  color=colors[k], linetype=:polygon, fill=:black, alpha=.2)
+            plot!(plt, xs, ys;
+				  color=:black, linewidth=2)
         end
     end
     plt
 end
-
-
 
 n = 7
 anim = @animate for i=1:n
@@ -183,13 +192,47 @@ $$
 S_n  = f(c_1) \cdot (x_1 - x_0) + f(c_2) \cdot (x_2 - x_1) + \cdots + f(c_n) \cdot (x_n - x_{n-1}).
 $$
 
-Clearly for a given partition and choice of $c_i$, the above can be computed. Each term $f(c_i)\cdot(x_i-x_{i-1})$ can be visualized as the area of a rectangle with base spanning from $x_{i-1}$ to $x_i$ and height given by the function value at $c_i$. The following visualizes left Riemann sums for different values of $n$ in a way that makes Beekman's intuition plausible – that as the number of rectangles gets larger, the approximate sum will get closer to the actual area.
+Clearly for a given partition and choice of $c_i$, the above can be computed. Each term $f(c_i)\cdot(x_i-x_{i-1}) = f(c_i)\Delta_i$ can be visualized as the area of a rectangle with base spanning from $x_{i-1}$ to $x_i$ and height given by the function value at $c_i$. The following visualizes left Riemann sums for different values of $n$ in a way that makes Beekman's intuition plausible – that as the number of rectangles gets larger, the approximate sum will get closer to the actual area.
 
 
 ```{julia}
 #| hold: true
 #| echo: false
 gr()
+
+function left_riemann(n)
+		empty_style = (xaxis=([], false),
+                    yaxis=([], false),
+                    framestyle=:origin,
+                    legend=false)
+	axis_style = (arrow=true, side=:head, line=(:gray, 1))
+	rectangle = (x, y, w, h) -> Shape(x .+ [0,w,w,0], y .+ [0,0,h,h])
+
+	f = x -> -(x+1/2)*(x-1)*(x-3) + 1
+	a, b= 1, 3
+
+	plot(; empty_style...)
+	plot!(f, a, b; line=(:black, 3))
+	plot!([a-.25, b+.25], [0,0]; axis_style...)
+	plot!([a-.1, a-.1], [-.25, .5 + f(a/2 +b/2)]; axis_style...)
+
+	Δ = (b-a)/n
+	for i ∈ 0:n-1
+		xᵢ = a + i*Δ
+		plot!(rectangle(xᵢ, 0, Δ, f(xᵢ)), opacity=0.5, color=:red)
+	end
+	area = round(sum(f(a + i*Δ)*Δ for i ∈ 0:n-1), digits=3)
+
+	annotate!([
+		(a, 0, text(L"a", :top)),
+		(b, 0, text(L"b", :top)),
+		(a, f(a/2+b/2), text("\$L_{$n} = $area\$", :left))
+	])
+
+	current()
+end
+
+#=
 rectangle(x, y, w, h) = Shape(x .+ [0,w,w,0], y .+ [0,0,h,h])
 function ₙ(j)
 	a = ("₋","","","₀","₁","₂","₃","₄","₅","₆","₇","₈","₉")
@@ -210,6 +253,7 @@ function left_riemann(n)
 	title!("L$(ₙ(n)) = $a")
 	p
 end
+=#
 
 anim = @animate for i ∈ (2,4,8,16,32,64)
     left_riemann(i)
@@ -319,7 +363,7 @@ When the integral exists, it is written $V = \int_a^b f(x) dx$.
 
 :::{.callout-note}
 ## History note
-The expression $V = \int_a^b f(x) dx$ is known as the *definite integral* of $f$ over $[a,b]$. Much earlier than Riemann, Cauchy had defined the definite integral in terms of a sum of rectangular products beginning with $S=(x_1 - x_0) f(x_0) + (x_2 - x_1) f(x_1) + \cdots + (x_n - x_{n-1}) f(x_{n-1})$ (the left Riemann sum). He showed the limit was well defined for any continuous function. Riemann's formulation relaxes the choice of partition and the choice of the $c_i$ so that integrability can be better understood.
+The expression $V = \int_a^b f(x) dx$ is known as the *definite integral* of $f$ over $[a,b]$. Much earlier than Riemann, Cauchy had defined the definite integral in terms of a sum of rectangular products beginning with $S=f(x_0) \cdot (x_1 - x_0)  + f(x_1) \cdot (x_2 - x_1)  + \cdots + f(x_{n-1}) \cdot (x_n - x_{n-1}) $ (the left Riemann sum). He showed the limit was well defined for any continuous function. Riemann's formulation relaxes the choice of partition and the choice of the $c_i$ so that integrability can be better understood.
 
 :::
 
@@ -327,18 +371,6 @@ The expression $V = \int_a^b f(x) dx$ is known as the *definite integral* of $f$
 
 
 The following formulas are consequences when $f(x)$ is integrable. These  mostly follow through a judicious rearranging of the approximating sums.
-
-
-The area is $0$ when there is no width to the interval to integrate over:
-
-
-> $$
-> \int_a^a f(x) dx = 0.
-> $$
-
-
-
-Even our definition of a partition doesn't really apply, as we assume $a < b$, but clearly if $a=x_0=x_n=b$ then our only"approximating" sum could be $f(a)(b-a) = 0$.
 
 
 The area under a constant function is found from the area of rectangle, a special case being $c=0$ yielding $0$ area:
@@ -353,16 +385,65 @@ The area under a constant function is found from the area of rectangle, a specia
 For any partition of $a < b$, we have $S_n = c(x_1 - x_0) + c(x_2 -x_1) + \cdots + c(x_n - x_{n-1})$. By factoring out the $c$, we have a *telescoping sum* which means the sum simplifies to $S_n = c(x_n-x_0) = c(b-a)$. Hence any limit must be this constant value.
 
 
-Scaling the $y$ axis by a constant can be done before or after computing the area:
+
+::: {#fig-consequence-rectangle-area}
+```{julia}
+#| echo: false
+gr()
+let
+	c = 1
+	a,b = 0.5, 1.5
+	f(x) = c
+	Δ = 0.1
+	plt = plot(;
+			xaxis=([], false),
+        	yaxis=([], false),
+           	legend=false,
+               )
+
+	plot!(f, a, b; line=(:black, 2))
+	plot!([a-Δ, b + Δ], [0,0]; line=(:gray, 1), arrow=true, side=:head)
+	plot!([a-Δ/2, a-Δ/2], [-Δ, c + Δ]; line=(:gray, 1), arrow=true, side=:head)
+    plot!([a,a],[0,f(a)]; line=(:black, 1, :dash))
+	plot!([b,b],[0,f(b)]; line=(:black, 1, :dash))
+
+	annotate!([
+		(a, 0, text(L"a", :top, :right)),
+		(b, 0, text(L"b", :top, :left)),
+		(a-Δ/2-0.01, c, text(L"c", :right))
+	])
+	current()
+end
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+Illustration that the area under a constant function is that of a rectangle
+:::
+
+
+
+
+
+The area is $0$ when there is no width to the interval to integrate over:
 
 
 > $$
-> \int_a^b cf(x) dx = c \int_a^b f(x) dx.
+> \int_a^a f(x) dx = 0.
 > $$
 
 
 
-Let $a=x_0 < x_1 < \cdots < x_n=b$ be any partition. Then we have $S_n= cf(c_1)(x_1-x_0) + \cdots + cf(c_n)(x_n-x_{n-1})$ $=$ $c\cdot\left[ f(c_1)(x_1 - x_0) + \cdots + f(c_n)(x_n - x_{n-1})\right]$. The "limit" of the left side is $\int_a^b c f(x) dx$. The "limit" of the right side is $c \cdot \int_a^b f(x)$. We call this a "sketch" as a formal proof would show that for any $\epsilon$ we could choose a $\delta$ so that any partition with norm $\delta$ will yield a sum less than $\epsilon$. Here, then our "any" partition would be one for which the $\delta$ on the left hand side applies. The computation shows that the same $\delta$ would apply for the right hand side when $\epsilon$ is the same.
+Even our definition of a partition doesn't really apply, as we assume $a < b$, but clearly if $a=x_0=x_n=b$ then our only"approximating" sum could be $f(a)(b-a) = 0$.
+
+
+#### Shifts
+
+A jigsaw puzzle piece will have the same area if it is moved around on the table or flipped over. Similarly some shifts preserve area under a function.
 
 
 The area is invariant under shifts left or right.
@@ -389,6 +470,59 @@ $$
 The left side will have a limit of $\int_a^b f(x-c) dx$ the right would have a "limit" of $\int_{a-c}^{b-c}f(x)dx$.
 
 
+
+
+::: {#fig-consequence-rectangle-area}
+```{julia}
+#| echo: false
+gr()
+let
+	f(x) = 2 + cospi(x^2/10)*sinpi(x)
+	plt = plot(;
+			xaxis=([], false),
+        	yaxis=([], false),
+           	legend=false,
+               )
+
+	a, b = 0,4
+	c = 5
+	plot!(f, a, b; line=(:black, 2))
+	plot!(x -> f(x-c), a+c, b+c; line=(:red, 2))
+
+	plot!([-1, b+c + 1], [0,0]; line=(:gray, 2), arrow=true, side=:head)
+	for x ∈ (a,b)
+		plot!([x,x],[0,f(x)]; line=(:black,1, :dash))
+	end
+
+	for x ∈ (a+c,b+c)
+		plot!([x,x],[0,f(x)]; line=(:red,1, :dash))
+	end
+
+	annotate!([
+	(a+c,0, text(L"a", :top)),
+		(b+c,0, text(L"b", :top)),
+		(a,0, text(L"a-c", :top)),
+		(b,0, text(L"b-c", :top)),
+		(1.0, 3, text(L"f(x)",:left)),
+		(1.0+c, 3, text(L"f(x-c)",:left)),
+
+
+	])
+	current()
+end
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+Illustration that the area under shift remains the same
+:::
+
+
+
 Similarly, reflections don't effect the area under the curve, they just require a new parameterization:
 
 
@@ -398,7 +532,79 @@ Similarly, reflections don't effect the area under the curve, they just require 
 
 
 
-The scaling operation $g(x) = f(cx)$ has the following:
+::: {#fig-consequence-reflect-area}
+```{julia}
+#| echo: false
+gr()
+let
+	f(x) = 2 + cospi(x^2/10)*sinpi(x)
+	g(x) = f(-x)
+	plt = plot(;
+			xaxis=([], false),
+        	yaxis=([], false),
+           	legend=false,
+               )
+
+	a, b = 1,4
+
+	plot!(f, a, b; line=(:black, 2))
+	plot!(g, -b, -a; line=(:red, 2))
+
+	plot!([-5, 5], [0,0]; line=(:gray,1), arrow=true, side=:head)
+	plot!([0,0], [-0.1,3.15]; line=(:gray,1), arrow=true, side=:head)
+
+	for x in (a,b)
+		plot!([x,x], [0,f(x)]; line=(:black,1,:dash))
+		plot!([-x,-x], [0,g(-x)]; line=(:red,1,:dash))
+	end
+
+	annotate!([
+	(a,0, text(L"a", :top)),
+	(b,0, text(L"b", :top)),
+		(-a,0, text(L"-a", :top)),
+	(-b,0, text(L"-b", :top)),
+
+	])
+	current()
+end
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+Illustration that the area remains constant under reflection through $y$ axis.
+:::
+
+
+
+The "reversed" area is the same, only accounted for with a minus sign.
+
+
+> $$
+> \int_a^b f(x) dx = -\int_b^a f(x) dx.
+> $$
+
+
+
+#### Scaling
+
+Scaling the $y$ axis by a constant can be done before or after computing the area:
+
+
+> $$
+> \int_a^b cf(x) dx = c \int_a^b f(x) dx.
+> $$
+
+
+
+Let $a=x_0 < x_1 < \cdots < x_n=b$ be any partition. Then we have $S_n= cf(c_1)(x_1-x_0) + \cdots + cf(c_n)(x_n-x_{n-1})$ $=$ $c\cdot\left[ f(c_1)(x_1 - x_0) + \cdots + f(c_n)(x_n - x_{n-1})\right]$. The "limit" of the left side is $\int_a^b c f(x) dx$. The "limit" of the right side is $c \cdot \int_a^b f(x)$. We call this a "sketch" as a formal proof would show that for any $\epsilon$ we could choose a $\delta$ so that any partition with norm $\delta$ will yield a sum less than $\epsilon$. Here, then our "any" partition would be one for which the $\delta$ on the left hand side applies. The computation shows that the same $\delta$ would apply for the right hand side when $\epsilon$ is the same.
+
+
+
+The scaling operation on the $x$ axis, $g(x) = f(cx)$, has the following property:
 
 
 > $$
@@ -413,8 +619,9 @@ The scaling operation shifts $a$ to $ca$ and $b$ to $cb$ so the limits of integr
 Combining two operations above, the operation $g(x) = \frac{1}{h}f(\frac{x-c}{h})$ will leave the area between $a$ and $b$ under $g$ the same as the area under $f$ between $(a-c)/h$ and $(b-c)/h$.
 
 
----
+#### Area is additive
 
+When two jigsaw pieces interlock their combined area is that of each added. This also applies to areas under functions.
 
 The area between $a$ and $b$ can be broken up into the sum of the area between $a$ and $c$ and that between $c$ and $b$.
 
@@ -428,34 +635,184 @@ The area between $a$ and $b$ can be broken up into the sum of the area between $
 For this, suppose we have a partition for both the integrals on the right hand side for a given $\epsilon/2$ and $\delta$. Combining these into a partition of $[a,b]$ will mean $\delta$ is still the norm. The approximating sum will combine to be no more than $\epsilon/2 + \epsilon/2$, so for a given $\epsilon$, this $\delta$ applies.
 
 
-This is due to the area on the left and right of $0$ being equivalent.
+
+::: {#fig-consequence-additive-area}
+```{julia}
+#| echo: false
+gr()
+let
+f(x) = 2 + cospi(x^2/7)*sinpi(x)
+	a,b,c = 0.1, 8, 3
+	xs = range(a,c,100)
+	A1 = Shape(vcat(xs,c,a), vcat(f.(xs), 0, 0))
+
+    xs = range(c,b,100)
+	A2 = Shape(vcat(xs,b,c), vcat(f.(xs), 0, 0))
 
 
-The "reversed" area is the same, only accounted for with a minus sign.
+	plt = plot(;
+			xaxis=([], false),
+        	yaxis=([], false),
+           	legend=false,
+               )
+	plot!([0,0] .- 0.1,[-.1,3]; line=(:gray, 1), arrow=true, side=:head)
+	plot!([0-.2, b+0.5],[0,0]; line=(:gray, 1), arrow=true, side=:head)
+
+	plot!(A1; fill=(:gray60,1), line=(nothing,))
+	plot!(A2; fill=(:gray90,1), line=(nothing,))
+    plot!(f, a, b; line=(:black, 2))
+    for x in (a,b,c)
+        plot!([x,x], [0, f(x)]; line=(:black, 1, :dash))
+    end
 
 
-> $$
-> \int_a^b f(x) dx = -\int_b^a f(x) dx.
-> $$
+	annotate!([(x,0,text(latexstring("$y"),:top)) for (x,y) in zip((a,b,c),("a","b","c"))])
 
+
+
+end
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+Illustration that the area between $a$ and $b$ can be computed as area between $a$ and $c$ and then $c$ and $b$.
+:::
 
 
 A consequence of the last few statements is:
 
 
-> If $f(x)$ is an even function, then $\int_{-a}^a f(x) dx = 2 \int_0^a f(x) dx$. If $f(x)$ is an odd function, then  $\int_{-a}^a f(x) dx = 0$.
+> If $f(x)$ is an even function, then $\int_{-a}^a f(x) dx = 2 \int_0^a f(x) dx$.
+
+> If $f(x)$ is an odd function, then  $\int_{-a}^a f(x) dx = 0$.
+
+
+Additivity works in the $y$ direction as well.
+
+If $f(x)$ and $g(x)$ are two functions then
+
+> $$
+> \int_a^b (f(x) + g(x)) dx = \int_a^b f(x) dx + \int_a^b g(x) dx
+> $$
+
+
+For any partitioning with $x_i, x_{i-1}$ and $c_i$ this holds:
+
+$$
+(f(c_i) + g(c_i)) \cdot (x_i - x_{i-1}) =
+f(c_i) \cdot (x_i - x_{i-1}) + g(c_i) \cdot (x_i - x_{i-1})
+$$
+
+This leads to the same statement for the areas under the curves.
+
+
+The *linearity* of the integration operation refers to this combination of the above:
+
+> $$
+> \int_a^b (cf(x) + dg(x)) dx = c\int_a^b f(x) dx + d \int_a^b g(x)dx
+> $$
+
+The integral of a shifted function satisfies:
+
+> $$
+> \int_a^b \left(D + C\cdot f(\frac{x - B}{A})\right) dx = D\cdot(b-a) + C \cdot A \int_{\frac{a-B}{A}}^{\frac{b-B}{A}} f(x) dx
+> $$
+
+
+This follows from a few of the statements above:
+
+$$
+\begin{align*}
+\int_a^b \left(D + C\cdot f(\frac{x - B}{A})\right) dx  &=
+\int_a^b D dx + C \int_a^b f(\frac{x-B}{A}) dx \\
+&= D\cdot(b-a) + C\cdot A  \int_{\frac{a-B}{A}}^{\frac{b-B}{A}} f(x) dx
+\end{align*}
+$$
+
+
+#### Inequalities
+
+Area under a non-negative function is non-negative
+
+> $$
+> \int_a^b f(x) dx \geq 0,\quad\text{when } a < b, \text{ and } f(x) \geq 0
+> $$
+
+Under this assumption, for any  partitioning with $x_i, x_{i-1}$ and $c_i$ it holds the $f(c_i)\cdot(x_i - x_{i-1}) \geq 0$. So any sum of non-negative values can only be non-negative, even in the limit.
 
 
 
-If $g$ bounds $f$ then the area under $g$ will bound the area under  $f$, in particular if $f(x)$ is non negative, so will the area under  $f$ be non negative for any $a < b$. (This assumes that $g$ and $f$  are integrable.)
+If $g$ bounds $f$ then the area under $g$ will bound the area under  $f$.
 
-
-> If $0 \leq f(x) \leq g(x)$ then $\int_a^b f(x) dx \leq \int_a^b g(x) dx.$
-
+> $$
+> $\int_a^b f(x) dx \leq \int_a^b g(x) dx \quad\text{when } a < b\text{ and } 0 \leq f(x) \leq g(x)
+> $$
 
 
 For any partition of $[a,b]$ and choice of $c_i$, we have the term-by-term bound $f(c_i)(x_i-x_{i-1}) \leq g(c_i)(x_i-x_{i-1})$ So any sequence of partitions that converges to the limits will have this inequality maintained for the sum.
 
+
+
+
+::: {#fig-consequence-0-area}
+```{julia}
+#| echo: false
+gr()
+let
+	f(x) = 1/6+x^3*(2-x)/2
+	g(x) = 1/6+exp(x/3)+(1-x/1.7)^6-0.6
+	a, b = 0, 2
+
+	plot(; empty_style...)
+	plot!([a-.5, b+.25], [0,0]; line=(:gray, 1), arrow=true, side=:head)
+	plot!([0,0] .- 0.25, [-0.25, 1.8]; line=(:gray, 1), arrow=true, side=:head)
+
+	xs = range(a,b,250)
+	S = Shape(vcat(xs, reverse(xs)), vcat(f.(xs), g.(reverse(xs))))
+	plot!(S; fill=(:gray70, 0.3), line=(nothing,))
+
+	S = Shape(vcat(xs, reverse(xs)), vcat(zero.(xs), f.(reverse(xs))))
+	plot!(S; fill=(:gray90, 0.3), line=(nothing,))
+
+
+	plot!(f, a, b; line=(:black, 4))
+	plot!(g, a, b; line=(:black, 2))
+
+
+	for x in (a,b)
+		plot!([x,x], [0, g(x)]; line=(:black,1,:dash))
+	end
+
+	annotate!([(x,0,text(t, :top)) for (x,t) in zip((a,b),(L"a", L"b"))])
+
+
+	current()
+end
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+Illustration that if $f(x) \le g(x)$ on $[a,b]$ then the integrals share the same property. The excess area is clearly positive.
+:::
+
+(This also follows by considering $h(x) = g(x) - f(x) \geq 0$ by assumption, so $\int_a^b h(x) dx \geq 0$.)
+
+
+For non-negative functions, integrals over larger domains are bigger
+
+> $$
+> \int_a^c f(x) dx \le \int_a^b f(x) dx,\quad\text{when } c < b \text{ and } f(x) \ge 0
+> $$
+
+This follows as $\int_c^b f(x) dx$ is non-negative under these assumptions.
 
 ### Some known integrals
 
@@ -571,7 +928,7 @@ The main idea behind this is that the difference between the maximum and minimum
 For example, the function $f(x) = 1$ for $x$ in $[0,1]$ and $0$ otherwise will be integrable, as it is continuous at all but two points, $0$ and $1$, where it jumps.
 
 
-* Some functions can have infinitely many points of discontinuity and still be integrable. The example of $f(x) = 1/q$ when $x=p/q$ is rational, and $0$ otherwise is often used as an example.
+* Some functions can have infinitely many points of discontinuity and still be integrable. The example of $f(x) = 1/q$ when $x=p/q$ is rational, and $0$ otherwise is often used to illustrate this.
 
 
 ## Numeric integration
@@ -601,11 +958,11 @@ deltas = diff(xs)      # forms x2-x1, x3-x2, ..., xn-xn-1
 cs = xs[1:end-1]       # finds left-hand end points. xs[2:end] would be right-hand ones.
 ```
 
-Now to multiply the values. We want to sum the product `f(cs[i]) * deltas[i]`, here is one way to do so:
+We want to sum the products $f(c_i)\Delta_i$. Here is one way to do so using `zip` to iterate over the paired off values in `cs` and `deltas`.
 
 
 ```{julia}
-sum(f(cs[i]) * deltas[i] for i in 1:length(deltas))
+sum(f(ci)*Δi for (ci, Δi) in zip(cs, deltas))
 ```
 
 Our answer is not so close to the value of $1/3$, but what did we expect - we only used $n=5$ intervals. Trying again with $50,000$ gives us:
@@ -617,7 +974,7 @@ n = 50_000
 xs = a:(b-a)/n:b
 deltas = diff(xs)
 cs = xs[1:end-1]
-sum(f(cs[i]) * deltas[i] for i in 1:length(deltas))
+sum(f(ci)*Δi for (ci, Δi) in zip(cs, deltas))
 ```
 
 This value is about $10^{-5}$ off from the actual answer of $1/3$.
@@ -631,19 +988,19 @@ Before continuing, we define a function to compute  Riemann sums for us with an 
 
 ```{julia}
 #| eval: false
-riemann(f, a, b, n; method="right") = riemann(f, range(a,b,n+1); method=method)
 function riemann(f, xs; method="right")
-    Ms = (left = (f,a,b) -> f(a),
-          right= (f,a,b) -> f(b),
+    Ms = (left      = (f,a,b) -> f(a),
+          right     = (f,a,b) -> f(b),
           trapezoid = (f,a,b) -> (f(a) + f(b))/2,
-          simpsons  = (f,a,b) -> (c = a/2 + b/2; (1/6) * (f(a) + 4*f(c) + f(b))),
+          simpsons  = (f,a,b) -> (c = a/2 + b/2; (1/6) * (f(a) + 4*f(c) + f(b)))
           )
-    _riemann(Ms[Symbol(method)], f, xs)
-end
-function _riemann(M, f, xs)
+    M = Ms[Symbol(method)}
     xs′ = zip(xs[1:end-1], xs[2:end])
     sum(M(f, a, b) * (b-a) for (a,b) ∈ xs′)
 end
+
+riemann(f, a, b, n; method="right") =
+    riemann(f, range(a,b,n+1); method)
 ```
 
 (This function is defined in `CalculusWithJulia` and need not be copied over if that package is loaded.)
@@ -699,7 +1056,7 @@ Consider a function $g(x)$ defined through its piecewise linear graph:
 ```{julia}
 #| echo: false
 g(x) = abs(x) > 2 ? 1.0 : abs(x) - 1.0
-plot(g, -3,3)
+plot(g, -3,3; legend=false)
 plot!(zero)
 ```
 
@@ -709,6 +1066,25 @@ plot!(zero)
 
 
 We could add the signed area over $[0,1]$ to the above, but instead see a square of area $1$, a triangle with area $1/2$ and a triangle with signed area $-1$. The total is then $1/2$.
+
+This figure---using equal sized axes---may make the above decomposition more clear:
+
+```{julia}
+#| echo: false
+let
+	g(x) = abs(x) > 2 ? 1.0 : abs(x) - 1.0
+	xs = [ -3, -2, -1, 1, 2, 3]
+	plot(; legend=false, aspect_ratio=:equal)
+	plot!(Shape([-3,-2,-2,-3], [0,0,1,1]); fill=(:gray,))
+	plot!(Shape([-2,-1,-1,-2], [0,0,0,1]); fill=(:gray10,))
+	plot!(Shape([-1,0,1], [0,-1,0]); fill=(:gray90,))
+	plot!(Shape([1,2,2,1], [0,1,0,0]); fill=(:gray10,))
+	plot!(Shape([2,3,3,2], [0,0,1,1]); fill=(:gray,))
+    plot!([0,0], [0, g(0)]; line=(:black,1,:dash))
+end
+```
+
+
 
 
   * Compute $\int_{-3}^{3} g(x) dx$:
@@ -791,7 +1167,9 @@ We have the well-known triangle [inequality](http://en.wikipedia.org/wiki/Triang
 This suggests that the following inequality holds for integrals:
 
 
-> $\lvert \int_a^b f(x) dx \rvert \leq \int_a^b \lvert f(x) \rvert dx$.
+> $$
+> \lvert \int_a^b f(x) dx \rvert \leq \int_a^b \lvert f(x) \rvert dx$.
+> $$
 
 
 
@@ -869,7 +1247,8 @@ The formulas for an approximation to the integral $\int_{-1}^1 f(x) dx$ discusse
 $$
 \begin{align*}
 S &= f(x_1) \Delta_1 + f(x_2) \Delta_2 + \cdots + f(x_n) \Delta_n\\
-  &= w_1 f(x_1) + w_2 f(x_2) + \cdots + w_n f(x_n).
+  &= w_1 f(x_1) + w_2 f(x_2) + \cdots + w_n f(x_n)\\
+  &= \sum_{i=1}^n w_i f(x_i).
 \end{align*}
 $$
 
@@ -904,7 +1283,7 @@ f(x) = x^5 - x + 1
 quadgk(f, -2, 2)
 ```
 
-The error term is $0$, answer is $4$ up to the last unit of precision (1 ulp), so any error is only in floating point approximations.
+The error term is $0$, the answer is $4$ up to the last unit of precision (1 ulp), so any error is only in floating point approximations.
 
 
 For the numeric computation of definite integrals, the `quadgk` function should be used over the Riemann sums or even Simpson's rule.
@@ -1422,6 +1801,70 @@ a, b =-1/2, 1/2
 val, _ = quadgk(f, a, b)
 numericq(val)
 ```
+
+
+###### Question
+
+Let $A=1.98$ and $B=1.135$ and
+
+$$
+f(x) = \frac{1 - e^{-Ax}}{B\sqrt{\pi}x} e^{-x^2}.
+$$
+
+Find $\int_0^1 f(x) dx$
+
+```{julia}
+#| echo: false
+let
+    A,B = 1.98, 1.135
+    f(x) = (1 - exp(-A*x))*exp(-x^2)/(B*sqrt(pi)*x)
+    val,_ = quadgk(f, 0, 1)
+    numericq(val)
+end
+```
+
+###### Question
+
+A bound for the complementary error function ( positive function) is
+
+$$
+\text{erfc}(x)  \leq \frac{1}{2}e^{-2x^2} + \frac{1}{2}e^{-x^2} \leq e^{-x^2}
+\quad x \geq 0.
+$$
+
+Let $f(x)$ be the first bound, $g(x)$ the second.
+Assuming this is true, confirm numerically using `quadgk` that
+
+$$
+\int_0^3 f(x) dx \leq \int_0^3 g(x) dx
+$$
+
+
+The value of $\int_0^3 f(x) dx$ is
+
+```{julia}
+#| echo: false
+let
+    f(x) = 1/2 * exp(-2x^2) + 1/2 * exp(-x^2)
+    val,_ = quadgk(f, 0, 3)
+    numericq(val)
+end
+```
+
+The value of $\int_0^3 g(x) dx$ is
+
+```{julia}
+#| echo: false
+let
+    g(x) = exp(-x^2)
+    val,_ = quadgk(g, 0, 3)
+    numericq(val)
+end
+```
+
+
+
+
 
 ###### Question
 
