@@ -297,10 +297,10 @@ plot!(f, x0, xn)
 From the graph it appears our value for `f(xn)` will underestimate the actual value of the solution slightly.
 
 
-##### Example
+##### Example: the power series method and Euler
 
 
-The equation $y'(x) = \sin(x \cdot y)$ is not separable, so need not have an easy solution. The default method will fail. Looking at the available methods with `sympy.classify_ode(𝐞qn, u(x))` shows a power series method which can return a power series *approximation* (a Taylor polynomial). Let's look at comparing an approximate answer given by the Euler method to that one returned by `SymPy`.
+The equation $y'(x) = \sin(x \cdot y)$ is not separable, so need not have an easy solution. The default method will fail. Looking at the available methods with `sympy.classify_ode(𝐞qn, u(x))` shows a power series method which can return a power series *approximation* (a  polynomial). Let's look at comparing an approximate answer given by the Euler method to that one returned by `SymPy`.
 
 
 First, the `SymPy` solution:
@@ -334,6 +334,71 @@ plot!(u, linewidth=5)
 ```
 
 We see that the answer found from using a polynomial series matches that of Euler's method for a bit, but as time evolves, the approximate solution given by Euler's method more closely tracks the slope field.
+
+----
+
+The [power series method](https://en.wikipedia.org/wiki/Power_series_solution_of_differential_equations) to solve a differential equation starts with an assumption that the solution can be represented as a power series with some positive radius of convergence. This is formally substituted into the differential equation and derivatives may be taken term by term. The resulting coefficients are equated for like powers giving a system of equations to be solved.
+
+An example of the method applied to the ODE $f''(x) - 2xf'(x) + \lambda f(x)=0$ is given in the reference above and follows below. Assume $f(x) = \sum_{n=0}^\infty a_n x^n$. Then
+
+$$
+\begin{align*}
+f(x) &= \sum_{n=0} a_n x^n\\
+f'(x) &= \sum_{n=1} a_n nx^{n-1}\\
+f''(x) &= \sum_{n=2} a_n n (n-1) x^{n-2}\\
+\end{align*}
+$$
+
+Putting these into the differential equation gives
+
+$$
+\begin{align*}
+0 &=\sum_{n=2} a_n n (n-1) x^{n-2}
+- 2x \cdot \sum_{n=1} a_n n x^{n-1}
++ \lambda \sum_{n=0} a_n x^n\\
+&=\sum_{n=0} a_{n+2} (n+2) (n+1) x^{n}
+- \sum_{n=1} 2 n a_n  x^{n}
++ \sum_{n=0} \lambda a_n x^n\\
+&= a_2 (1)(2) + \sum_{n=1} a_{n+2} (n+2) (n+1) x^{n}
+- \sum_{n=1} 2 a_n n x^n
++ \lambda a_0 + \sum_{n=1} \lambda a_n x^n\\
+&= (\lambda a_0 + 2a_2)\cdot x^0
++ \sum_{n=1} \left((n+2)(n+1)a_{n+2} + (-2n+\lambda)a_n\right) x^n
+\end{align*}
+$$
+
+For a power series to be $0$ all its coefficients must be zero. This mandates:
+
+$$
+\begin{align*}
+0 &= \lambda a_0 + 2a_2,\quad \text{and} \\
+0 &= ((n+2)(n+1)a_{n+2} + (-2n+\lambda)a_n), \quad \text{for } n \geq 1
+\end{align*}
+$$
+
+The last equation allows one to compute $a_{n+2}$ based on $a_n$. With $a_0$ and $a_1$ parameters we can create the first few values for the terms in the series for the solution:
+
+```{julia}
+@syms a_0::real a_1::real λ::real
+a_2 = -λ/2 * a_0
+recurse(n) = (2n-λ)/((n+2)*(n+1))
+a_3 = expand(recurse(1)*a_1)
+a_4 = expand(recurse(2)*a_2)
+[a_2, a_3, a_4]
+```
+
+We can see these terms in the `SymPy` solution which uses the power series method for this differential equation:
+
+```{julia}
+@syms x::real u()
+∂ = Differential(x)
+eqn = (∂∘∂)(u(x)) - 2*x*∂(u(x)) + λ*u(x) ~ 0
+inits = Dict(u(0) => a_0, ∂(u(x))(0) => a_1)
+dsolve(eqn, u(x); ics=inits)
+```
+
+
+
 
 
 ##### Example
@@ -800,4 +865,58 @@ choices = [
 "The solution has a constant amplitude, but its period is slightly *longer* than that of the approximate solution found by linearization"]
 answ = 4
 radioq(choices, answ, keep_order=true)
+```
+
+###### Question
+
+In the above, we noted that a power series that is always zero must have zero coefficients. Why?
+
+Suppose we have a series $u(x) = \sum_{n=0} a_n x^n$ with a radius of convergence $r > 0$ such that $u(x) = 0$ for $|x| < r$.
+
+Why is $u^{n}(x) = 0$ for any $n \geq 0$ and $|x| < r$?
+
+```{julia}
+#| echo: false
+choices = ["A constant function has derivatives which are constantly zero.",
+           "A power series is just a number, hence has derivatives which are always zero."]
+radioq(choices, 1)
+```
+
+Answer the following as specifically as possible.
+
+
+
+What is the value of $u(0)$?
+
+```{julia}
+#| echo: false
+choices = [L"0", L"a_0", L"both $0$ and $a_0$"]
+radioq(choices, 3; keep_order=true)
+```
+
+What is the value of $u'(0)$?
+
+
+```{julia}
+#| echo: false
+choices = [L"0", L"a_1", L"both $0$ and $a_1$"]
+radioq(choices, 3; keep_order=true)
+```
+
+
+What is the value of $u''(0)$?
+
+
+```{julia}
+#| echo: false
+choices = [L"0", L"2a_2", L"both $0$ and $2a_2$"]
+radioq(choices, 3; keep_order=true)
+```
+
+What is the value of $u^{n}(0)$?
+
+```{julia}
+#| echo: false
+choices = [L"0", L"n!\cdot a_n", L"both $0$ and $n!\cdot a_n$"]
+radioq(choices, 3; keep_order=true)
 ```

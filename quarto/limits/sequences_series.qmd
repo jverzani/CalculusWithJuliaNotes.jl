@@ -1,0 +1,1178 @@
+# Sequences and series
+
+{{< include ../_common_code.qmd >}}
+
+
+This section uses the following add-on package:
+
+
+```{julia}
+using SymPy
+```
+
+```{julia}
+#| echo: false
+#| results: "hidden"
+using Plots
+using LaTeXStrings
+plotly()
+nothing
+```
+
+---
+
+![Smaller and smaller and smaller..., the [Droste effect](https://en.wikipedia.org/wiki/Droste_effect)](./figures/mona-lisa-recursive.png)
+
+This section expands on limits of infinite sequences and their sums.
+
+
+## Definitions
+
+An infinite sequence is simply an infinite, ordered set of terms $a_1, a_2, a_3, \dots$; the initial term may be indexed by any fixed integer, not just $1$. We may refer to the individual terms, $a_n$, or the whole sequence $\{a_n\}$.
+
+The *partial sum* is the sequence $s_n = a_1 + a_2 + \cdots + a_n = \sum_{i=1}^na_i$. Again, the starting index need not be $1$.
+
+A series is a sum of an infinite sequence $\sum_{i=1}^\infty a_i = a_1 + a_2 + a_3 + \cdots$.
+
+As mentioned, a sequence converges to $L$ if for any $\epsilon$ we can find an $M$ such that if $n > M$ then $|a_n - L| < \epsilon$. A non-convergent sequence is called *divergent*. Series too may be convergent of divergent, with details to come.
+
+
+## Examples
+
+
+Some examples of sequences are:
+
+* A constant sequence $a_n = c$ will converge to $c$.
+* The sequence $a_n = 1/n$ clearly converges to $0$.
+* Similarly, $a_n = n^k$ diverges if $k \geq 0$ and converges (to $0$) when $k < 0$.
+* The sequence $(1 + 1/n)^n$ has a limit of $e$, which comes up in compound interest calculations and numerous other places. This limit can be used to define the value of $e$.
+* The sequence $a_n = r^n$ will converge to $0$ if $|r| < 1$; converge to $1$ when $r=1$ and diverge otherwise.
+* The sequence $a_n = \cos(n \pi)$, $n\geq 1$ diverges. It is said to oscillate. (It is $-1,1,-1,1,-1,\dots$.)
+
+
+
+### Some limit theorems for sequences
+
+The limit theorems apply to limits of sequences as well:
+
+:::{.callout-note appearance="minimal"}
+#### The squeeze theorem
+
+If $l_n < a_n < r_n$ and *both* $l_n$ and $r_n$ converge to $L$ then $a_n$ converges to $L$.
+:::
+
+:::{.callout-note appearance="minimal"}
+#### Linear combinations
+If $a_n \rightarrow L$ and $b_n \rightarrow M$ then for constants $c$ and $d$:
+$c\cdot a_n + d \cdot b_n \rightarrow c\cdot L + d\cdot M$.
+:::
+
+:::{.callout-note appearance="minimal"}
+#### Products and ratios
+If $a_n \rightarrow L$ and $b_n \rightarrow M$
+$a_n \cdot b_n \rightarrow LM$ and if $M != 0$
+$a_n / b_n \rightarrow L/M$.
+:::
+
+:::{.callout-note appearance="minimal"}
+#### Composition
+If the function $f(x)$ has a limit of $L$ at $b$ and
+$a_n$ converges to $b$ *and* $a_n \neq b$ for large $n$ then
+
+$$
+\lim_{n \rightarrow \infty} f(a_n) = L.
+$$
+
+:::
+
+#### Other limit theorems
+
+We mention a few other limit theorems for sequences.
+
+One fact about convergent series is
+
+> Convergent series are bounded.
+
+(That is, there exists an $M>0$ with $-M \leq a_n \leq M$ for all $n$.)
+
+
+Not all bounded sequences converge; however:
+
+:::{.callout-note appearance="minimal"}
+##### Bounded and monotone
+If $a_n$ is monotone increasing ($a_n \leq a_{n+1}$ for all $n$) and *bounded* then $a_n$ converges.
+
+This is a [monotone convergence theorem](https://en.wikipedia.org/wiki/Monotone_convergence_theorem). It's proof shows the least upper bound is the limit. A similar statement holds for bounded, monotone decreasing sequences.
+:::
+
+The sequence $a_n = (1 + 1/n)^n$ is both monotone increasing and bounded, hence convergent. As mentioned, it converges to $e$. That this limit has a known value is not a result of the theorem, which only says some value exists.
+
+
+
+A *subsequence* of an infinite sequence is an infinite sequence chosen by taking only some of the terms (along the same order). A simple example would be $b_n = a_{2n}$, which would take every other term of the sequence $\{a_n\}$. More generally if $\phi(n)$ is an increasing function with integer values, then $b_n = a_{\phi(n)}$ would be a formal way to define a subsequence.
+
+:::{.callout-note appearance="minimal"}
+##### Bolzano-Weierstrass theorem
+
+Every bounded sequence has a convergent subsequence.
+:::
+
+A sketch is to consider the interval $I_1 = [-M,M]$. It has infinitely many values of the sequence in it when $M$ is a bound. Divide this interval in half. There is a choice of $I_2$ so that it also contains infinitely many points of the sequence. (Maybe both do, in which case either choice can be made.) This splitting and choosing can be repeated to create an infinite sequence of *nested* intervals $\{I_n\}$ each containing infinitely many points of $\{a_n\}$ and each of length $M/2^{n-2}$. As these intervals are nested the left-hand endpoints are bounded and increasing, hence convergent.
+
+There may be many different convergent subsequences, this just identified one.
+
+Finally, this following fact can be used to reverse the pedagogical approach of defining limits by starting with limits restricted to sequences.
+
+:::{.callout-note appearance="minimal"}
+##### Limits of functions
+
+The limit of $f(x)$ at $c$ exists and equals $L$ if and only if for *every* sequence $x_n$ in the domain of $f$ converging to $c$ the sequence $s_n = f(x_n)$ converges to $L$.
+:::
+
+
+## Series
+
+As defined, a series is an *infinite* sum of a sequence: $a_1 + a_2 + \cdots$. The partial sums of a sequence are $s_n = a_1 + a_2 + \cdots + a_n$. The series is *convergent*  (*divergent*) if the sequence of partial sums, $\{ s_n \}$, is convergent  (*divergent*).
+
+##### Example: the geometric series
+
+A ubiquitous series is the *geometric series* for a value of $r$. This is the sum $s = \sum_{i=0}^\infty r^i$. The partial sums satisfy
+
+$$
+s_n = \sum_{i=0}^n r^i = 1 + r + r^2 + \cdots + r^n
+= \frac{1 - r^{n+1}}{1 - r},
+$$
+
+a formula that comes from multiplying out the sum by $1-r$.
+
+If $|r| < 1$ then $s$ is convergent and  $s_n \rightarrow (1 - r)^{-1}$. If $|r| \geq 1$ the series is divergent.
+
+
+##### Example: geometric series adjacent
+
+Consider now a related sum $s =  \sum_{i=0}^\infty i \cdot r^i = \sum_{i=1}^\infty i \cdot r^i$, assuming $|r| < 1$. What does this converge to?
+
+The partial sums also have a (lesser) known formula:
+
+$$
+\sum_{i=1}^n i\cdot r^i =
+r \frac{1 - (n+1)r^n + nr^{n+1}}{(1 - r)^2}.
+$$
+
+We verify this with `SymPy`
+
+```{julia}
+@syms r::positive n::integer i::integer
+proposed = r * (1 - (n+1)*r^n + n*r^(n+1))/(1-r)^2
+out = summation(i*r^i, (i, 1, n)) - proposed
+simplify(out)
+```
+
+We can't set a *value* for `r` symbolically and were `r=1` this sum is different, but we have $|r| < 1$ so the proposed is indeed the partial sum.
+
+As $n \rightarrow \infty$ for $|r| < 1$ this expression goes to $s = r / (1-r)^2$. It would diverge otherwise.
+
+
+##### Example: Sum of inverse factorials
+
+Consider these two sequences:
+
+$$
+s_n = \sum_{k=0}^n \frac{1}{k!}, \quad
+p_n = \left(1 + \frac{1}{n}\right)^n
+$$
+
+We know $p_n \rightarrow e$. We will see that it also follows that $s_n \rightarrow e$. That is the series for the sequence $a_k = 1/k!$ converges to $e$.
+
+First we see that $e$ is in the ballpark.
+
+We bound each term of $s_n$ for $k \geq 2$
+
+$$
+a_k = \frac{1}{k!} \leq \frac{1}{(k(k-1))} = \frac{1}{k-1} - \frac{1}{k},
+$$
+
+With this, we can identify a telescoping sum:
+
+$$
+\begin{align*}
+s_n &= \sum_{k=0}^n a_k\\
+&= a_0 + a_1 + \sum_{k=2}^n a_k\\
+&\leq 2 + \sum_{k=2}^n \left(\frac{1}{k-1} - \frac{1}{k}\right) \\
+&= 2 + \left(\frac{1}{1} - \frac{1}{n}\right) = 3 - \frac{1}{n} < 3.
+\end{align*}
+$$
+
+This is in agreement with $s = e$. To get that value takes more effort and different bounds.
+
+
+
+
+The binomial theorem applied to $p_n$ gives:
+
+$$
+\begin{align*}
+p_n &= \left(1 + \frac{1}{n}\right)^n\\
+&= \sum_{k=0}^n {n \choose k} \frac{1}{n^k} 1^{n-k}\\
+&= \sum_{k=0}^n \frac{n!}{k!(n-k)!}\frac{1}{n^k}\\
+&= \sum_{k=0}^n \frac{1}{k!}\frac{n!}{(n-k)!}\frac{1}{n^k}\\
+&= \sum_{k=0}^n \frac{1}{k!} \cdot \left(1 - \frac{1}{n}\right) \cdot \left(1-\frac{2}{n}\right) \cdot \cdots \cdot \left(1 - \frac{k-1}{n}\right)\\
+&= \sum_{k=0}^n \frac{1}{k!} b_{n,k}
+\end{align*}
+$$
+
+We see that $p_n \leq s_n$ by noting $b_{n,k} \leq 1$ as each term in it is.
+
+
+
+Next, [following](https://faculty.curgus.wwu.edu/Courses/226_202040/two_sequences_cmj.pdf) a reference, we establish the bound $s_n - 3/(2n) \leq p_n$.
+
+We have by multiplying out:
+
+$$
+\left(1 - \frac{1}{n}\right) \left(1 - \frac{2}{n}\right) =
+1 - \frac{1 + 2}{n} + \frac{1\cdot 2}{n} >
+1 - \frac{1 + 2}{n}.
+$$
+
+Assume this pattern holds for some $k$, then we have the induction step
+
+$$
+\begin{align*}
+\left(1 - \frac{1}{n}\right) &\left(1 - \frac{2}{n}\right)\cdot\left(1 - \frac{k}{n}\right)\cdot\left(1 - \frac{k+1}{n}\right)\\
+&> \left(1 - \frac{1 + 2 + \cdots + k}{n}\right)\left(1 + \frac{k+1}{n}\right)\\
+&= 1 - \frac{1 + 2 + \cdots + k + (k+1)}{n} + \frac{(1+2+\cdots+k)(k+1)}{n}\\
+&> 1 - \frac{1 + 2 + \cdots + k + (k+1)}{n}
+\end{align*}
+$$
+
+So the inequality holds for any $k$ by induction. In our bound for $b_{n,k}$ we have this sum $1 + 2 + \cdots + (k-1) = (k-1)k/2$. Together this gives:
+
+$$
+\begin{align*}
+p_n &= \sum_{k=0}^n \frac{1}{k!}b_{n,l}\\
+&> \sum_{k=0}^n \frac{1}{k!} \cdot \left(1 - \frac{(k-1)k}{2n}\right)\\
+&= s_n - \sum_{k=0}^n \frac{1}{k!}\frac{(k-1)k}{2n}\\
+&= s_n - \frac{1}{2n} \sum_{k=2}^n \frac{1}{(k-2)!}\\
+&= s_n - \frac{1}{2n} s_{n-2}
+$> s_n - \frac{3}{2n}
+\end{align*}
+$$
+
+The last inequality using the earlier bound on $s_n$.
+
+Together these observations give the bounds:
+
+$$
+s_n - 3/(2n) \leq p_n \leq s_n \leq p_n + 3/(2n).
+$$
+
+If we know $p_n \rightarrow e$, then by the squeeze theorem, we get $s_n \rightarrow e$.
+
+
+### Non-negative terms
+
+The examples above required a bit of problem-specific work to get a value for a series.
+
+Sometimes the value isn't important---just the question of convergence is.
+There are some general things that are the case for series to understand convergence.
+
+First we consider only sequences with non-negative terms.
+
+:::{.callout-note appearance="minimal"}
+##### Necessary condition for convergence
+If $a_n \geq 0$ for each $n$ then a necessary condition that $s_n \rightarrow s$ is that $a_n \rightarrow 0$.
+:::
+
+This says if $a_n$ does not coverge to $0$ then $s_n$ diverges. It is definitely not the case that a sequence that converges to $0$ will lend itself to a convergent series. A famous example would be $\sum_{i=1}^n 1/i$ which diverges. The partial sums of this series are termed the [harmonic series](https://tinyurl.com/ua4893w5) and have the property that $s_n = \ln(n) + \gamma + 1/(2n) + \epsilon_n$ where $e_n \rightarrow 0$ and $\gamma \approx 0.5772$ is a constant termed the Euler-Mascheroni constant. (See `MathConstants.γ`.)
+
+
+:::{.callout-note appearance="minimal"}
+##### Only the tail terms determine convergence
+Convergence of $\sum_n a_n$ only depends on the terms for $n > N$ for any fixed $N$.
+
+Only the tail terms determine convergence, but every term determines the value of the series when it converges.
+:::
+
+Fix any $N > 0$, the partial sums with $n>N$ satisfy:
+
+$$
+s_n = \sum_{k=1}^n a_k
+=\sum_{k=1}^N a_k + \sum_{k=N}^n a_k
+= s_N + (s_n - s_N)
+$$
+
+The limit as $n \rightarrow \infty$ does not depend on the constant $s_N$.
+
+
+
+:::{.callout-note appearance="minimal"}
+##### Comparison test
+If $0 \leq c_n \leq a_n \leq b_n$ for each $n$ then
+
+* if $\sum_{i=1}^n b_i$ converges then $\sum_{i=0}^n a_i$ converges;
+
+* if $\sum_{i=1}^n c_i$ diverges then $\sum_{i=0}^n a_i$ diverges.
+:::
+
+This can be used to prove, for example, that if a series based on a non-negative sequence converges, any series based on a subsequence will also converge.
+
+##### Example
+
+Does the following sequence of partial sums converge of diverge:
+
+$$
+s_n = \sum_{i=1}^n \frac{i}{i^2 - i^{-3}}?
+$$
+
+Diverge. We can see that the $i$th term is bounded below:
+
+$$
+\frac{i}{i^2 - i^{-3}} = \frac{1}{i^1 - i^{-4}}
+> \frac{1}{i}
+$$
+
+As each term is bounded below by a sequence whose series diverges, the partial sums in question must diverge. This follows as $i^{-4} > 0$ for any positive $i$ so $i - i^{-4} < i$; the reciprocal reverses the bound.
+
+##### Example
+Does the following sequence of partial sums converge or diverge?
+
+$$
+s_n = \sum_{i=1}^n \sqrt{i} \cdot r^i, \quad 0 < r < 1?
+$$
+
+As $\sqrt{i} \leq i$ for $i\geq 1$, so $\sqrt{i} \cdot r^i \leq i r^i$.
+We can use the comparison test to say $s_n$ converges, as we earlier saw the bounding series does.
+
+---
+
+There are other tests that, when applicable, are more direct and avoid needing to identify a bound.
+
+:::{.callout-note appearance="minimal"}
+##### Ratio test
+Consider the series formed from the sequence $\{a_n\}$ with $a_n \geq 0$. The ratios $a_{n+1}/a_n$ can determine if the series converges or diverges:
+
+* if $a_{n+1}/a_n \rightarrow L$ and $L < 1$ then the series converges
+* if $a_{n+1}/a_n \rightarrow L$ and $L > 1$ then the series diverges
+* if $a_{n+1}/a_n \rightarrow L$ and $L = 1$ then the series may or may not converge.
+:::
+
+For the first case, identify an $r$ with $|L| < r < 1$. Then for some $M > 0$ and any $n > M$ it follows that $a_{n+1} \leq a_n r$. For any $n>0$ the convergence only depends on values after $n$. As such, we shift things to assume for all $n$ that $a_{n+1} \leq a_n r$. Iterating, we get
+
+$$
+a_{n+1} \leq a_n r \leq a_{n-1}r^2 \leq \cdots \leq a_1 r^n
+$$
+
+By the comparison test, the series $\sum a_k$ converges, since $0 < r < 1$.
+
+The case for $L > 1$ is similar, only we find a lower bound on each term.
+
+For the case $L=1$---which is where most hard problems fall---we have examples where the series converges or diverges. The harmonic series is a divergent example, the series of the sequence $\{1/n^2\}$ is convergent (with limit $\pi^2/6$), though we haven't proved that  (cf. [Basel problem](https://en.wikipedia.org/wiki/Basel_problem)).
+
+A similar type of theorem involves powers of the terms in the sequence
+
+:::{.callout-note appearance="minimal"}
+##### Root test
+Consider the series formed from the sequence $\{a_n\}$ with $a_n \geq 0$. The values of $(a_n)^{1/n}$ can determine if the series converges or diverges:
+
+* if $(a_n)^{1/n} \rightarrow L$ and $L < 1$ then the series converges
+* if $(a_n)^{1/n} \rightarrow L$ and $L > 1$ then the series diverges
+* if $(a_n)^{1/n} \rightarrow L$ and $L = 1$ then the series may or may not converge.
+:::
+
+The proof is similar. Consider the first case with $L < r < 1$. Then
+$(a_n)^{1/n} < r$ implies $a_n < r^n$ so the partial sums (possibly after ignoring initial terms and some shifting) satisfy
+$a_0 + a_1 + a_2 + \cdots + a_n < r^0 + r^1 + r^2 + \cdots + r^n$. The geometric series converges under the assumptions. By the comparison test so must the series in question.
+
+The same two examples ($a_n = 1/n$ and $a_n = 1/n^2$) give examples of divergent and convergent series when $L = 1$.
+
+:::{.callout-note appearance="minimal"}
+##### The p-series test
+Fix $p>0$. Consider the series
+$$
+s = \sum_{i=1}^\infty \frac{1}{i^p}
+$$
+
+If $p > 1$ this series is convergent; if $0 < p \leq 1$ the series is divergent.
+:::
+
+This test is a consequence of a more general integral test which will be discussed later, below we offer a specific proof.
+
+When $p = 1$ this clearly diverges, it being the harmonic series.
+
+When $p < 1$, we have $i^p < i$ so $1/i^p > 1/i$. By the comparison test (to the harmonic series) the series $s$ will diverge.
+
+
+To prove this series converges when $p > 1$, we split the sum up into different pieces from $2^k$ to $2^{k+1}-1$. Call this sum $t_k$ then $s = \sum_k t_k$ with
+
+$$
+t_k = \sum_{i=2^k}^{2^{k+1}-1} \frac{1}{n^p}
+\leq 2^k \cdot \frac{1}{(2^{k})^p}
+\leq \left(\frac{2}{2^p}\right)^k
+$$
+
+The above replaces each term with the smallest value over $2^k$ to $2^{k+1}-1$ and then multiplies by the number of terms.
+
+
+For $p > 1$, the value of $2/2^p < 1$. That is, $s$ is bounded by a geometric series hence convergent.
+
+##### Example
+Consider this series
+
+$$
+\sum_{n=1}^\infty \frac{n^k}{5^n},
+$$
+for some positive integer $k$.
+
+Will this converge?
+
+The ratio of $a_{n+1}$ to $a_n$ is:
+
+$$
+\frac{a_{n+1}}{a_n}
+= \frac{(n+1)^k}{5^{n+1}} \frac{5^n}{n^k}
+= \left(\frac{n+1}{n}\right)^k \frac{1}{5}
+\rightarrow \frac{1}{5}
+$$
+
+As the limit of this ratio is less than $1$, the series converges.
+
+
+##### Example
+Let $a$ be a positive number and consider this series
+
+$$
+\sum_{n=1}^\infty \frac{a^n}{n^n}
+$$
+
+Does this converge?
+
+The root test is easy to apply given the two powers of $n$:
+
+$$
+(a_n)^{1/n}
+= \left(\frac{a^n}{n^n}\right)^{1/n}
+= \frac{a}{n}
+\rightarrow 0
+$$
+
+That this is less than $1$ says the series converges.
+
+##### Example
+Consider this series:
+
+$$
+\sum_{n=3}^\infty \frac{1}{n^{3/2} \log(n)}
+$$
+
+This isn't exactly in the format for the $p$-series test, but we note that $\log(n) \geq 1$ for $n\geq 3$. So
+
+$$
+a_n = \frac{1}{n^{3/2} \log(n)}
+\leq  \frac{1}{n^{3/2}}
+$$
+
+The series $\sum n^{-3/2}$ converges by the $p$-series test, hence the series in question must also converge.
+
+
+### General series
+
+If there is no assumption that $a_n$ is non-negative, then some different behaviours are possible.
+
+First, we say that a series is *absolutely convergent* if $\sum |a_n|$ converges.
+
+A series which is convergent but not absolutely convergent is termed *conditionally convergent*.
+
+
+:::{.callout-note appearance="minimal"}
+##### Absolute convergence implies convergence
+If the series $\sum a_k$ is *absolutely convergent* then it is convergent.
+:::
+
+
+##### Example
+Is this series  convergent?
+
+$$
+s = \sum_{k=1}^\infty \frac{\sin(n)}{n^4}
+$$
+
+We show that the series is absolutely convergent by the comparison theorem.
+
+We have
+
+$$
+|a_n| = \frac{|\sin(n)|}{n^4} \leq \frac{1}{n^4}
+$$
+
+Since $p=4 > 1$ the series is absolutely convergent by the $p$-series test:
+
+
+---
+
+However, not all convergent series are also absolutely convergent. A key example is the alternating harmonic series:
+
+$$
+s = 1 - \frac{1}{2} + \frac{1}{3} - \frac{1}{4} + \cdots
+$$
+
+This series is conditionally convergent---not absolutely convergent.
+
+Why follows immediately from a more general statement.
+
+:::{.callout-note appearance="minimal"}
+##### Alternating series test
+If $a_n$ and $a_{n+1}$ have different signs for each $n$  *and* $|a_n| \rightarrow 0$ *monotonically* then
+$$
+s = \sum_{k=1}^\infty a_k = a_1 + a_2 + a_3 + \cdots
+$$
+converges.
+:::
+
+
+To visually see this, consider @fig-strang-alternating-series.
+
+::: {#fig-strang-alternating-series}
+```{julia}
+#| echo: false
+gr()
+let
+    n = 6
+    as = [(-1)^(i+1)*1/i for i in 1:n]
+    p = plot(; xaxis=([], false),
+             yaxis=([], false),
+             framestyle=:origin,
+             legend=false
+             )
+    plot!([0,1],[0,0]; line=(:gray, 1))
+    annotate!(0,0, text(L"0", :top))
+
+    sn = 0;
+    for (i,a) ∈ enumerate(as)
+        plot!([sn, sn+a], [i,i]; arrow=true, side=:head, line=(:black, 2))
+        sn = sn + a
+        plot!([sn, sn], [0,i]; line=(:gray, 1, :dash))
+        annotate!(sn, 0, text(LaTeXStrings.latexstring("s_{$i}"), :top))
+    end
+
+    current()
+end
+```
+
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+The partial sums of an alternating series converge provided the magnitude of each summand goes to $0$ monotonically. In the figure the arrows represent $a_i$ and get shorter for increasing $i$.
+As the $a_i$ alternate in sign and get shorter in length, as indexed, the values of $\{s_{2n}\}$ are monotonic increasing and bounded; the values of  $\{s_{2n+1}\}$ are monotonic decreasing and bounded. Hence both series converge. As
+$|s_{2n} - s_{2n+1}| = |a_{2n+1}| \rightarrow 0$, they must converge to the same value and the series is convergent by the squeeze theorem.
+:::
+
+
+
+##### Example: reordering
+
+Take the sequence $\{ a_n \}$. This is simply a list of values with some indicated order. Let a reordering be any sequence formed by traversing the values in a different order. There are two key facts:
+
+* If the series based on the sequence is *absolutely convergent*, then a series based on any reordering will be absolutely convergent.
+
+* If the series is *conditionally convergent* but not *absolutely convergent* then a reordering may converge (conditionally) to a different value or even diverge.
+
+The case of the latter is the alternating harmonic series. to see it diverges, we note that the subsequences of both negative and positive terms diverge. Call these $\{b_n\}$ and $\{c_n\}$. To see that we can make these diverge, we note that for any $N>0$ and $L$ we can find $k$ so that $b_N + b_{N+1} + \cdots + b_{N+k} > L$. Now for each $i$, we take a consecutive subsequence of values of $b_n$ which sum to $i + |c_i|$. Then the subsequence formed by a group of $b$s followed by $c_i$ will have partial sums always bigger than $i$, hence divergent.
+
+
+## Power series
+
+A polynomial of degree $n$ is defined by its coefficients through: $p(x) = a_0 + a_1\cdot x + a_2 \cdot x^2 + \cdots + a_n \cdot x^n$ where $a_n$ is non zero. The polynomial as a function of $x$ may be shifted through $p(x-c) = a_0 + a_1\cdot (x-c) + a_2 \cdot (x-c)^2 + \cdots + a_n \cdot (x-c)^n$.
+
+Pushing this, let $\{a_n\}$ be a sequence. We define a *power series* around $c$ by:
+
+$$
+\sum_{n=0}^\infty a_n (x - c)^n.
+$$
+
+A typical case is $c=0$. For any fixed $x$ this is simply a series. Convergence is seen to depend on the value of $x$.
+
+Suppose the series $\sum a_n$ is absolutely convergent. Then there are some values around $c$ for which the series converges ($x=c$ is one). The *radius of convergence* is a value $r$ for which
+
+* if $|x-c| < r$ then the power series converges absolutely; and
+* if $|x-c| > r$ the power series *diverges*.
+
+The root test indicates why such a value exists.
+
+Suppose we consider the term $b_n = a_n (x-c)^n$. Then
+
+$$
+(|b_n|)^{1/n} = (|a_n|)^{1/n} |x-c|
+$$
+
+If $(|a_n|^{1/n}) \rightarrow L$ then the root test indicates if the power series converges absolutely or not. In particular. If $L|x-c| < 1$ it converges and if $L|x-c| > 1$ it diverges. That is if $|x-c| < 1/L$ or $|x-c| > 1/L$. Taking $r=1/L$ yields the radius of convergence. (For cases where the limit does not exist, a relaxed version of the root test with the *limit inferior* is applicable.)
+
+The ratio test can also be used to establish the radius of convergence provided:
+
+$$
+\frac{|a_{n+1}||(x-c)^{n+1}|}{|a_n||(x-c)^n|} =
+\frac{|a_{n+1}|}{|a_n|} |x-c| \rightarrow L |x-c|.
+$$
+
+Again, $r=1/L$.
+
+##### Examples
+
+Consider the power series
+
+$$
+1 + \frac{x}{1} + \frac{x^2}{2!} + \frac{x^3}{3!} + \cdots
+$$
+
+This has $c=0$ and $a_n = 1/n!$. The ratio test simplifies to
+
+$$
+\frac{|x-c|^{n+1}}{(n+1)!} \cdot
+\frac{n!}{|x-c|^n} =
+\frac{|x-c|}{n} \rightarrow 0
+$$
+
+Hence $r=\infty$ and the power series is always absolutely convergent.
+
+
+Consider the power series
+
+$$
+x - \frac{x^3}{3} + \frac{x^5}{5} - \frac{x^7}{7} + \cdots
+$$
+
+This has term $a_n = (-1)^{n} x^{2n+1}/(2n+1)$, $n\geq 0$. The root test for absolute convergence has
+
+$$
+(|a_n|)^{1/n} = \frac{x^{2 + 1/n}}{(2n+1)^{1/n}} \rightarrow x^2
+$$
+
+Provided $|x| < 1$ the power series will converge.
+
+Both these examples are related to *Taylor series* for some function.
+
+
+
+## Questions
+
+###### Question
+
+Which of these sequences *converge*? (The options define the $i$th element in the sequence.)
+
+```{julia}
+#| echo: false
+choices = [
+    L"a_i = 1/i",
+    L"a_i = i/(i+2)",
+    L"a_i = (i^2 + 2i)/(i^3 - 1)",
+    L"a_i = \frac{i!}{(2i)!}"
+]
+answers = (1, 2, 3, 4)
+multiq(choices, answers)
+```
+
+###### Question
+Which of these sequences *diverge*?
+
+```{julia}
+#| echo: false
+choices = [
+    L"a_i = i",
+    L"a_i = i^p, \quad p < 0",
+    L"a_i = i^p, \quad p > 0",
+    L"a_i = (2i)/(3i + 4)"
+]
+answers = (1,3)
+multiq(choices, answers)
+```
+
+###### Question
+
+Which of these series *converge*?
+
+```{julia}
+#| echo: false
+choices = [
+    L"\sum_{i=1}^\infty (\frac{\pi}{4})^i",
+    L"\sum_{i=1}^\infty (\frac{\pi}{2})^i",
+    L"\sum_{i=1}^\infty \frac{1}{i^{\pi/4}}",
+    L"\sum_{i=1}^\infty \frac{1}{i^{4/\pi}}",
+
+]
+answers = (1,4)
+multiq(choices, answers)
+```
+
+###### Question
+Which of these series *diverge*?
+
+```{julia}
+#| echo: false
+choices = [
+    L"\sum_{i=1}^\infty (\frac{\pi}{3})^i",
+    L"\sum_{i=1}^\infty \frac{i}{i + 2}",
+    L"\sum_{i=1}^\infty \frac{1}{i^{1.23}}",
+    L"\sum_{i=1}^\infty \frac{1}{1.23^i}",
+
+]
+answers = (1,2)
+multiq(choices, answers; keep_order=true)
+```
+
+###### Question
+
+Some terms grow faster than others. For example, it is well known that exponential growth is greater than polynomial growth. Here we look at a few forms.
+
+A polynomial term is like $n^k$ for some power $k>0$. We know from discussion on horizontal asymptotes that $n^k$ grows faster than $n^j$ if $k > j$.
+
+
+
+
+
+
+What about comparing a polynomial term to an exponential term?
+Let's use `SymPy` to do an example. Suppose $r > 1$
+
+```{julia}
+@syms x::positive
+r = 1 + x
+@syms n::(integer, positive) k::(integer, positive)
+a_n = r^n
+b_n = n^k
+limit(a_n/b_n, n=>oo)
+```
+
+That this is $\infty$ indicates that the exponential term $r^n$ grows faster than any "polynomial" term $n^k$.
+
+
+
+
+Compare the exponential term $r^n$ to a factorial term $n!$ using `SymPy`.
+
+What do you conclude?
+
+```{julia}
+#| echo: false
+choices = [
+raw"The factorial term `factorial(n)` grows faster than the exponential term `r^n`",
+raw"The factorial term `factorial(n)` grows slower than the exponential term `r^n`"
+]
+radioq(choices, 1)
+```
+
+Compare the growth of a term like $n^n$ to $n!$ using `SymPy`. What do you conclude.
+
+
+```{julia}
+#| echo: false
+choices = [
+    raw"The  term `n^n` grows faster than `factorial(n)`",
+    raw"The  term `n^n` grows slower than `factorial(n)`",
+]
+radioq(choices, 1)
+```
+
+
+
+
+
+
+###### Question
+Consider the sequence defined by
+
+$$
+a_n = \frac{n!}{n^n}, \quad n \geq 0.
+$$
+
+We have
+
+```{julia}
+@syms n::(integer, positive)
+an = factorial(n)/n^n  # aₙ
+an_1 = an(n => n+1)    # aₙ₊₁
+limit(an_1/an, n => oo)
+```
+
+Based on this output, does the sequence converge?
+
+```{julia}
+#| echo: false
+choices =  [
+raw"Yes, the ratio is eventually less then $1$ implying the sequence is monotone decreasing and bounded (below) by 0. Hence convergent",
+raw"No, the limit above must be $0$ for $a_n$ to converge"
+]
+radioq(choices, 1)
+```
+
+
+
+###### Question
+
+Compute
+
+$$
+\sum_{n=0}^\infty \frac{2}{3^n} + \frac{4}{5^n}
+$$
+
+```{julia}
+#| echo: false
+answer = 2 * 1/(1-1/3) + 4 * 1/(1 - 1/5)
+numericq(answer)
+```
+
+###### Question
+
+Compute
+
+$$
+\sum_{n=2}^\infty \left(\frac{1}{2}\right)^n
+$$
+
+```{julia}
+#| echo: false
+r = 1/2
+answer = 1/(1-r) - r^(0) - r^(1)
+numericq(answer)
+```
+
+###### Question
+
+Consider the series
+
+$$
+\sum_{n=1}^\infty \frac{n}{e^n}
+$$
+
+This series
+
+```{julia}
+#| echo: false
+choices = [
+"converges",
+"diverges"
+]
+radioq(choices, 1)
+```
+
+###### Question
+
+Consider the series
+
+$$
+\sum_{n=1}^\infty (-1)^n \cdot \frac{n}{2n - 3}
+$$
+
+This series
+
+```{julia}
+#| echo: false
+choices = [
+"converges",
+"diverges"
+]
+radioq(choices, 2)
+```
+
+
+###### Question
+Consider the power series about $c=0$ formed from the sequence
+
+$$
+a_n = (-1)^{n+1}\frac{x^{2n+1}}{(2n+1)!}
+$$
+
+That is, $s = x - x^3/3! + x^5/5! - \cdots$. Find the radius of convergence.
+
+This computation might prove useful:
+
+```{julia}
+@syms x::real n::(positive,integer)
+an =x^(2n+1)/factorial(2n+1)
+an_1 = an(n => n+1)
+limit(an_1/an, n=>oo)
+```
+
+The radius of convergence is:
+
+```{julia}
+#| echo: false
+choices=[
+L"0",
+L"1",
+L"\infty"
+]
+radioq(choices, 3)
+```
+
+###### Question
+
+Consider the series based on the terms
+
+$$
+a_n = (-1)^{n}\frac{1}{n}(x-1)^n
+$$
+
+Find the radius of convergence.
+
+This computation might prove useful
+
+```{julia}
+@syms x::real n::(positive,integer)
+an = (x-1)^n / n
+an_1 = an(n => n+1)
+limit(an_1/an, n=>oo)
+```
+
+The radius of convergence is:
+
+```{julia}
+#| echo: false
+choices=[
+L"0",
+L"1",
+L"\infty"
+]
+radioq(choices, 2)
+```
+
+
+
+###### Question
+
+Consider the series
+
+$$
+\sum_{k=1}^\infty k\cdot x^k = x + 2x^2 + 3x^3 + \cdots
+$$
+
+We can show directly, without needing a formula for the partial sums as before, that this series converges whenever $|x| < 1$.
+
+
+What does this computation with `SymPy` show for positive $x$?
+
+```{julia}
+@syms delta::positive n::integer
+r = 1 + delta
+limit(r^n - n, n=>oo)
+```
+
+```{julia}
+#| echo: false
+choices = [
+raw"It shows $r^n > n$ for all $n$",
+raw"It shows $r^n > n$ for large enough $n$"
+]
+radioq(choices, 2)
+```
+
+Suppose $r^n > n$, then $nx^n \leq n|x|^n < r^n |x|^n < (r|x|)^n$. If $|x| < 1$ why can we find $r>1$ with $r|x| < 1$?
+
+```{julia}
+#| echo: false
+choices = [
+raw"We can take $r  = 1/|x|$",
+raw"We can take $r = 1/\sqrt{|x|}$"
+]
+radioq(choices, 2)
+```
+
+If $r$ is so chosen, then by the comparison theorem the sum is eventually bounded by a geometric series.
+
+
+
+###### Question
+
+Let $s(x) = \sum_{i=1}^\infty i^2 x^i$ be a power series. The ratio test for convergence considers:
+
+$$
+|\frac{a_{n_+1}}{a_n}| = \frac{(n+1)^2 x^{n+1}}{n^2x^n} =
+\frac{(n+1)^2}{n^2} |x|.
+$$
+
+This has a limit as $n \rightarrow \infty$. Use this limit to find the *radius* of convergence. What is the value?
+
+```{julia}
+#| echo: false
+numericq(1)
+```
+
+Now for  fixed integer $k > 2$ let $s(x) = \sum_{i=1}^\infty i^k x^i$ be a power series. The ratio test again can be used to find the radius of convergence. What does it find?
+
+```{julia}
+#| echo: false
+numericq(1)
+```
+
+
+###### Question
+
+
+Absolutely convergent series have some properties
+
+* If $\sum a_n$ and $\sum b_n$ are absolute convergent then $\sum (a_n + b_n)$ will be absolutely convergent.
+
+* if $\sum a_n$ and $\sum b_n$ are absolute convergent then $\sum (a_n \cdot b_n)$ will be absolutely convergent.
+
+To see the first we could use the triangle inequality:
+
+$$
+|a_n + b_n| \leq |a_n| + |b_n|
+$$
+
+So that the partial sum
+
+$$
+\sum_{k=1}^n |a_n + b_n| \leq
+\sum_{k=1}^n |a_n| + \sum_{k=1}^n |b_n|
+$$
+
+Why do each of these sums converge?
+
+```{julia}
+#| echo: false
+choices = [
+raw"The two series are absolutely convergent so their partial sums have a limit",
+raw"The two series are are divergent so their partial sums diverge"
+]
+radioq(choices, 1)
+```
+
+For the second one, if $\sum b_n$ is absolutely convergent, then we can assume $|b_n| < 1$ eventually. Hence, eventually
+
+$$
+|a_n b_n| \leq |a_n| \cdot 1
+$$
+
+Since $\sum a_n$ is absolutely convergent by the comparison theorem so will be $\sum a_n b_n$.
+
+Why is $|b_n| < 1$ eventually?
+
+```{julia}
+#| echo: false
+choices = [
+raw"The series $\sum b_n$ is absolutely convergent, hence if must be $|b_n| \rightarrow 0$",
+raw"The series $\sum b_n$ is absolutely convergent, hence $\sum b_n < 1$"
+]
+radioq(choices, 1)
+```
+
+###### Question
+
+The Cauchy criteria for convergence of a series $s = \sum a_k$ is that $s$ converges if for any $\epsilon > 0$ there exists an $N$ such that if $n,m \geq N$ then $|s_n - s_m| < \epsilon$ and vice versa. This basically says the terms at the end eventually contribute a negligible amount to the sum when convergent.
+
+Why might this be useful?
+
+```{julia}
+#| echo: false
+choices = [
+    raw"The Cauchy criteria is actually harder to compute as it requires two sums to be known, not just one.",
+    raw"The definition of convergence depends on a known limit, but this may in practice be unknown. The Cauchy criteria only involves the partial sums, not the limit."]
+radioq(choices, 2)
+```
+
+###### Question
+
+The following extends the comparison test:
+
+:::{.callout-note appearance="minimal"}
+### Limit comparison test
+Take two series with *positive* terms $\sum a_n$ and $\sum b_n$.
+
+If $\lim_{n\rightarrow \infty} a_n/b_n = c$ with $0 < c < \infty$ then either both series converge of both series diverge.
+:::
+
+Basically the limit says both sequences $\{a_n\}$ and $\{b_n\}$ go to $0$ at the same rate so their series are somewhat comparable.
+
+To prove this, fix an $\epsilon$ so $c-\epsilon > 0$. Then eventually
+
+$$
+\left| \frac{a_n}{b_n} - c \right| < \epsilon
+$$
+
+Rearranging gives $a_n < (c+\epsilon) b_n$.
+
+If $\sum a_n$ *diverges* why must $\sum b_n$ diverge?
+
+```{julia}
+#| echo: false
+choices = [
+raw"If $\sum a_n$ diverges, then so must $\sum a_n/(c+\epsilon)$. By the comparison test, so must $\sum b_n$ diverge",
+raw"If $\sum a_n$ diverges, then by the ratio test $a_{n+1}/a_n \rightarrow d > 1$ hence $b_{n+1}/b_n \rightarrow d (c + \epsilon) > 1$."
+]
+radioq(choices, 1)
+```
+
+Another rearrangement gives $b_n < a_n / (c - \epsilon)$. If $\sum a_n$ is *convergent* why must $\sum b_n$ be convergent?
+
+
+```{julia}
+#| echo: false
+choices = [
+raw"If $\sum a_n$ converges, then so must $\sum a_n/(c-\epsilon)$. By the comparison test, so must $\sum b_n$ converge",
+raw"If $\sum a_n$ converges, then by the ratio test $a_{n+1}/a_n \rightarrow d < 1$ hence $b_{n+1}/b_n \rightarrow d (c - \epsilon) < 1$."
+]
+radioq(choices, 1)
+```
+
+
+###### Question
+
+Let $s = \sum_{n=0}^\infty a_n \cdot (x-c)^n$ and $t = \sum_{n=0}^\infty b_n \cdot (x-c)^n$.
+
+
+Guess what this power series is:
+
+$$
+\sum_{n=0}^\infty (a_n + b_n) \cdot (x-c)^n
+$$
+
+```{julia}
+#| echo: false
+choices = [
+L"s + t",
+L"s - t",
+L"s \cdot t",
+L"s / t"
+]
+radioq(choices, 1; keep_order=true)
+```
+
+Guess what this power series is:
+
+$$
+\sum_{n=0}^\infty \left(\sum_{i=0}^n (a_i \cdot b_{n-i})\right) \cdot (x-c)^n
+$$
+
+```{julia}
+#| echo: false
+choices = [
+L"s + t",
+L"s - t",
+L"s \cdot t",
+L"s / t"
+]
+radioq(choices, 31; keep_order=true)
+```
+
+For completeness, [Wikipedia](https://en.wikipedia.org/wiki/Power_series#Multiplication_and_division) gives this formula for division $s/t = \sum_{n=0}^\infty d_n \cdot (x-c)^n$ where
+
+$$
+d_0 = \frac{a_0}{b_0}
+$$
+
+and
+$$
+d_n = \frac{1}{b_0^{n+1}} \cdot
+\begin{vmatrix}
+a_n & b_1 & b_2 & \cdots & b_n\\
+a_{n-1} & b_0 & b_1 & \cdots & b_{n-1}\\
+a_{n-2} & 0   & b_0 & \cdots & b_{n-1}\\
+\vdots & \vdots & \vdots & \ddots & \vdots\\\
+a_0 & 0 & 0 & \cdots & b_0
+\end{vmatrix}
+$$
+
+The last operation is called the determinant and will be discussed later on.
