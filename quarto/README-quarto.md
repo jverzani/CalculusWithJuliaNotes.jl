@@ -9,13 +9,14 @@ quarto publish gh-pages --no-render
 ```
 
 
-But better to 
+But better to
 
 ```
 quarto render
 # commit changes and push
 # fix typos
 quarto render
+julia adjust_plotly.jl
 quarto publish gh-pages --no-render
 ```
 

@@ -923,6 +923,73 @@ $$
 y(x^2 + a^2) = a^3.
 $$
 
+::: {#fig-witch-agnesi}
+```{julia}
+#| echo: false
+gr()
+let
+
+	function ABP(θ,a=1)
+		# y/x = 2a/x = tan(θ)
+		A = (2a/tan(θ), a)
+		# x = y/tan(theta); x^2 + (y-a)^2 = a^2
+		# y^2/t^2 + y^2 - 2ya + a^2 = a^2
+		# y/t^2 + y - 2a = 0
+		# y = 2a/(1 + 1/t^2)
+		y = 2a/(1 + 1/tan(θ)^2) # = 2a sin(θ)^2
+		x = y/tan(θ)
+		B = (x, y-a)
+		P = (A[1],B[2])
+		(;A,B,P)
+	end
+
+
+    a = 1
+
+	ts = range(0, 2pi, 200)
+	plot(;empty_style..., aspect_ratio=:equal)
+
+	plot!(a*cos.(ts), a*sin.(ts); line=(:black, 1))
+	Δ = 1.5
+	plot!(Δ*[-1,1],[-1,-1], line=(:gray, 1))
+	plot!(Δ*[-1,1],[1,1], line=(:gray, 1))
+	plot!([(0,0), (0,a)]; line=(:gray, 1, :dash))
+
+	witch(θ,a=1) = ABP(θ,a).P
+
+	θs = range(pi/4,pi/2, 100)
+	plot!(witch.(θs); line=(:black, 3))
+
+    # fix a specific angle
+	θ = pi/3
+	A,B,P = ABP(θ)
+	O = (0, -a)
+
+	plot!([O,A]; line=(:black,1))
+	plot!([B,P,A]; line=(:gray,1, :dash))
+	scatter!([A,B,P,(0,0)])
+
+	ts = (range(0, θ, 100))
+	λ = a/5
+	plot!([(λ*cos(t),λ*sin(t)-a) for t in ts]; line=(:gray,1, 0.75),arrow=true)
+
+	annotate!([(A..., text(L"A",:bottom)),
+			  (B..., text(L"B", :right)),
+			   (P..., text(L"P", :top)),
+               (0,0,text(L"O", :right)),
+			  (0,1/2, text(L"a",:right)),
+			  (a/4*cos(θ/2), a/4*sin(θ/2)-a, text(L"\theta",:left))])
+end
+```
+```{julia}
+#| echo: false
+plotly()
+nothing
+```
+
+The Witch of Agnesi can be expressed implicitly or parametrically in terms of $\theta$.
+:::
+
 If $a=1$, numerically find a value of $y$ when $x=2$.
 
 
@@ -948,6 +1015,30 @@ choices = [
 ]
 answ = 1
 radioq(choices, answ)
+```
+
+In @fig-witch-agnesi for a given $\theta$ the point $P = (x,y)$ where $x$ is the $x$ value of the intersection of the drawn line with the line $y=a$ and $y$ is the $y$ value of the intersection of the drawn line with the circle $x^2 + y^2 = a^2$.
+
+Suppose $O=(0,0)$ and $A=(u,v)$. Which of these formulas is true:
+
+```{julia}
+#| echo: false
+choices = [
+L"(v+a)/u = 2a/u = \tan(\theta)",
+L"v/u = a/u = \tan(\theta)"
+],
+radioq(choices, 1)
+```
+
+Suppose $B=(u,v)$. Which of these is true:
+
+```{julia}
+#| echo: false
+choices = [
+L"$(v+a)/u = \tan(\theta)$ and $u^2 + v^2 = a^2$",
+L"$v/u = \tan(\theta)$ and $u^2 + v^2 = a^2$"
+]
+radioq(choices, 1)
 ```
 
 ###### Question
