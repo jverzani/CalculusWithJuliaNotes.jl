@@ -258,6 +258,48 @@ This is a bit fussier than need be. As the left and right pieces (say, $f_l$ and
 solve(ex1(x=>0) ~ ex2(x=>0), c)
 ```
 
+##### Example
+
+Identifying from its graph that a function is discontinuous or not can be complicated by the graphing algorithm which simply connects adjacent points with a line segment allowing the eye to fill in the dot-to-dot graphic as  a curve. The default plot of the `floor` function shows a potential issue:
+
+```{julia}
+plot(floor, -5/2, 5/2; label=false)
+```
+
+The "risers" on the steps are an artifact of the basic dot-to-dot algorithm, which assumes continuity between adjacent points (we were more careful in our earlier plot of this function).
+
+The following simple function just plots a bunch of points, leaving the eye to fill in the line, though so many points are chosen this doesn't require much effort for simple cases. This function also plots a point on the $x$- and $y$-axes (emphasized by the argument `framestyle=:origin`) for each point graphed to emphasize the range of $y$ values for the specified $x$ values.
+
+```{julia}
+function pixel_plot(f, a, b; kwargs...)
+
+    xs = range(a, b, 801) # lots of points
+    ys = f.(xs)
+    zs = zero.(xs)
+
+    p = plot(;framestyle=:origin, legend=false, kwargs...)
+
+    scatter!(p, xs, ys; marker=(:square, :black, 1))      # f(x)
+    scatter!(p, xs, zs; marker=(:square, :blue, 2, 0.03)) # domain, [a,b]
+    scatter!(p, zs, ys; marker=(:square, :red, 3, 0.25))  # range
+
+    p
+end
+
+pixel_plot(floor, -5/2, 5/2)
+```
+
+The broken up range suggests a fundamentally discontinuous function. In the next section we will see this differently---that a continuous function will have an unbroken range when restricted to some interval $[a,b]$.
+
+For one more example, here we see the difference between `sin` and `sign`, as functions:
+
+```{julia}
+p1 = pixel_plot(sin,  -pi, pi; title="sin")
+p2 = pixel_plot(sign, -pi, pi; title="sign")
+plot(p1, p2)
+```
+
+The continuous `sin` function has an unbroken range, $[-1,1]$; the discountinous `sign` function has a broken range consisting of ${-1, 0, 1}$.
 
 ## Rules for continuity
 
@@ -265,13 +307,13 @@ solve(ex1(x=>0) ~ ex2(x=>0), c)
 As we've seen, functions can be combined in several ways. How do these relate with continuity?
 
 
-Suppose $f(x)$ and $g(x)$ are both continuous on $I$. Then
+Suppose $f(x)$ and $g(x)$ are both continuous on $I$. Then:
 
 
-  * The function $h(x) = a f(x) + b g(x)$ is continuous on $I$ for any real numbers $a$ and $b$;
-  * The function $h(x) = f(x) \cdot g(x)$ is continuous on $I$; and
-  * The function $h(x) = f(x) / g(x)$ is continuous at all points $c$ in $I$ **where** $g(c) \neq 0$.
-  * The function $h(x) = f(g(x))$ is continuous at $x=c$ *if*  $g(x)$ is continuous at $c$ *and* $f(x)$ is continuous at $g(c)$.
+  * The linear combination $h(x) = a f(x) + b g(x)$ is continuous on $I$ for any real numbers $a$ and $b$;
+  * The product $h(x) = f(x) \cdot g(x)$ is continuous on $I$; and
+  * The quotient $h(x) = f(x) / g(x)$ is continuous at all points $c$ in $I$ **where** $g(c) \neq 0$.
+  * The composition $h(x) = f(g(x))$ is continuous at $x=c$ *if*  $g(x)$ is continuous at $c$ *and* $f(x)$ is continuous at $g(c)$.
 
 
 So, continuity is preserved for all of the basic operations except when dividing by $0$.
@@ -284,7 +326,7 @@ So, continuity is preserved for all of the basic operations except when dividing
   * Since both $f(x) = e^x$ and $g(x)=\sin(x)$ are continuous everywhere, so will be $h(x) = e^x \cdot \sin(x)$.
   * Since $f(x) = e^x$ is continuous everywhere and $g(x) = -x$ is continuous everywhere, the composition $h(x) = e^{-x}$ will be continuous everywhere.
   * Since $f(x) = x$ is continuous everywhere, the function $h(x) = 1/x$ - a ratio of continuous functions - will be continuous everywhere *except* possibly at $x=0$ (where it is not continuous).
-  * The function $h(x) = e^{x\log(x)}$ will be continuous on $(0,\infty)$, the same domain that $g(x) = x\log(x)$ is continuous. This function (also written as $x^x$) has a right limit at $0$ (of $1$), but is not right continuous, as $h(0)$ is not defined.
+  * The function $h(x) = e^{x\ln(x)}$ will be continuous on $(0,\infty)$, the same domain that $g(x) = x\ln(x)$ is continuous. This function (which simplifies to $x^x$ when $x>0$) has a right limit at $0$ (of $1$), but is not right continuous, as $h(0)$ is not defined. (The function `h(x) = exp(x*log(x))` is not defined at `0` **but** the function `h(x) = x^x` is defined at `0.0` to be `1.0`.)
 
 
 ## Questions
