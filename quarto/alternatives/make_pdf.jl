@@ -5,6 +5,7 @@ module Make
 
 dir = "alternatives"
 files = (
+    "giac",
     "symbolics",
     "SciML",
     "plotly_plotting",
