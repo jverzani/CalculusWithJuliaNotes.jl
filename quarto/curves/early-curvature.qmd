@@ -1,0 +1,161 @@
+XXX Was with linearization, but now not
+XXX This is failing with current sympy not taking limits the same way
+
+
+## Curvature
+
+The curvature of a function will be a topic in a later section on differentiable vector calculus, but the concept of linearization can be used to give an earlier introduction.
+
+
+The tangent line linearizes the function, it being the best linear approximation to the graph of the function at the point. The slope of the tangent line is the limit of the slopes of different secant lines. Consider now, the orthogonal concept, the *normal line* at a point. This is a line perpendicular to the tangent line that goes through the point on the curve.
+
+At a point $(c,f(c))$ the slope of the normal line is $-1/f'(c)$.
+
+Following [Kirby C. Smith](https://doi.org/10.2307/2687102), consider two nearby points on the curve of $f$ and suppose we take the two normal lines at $x=c$ and $x=c+h$. These two curves will intersect if the lines are not parallel. To ensure this, assueme that in some neighborhood of $c$,  $f'(c)$ is increasing.
+
+The two normal lines are:
+
+$$
+\begin{align*}
+y &= f(c) - \frac{1}{f'(c)}(x-c)\\
+y &= f(c+h) - \frac{1}{f'(c+h)}(x-(c+h))\\
+\end{align*}
+$$
+
+Rearranging, we have
+
+$$
+\begin{align*}
+-f'(c)(y-f(c)) &= x-c\\
+-f'(c+h)(y-f(c+h)) &= x-(c+h)
+\end{align*}
+$$
+
+
+Call $R$ the intersection point of the two normal lines, as illustrated in @fig-intersection-of-two-normal-lines-x-4.
+
+::: {#fig-intersection-of-two-normal-lines-x-4}
+```{julia}
+#| echo: false
+using Roots
+let
+    gr()
+	f(x) = x^4
+	fp(x) = 4x^3
+	c = 1/4
+	h = 1/4
+	nlc(x) = f(c) - 1/fp(c) * (x - c)
+	nlch(x) = f(c+h) - 1/fp(c+h) * (x-(c+h))
+	canvas() = plot(axis=([],false), legend=false, aspect_ratio=:equal)
+	plt = canvas()
+	plot!(plt, f, 0, 3/4; line=(3,))
+	plot!(plt, nlc; ylim=(-1/4, 1))
+	plot!(plt, nlch;  ylim=(-1/4, 1))
+	Rx = find_zero(x -> nlc(x) - nlch(x), (-10, 10))
+	scatter!(plt, [c,c+h], f.([c, c+h]))
+	scatter!(plt, [Rx], [nlc(Rx)])
+	annotate!(plt, [(c, f(c), L"(c,f(c))",:top),
+	                (c+h, f(c+h), L"(c+h, f(c+h))",:bottom),
+                    (Rx,  nlc(Rx), L"R",:left)])
+    plotly()
+    plt
+end
+```
+
+$R$ is intersection point of two normal lines.
+:::
+
+
+What happens to $R$ as $h \rightarrow 0$?
+
+We can symbolically solve to see:
+
+```{julia}
+@syms 𝑓() 𝑓ₚ() 𝑓ₚₚ() x y c ℎ
+n1 = -𝑓ₚ(c)*(y-𝑓(c)) ~ x - c
+n2 = -𝑓ₚ(c+ℎ)*(y-𝑓(c+ℎ)) ~ x - (c+ℎ)
+R = solve((n1, n2), (x, y))
+```
+
+
+Taking limits of each term as $h$ goes to zero we have after some notation-simplifying substitution:
+
+```{julia}
+R = Dict(k => limit(v, ℎ=>0) for (k,v) in R)
+Rx = R[x](limit((𝑓(c+ℎ)-𝑓(c))/ℎ, ℎ=>0) => 𝑓ₚ(c),
+          limit((𝑓ₚ(c+ℎ)-𝑓ₚ(c))/ℎ, ℎ=>0) => 𝑓ₚₚ(c))
+```
+
+
+and
+
+```{julia}
+Ry = R[y](limit((𝑓(c+ℎ)-𝑓(c))/ℎ, ℎ=>0) => 𝑓ₚ(c),
+          limit((𝑓ₚ(c+ℎ)-𝑓ₚ(c))/ℎ, ℎ=>0) => 𝑓ₚₚ(c))
+```
+
+The squared distance, $r^2$, of $R$ to $(c,f(c))$ is then:
+
+```{julia}
+simplify((Rx-c)^2 + (Ry-𝑓(c))^2)
+```
+
+Or
+
+$$
+r^2 = \frac{(f'(c)^2 + 1)^3}{f''(c)^2}.
+$$
+
+
+This formula for $r$ is known as the radius of curvature of $f$ -- the radius of the *circle* that best approximates the function at the point. That is, this value reflects the curvature of $f$ supplementing the tangent line or best *linear* approximation to the graph of $f$ at the point.
+
+::: {#fig-radius-of-curvature-is-R}
+```{julia}
+#| echo: false
+let
+    gr()
+	f(x) = x^4
+	fp(x) = 4x^3
+	fpp(x) = 12x^2
+	c = 1/4
+	h = 1/4
+	nlc(x) = f(c) - 1/fp(c) * (x - c)
+	nlch(x) = f(c+h) - 1/fp(c+h) * (x-(c+h))
+	canvas() = plot(axis=([],false), legend=false, aspect_ratio=:equal)
+	plt = canvas()
+	plot!(plt, f, -1/4, 3/4; line=(3,))
+	tl(x) = f(c) + f'(c)*(x-c)
+	plot!(plt, tl, ylim=(-1/4, 3/2); line=(2, :dot))
+
+
+	Rx, Ry = c - fp(c)^3 / fpp(c) - fp(c)/fpp(c), f(c) + (fp(c)^2+1)/fpp(c)
+	r = (fp(c)^2 + 1)^(3/2) / abs(fpp(c))
+
+	scatter!(plt, [c], f.([c]))
+	scatter!(plt, [Rx], [nlc(Rx)])
+	annotate!(plt, [(c, f(c), L"(c,f(c))",:top),
+		(Rx,  nlc(Rx), L"R",:left)])
+
+
+	Delta = pi/10
+	theta = range(3pi/2 - Delta, 2pi - 3Delta, length=100)
+	xs, ys = cos.(theta), sin.(theta)
+
+
+	plot!(Rx .+ r.*xs, Ry .+ r.*ys)
+
+	x0s, y0s = [Rx,Rx .+ r * first(xs)],[Ry,Ry .+ r * first(ys)]
+	xns, yns = [Rx,Rx .+ r * last(xs)],[Ry,Ry .+ r * last(ys)]
+	xcs, ycs = [Rx,c],[Ry,f(c)]
+	sty = (2, :0.25, :dash)
+	plot!(plt, x0s, y0s; line=sty);
+	plot!(plt, xcs, ycs; line=sty);
+	plot!(plt, xns, yns; line=sty)
+
+    plotly()
+    plt
+end
+```
+
+Illustration of radius of curvature
+:::

@@ -17,14 +17,20 @@ using Roots
 
 ---
 
+This section discusses two key algorithms for finding a zero of a real-valued function of a single variable, that is solving $f(x) = 0$.
 
+The bisection method is one such algorithm and requires the knowledge that the zero is **between** two values, which are called a bracketing interval. The two main methods discussed here, Newton's method and the secant method, are more efficient---when they work---and usually require the knowledge of a starting point **near** the desired zero.
+
+
+## The Babylonian method
+
+We begin with a special purpose algorithm to illustrate the key ideas.
 The Babylonian method is an algorithm to find an approximate value for $\sqrt{k}$. It was described by the first-century Greek mathematician Hero of [Alexandria](http://en.wikipedia.org/wiki/Babylonian_method).
-
 
 The method starts with some initial guess, called $x_0$. This is usually some nearby value to the answer. The method then applies a formula to produce an improved guess. This is repeated until the improved guess is accurate enough or it is clear the algorithm fails to work.
 
 
-For the Babylonian method, the next guess, $x_{i+1}$, is derived from the current guess, $x_i$. In mathematical notation, this is the updating step:
+For the Babylonian method, the next guess, $x_{i+1}$, is derived from the current guess, $x_i$ by
 
 
 $$
@@ -33,158 +39,149 @@ $$
 
 We use this algorithm to approximate the square root of $2$, a value known to the Babylonians.
 
-
-Start with $x$, then form $x/2 + 1/x$, from this again form $x/2 + 1/x$, repeat.
-
-
-We represent this step using a function
-
+We start with $x = 2$. In this example, we use rational numbers to keep exact quantities:
 
 ```{julia}
-babylon(x) = x/2 + 1/x
+x₀ = 2//1
+x₁ = x₀/2 + 1/x₀
 ```
 
-Let's look starting with $x = 2$ as a  rational number:
-
+We have $x_0^2 = 4$, what about $x_1^2$? We use a floating point exponent to see the decimal value.
 
 ```{julia}
-#| hold: true
-x₁ = babylon(2//1)
-x₁, x₁^2.0
+x₁^2.0
 ```
 
-Our estimate improved from something which squared to $4$ down to something which squares to $2.25.$ A big improvement, but there is still more to come. Had we done one more step:
-
+A value much closer to $2$. We repeat with another step:
 
 ```{julia}
-x₂ = (babylon ∘ babylon)(2//1)
+x₂ = x₁/2 + 1/x₁
 x₂, x₂^2.0
 ```
 
-We now see accuracy until the third decimal point.
-
+We now see accuracy until the third decimal point. Repeating another time gives even more accuracy:
 
 ```{julia}
-x₃ = (babylon ∘ babylon ∘ babylon)(2//1)
+x₃ = x₂/2 + 1/x₂
 x₃, x₃^2.0
 ```
 
-This is now accurate to the sixth decimal point.  That is about as far as we, or the Babylonians, would want to go by hand. Using rational numbers quickly grows out of hand. The next step shows the explosion.
-
-
-```{julia}
-reduce((x,step) -> babylon(x), 1:4, init=2//1)
-```
-
-(In the above, we used `reduce` to repeat a function call $4$ times, as an alternative to the composition operation. In this section we show a few styles to do this repetition before introducing a packaged function.)
-
-
-However, with the advent of floating point numbers, the method stays quite manageable:
-
+Over rational numbers, the value for the estimate gets more and more complicated, as a peak at the next value shows:
 
 ```{julia}
-#| hold: true
-xₙ = reduce((x, step) -> babylon(x), 1:6, init=2.0)
-xₙ, xₙ^2
+x₄ = x₃/2 + 1/x₃
+x₄, x₄^2.0
 ```
 
-We can see that the algorithm - to the precision offered by floating point numbers - has resulted in an answer `1.414213562373095`. This answer is an *approximation* to the actual answer. Approximation is necessary, as $\sqrt{2}$ is an irrational number and so can never be exactly represented in floating point. That being said, we can see that the value of $f(x)$ is accurate to the last decimal place, so our approximation is very close and is achieved in a few steps.
+This is not the case over floating point numbers, where we see increasing convergence towards $\sqrt{2}$.
+
+```{julia}
+float.([x₀, x₁, x₂, x₃, x₄]) .- sqrt(2)
+```
+
+We see this algorithm rapidly converges to $\sqrt{2}$. In fact, in two more steps it will get as close as machine precision will allow a floating point number to approximate an irrational number. The algorithm produces *approximations* to the actual answer which can be easily computed in a few steps to a desired tolerance and, if needed, repeated more often to near exactness.
 
 
-## Newton's generalization
+## Newton's method
+
+Is there some generalization to the Babylonian method that applies to non-linear functions?
 
 
-Let $f(x) = x^3 - 2x -5$. The value of $2$ is almost a zero, but not quite, as $f(2) = -1$. We can check that there are no *rational* roots. Though there is a method to solve the cubic it may be difficult to compute and will not be as generally applicable as some algorithm like the Babylonian method to produce an approximate answer.
-
-
-Is there some generalization to the Babylonian method?
+Let $f(x) = x^3 - 2x -5$. The value of $2$ is almost a zero, but not quite, as $f(2) = -1$. We can check that there are no *rational* roots. Though there is a method to solve the cubic it may be difficult to compute and will not be as generally applicable as some iterative algorithm like the Babylonian method to produce an approximate answer to a non-linear problem.
 
 
 We know that the tangent line is a good approximation to the function at the point. Looking at this graph gives a hint as to an algorithm:
 
+::: {#fig-plot-x-3-minus-2-x-minus-5}
 
 ```{julia}
-#| hold: true
 #| echo: false
-f(x) = x^3 - 2x - 5
-fp(x) = 3x^2 - 2
-c = 2
-p = plot(f, 1.75, 2.25, legend=false)
-plot!(x->f(2) + fp(2)*(x-2))
-plot!(zero)
-scatter!(p, [c], [f(c)], color=:orange, markersize=3)
-p
+let
+    gr()
+    f(x) = x^3 - 2x - 5
+    fp(x) = 3x^2 - 2
+    c = 2
+
+    plt = plot(;empty_style..., xlims=(1.75, 2.25))
+    plot!(plt, [(1.75,0.0), (2.25,0.0)]; line=(1, :gray), arrow=true, side=:right)
+
+    plot!(plt, f; line=(2, :black))
+    plot!(plt, x->f(c) + fp(c)*(x-c); line=(1, :black))
+    scatter!(plt, [(c, f(c))]; marker=(5, :orange))
+    ticks = 1.8:0.1:2.2
+    annotate!(plt, [(x, 0.0, text(latexstring(x), :top)) for x in ticks])
+    annotate!([(c, f(c), text(L"(c, f(c))", :top, :left))])
+    for x in ticks
+        plot!(plt, [(x,0.0), (x, 0.1)]; line=(1, :gray))
+    end
+    plotly()
+    plt
+end
 ```
 
-The tangent line and the function nearly agree near $2$. So much so, that the intersection point of the tangent line with the $x$ axis nearly hides the actual zero of $f(x)$ that is near $2.1$.
 
 
-That is, it seems that the intersection of the tangent line and the $x$ axis should be an improved approximation for the zero of the function.
+Plot of $f(x) = x^3 - 2x - 5$  and a tangent line at a point, $(c, f(c))$, near a $0$
+:::
+
+The tangent line and the function nearly agree near $2$. So much so, that the intersection point of the tangent line with the $x$ axis and the intersection of $f(x)$ with the $x$ axis are nearly the same value.
+
+The key observation is: the intersection of the tangent line and the $x$ axis should be an improved approximation for the zero of the function.
 
 
-Let $x_0$ be $2$, and $x_1$ be the intersection point of the tangent line at $(x_0, f(x_0))$ with the $x$ axis. Then by the definition of the tangent line:
+Let $x_0$ be the initial estimate for a zero, and $x_1$ be the intersection point of the tangent line at $(x_0, f(x_0))$ with the $x$ axis. Then by the definition of the tangent line:
 
 
 $$
-f'(x_0) = \frac{\Delta y }{\Delta x} = \frac{f(x_0)}{x_0 - x_1}.
+f'(x_0) = \frac{\Delta y }{\Delta x} = \frac{f(x_1) - f(x_0)}{x_1 - x_0} = \frac{0 - f(x_0)}{x_1 - x_0}.
 $$
 
-This can be solved for $x_1$ to give $x_1 = x_0 - f(x_0)/f'(x_0)$. In general, if we had $x_i$ and used the intersection point of the tangent line to produce $x_{i+1}$ we would have Newton's method:
+This can be solved for $x_1$ to give $x_1 = x_0 - f(x_0)/f'(x_0)$. In general, if our current approximation is  $x_i$ and used the intersection point of the tangent line to produce $x_{i+1}$ we would have Newton's method:
 
 
 $$
 x_{i+1} = x_i - \frac{f(x_i)}{f'(x_i)}.
 $$
 
-Using automatic derivatives, as brought in with the `CalculusWithJulia` package, we can implement this algorithm.
+----
 
-
-The algorithm above starts at $2$ and then becomes:
-
+Using automatic derivatives, as brought in with the `CalculusWithJulia` package, we can implement this algorithm step by step. Starting at $x_0=2$ we have:
 
 ```{julia}
 f(x) = x^3 - 2x - 5
-x0 = 2.0
-x1 = x0 - f(x0) / f'(x0)
+x₀ = 2.0
+x₁ = x₀ - f(x₀) / f'(x₀)
+x₁, f(x₁)
 ```
 
-We can see we are closer to a zero:
+We can see we are closer to a zero. Repeating, we have:
+
+```{julia}
+x₂ = x₁ - f(x₁)/ f'(x₁)
+x₂, f(x₂)
+```
+
+And:
 
 
 ```{julia}
-f(x0), f(x1)
-```
-
-Trying again, we have
-
-
-```{julia}
-x2 = x1 - f(x1)/ f'(x1)
-x2, f(x2), f(x1)
-```
-
-And again:
-
-
-```{julia}
-x3 = x2 - f(x2)/ f'(x2)
-x3, f(x3), f(x2)
+x₃ = x₂ - f(x₂)/ f'(x₂)
+x₃, f(x₃)
 ```
 
 ```{julia}
-x4 = x3 - f(x3)/ f'(x3)
-x4, f(x4), f(x3)
+x₄ = x₃ - f(x₃)/ f'(x₃)
+x₄, f(x₄)
 ```
 
-We see now that $f(x_4)$ is within machine tolerance of $0$, so we call $x_4$ an *approximate zero* of $f(x)$.
+We see now that $f(x_4)$ is within machine tolerance of $0$ and that if we were to try another iteration we would find $x_{i+1} \approx x_i$. We call $x_4$ an *approximate zero* of $f(x)$.
 
-::: {.callout-note icon=false}
-## Newton's method
+::: {.definition title="Newton's method"}
 
-Let $x_0$ be an initial guess for a zero of $f(x)$. Iteratively define $x_{i+1}$ in terms of the just generated $x_i$ by:
+Let $x_0$ be an initial guess for a zero of $f(x)$. Iteratively define $x_{i+1}$ in terms of $x_i$ by:
 
 $$
-x_{i+1} = x_i - f(x_i) / f'(x_i).
+x_{i+1} = x_i - \frac{f(x_i)}{f'(x_i)}.
 $$
 
 Then for reasonable functions and reasonable initial guesses, the sequence of points converges to a zero of $f$.
@@ -192,19 +189,20 @@ Then for reasonable functions and reasonable initial guesses, the sequence of po
 :::
 
 
-On the computer, we know that actual convergence will likely never occur, but accuracy to a certain tolerance can often be achieved.
+On the computer, we know that actual convergence will likely never occur, but accuracy to a certain tolerance---either with $\lvert x_{i+1} - x_i\rvert$ or $\lvert f(x_i) \rvert$---can often be achieved.
 
 
-In the example above, we kept track of the previous values. This is unnecessary if only the answer is sought. In that case, the update step could use the same variable. Here we use `reduce`:
-
+In the example above, we tediously kept track of each value to match the formula for the update step of Newton's method. However, the subscripting mathematically is used to specify assignment, as opposed to an equation, and that is exactly what the equals sign does in `Julia`, so we could have just done these steps:
 
 ```{julia}
-#| hold: true
-xₙ = reduce((x, step) -> x - f(x)/f'(x), 1:4, init=2)
-xₙ, f(xₙ)
+x = 2.0
+x = x - f(x) / f'(x)
+x = x - f(x) / f'(x)
+x = x - f(x) / f'(x)
+x = x - f(x) / f'(x)
 ```
 
-In practice, the algorithm is implemented not by repeating the update step a fixed number of times, rather by repeating the step until either we converge or it is clear we won't converge. For good guesses and most functions, convergence happens quickly.
+In practice, the algorithm is implemented not by repeating the update step a fixed number of times, rather by repeating the step until either we "converge" or it is clear we won't converge. For good guesses and most functions, convergence happens quickly.
 
 
 :::{.callout-note}
@@ -226,10 +224,9 @@ Raphson (1690) proposed a simplification avoiding the computation of new polynom
 
 @fig-newtons-method demonstrates the method and the rapid convergence:
 
-
+::: {#fig-newtons-method}
 ```{julia}
 #| echo: false
-nothing
 function newtons_method_graph(n, f, a, b, c; label=false)
 
     xstars = [c]
@@ -254,159 +251,31 @@ function newtons_method_graph(n, f, a, b, c; label=false)
     plot!(plt, xs, ys, color=:orange)
     scatter!(plt, xstars, 0*xstars, color=:orange, markersize=5)
     if label
-        subs = collect("₁₂₃₄₅₆₇₈₉")
-        labs = ["x$(subs[i])" for i in eachindex(xstars)]
-        annotate!(collect(zip(xstars, 0*xstars, labs,[:bottom for _ in xstars])))
+        annotate!(plt, [(xᵢ, 0, text(latexstring("x_$(i-1)"), :bottom,:left)) for (i, xᵢ) in enumerate(xstars)])
     end
     plt
 end
-```
 
-```{julia}
-#| hold: true
-#| echo: false
-#| cache: true
-#| label: fig-newtons-method
-### {{{newtons_method_example}}}
-gr()
-caption = """
+let
+    gr()
+    caption = ""
+    n = 5
+
+    fn, a, b, c = x->log(x), .15, 2, .2
+
+    anim = @animate for i=1:n
+        newtons_method_graph(i-1, fn, a, b, c; label=true)
+    end
+
+    imgfile = tempname() * ".gif"
+    gif(anim, imgfile, fps = 1)
+    plotly()
+    ImageFile(imgfile, caption)
+end
+```
 
 Illustration of Newton's Method converging to a zero of a function.
-
-"""
-n = 6
-
-fn, a, b, c = x->log(x), .15, 2, .2
-
-anim = @animate for i=1:n
-    newtons_method_graph(i-1, fn, a, b, c; label=true)
-end
-
-imgfile = tempname() * ".gif"
-gif(anim, imgfile, fps = 1)
-plotly()
-ImageFile(imgfile, caption)
-```
-
----
-
-
-This interactive graphic (built using [JSXGraph](https://jsxgraph.uni-bayreuth.de/wp/index.html)) allows the adjustment of the point `x0`, initially at $0.85$. Five iterations of Newton's method are illustrated. Different positions of `x0` clearly converge, others will not.
-
-
-```{=html}
-<div id="jsxgraph" style="width: 500px; height: 500px;"></div>
-```
-
-```{ojs}
-//| echo: false
-//| output: false
-
-JXG = require("jsxgraph");
-
-// newton's method
-
-b = JXG.JSXGraph.initBoard('jsxgraph', {
-    boundingbox: [-3,5,3,-5], axis:true
-});
-
-
-f = function(x) {return x*x*x*x*x - x - 1};
-fp = function(x) { return 4*x*x*x*x - 1};
-x0 = 0.85;
-
-nm = function(x) { return x - f(x)/fp(x);};
-
-l = b.create('point', [-1.5,0], {name:'', size:0});
-r = b.create('point', [1.5,0], {name:'', size:0});
-xaxis = b.create('line', [l,r])
-
-
-P0 = b.create('glider', [x0,0,xaxis], {name:'x0'});
-P0a = b.create('point', [function() {return P0.X();},
-			     function() {return f(P0.X());}], {name:''});
-
-P1 = b.create('point', [function() {return nm(P0.X());},
-			    0], {name:''});
-P1a = b.create('point', [function() {return P1.X();},
-			     function() {return f(P1.X());}], {name:''});
-
-P2 = b.create('point', [function() {return nm(P1.X());},
-			    0], {name:''});
-P2a = b.create('point', [function() {return P2.X();},
-			     function() {return f(P2.X());}], {name:''});
-
-P3 = b.create('point', [function() {return nm(P2.X());},
-			    0], {name:''});
-P3a = b.create('point', [function() {return P3.X();},
-			     function() {return f(P3.X());}], {name:''});
-
-P4 = b.create('point', [function() {return nm(P3.X());},
-			    0], {name:''});
-P4a = b.create('point', [function() {return P4.X();},
-			     function() {return f(P4.X());}], {name:''});
-P5 = b.create('point', [function() {return nm(P4.X());},
-			    0], {name:'x5', strokeColor:'black'});
-
-
-
-
-
-P0a.setAttribute({fixed:true});
-P1.setAttribute({fixed:true});
-P1a.setAttribute({fixed:true});
-P2.setAttribute({fixed:true});
-P2a.setAttribute({fixed:true});
-P3.setAttribute({fixed:true});
-P3a.setAttribute({fixed:true});
-P4.setAttribute({fixed:true});
-P4a.setAttribute({fixed:true});
-P5.setAttribute({fixed:true});
-
-sc = '#000000';
-b.create('segment', [P0,P0a], {strokeColor:sc, strokeWidth:1});
-b.create('segment', [P0a, P1], {strokeColor:sc, strokeWidth:1});
-b.create('segment', [P1,P1a], {strokeColor:sc, strokeWidth:1});
-b.create('segment', [P1a, P2], {strokeColor:sc, strokeWidth:1});
-b.create('segment', [P2,P2a], {strokeColor:sc, strokeWidth:1});
-b.create('segment', [P2a, P3], {strokeColor:sc, strokeWidth:1});
-b.create('segment', [P3,P3a], {strokeColor:sc, strokeWidth:1});
-b.create('segment', [P3a, P4], {strokeColor:sc, strokeWidth:1});
-b.create('segment', [P4,P4a], {strokeColor:sc, strokeWidth:1});
-b.create('segment', [P4a, P5], {strokeColor:sc, strokeWidth:1});
-
-b.create('functiongraph', [f, -1.5, 1.5])
-
-```
-
-##### Example: numeric not algebraic
-
-
-For the function $f(x) = \cos(x) - x$, we see that SymPy can not solve symbolically for a zero:
-
-
-```{julia}
-#| error: true
-@syms x::real
-solve(cos(x) - x, x)
-```
-
-We can find a numeric solution, even though there is no closed-form answer. Here we try Newton's method:
-
-
-```{julia}
-#| hold: true
-f(x) = cos(x) - x
-x = .5
-x = x - f(x)/f'(x)  # 0.7552224171056364
-x = x - f(x)/f'(x)  # 0.7391416661498792
-x = x - f(x)/f'(x)  # 0.7390851339208068
-x = x - f(x)/f'(x)  # 0.7390851332151607
-x = x - f(x)/f'(x)
-x, f(x)
-```
-
-To machine tolerance the answer is a zero, even though the exact answer is irrational and all finite floating point values can be represented as rational numbers.
+:::
 
 
 ##### Example non-polynomial
@@ -426,43 +295,64 @@ x = x - f(x) / fp(x)
 x, f(x)
 ```
 
-
-##### Example
-
-
-Use Newton's method to find the *largest* real solution to $e^x = x^6$.
+##### Example: numeric not algebraic
 
 
-A plot shows us roughly where the value lies:
+For the function $f(x) = \cos(x) - x$ consider this SymPy code to symbolically solve for a zero:
+
+```{julia}
+#| error: true
+#| eval: false
+@syms x::real
+solve(cos(x) ~ x, x)
+```
+
+Were this run it would produce an error
+
+```
+NotImplementedError('multiple generators [x, cos(x)]
+   No algorithms are implemented to solve equation -x + cos(x)')
+```
+
+Non-linear equations may not have exact symbolic answers. However,
+With Newton's method we can readily find a numeric solution, even though there is no closed-form answer.
 
 
 ```{julia}
 #| hold: true
-f(x) = exp(x)
-g(x) = x^6
-plot(f, 0, 25; label="f")
-plot!(g; label="g")
+f(x) = cos(x) - x
+x = 0.5
+x = x - f(x)/f'(x)  # 0.7552224171056364
+x = x - f(x)/f'(x)  # 0.7391416661498792
+x = x - f(x)/f'(x)  # 0.7390851339208068
+x = x - f(x)/f'(x)  # 0.7390851332151607
+x = x - f(x)/f'(x)
+x, f(x)
 ```
 
-Clearly by $20$ the two paths diverge. We know exponentials eventually grow faster than powers, and this is seen in the graph.
+To machine tolerance the answer is a zero, even though the exact answer is irrational and all finite floating point values can be represented as rational numbers.
 
 
-To use Newton's method to find the intersection point. Stop when the increment $f(x)/f'(x)$ is smaller than `1e-4`. We need to turn the solution to an equation into a value where a function is $0$. Just moving the terms to one side of the equals sign gives $e^x - x^6 = 0$, or the $x$ we seek is a solution to $h(x)=0$ with $h(x) = e^x - x^6$.
+##### Example
 
+
+Use Newton's method to find the *largest* real solution to $e^x = x^6$. A plot shows that that answer is *near* $x=20$, so we begin there. To use Newton's method to find an intersection point, we create a new function which is zero when the two functions are equal through subtraction.
+
+For this problem we use a loop to illustrate the progression of the algorithm:
 
 ```{julia}
 #| hold: true
 #| term: true
 h(x) = exp(x) - x^6
 x = 20
-for step in 1:10
+for step in 1:11
     delta = h(x)/h'(x)
     x = x - delta
     @show step, x, delta
 end
 ```
 
-So it takes $8$ steps to get an increment that small and about `10` steps to get to full convergence.
+By the ninth step, the increment `delta`---which tracks $\lvert x_{i+1} - x_i \rvert$ is negligible and the algorithm has stopped improving. The approximate zero found is `16.99888735229605`.
 
 ##### Example division as multiplication
 
@@ -490,15 +380,19 @@ $$
 x_{i+1} = x_i - (1/x_i - q)/(-1/x_i^2) = -qx^2_i + 2x_i.
 $$
 
-Now for $q$ in the interval $[1/2, 1]$ we want to get a *good* initial guess. Here is a claim: we can use $x_0=48/17 - 32/17 \cdot q$. Let's check graphically that this is a reasonable initial approximation to $1/q$:
+Now for $q$ in the interval $[1/2, 1]$ we want to get a *good* initial guess. Here is a claim: we can use $x_0=48/17 - 32/17 \cdot q$. We check graphically in @fig-plot-1-over-q-and-reasonable-initial-approximation that this is a reasonable initial approximation to $1/q$.
 
 
+::: {#fig-plot-1-over-q-and-reasonable-initial-approximation}
 ```{julia}
 #| hold: true
 
 plot(q -> 1/q, 1/2, 1, label="1/q")
 plot!(q -> 1/17 * (48 - 32q), label="linear approximation")
 ```
+
+The linear approximation shows good starting point for Newton's method
+:::
 
 It can be shown that we have for any $q$ in $[1/2, 1]$ with initial guess $x_0 = 48/17 - 32/17\cdot q$ that Newton's method will converge to $16$ digits in no more than this many steps:
 
@@ -507,15 +401,14 @@ $$
 \log_2(\frac{53 + 1}{\log_2(17)}).
 $$
 
+Computing, we see that four steps suffices.
+
 ```{julia}
 a = log2((53 + 1)/log2(17))
 ceil(Integer, a)
 ```
 
-That is $4$ steps suffices.
-
-
-For $q = 0.80$, to find $1/q$ using the above we have
+Now we try to find $1/q$ when $q=0.8 = 4/5$ without dividing by $q$.
 
 
 ```{julia}
@@ -528,13 +421,12 @@ x = -q*x*x + 2*x
 x = -q*x*x + 2*x
 ```
 
-This method has basically $18$ multiplication and addition operations for one division, so it naively would seem slower, but timing this shows the method is competitive with a regular division.
+If values for `48/17` and `32/17` are pre-computed, this method has basically $18$ multiplication and addition operations for one division, so it naively would seem slower, but timing this shows the method is competitive with a regular division.
 
 
-## Wrapping in a function
+## Automating Newton's method
 
-
-In the previous examples, we saw fast convergence, guaranteed converge  in $4$ steps, and an example where $8$ steps were needed to get the requested level of approximation. Newton's method usually converges quickly, but may converge slowly, and may not converge at all. Automating the task to avoid repeatedly running the update step is a task best done by the computer.
+In the previous examples, we saw fast convergence, guaranteed converge in $4$ steps, and an example where $9$ steps were needed to get convergence. Newton's method usually converges quickly, but may converge slowly, and may not converge at all. Automating the task to avoid repeatedly running the update step is a task best done by the computer.
 
 
 The `while` loop is a good way to repeat commands until some condition is met. With this, we present a simple function implementing Newton's method, we iterate until the update step gets really small (the `atol`) or the convergence takes more than $50$ steps. (There are other, better choices that could be used to determine when the algorithm should stop, these are just easy to understand.)
@@ -558,7 +450,7 @@ end
 ##### Examples
 
 
-  * Find a zero of $\sin(x)$ starting at $x_0=3$:
+* Find a zero of $\sin(x)$ starting at $x_0=3$:
 
 
 ```{julia}
@@ -568,7 +460,7 @@ nm(sin, cos, 3)
 This is an approximation for $\pi$, that historically found use, as the convergence is fast.
 
 
-  * Find a solution to $x^5 =  5^x$ near $2$:
+* Find a solution to $x^5 =  5^x$ near $2$:
 
 
 Writing a function to handle this, we have:
@@ -586,13 +478,13 @@ alpha = nm(k, k', 2)
 alpha, k(alpha)
 ```
 
-### Functions in the Roots package
+### `Roots.Newton()`
 
 
-Typing in the `nm` function might be okay once, but would be tedious if it was needed each time. Besides, it isn't as robust to different inputs as possible. The `Roots` package provides a `Newton` method for `find_zero`.
+Typing in the `nm` function might be okay once, but would be tedious if it was needed each time. Besides, it isn't as robust to different inputs as possible. The `Roots` package provides a `Newton` method for its `find_zero` function.
 
 
-To use a different method with `find_zero`, the calling pattern is `find_zero(f, x, M)` where `f` represent the function(s), `x` the initial point(s), and `M` the method. Here we have:
+To use a different method with `find_zero`, the calling pattern is `find_zero(f, x, M)` where `f` represent the function(s), `x` the initial point(s), and `M` the method. For `Newton` we have:
 
 
 ```{julia}
@@ -608,16 +500,25 @@ f(x) = sin(x)
 find_zero((f, f'), 2, Roots.Newton())
 ```
 
-The argument `verbose=true` will force a print out of a message summarizing the convergence and showing each step.
+The `Newton` method isn't exported, so it is qualified via `Roots.Newton()`.
 
+
+##### Example: solving $f(x) = c$ for non-zero $c$
+
+Find a value for which `erf(x) = 0.75`.
+
+The `erf` function is increasing, so there is just one value and an exploratory graph shows the answer to be near $1$.
+
+We can apply Newton's method, but first we need to restate the problem in terms of some function equaling $0$. This can be done directly, but we do it in two steps here:
 
 ```{julia}
-#| hold: true
-f(x) = exp(x) - x^4
-find_zero((f,f'), 8, Roots.Newton(); verbose=true)
+f(x) = erf(x)
+c = 0.75
+h(x) = f(x) - c
+find_zero((h, h'), 1.0, Roots.Newton())
 ```
 
-##### Example: intersection of two graphs
+##### Example: intersection of two graphs, or solving $f(x) = g(x)$
 
 
 Find the intersection point between $f(x) = \cos(x)$ and $g(x) = 5x$ near $0$.
@@ -631,8 +532,8 @@ We have Newton's method to solve for zeros of $f(x)$, i.e. when $f(x) = 0$. Here
 f(x) = cos(x)
 g(x) = 5x
 h(x) = f(x) - g(x)
-x0 = find_zero((h,h'), 0, Roots.Newton())
-x0, h(x0), f(x0), g(x0)
+x0 = find_zero((h, h'), 0, Roots.Newton())
+x0, h(x0), f(x0) - g(x0)
 ```
 
 ---
@@ -649,7 +550,7 @@ xn = find_zero((f,fp), pi/4, Roots.Newton(); p=5)
 xn, f(xn, 5)
 ```
 
-To use automatic differentiation is not straightforward, as we must hold the `p` fixed. For this, we introduce a closure that fixes `p` and differentiates in the `x` variable (called `u` below):
+To use automatic differentiation with a parameter is not straightforward, as we must hold the `p` fixed. For this, we introduce a closure that fixes `p` and differentiates in the `x` variable (called `u` below):
 
 
 ```{julia}
@@ -659,48 +560,184 @@ fp(x,p) = (u -> f(u,p))'(x)
 xn = find_zero((f,fp), pi/4, Roots.Newton(); p=5)
 ```
 
-##### Example: Finding  $c$ in Rolle's Theorem
+##### Example: finding  $c$ in Rolle's Theorem
 
 
-The function $r(x) = \sqrt{1 - \cos(x^2)^2}$ has a zero at $0$ and one at $a$ near $1.77$.
+The function $r(x) = \sqrt{1 - \cos(x^2)^2}$ has a zero at $0$ and one at $a$ near $1.77$, as can be seen in @fig-sqrt-1-cos-x-squared-squared.
 
+::: {#fig-sqrt-1-cos-x-squared-squared}
 
 ```{julia}
+#| echo: false
 r(x) = sqrt(1 - cos(x^2)^2)
-plot(r, 0, 1.77)
+tks = 0:0.5:1.5
+plot(r, 0, 1.77, xticks = (vcat(tks, 1.77), vcat(string.(tks), L"a")))
 ```
+
+Plot of $r(x) = \sqrt{1 - \cos(x^2)^2}$ over $[0, 1.77]$
+:::
+
 
 As $f(x)$ is differentiable between $0$ and $a$, Rolle's theorem says there will be value where the derivative is $0$. Find that value.
 
 
-This value will be a zero of the derivative. A graph shows it should be near $1.2$, so we use that as a starting value to get the answer:
+This value will be a zero of the derivative. @fig-sqrt-1-cos-x-squared-squared shows it should be near $1.2$, so we use that as a starting value to get the answer:
 
 
 ```{julia}
 find_zero((r',r''), 1.2, Roots.Newton())
 ```
 
+##### Example: seeing the trace
+
+The steps of Newton's method can be see by passing a `Roots.Tracks` object. We name it `tracks` in this example to take advantage of `Julia`'s handling of matching variables with keywords with the same name ([argument destructuring](https://docs.julialang.org/en/v1/manual/functions/#man-argument-destructuring)).
+
+Consider finding a zero of $f(x) = e^{x} - x^{\pi}$. There is one near $2$.
+
+We have two additional steps to see the trace, first we create a `tracks` object.
+
+```{julia}
+f(x) = exp(x) - x^pi
+x0 = 2
+tracks = Roots.Tracks()
+find_zero((f, f'), x0, Roots.Newton(); tracks)
+```
+
+The we display the `tracks` object to see the steps taken by the algorithm along with some diagnostic details:
+
+```{julia}
+tracks
+```
+
+## The secant method
+
+The secant method is an alternative to Newton's method which uses secant lines instead of tangent lines in the update step. Like Newton's method, the secant method is iterative. Unlike Newton's method---which uses just the previous value to identify the next value---the secant method uses the two previous values in its update step.
+
+::: {.relationship title="Secant method"}
+
+Let $x_0$ and $x_1$ be two different estimates for $c$, a zero of $f(x)$. The iterative algorithm with update step
+
+$$
+x_{i+1} = x_i - \frac{x_{i} - x_{i-1}}{f(x_{i}) - f(x_{i-1})} \cdot f(x_i)
+$$
+
+is called the secant method.
+:::
+
+The multiplier of $f(x_i)$ is the reciprocal of the slope of the secant line from $(x_i, f(x_i))$ and $(x_{i-1}, f(x_{i-1}))$---in contrast to Newton's method which uses the reciprocal of the slope of the tangent line at $(x_i, f(x_i))$.
+
+The secant method can be preferred if either a function's evaluation or a function's derivative evaluation are difficult to find.
+
+##### Example
+
+Find a zero of $f(x) = \cos(x) - x$ using the secant method starting from $x_0, x_1 = 0, \pi/2$.
+
+```{julia}
+f(x) = cos(x) - x
+xi_1, xi = 0, pi/2
+xi, xi_1 = xi - (xi - xi_1) / (f(xi) - f(xi_1)) * f(xi), xi  # x2 = 0.6110154703516573
+xi, xi_1 = xi - (xi - xi_1) / (f(xi) - f(xi_1)) * f(xi), xi  # x3 = 0.7232695414357495
+xi, xi_1 = xi - (xi - xi_1) / (f(xi) - f(xi_1)) * f(xi), xi  # x4 = 0.739567106974727
+xi, xi_1 = xi - (xi - xi_1) / (f(xi) - f(xi_1)) * f(xi), xi  # x5 = 0.7390834365030763
+xi, xi_1 = xi - (xi - xi_1) / (f(xi) - f(xi_1)) * f(xi), xi  # x6 = 0.739085133034638
+xi, xi_1 = xi - (xi - xi_1) / (f(xi) - f(xi_1)) * f(xi), xi  # x7 = 0.7390851332151608
+```
+
+This example takes six iterations to reach convergence to machine tolerance. Newton's method takes only five, as in general it converges more rapidly. However, the secant method takes just one function evaluation per step, or $6$ in total not counting the initial two values; Newton's method takes $2$ per step or $10$ in total, not counting the initial value. In general this holds: the secant method might take more steps, but will require fewer function calls.
+
+<!-- https://www.math.kent.edu/~reichel/courses/optimization/reading.material.1/secant.pdf -->
+::: {.callout-note}
+## Origin of secant method
+
+[Papakonstantinou and Tapia](https://www.jstor.org/stable/10.4169/amer.math.monthly.120.06.500?origin=JSTOR-pdf) discuss the origin of the secant method tracing it back to the rule of double false position used in some manner since the 18th century BC which in modern language translates to one step of the secant method and when applied to a linear function gives a solution.
+
+:::
+
+### `Roots.Secant()`
+
+The `Roots` package has a `Secant` method for `find_zero` to carry out this method. We redo the last example, using a `Roots.tracks` object so we can see the algorithm, though in most cases this is not of interest.
+
+
+```{julia}
+f(x) = cos(x) - x
+xs = (0, pi/2)
+tracks = Roots.Tracks()
+find_zero(f, xs, Secant(); tracks)
+```
+
+The tracks are identical up to floating point differences to those in the comments in the previous example.
+
+```{julia}
+tracks
+```
+
+
+#### Default method for a nearby initial guess
+
+The `find_zero` function has a default, `Roots.Order0()`, when a single *nearby* value is specified as a starting point. This method use a secant method (after using an approximate derivative to get the second step) up *until* convergence *or* the values $x_{i-1}$ and $x_i$ form a bracketing interval. If the latter happens, then a bracketing method is used to find convergence. (Bracketing methods have guaranteed convergence).
+
+For example, we might have:
+
+```{juiia}
+empty!(tracks)  # can empty tracks or create a new one
+x0 = first(xs)  # just a single value, not even a good initial guess here
+find_zero(f, x0; tracks)  # no method specified so defaults to Order0()
+```
+
+The trace shows the steps of the secant method until a bracket is identified and then the brackets up to convergence.
+
+```{julia}
+tracks
+```
+
+The `Order0` method isn't quite as convergent as Newton's method, but is a bit more robust to some of that methods idiosyncrasies that are discussed later in this section.
+
 ## Convergence rates
 
 
-Newton's method is famously known to have "quadratic convergence." What does this mean? Let the error in the $i$th step be called $e_i = x_i - \alpha$. Then Newton's method satisfies a bound of the type:
+Newton's method is famously known to have "quadratic convergence". What does this mean?
+
+When it works, Newton's method forms a sequence $x_0, x_1, x_2, \dots$,  converging to a zero, $\alpha$ of some function $f(x)$.
+
+Define error in the $i$th step by:
+
+$$
+e_i = x_i - \alpha.
+$$
+
+We take the *order of convergence* to be the value $p$ for which
+
+
+$$
+\lim_{n \rightarrow \infty} \frac{e_{n+1}}{e_n^p} = L > 0.
+$$
+
+We say, the sequence converges with order $p$. Quadratic convergence is when $p=2$.
+
+
+
+### Convergence of Newton's method
+
+We will see Newton's method satisfies a bound like this:
 
 
 $$
 \lvert e_{i+1} \rvert \leq M_i \cdot e_i^2.
 $$
 
-If $M$ were just a constant and we suppose $e_0 = 10^{-1}$ then $e_1$ would be less than $M 10^{-2}$ and $e_2$ less than $M^2 10^{-4}$, $e_3$ less than $M^3 10^{-8}$ and $e_4$ less than $M^4 10^{-16}$ which for $M=1$ is basically the machine precision when values are near $1$. That is for some problems, with a good initial guess it will take around $4$ or so steps to converge.
+In fact, we will see that under assumptions  the value for $M$ will converge to $f''(\alpha)/(2f'(\alpha))$.
+
+If $M$ were just a constant in the above and we suppose a good initial guess, say with  $e_0 = 10^{-1}$, then $e_1$ would be less than $M 10^{-2}$ and $e_2$ less than $M^2 10^{-4}$, $e_3$ less than $M^3 10^{-8}$ and $e_4$ less than $M^4 10^{-16}$ which for $M=1$ is basically the machine precision when values are near $1$. That is for some problems, with a good initial guess it will take around $4$ or so steps to converge.
 
 
-To identify $M$, let $\alpha$ be the zero of $f$ to be approximated. Assume
+To identify $M$, *assume*
+
+* The function $f$ has a continuous *second* derivative in a neighborhood of $\alpha$.
+
+* The value $f'(\alpha)$ is *non-zero* in the neighborhood of $\alpha$.^[This property says that this is a *simple* zero or the zero has *multiplicity* of $1$.]
 
 
-  * The function $f$ has a continuous second derivative in a neighborhood of $\alpha$.
-  * The value $f'(\alpha)$ is *non-zero* in the neighborhood of $\alpha$.
-
-
-Then this linearization holds at each $x_i$ in the above neighborhood:
+Then the Lagrange remainder form for linearization holds at each $x_i$ in the above neighborhood:
 
 
 $$
@@ -710,14 +747,14 @@ $$
 The value $\xi$ is from the mean value theorem and is between $x$ and $x_i$.
 
 
-Dividing by $f'(x_i)$ and setting $x=\alpha$ (as $f(\alpha)=0$) leaves
+Setting $x=\alpha$ (as $f(\alpha)=0$) and dividing by $f'(x_i)$  leaves:
 
 
 $$
-0 = \frac{f(x_i)}{f'(x_i)} + (\alpha-x_i) + \frac{1}{2}\cdot \frac{f''(\xi)}{f'(x_i)} \cdot (\alpha-x_i)^2.
+0 = \frac{f(\alpha)}{f'(x_i)} = \frac{f(x_i)}{f'(x_i)} + (\alpha-x_i) + \frac{1}{2}\cdot \frac{f''(\xi)}{f'(x_i)} \cdot (\alpha-x_i)^2.
 $$
 
-For this value, we have
+We can write $e_{i+1}$ in terms of $x_i$ and the update step and simplify using the above relationship:
 
 
 $$
@@ -733,7 +770,7 @@ x_{i+1} - \alpha
 $$
 
 
-That is
+That is, $M$ can be read off from this equality:
 
 
 $$
@@ -743,38 +780,42 @@ $$
 This convergence to $\alpha$ will be quadratic *if*:
 
 
-  * The initial guess $x_0$ is not too far from $\alpha$, so $e_0$ is managed.
-  * The derivative at $\alpha$ is not too close to $0$, hence, by continuity $f'(x_i)$ is not too close to $0$. (As it appears in the denominator). That is, the function can't be too flat, which should make sense, as then the tangent line is nearly parallel to the $x$ axis and would intersect far away.
-  * The function $f$ has a continuous second derivative at $\alpha$.
-  * The second derivative is not too big (in absolute value) near $\alpha$. A large second derivative means the function is very concave, which means it is "turning" a lot. In this case, the function turns away from the tangent line quickly, so the tangent line's zero is not necessarily a good approximation to the actual zero, $\alpha$.
+* The initial guess $x_0$ is *near* $\alpha$, so $e_0$ is managed.
+
+* The derivative at $\alpha$ is not too close to $0$, hence, by continuity $f'(x_i)$ is not too close to $0$. (As it appears in the denominator). That is, the function can't be too flat, which should make sense, as then the tangent line is nearly parallel to the $x$ axis and would intersect far away or the algorithm can get trapped by a local extrema.
+
+* The function $f$ has a continuous second derivative at $\alpha$.
+
+* The second derivative is not too big (in absolute value) near $\alpha$. A large second derivative means the function is very concave, which means it is "turning" a lot. In this case, the function turns away from the tangent line quickly, so the tangent line's zero is not necessarily a good approximation to the actual zero, $\alpha$.
 
 
 :::{.callout-note}
-## Note
-The basic tradeoff: methods like Newton's are faster than the bisection method in terms of function calls, but are not guaranteed to converge, as the bisection method is.
+## Tradeoffs
+
+The bisection method has linear convergence, in that $\lvert e_{i+1} \rvert \approx (1/2) \lvert e_i \rvert$, but *guaranteed* to converge.
+
+Newton's method is quadratic, so *can* converge in a few steps---but convergence is not guaranteed.
 
 :::
+
+
+
+
+### When Newton's method fails
 
 What can go wrong when one of these isn't the case is illustrated next:
 
 
-### Poor initial step
+#### Poor initial guess
 
-
+::: {#fig-poor-initial-step-newtons-method}
 ```{julia}
 #| hold: true
 #| echo: false
 #| cache: true
 ### {{{newtons_method_poor_x0}}}
 gr()
-caption = """
-
-Illustration of Newton's Method converging to a zero of a function,
-but slowly as the initial guess, is very poor, and not close to the
-zero. The algorithm does converge in this illustration, but not quickly and not to the nearest root from
-the initial guess.
-
-"""
+caption = ""
 
 fn, a, b, c = x ->  sin(x) - x/4, -15, 20, 2pi
 
@@ -789,23 +830,22 @@ plotly()
 ImageFile(imgfile, caption)
 ```
 
+
+Illustration of Newton's Method converging to a zero of a function,
+but slowly as the initial guess, is very poor, and not close to the
+zero. The algorithm does converge in this illustration, but not quickly and not to the nearest root from
+the initial guess.
+
+:::
+
+::: {#fig-poor-initial-step-newtons-method-example-2}
 ```{julia}
 #| hold: true
 #| echo: false
 #| cache: true
 # {{{newtons_method_flat}}}
 gr()
-caption = L"""
-
-Illustration of Newton's method failing to converge as for some $x_i$,
-$f'(x_i)$ is too close to ``0``. In this instance after a few steps, the
-algorithm just cycles around the local minimum near $0.66$. The values
-of $x_i$ repeat in the pattern: $1.0002, 0.7503, -0.0833, 1.0002,
-\dots$. This is also an illustration of a poor initial guess. If there
-is a local minimum or maximum between the guess and the zero, such
-cycles can occur.
-
-"""
+caption = ""
 
 fn, a, b, c = x -> x^5 - x + 1, -1.5, 1.4, 0.0
 
@@ -819,8 +859,19 @@ plotly()
 ImageFile(imgfile, caption)
 ```
 
-### The second derivative is too big
+Illustration of Newton's method failing to converge as for some $x_i$,
+$f'(x_i)$ is too close to $0$. In this instance after a few steps, the
+algorithm just cycles around the local minimum near $0.66$. The values
+of $x_i$ repeat in the pattern: $1.0002, 0.7503, -0.0833, 1.0002,
+\dots$. This is also an illustration of a poor initial guess. If there
+is a local minimum or maximum between the guess and the zero, such
+cycles can occur.
 
+:::
+
+#### The second derivative is too big
+
+::: {#fig-second-derivative-too-big-newtons-method}
 
 ```{julia}
 #| hold: true
@@ -829,14 +880,7 @@ ImageFile(imgfile, caption)
 # {{{newtons_method_cycle}}}
 gr()
 fn, a, b, c, = x -> abs(x)^(0.49),  -2, 2, 1.0
-caption = L"""
-
-Illustration of Newton's Method not converging. Here the second
-derivative is too big near the zero - it blows up near $0$ - and the
-convergence does not occur. Rather the iterates increase in their
-distance from the zero.
-
-"""
+caption = ""
 
 n=10
 anim = @animate for i=1:n
@@ -850,31 +894,24 @@ plotly()
 ImageFile(imgfile, caption)
 ```
 
-### The tangent line at some xᵢ is flat
+Illustration of Newton's Method not converging. Here the second
+derivative is too big near the zero - it blows up near $0$ - and the
+convergence does not occur. Rather the iterates increase in their
+distance from the zero.
+
+:::
 
 
+#### The tangent line at some xᵢ is flat
+
+::: {#fig-tangent-line-too-flat-at-x0}
 ```{julia}
 #| hold: true
 #| echo: false
 #| cache: true
 # {{{newtons_method_wilkinson}}}
 gr()
-caption = L"""
-
-The function $f(x) = x^{20} - 1$ has two bad behaviours for Newton's
-method: for $x < 1$ the derivative is nearly $0$ and for $x>1$ the
-second derivative is very big. In this illustration, we have an
-initial guess of $x_0=8/9$. As the tangent line is fairly flat, the
-next approximation is far away, $x_1 = 1.313\dots$. As this guess
-is much bigger than $1$, the ratio $f(x)/f'(x) \approx
-x^{20}/(20x^{19}) = x/20$, so $x_i - f(x_i)/f'(x_i) \approx (19/20)x_i$
-yielding slow, linear convergence until $f''(x_i)$ is moderate. For
-this function, starting at $x_0=8/9$ takes 11 steps, at $x_0=7/8$
-takes 13 steps, at $x_0=3/4$ takes ``55`` steps, and at $x_0=1/2$ it takes
-$204$ steps.
-
-"""
-
+caption = ""
 
 fn,a,b,c = x -> x^20 - 1,  .7, 1.4, 8/9
 n = 10
@@ -888,10 +925,25 @@ plotly()
 ImageFile(imgfile, caption)
 ```
 
-###### Example
+The function $f(x) = x^{20} - 1$ has two bad behaviours for Newton's
+method: for $x < 1$ the derivative is nearly $0$ and for $x>1$ the
+second derivative is very big. In this illustration, we have an
+initial guess of $x_0=8/9$. As the tangent line is fairly flat, the
+next approximation is far away, $x_1 = 1.313\dots$. As this guess
+is much bigger than $1$, the ratio $f(x)/f'(x) \approx
+x^{20}/(20x^{19}) = x/20$, so $x_i - f(x_i)/f'(x_i) \approx (19/20)x_i$
+yielding slow, linear convergence until $f''(x_i)$ is moderate. For
+this function, starting at $x_0=8/9$ takes 11 steps, at $x_0=7/8$
+takes 13 steps, at $x_0=3/4$ takes ``55`` steps, and at $x_0=1/2$ it takes
+$204$ steps.
+
+:::
 
 
-Suppose $\alpha$ is a simple zero for $f(x)$.  (The value $\alpha$ is a zero of multiplicity $k$ if $f(x) = (x-\alpha)^kg(x)$ where $g(\alpha)$ is not zero. A simple zero has multiplicity $1$. If $f'(\alpha) \neq 0$ and the second derivative exists, then a zero $\alpha$ will be simple.)  Around $\alpha$, quadratic convergence should apply. However, consider the function $g(x) = f(x)^k$ for some integer $k \geq 2$. Then $\alpha$ is still a zero, but the derivative of $g$ at $\alpha$ is zero, so the tangent line is basically flat. This will slow the convergence up. We can see that the update step $g(x)/g'(x)$ becomes $(1/k) f(x)/f'(x)$, so an extra factor is introduced.
+###### Example: roots with multiplicity more than one
+
+
+The assumption that $f'(\alpha)$ is non zero says $\alpha$ is a simple zero for $f(x)$. Near enough around $\alpha$, quadratic convergence should apply. However, consider the function $g(x) = f(x)^k$ for some integer $k \geq 2$. Then $\alpha$ is still a zero, but the derivative of $g$ at $\alpha$ is zero, so the tangent line is basically flat. This will slow the convergence up. We can see that the update step $g(x)/g'(x)$ becomes $(1/k) f(x)/f'(x)$, so an extra factor is introduced.
 
 
 The calculation that produces the quadratic convergence now becomes:
@@ -904,7 +956,36 @@ x_{i+1} - \alpha &= (x_i - \alpha) - \frac{1}{k}(x_i-\alpha - \frac{f''(\xi)}{2f
 \end{align*}
 $$
 
-As $k > 1$, the $(x_i - \alpha)$ term dominates, and we see the convergence is linear with $\lvert e_{i+1}\rvert \approx (k-1)/k \lvert e_i\rvert$.
+As $k > 1$, the $(x_i - \alpha)$ term dominates, and we see the convergence is linear with $\lvert e_{i+1}\rvert \approx \left((k-1)/k\right) \lvert e_i\rvert$.
+
+### Convergence of the secant method
+
+As above, let $\epsilon_{n+1} = x_{n+1}-\alpha$ and *assume* $f'(\alpha) \neq 0$, or $\alpha$ is a *simple* zero of $f(x)$.
+
+
+With a more involved derivation than that for Newton's method, a [calculation](https://math.okstate.edu/people/binegar/4513-F98/4513-l08.pdf) shows that
+
+
+$$
+\begin{align*}
+\epsilon_{n+1}
+& \approx \frac{f''(\alpha)}{2f'(\alpha)} \epsilon_n \epsilon_{n-1}\\
+&= C  \epsilon_n \epsilon_{n-1}.
+\end{align*}
+$$
+
+
+The constant `C` is similar to that for Newton's method, and reveals potential troubles for the secant method similar to those of Newton's method: a poor initial guess (the initial error is too big), the second derivative is too large, the first derivative too flat near the answer.
+
+
+Assuming the error term has the form $\lvert \epsilon_{n+1}\rvert = A|\epsilon_n|^\phi$ and substituting into the above leads to the equation
+
+
+$$
+\frac{A^{1+1/\phi}}{C} = |\epsilon_n|^{1 - \phi +1/\phi}.
+$$
+
+The left side being a constant suggests $\phi$ solves: $1 - \phi + 1/\phi = 0$ or $\phi^2 -\phi - 1 = 0$. The solution is the golden ratio, $(1 + \sqrt{5})/2 \approx 1.618\dots$. That is convergence is super linear, but not quadratic, as Newton's method is.
 
 
 ## Questions
@@ -913,19 +994,26 @@ As $k > 1$, the $(x_i - \alpha)$ term dominates, and we see the convergence is l
 ###### Question
 
 
-Look at this graph with $x_0$ marked with a point:
+@fig-graph-of-airyai-minus-3.3-to-0-x0-minus-2-point-8 shows a graph of some $f(x)$ with $x_0$ marked with a point:
 
-
+::: {#fig-graph-of-airyai-minus-3.3-to-0-x0-minus-2-point-8}
 ```{julia}
 #| hold: true
 #| echo: false
 import SpecialFunctions: airyai
-p = plot(airyai, -3.3, 0, legend=false);
-plot!(p, zero, -3.3, 0);
-scatter!(p, [-2.8], [0], color=:orange, markersize=5);
-annotate!(p, [(-2.8, 0.2, "x₀")])
-p
+let
+    gr()
+    p = plot(airyai, -3.3, 0; legend=false);
+    plot!(p, zero, -3.3, 0);
+    scatter!(p, [(-2.8, 0)], marker=(:orange, 5));
+    annotate!(p, [(-2.8, 0.0, text(L"x_0", :top))])
+    plotly()
+    p
+end
 ```
+
+Plot of $f(x)$ with a zero and an initial starting point for Newton's method marked with $x_0$.
+:::
 
 If one step of Newton's method was used, what would be the value of $x_1$?
 
@@ -941,18 +1029,22 @@ radioq(choices, answ, keep_order=true)
 ###### Question
 
 
-Look at this graph of some increasing, concave up $f(x)$ with initial point $x_0$ marked. Let $\alpha$ be the zero.
+@fig-plot-some-increasing-concave-up-function show a graph of some increasing, concave up $f(x)$ with initial point $x_0$ marked. Let $\alpha$ be the zero.
 
-
+::: {#fig-plot-some-increasing-concave-up-function}
 ```{julia}
 #| hold: true
 #| echo: false
 p = plot(x -> x^2 - 2, .75, 2.2, legend=false);
 plot!(p, zero,                   color=:green);
-scatter!(p, [1],[0],             color=:orange, markersize=5);
-annotate!(p, [(1,.25, "x₀"), (sqrt(2), .2, "α")]);
+scatter!(p, [(1,0)],             color=:orange, markersize=5);
+annotate!(p, [(1,0, text(L"x_0",:top, :left)),
+              (sqrt(2), 0, text(L"\alpha", :top))]);
 p
 ```
+
+Graph of an increasing, concave up function.
+:::
 
 What can be said about $x_1$?
 
@@ -972,19 +1064,27 @@ radioq(choices, answ)
 ---
 
 
-Look at this graph of some increasing, concave up $f(x)$ with initial point $x_0$ marked. Let $\alpha$ be the zero.
+@fig-plot-some-increasing-concave-up-function-start-on-right is a graph of some increasing, concave up $f(x)$ with initial point $x_0$ marked. Let $\alpha$ be the zero.
 
-
+::: {#fig-plot-some-increasing-concave-up-function-start-on-right}
 ```{julia}
 #| hold: true
 #| echo: false
-p = plot(x -> x^2 - 2, .75, 2.2, legend=false);
-plot!(p, zero, .75, 2.2, color=:green);
-scatter!(p, [2],[0], color=:orange, markersize=5);
-annotate!(p, [(2,.25, "x₀"), (sqrt(2), .2, "α")]);
-p
+let
+    gr()
+    plt = plot(x -> x^2 - 2, .75, 2.2; empty_style...)
+    plot!(plt, zero; line=(:green,), arrow=true, side=:right)
+    scatter!(plt, [2],[0], marker = (:orange, 5))
+    annotate!(plt, [
+        (2, 0, text(L"x_0",:top, :left)),
+        (sqrt(2), 0, text(L"\alpha", :top))])
+    plotly()
+    plt
+end
 ```
 
+Graph of an increasing, concave up function.
+:::
 What can be said about $x_1$?
 
 
@@ -1068,11 +1168,54 @@ numericq(xstar, 1e-1)
 
 ###### Question
 
+Let $f(x) = \exp(x) - x^4$. As mentioned, there are 3 zeros for this function. What does the *secant* method converge to when started with $x_0 = 0, x_1 = 3$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = exp(x) - x^4;
+xs = (0, 3)
+xstar = find_zero(f, xs, Secant())
+numericq(xstar, 1e-1)
+```
+
+###### Question
+
+Let $f(x) = \exp(x) - x^4$. As mentioned, there are 3 zeros for this function. What does the *secant* method converge to when started with $x_0 = 3, x_1 = 6$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = exp(x) - x^4;
+xs = (3, 6)
+xstar = find_zero(f, xs, Secant())
+numericq(xstar, 1e-1)
+```
+
+###### Question
+
+Let $f(x) = \exp(x) - x^4$. As mentioned, there are 3 zeros for this function. What does the *secant* method converge to when started with $x_0 = 6, x_1 = 9$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = exp(x) - x^4;
+xs = (6, 9)
+xstar = find_zero(f, xs, Secant())
+numericq(xstar, 1e-1)
+```
+
+
+###### Question
+
 
 Let $f(x) = \sin(x) - \cos(4\cdot x)$.
 
 
-Starting at $\pi/8$, solve for the root returned by Newton's method
+Starting at $\pi/8$, solve for the root returned by Newton's method.
 
 
 ```{julia}
@@ -1082,6 +1225,26 @@ k1=4
 f(x)  = sin(x) - cos(k1*x);
 fp(x) = cos(x) + k1*sin(k1*x);
 val = Roots.newton(f, fp, pi/(2k1));
+numericq(val)
+```
+
+
+###### Question
+
+
+Let $f(x) = \sin(x) - \cos(4\cdot x)$.
+
+
+Starting at $x_0 = 0, x_1 = 1$, solve for the root returned by secant method.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+k1=4
+f(x)  = sin(x) - cos(k1*x)
+xs = (0, 1)
+val = find_zero(f, xs, Secant())
 numericq(val)
 ```
 
@@ -1112,7 +1275,6 @@ f(x) = x^5 + x - 1
 val = Roots.newton(f,f', -1)
 numericq(val)
 ```
-
 ###### Question
 
 
@@ -1129,13 +1291,18 @@ nothing
 
 For the following graph, graphically consider the algorithm for a few different starting points.
 
-
+::: {#fig-newton-method-consider-x0}
 ```{julia}
 #| hold: true
 #| echo: false
 # placeholder until CWJ bumps up a version?
-plot(x -> x^5 - x - 1, -1, 2)
+plot(x -> x^5 - x - 1, -1, 1.5; legend=false, line=(:black,))
+plot!(zero; line=(:black,))
 ```
+
+Plot of $f(x)$. Consider Newton's method for different initial values.
+:::
+
 
 If $x_0$ is $1$ what occurs?
 
@@ -1359,13 +1526,17 @@ Will Newton's method find the zero at $0.0$ starting at $1$?
 yesnoq("no")
 ```
 
-Considering this plot:
+Consider the graph in $fig-newton-baffler-minus-1-point-1-to-1-point-1.
 
-
+::: {#fig-newton-baffler-minus-1-point-1-to-1-point-1}
 ```{julia}
 #| hold: true
-plot(newton_baffler, -1.1, 1.1)
+plot(newton_baffler, -1.1, 1.1; label="newton baffler")
+plot!(zero; label="zero")
 ```
+
+Plot of Newton baffler function
+:::
 
 Starting with $x_0=1$, you can see why Newton's method will fail. Why?
 
@@ -1388,7 +1559,7 @@ This function does not have a small first derivative; or a large second derivati
 ###### Question
 
 
-Let $f(x) = \sin(x) - x/4$. Starting at  $x_0 = 2\pi$ Newton's method will converge to a value, but it will take many steps. Using the argument `verbose=true` for `find_zero`, how many steps does it take:
+Let $f(x) = \sin(x) - x/4$. Starting at  $x_0 = 2\pi$ Newton's method will converge to a value, but it will take many steps. Using a `tracks` argument to find how many steps it takes.
 
 
 ```{julia}
@@ -1424,7 +1595,7 @@ yesnoq("no")
 ###### Question
 
 
-Quadratic convergence of Newton's method only applies to *simple* roots. For example, we can see (using the `verbose=true` argument to the `Roots` package's `newton` method), that it only takes $4$ steps to find a zero to $f(x) = \cos(x) - x$ starting at $x_0 = 1$. But it takes many more steps to find the same zero for $f(x) = (\cos(x) - x)^2$.
+Quadratic convergence of Newton's method only applies to *simple* roots. For example, we can see (using a `tracks` argument), that it only takes $4$ steps to find a zero to $f(x) = \cos(x) - x$ starting at $x_0 = 1$. But it takes many more steps to find the same zero for $f(x) = (\cos(x) - x)^2$.
 
 
 How many?
@@ -1440,9 +1611,9 @@ numericq(val, 2)
 ###### Question: Implicit equations
 
 
-The equation $x^2 + x\cdot y + y^2 = 1$ is a rotated ellipse.
+The equation $x^2 + x\cdot y + y^2 = 1$ is a rotated ellipse and is graphed in @fig-implicit-plot-of-rotated-ellipse.
 
-
+::: {#fig-implicit-plot-of-rotated-ellipse}
 ```{julia}
 #| hold: true
 #| echo: false
@@ -1450,6 +1621,9 @@ The equation $x^2 + x\cdot y + y^2 = 1$ is a rotated ellipse.
 f(x,y) = x^2 + x * y + y^2 - 1
 implicit_plot(f, xlims=(-2,2), ylims=(-2,2), legend=false)
 ```
+
+Plot of a rotated ellipse
+:::
 
 Can we find which point on its graph has the largest $y$ value?
 
@@ -1465,7 +1639,7 @@ function findy(x)
 end
 ```
 
-For a *fixed* x, this solves for $y$ in the equation: $F(y) = x^2 + x \cdot y + y^2 - 1 = 0$. It should be that $(x,y)$ is a solution:
+For a *fixed* $x$, this solves for $y$ in the equation: $F(y) = x^2 + x \cdot y + y^2 - 1 = 0$. It should be that $(x,y)$ is a solution:
 
 
 ```{julia}
@@ -1584,3 +1758,6 @@ yesnoq(false)
 ```
 
 All methods work quickly with this well-behaved problem. In general the convergence rates are slightly different for each, with the Steffensen method matching Newton's method and the difference quotient method being slower in general. All can be more sensitive to the initial guess.
+
+
+##### Question

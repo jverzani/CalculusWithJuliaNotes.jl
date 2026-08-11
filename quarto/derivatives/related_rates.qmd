@@ -18,7 +18,7 @@ using SymPy
 ---
 
 
-Related rates problems involve two (or more) unknown quantities that are related through an equation. As the two variables depend on each other, also so do their rates - change with respect to some variable which is often time. Exactly how remains to be discovered. Hence the name "related rates."
+Related rates problems involve two (or more) unknown quantities that are related through an equation. As the two variables depend on each other, also so do their rates---change with respect to some variable which is often time. Exactly how remains to be discovered. Hence the name "related rates".
 
 
 #### Examples
@@ -30,50 +30,51 @@ The following is a typical "book" problem:
 > A *vintage* screen saver displays the outline of a $3$ cm by $2$ cm rectangle and then expands the rectangle in such a way that the $2$ cm side is expanding at the rate of $4$ cm/sec and the proportions of the rectangle never change.  How fast is the area of the rectangle increasing when its dimensions are $12$ cm by $8$ cm? [Source.](http://oregonstate.edu/instruct/mth251/cq/Stage9/Practice/ratesProblems.html)
 
 
-
+::: {#fig-growing-rects-graph}
 ```{julia}
 #| hold: true
 #| echo: false
 #| cache: true
 ### {{{growing_rects}}}
 ## Secant line approaches tangent line...
-gr()
-function growing_rects_graph(n)
-    w = (t) -> 2 + 4t
-    h = (t) -> 3/2 * w(t)
-    t = n - 1
+let
+    gr()
+    function growing_rects_graph(n)
+        w = (t) -> 2 + 4t
+        h = (t) -> 3/2 * w(t)
+        t = n - 1
 
-    w_2 = w(t)/2
-    h_2 = h(t)/2
+        w_2 = w(t)/2
+        h_2 = h(t)/2
 
-    w_n = w(5)/2
-    h_n = h(5)/2
+        w_n = w(5)/2
+        h_n = h(5)/2
 
-    plt = plot(w_2 * [-1, -1, 1, 1, -1], h_2 * [-1, 1, 1, -1, -1], xlim=(-17,17), ylim=(-17,17),
-               legend=false, size=fig_size)
-    annotate!(plt, [(-1.5, 1, "Area = $(round(Int, 4*w_2*h_2))")])
-    plt
+        plt = plot(w_2 * [-1, -1, 1, 1, -1], h_2 * [-1, 1, 1, -1, -1], xlim=(-17,17), ylim=(-17,17),
+                   legend=false, size=fig_size)
+        area = round(Int, 4*w_2*h_2)
+        annotate!(plt, [(-1.5, 1, text(latexstring(L"Area = \$$area\$", :center)))])
+        plt
+    end
+    caption = ""
+    n=6
 
+    anim = @animate for i=1:n
+        growing_rects_graph(i)
+    end
 
+    imgfile = tempname() * ".gif"
+    gif(anim, imgfile, fps = 1)
+
+    plotly()
+    ImageFile(imgfile, caption)
 end
-caption = L"""
-
-As $t$ increases, the size of the rectangle grows. The ratio of width to height is fixed. If we know the rate of change in time for the width ($dw/dt$) and the height ($dh/dt$) can we tell the rate of change of *area* with respect to time ($dA/dt$)?
-
-"""
-n=6
-
-anim = @animate for i=1:n
-    growing_rects_graph(i)
-end
-
-imgfile = tempname() * ".gif"
-gif(anim, imgfile, fps = 1)
-plotly()
-ImageFile(imgfile, caption)
 ```
 
-Here we know $A = w \cdot h$ and we know some things about how $w$ and $h$ are related *and* about the rate of how both $w$ and $h$ grow in time $t$. That means that we could express this growth in terms of some functions $w(t)$ and $h(t)$, then we can figure out that the area - as a function of $t$ - will be expressed as:
+As $t$ increases, the size of the rectangle grows. The ratio of width to height is fixed. If we know the rate of change in time for the width ($dw/dt$) and the height ($dh/dt$) can we tell the rate of change of *area* with respect to time ($dA/dt$)?
+:::
+
+Here we know $A = w \cdot h$ and we know some things about how $w$ and $h$ are related *and* about the rate of how both $w$ and $h$ grow in time $t$. That means that we could express this growth in terms of some functions $w(t)$ and $h(t)$, then we can figure out that the area---as a function of $t$---will be expressed as:
 
 
 $$
@@ -94,7 +95,7 @@ $$
 \frac{dA}{dt} = \frac{dw}{dt} h + w \frac{dh}{dt}.
 $$
 
-This relationship is true for all $t$, but the problem discusses a certain value of $t$ - when $w(t)=8$ and $h(t) = 12$. At this same value of $t$, we have $w'(t) = 4$ and so $h'(t) = 6$. Substituting these 4 values into the 4 unknowns in the formula for $A'(t)$ gives:
+This relationship is true for all $t$, but the problem discusses a certain value of $t$---when $w(t)=8$ and $h(t) = 12$. At this same value of $t$, we have $w'(t) = 4$ and so $h'(t) = 6$. Substituting these 4 values into the 4 unknowns in the formula for $A'(t)$ gives:
 
 
 $$
@@ -198,6 +199,7 @@ A ladder, with length $l$, is leaning against a wall. We parameterize this probl
 
 If the ladder starts to slip away at the base, but remains in contact with the wall, express the rate of change of $h$ with respect to $t$ in terms of $db/dt$.
 
+::: {#fig-ladder-along-wall-slipping-away}
 ```{julia}
 #| echo: false
 let
@@ -231,16 +233,13 @@ let
 		(b/2, h/2, text(L"L", rotation = -atand(h,b), :bottom))
 
 	])
+    plotly()
     current()
 end
 ```
 
-```{julia}
-#| echo: false
-plotly()
-nothing
-```
-
+A ladder placed on a wall is slipping away from its base
+:::
 
 
 We have from implicitly differentiating in $t$ the equation $l^2 = h^2 + b^2$,  noting that $l$ is a constant, that:
@@ -298,9 +297,13 @@ imgfile = "figures/long-shadow-noir.png"
 ImageFile(:derivatives, imgfile, caption)
 ```
 
-![A man and woman walk towards the light](./figures/long-shadow-noir.png)
+::: {#fig-film-noir}
+![](./figures/long-shadow-noir.png){fig-alt="A man and woman walk towards the light"}
 
-Shadows are a staple of film noir. In the photo, suppose a man and a woman walk towards a street light. As they approach the light the length of their shadow changes.
+A man and woman walk towards the light
+:::
+
+Shadows are a staple of film noir. In @fig-film-noir, suppose a man and a woman walk towards a street light. As they approach the light the length of their shadow changes.
 
 
 Suppose, we focus on the $5$ foot tall woman. Her shadow comes from a streetlight $12$ feet high. She is walking at $3$ feet per second towards the light. What is the rate of change of her shadow?
@@ -340,6 +343,7 @@ Solving for $l'$ gives an answer in terms of $x'$ the rate the woman is walking.
 ##### Example
 
 
+::: {#fig-sun-setting-casts-a-shadow}
 ```{julia}
 #| hold: true
 #| echo: false
@@ -351,6 +355,10 @@ plot!(p, [25,25],[25,0], linewidth=5, color=:black)
 plot!(p, [25,50], [0,0], linewidth=2, color=:black)
 ```
 
+As the sun sets shadows change length
+:::
+
+
 The sun is setting at the rate of $1/20$ radian/min, and appears to be dropping perpendicular to the horizon, as depicted in the figure. How fast is the shadow of a $25$ meter wall lengthening at the moment when the shadow is $25$ meters long?
 
 
@@ -361,7 +369,7 @@ $$
 \tan(\theta) = \frac{25}{x}
 $$
 
-of $x\tan(\theta) = 25$.
+or $x\tan(\theta) = 25$.
 
 
 As $t$ evolves, we know $d\theta/dt$ but what is $dx/dt$? Using implicit differentiation yields:
@@ -442,6 +450,7 @@ $$
 
 ##### Example
 
+::: {#fig-baseball-been-berry-good-graph}
 
 ```{julia}
 #| hold: true
@@ -469,15 +478,13 @@ function baseball_been_berry_good_graph(n)
 
     plt = plot(xs, ys, legend=false, size=fig_size, xlim=(0,150), ylim=(0,15))
     plot!(plt, [x(t), 100], [y(t), 0.0], color=:orange)
-    annotate!(plt, [(55, 4,"θ = $(round(Int, degrees)) degrees"),
-                    (x(t), y(t), "($(round(Int, x(t))), $(round(Int, y(t))))")])
+    degs = round(Int, degrees)
+    xts, yts = round(Int, x(t)), round(Int, y(t))
+    annotate!(plt, [(55, 4, text(latexstring("\$\\theta = $degs\$ degrees"))),
+                     (x(t), y(t), text(latexstring("($xts, $yts)")))])
 
 end
-caption = L"""
-
-The flight of the ball as being tracked by a stationary outfielder.  This ball will go over the head of the player. What can the player tell from the quantity $d\theta/dt$?
-
-"""
+caption = ""
 n = 8
 
 
@@ -491,6 +498,9 @@ gif(anim, imgfile, fps = 1)
 plotly()
 ImageFile(imgfile, caption)
 ```
+
+The flight of the ball as being tracked by a stationary outfielder.  This ball will go over the head of the player. What can the player tell from the quantity $d\theta/dt$?
+:::
 
 A baseball player stands $100$ meters from home base. A batter hits the ball directly at the player so that the distance from home plate is $x(t)$ and the height is $y(t)$.
 
@@ -559,16 +569,20 @@ dtheta₁ = dtheta(cos(theta(t))^2 => (100 -x(t))^2/(y(t)^2 + (100-x(t))^2))
 Plotting reveals some interesting things. For $v_{0y} < 10$ we have graphs that look like:
 
 
+::: {#fig-dtheta-small-v}
 ```{julia}
 plot(dtheta₁, 0, v0/5)
 ```
+
+Plot of `dtheta` for smaller velocity
+:::
 
 The ball will drop in front of the player, and the change in $d\theta/dt$ is monotonic.
 
 
 But let's rerun the code with $v_{0y} > 10$:
 
-
+::: {#fig-dtheta-larger-v}
 ```{julia}
 #| hold: true
 v0 = 15
@@ -580,6 +594,10 @@ dtheta = solve(diff(eqn, t), thetap)[1]
 dtheta₁ = subs(dtheta, cos(theta(t))^2, (100 - x(t))^2/(y(t)^2 + (100 - x(t))^2))
 plot(dtheta₁, 0, v0/5)
 ```
+
+Plot of `dtheta` for larger velocity
+:::
+
 
 In the second case we have a different shape. The graph is not monotonic, and before the peak there is an inflection point.  Without thinking too hard, we can see that the greatest change in the angle is when it is just above the head ($t=2$ has $x(t)=100$).
 
@@ -610,7 +628,7 @@ $$
 \frac{dV}{dh} = \frac{\pi}{3} ( R(h)^2 + h \cdot 2 R \frac{dR}{dh}).
 $$
 
-We see that it depends on $R$ and the change in $R$ with respect to $h$. However, we visualize $h$ - the height - so it is better to re-express. Clearly, $dR/dh = \tan\theta$ and using $R(h) = h \tan(\theta)$ we get:
+We see that it depends on $R$ and the change in $R$ with respect to $h$. However, we visualize $h$---the height---so it is better to re-express. Clearly, $dR/dh = \tan\theta$ and using $R(h) = h \tan(\theta)$ we get:
 
 
 $$
@@ -626,7 +644,7 @@ How do the quantities vary in time?
 For an incompressible fluid, by balancing the volume leaving with how it leaves we will have $dh/dt$ is the ratio of the cross-sectional area at bottom over that at the height of the fluid $(\pi \cdot (h_0\tan(\theta))^2) / (\pi \cdot ((h\tan\theta))^2)$ times the outward velocity of the fluid.
 
 
-That is $dh/dt = (h_0/h)^2 \cdot v$. Which makes sense - larger openings ($h_0$) mean more fluid lost per unit time so the height change follows, higher levels ($h$) means the change in height is slower, as the cross-sections have more volume.
+That is $dh/dt = (h_0/h)^2 \cdot v$. Which makes sense---larger openings ($h_0$) mean more fluid lost per unit time so the height change follows, higher levels ($h$) means the change in height is slower, as the cross-sections have more volume.
 
 
 By [Torricelli's](http://en.wikipedia.org/wiki/Torricelli's_law) law, the out velocity follows the law $v = \sqrt{2g(h-h_0)}$. This gives:
@@ -672,8 +690,8 @@ choices = [
 "The rate of change of price will increase",
 "The rate of change of price will be positive and will depend on the rate of change of excess demand."
 ]
-answ = 3
-radioq(choices, answ, keep_order=true)
+answer = 3
+radioq(choices, answer, keep_order=true)
 ```
 
 (Theoretically, when demand exceeds supply, prices increase.)
@@ -692,8 +710,8 @@ choices = [
 "If the rate of change of unemployment is negative, the rate of change of wages will be negative.",
 "If the rate of change of unemployment is negative, the rate of change of wages will be positive."
 ]
-answ = 2
-radioq(choices, answ, keep_order=true)
+answer = 2
+radioq(choices, answer, keep_order=true)
 ```
 
 (Colloquially, "the rate of change of unemployment is negative" means the unemployment rate is going down, so there are fewer workers available to fill new jobs.)
@@ -713,8 +731,8 @@ L"The rate of change of pressure is always increasing by $c$",
 "If volume is constant, the rate of change of pressure is proportional to the temperature",
 "If volume is constant, the rate of change of pressure is proportional to the rate of change of temperature",
 "If pressure is held constant, the rate of change of pressure is proportional to the rate of change of temperature"]
-answ = 3
-radioq(choices, answ, keep_order=true)
+answer = 3
+radioq(choices, answer, keep_order=true)
 ```
 
 ###### Question
@@ -800,8 +818,8 @@ choices = [
 "``f(x) = x``",
 "``f(x) = x^2``"
 ]
-answ = 4
-radioq(choices, answ, keep_order=true)
+answer = 4
+radioq(choices, answer, keep_order=true)
 ```
 
 ###### Question
@@ -833,8 +851,8 @@ choices = [
 "``y = 1 - \\log(x)``",
 "``y = x(2x - 1/x)``"
 ]
-answ = 1
-radioq(choices, answ)
+answer = 1
+radioq(choices, answer)
 ```
 
 If $dx/dt = -1$, what is $dy/dt$?
@@ -849,6 +867,6 @@ choices = [
 "``dy/dt = -2x - 1/x``",
 "``dy/dt = 1``"
 ]
-answ=1
-radioq(choices, answ)
+answer=1
+radioq(choices, answer)
 ```

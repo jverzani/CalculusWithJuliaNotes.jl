@@ -10,22 +10,24 @@ This section uses these add-on packages:
 using CalculusWithJulia
 using Plots
 plotly()
-using Roots
 using SymPy
+using Roots          # zero-finding algorithms
 ```
 
 ---
 
+::: {#fig-lhospitals-plot-of-ivt}
+![](figures/ivt.jpg){width=40%}
 
-![Between points M and M lies an F for a continuous curve.  [L'Hospitals](https://ia801601.us.archive.org/26/items/infinimentpetits1716lhos00uoft/infinimentpetits1716lhos00uoft.pdf) figure 55.](figures/ivt.jpg){width=40%}
+Between points M and M lies an F for a continuous curve.  [L'Hospitals](https://ia801601.us.archive.org/26/items/infinimentpetits1716lhos00uoft/infinimentpetits1716lhos00uoft.pdf) figure 55.
+:::
 
 Continuity for functions is a valued property which carries implications. In this section we discuss two: the intermediate value theorem and the extreme value theorem. These two theorems speak to some fundamental applications of calculus: finding zeros of a function and finding extrema of a function.
 
 
 ## Intermediate Value Theorem
 
-::: {.callout-note icon=false}
-## The intermediate value theorem
+::: {.theorem title="The intermediate value theorem"}
 
 If $f$ is continuous on $[a,b]$  with, say, $f(a) < f(b)$, then for any $y$ with $f(a) \leq y \leq f(b)$  there exists a $c$ in $[a,b]$ with $f(c) = y$.
 
@@ -100,7 +102,7 @@ plotly()
 nothing
 ```
 
-Illustration of the intermediate value theorem. The theorem implies that any randomly chosen $y$ value between $f(a)$ and $f(b)$ will have  at least one $c$ in $[a,b]$ with $f(c)=y$. This graphic shows one of several possible values for the given choice of $y$.
+Illustration of the intermediate value theorem. The theorem implies that any arbitrarily chosen $y$ value between $f(a)$ and $f(b)$ will have  at least one $c$ in $[a,b]$ with $f(c)=y$. This graphic shows one of several possible values for the given choice of $y$.
 
 :::
 
@@ -116,20 +118,20 @@ The basic proof starts with a set of points in $[a,b]$: $C = \{x \text{ in } [a,
 Suppose we have a continuous function $f(x)$ on $[a,b]$ with $f(a) < 0$ and $f(b) > 0$. Then as $f(a) < 0 < f(b)$, the intermediate value theorem guarantees the existence of a $c$ in $[a,b]$ with $f(c) = 0$. This was a special case of the intermediate value theorem proved by Bolzano first. Such $c$ are called *zeros* of the function $f$.
 
 
-Here, we use the Bolzano theorem to give an algorithm - the *bisection method* - to locate a value $c$ in $[a,b]$ with $f(c) = 0$ under the assumptions:
+Here, we use the Bolzano theorem to give an algorithm---the *bisection method*---to locate a value $c$ in $[a,b]$ with $f(c) = 0$ under the assumptions:
 
-* $f$ is continuous on $[a,b]$
+* $f$ is continuous on $[a,b]$;
 
-* $f$ changes sign between $a$ and $b$. (In particular, when  $f(a)$ and $f(b)$ have different signs.)
+* $f(a)$ and $f(b)$ have different signs.
 
 ::: {.callout-note}
-#### Between
+## Between
 
 The bisection method is used to find a zero, $c$, of $f(x)$ *between* two values, $a$ and $b$. The method is guaranteed to work under the assumption of a continuous function having different signs at $a$ and $b$.
 :::
 
 
-
+::: {#fig-bisection-method-animation}
 ```{julia}
 #| hold: true
 #| echo: false
@@ -172,17 +174,16 @@ imgfile = tempname() * ".gif"
 gif(anim, imgfile, fps = 1)
 
 
-caption = L"""
+caption = ""
+plotly()
+ImageFile(imgfile, caption)
+```
 
 Illustration of the bisection method to find a zero of a function. At
 each step the interval has $f(a)$ and $f(b)$ having opposite signs so
 that the intermediate value theorem guarantees a zero.
 
-"""
-
-plotly()
-ImageFile(imgfile, caption)
-```
+:::
 
 Call $[a,b]$ a *bracketing* interval if $f(a)$ and $f(b)$ have different signs. We remark that having different signs can be expressed mathematically as $f(a) \cdot f(b) < 0$.
 
@@ -190,12 +191,14 @@ Call $[a,b]$ a *bracketing* interval if $f(a)$ and $f(b)$ have different signs. 
 We can narrow down where a zero is in $[a,b]$ by following this recipe:
 
 
-  * Pick a midpoint of the interval, for concreteness $c = (a+b)/2$.
-  * If $f(c) = 0$ we are done, having found a zero in $[a,b]$.
-  * Otherwise it must be that either $f(a)\cdot f(c) < 0$ or $f(c) \cdot f(b) < 0$. If $f(a) \cdot f(c) < 0$, then let $b=c$ and repeat the above. Otherwise, let $a=c$ and repeat the above.
+* Pick a midpoint of the interval, for concreteness $c = (a+b)/2$.
+
+* If $f(c) = 0$ we are done, having found a zero in $[a,b]$.
+
+* Otherwise it must be that either $f(a)\cdot f(c) < 0$ or $f(c) \cdot f(b) < 0$. If $f(a) \cdot f(c) < 0$, then let $b=c$ and repeat the above. Otherwise, let $a=c$ and repeat the above.
 
 
-At each step the bracketing interval is narrowed – indeed split in half as defined – or a zero is found.
+At each step the bracketing interval is narrowed---indeed split in half as defined---or a zero is found.
 
 
 For the real numbers this algorithm never stops unless a zero is found. A "limiting" process is used to say that if it doesn't stop, it will converge to some value.
@@ -209,26 +212,27 @@ We can write a relatively simple program to implement this algorithm:
 
 ```{julia}
 function simple_bisection(f, a, b)
-  if f(a) == 0 return(a) end
-  if f(b) == 0 return(b) end
-  if f(a) * f(b) > 0 error("[a,b] is not a bracketing interval") end
+    f(a) == 0 && return a
+    f(b) == 0 && return b
+    f(a) * f(b) > 0 && error("[a,b] is not a bracketing interval")
 
-  tol = 1e-14  # small number (but should depend on size of a, b)
-  c = a/2 + b/2
-
-  while abs(b-a) > tol
-    if f(c) == 0 return(c) end
-
-    if f(a) * f(c) < 0
-       a, b = a, c
-    else
-       a, b = c, b
-    end
+    tol = 1e-14  # small number (but should depend on size of a, b)
 
     c = a/2 + b/2
 
-  end
-  c
+    while abs(b-a) > tol
+        f(c) == 0 && return c
+
+        if f(a) * f(c) < 0
+            a, b = a, c
+        else
+            a, b = c, b
+        end
+
+        c = a/2 + b/2
+
+    end
+    c
 end
 ```
 
@@ -254,8 +258,9 @@ sin(c)
 
 ### The `find_zero` function to solve `f(x) = 0`
 
+The `Roots` package has a function `find_zero` that implements the bisection method when called as `find_zero(f, (a,b))` where $[a,b]$ is a bracketing interval  for $f$, a continuous function. Its use is similar to `simple_bisection` above. This package is part of the `CalculusWithJulia` package.
 
-The `Roots` package has a function `find_zero` that implements the bisection method when called as `find_zero(f, (a,b))` where $[a,b]$ is a bracket. Its use is similar to `simple_bisection` above. This package is loaded when `CalculusWithJulia` is. We illlustrate the usage of `find_zero` in the following:
+We illlustrate the usage of `find_zero` in the following to numerically find a zero of $f(x) = \sin(x)$ in $[3,4]$:
 
 
 ```{julia}
@@ -264,15 +269,16 @@ xstar = find_zero(sin, (3, 4))
 
 :::{.callout-note}
 ## Action template
-Notice, the call `find_zero(sin, (3, 4))` again fits the template `action(function, args...)` that we see repeatedly. The `find_zero` function can also be called through `fzero`. The use of `(3, 4)` to specify the interval is not necessary. For example  `[3,4]` would work equally as well. (Anything where `extrema` is defined works.)
+Notice, the call `find_zero(sin, (3, 4))` again fits the template `action(function, args...)` that we see repeatedly. The use of `(3, 4)` to specify the interval is not necessary. For example  `[3,4]` would work equally as well. (Anything where `extrema` is defined works.)
 
 :::
 
-This function utilizes some facts about floating point values to guarantee that the answer will be an *exact* zero or a value where there is a sign change between the next bigger floating point or the next smaller, which means the sign at the next and previous floating point values is different:
+This function utilizes some facts about floating point values to guarantee that the answer will be an *exact* zero (this answer isn't) *or& a value where there is a sign change between the next bigger floating point or the next smaller, which means the sign at the next and previous floating point values is different:
 
 
 ```{julia}
-sin(xstar), sign(sin(prevfloat(xstar))), sign(sin(nextfloat(xstar)))
+prev, next = prevfloat(xstar), nextfloat(xstar)
+sign(sin(prev)), sign(sin(next))
 ```
 
 ##### Example
@@ -297,13 +303,17 @@ p(c₀), sign(p(prevfloat(c₀))), sign(p(nextfloat(c₀)))
 ##### Example
 
 
-The function $q(x) = e^x - x^4$ has a zero between $5$ and $10$, as this graph shows:
+The function $q(x) = e^x - x^4$ has a zero between $5$ and $10$, as @fig-plot-exp-x-minus-x-to-4-from-5-to-10 shows.
 
-
+::: {#fig-plot-exp-x-minus-x-to-4-from-5-to-10}
 ```{julia}
+#| echo: false
 q(x) = exp(x) - x^4
-plot(q, 5, 10)
+plot(q, 5, 10; legend=false)
+plot!(zero)
 ```
+Plot of $e^x - x^4$ over $[5, 10]$
+:::
 
 Find the zero numerically. The plot shows $q(5) < 0 < q(10)$, so $[5,10]$ is a bracket. We thus have:
 
@@ -313,7 +323,7 @@ find_zero(q, (5, 10))
 ```
 
 ::: {.callout-note}
-### Between need not be near
+## Between need not be near
 
 Later, we will see more efficient algorithms to find a zero *near* a given guess. The bisection method finds a zero *between* two values of a bracketing interval. This interval need not be small. Indeed in many cases it can be infinite. For this particular problem, any interval like `(2,N)` will work as long as `N` is bigger than the zero and small enough that `q(N)` is finite *or* infinite *but* not `NaN`. (Basically, `q` must evaluate to a number with a sign. Here, the value of `q(Inf)` is `NaN` as it evaluates to the indeterminate `Inf - Inf`. But `q` is still not `NaN` for quite large numbers, such as `1e77`, as `x^4` can as big as `1e308`---technically `floatmax(Float64)`---and be finite.)
 
@@ -328,24 +338,28 @@ Find all real zeros of $f(x) = x^3 -x + 1$ using the bisection method.
 We show next that symbolic values can be used with `find_zero`, should that be useful.
 
 
-First, we produce a plot to identify a bracketing interval
+First, in @fig-plot-x-cubed-minus-x-plus-1-over-minus3-3 we produce a plot over $[-3,3]$ to identify a bracketing interval.
 
-
+::: {#fig-plot-x-cubed-minus-x-plus-1-over-minus3-3}
 ```{julia}
+#| echo: false
 @syms x
 plot(x^3 - x + 1, -3, 3)
 ```
+Plot of $x^3 - x + 1$ over $[-3,3]$
+:::
 
 It appears (and a plot over $[0,1]$ verifies) that there is one zero between $-2$ and $-1$. It is found with:
 
 
 ```{julia}
+@syms x
 find_zero(x^3 - x + 1, (-2,  -1))
 ```
 
-#### The `find_zero` function to solve `f(x) = c`
+### The `find_zero` function to solve `f(x) = c`
 
-Solving `f(x) = c` is related to solving `h(x) = 0`. The key is to make a new function using the difference of the two sides: `h(x) = f(x) - c`.
+Solving `f(x) = c` is related to solving `h(x) = 0` for a related `h`. The key is to make a new function using the difference of the two sides: `h(x) = f(x) - c`.
 
 ##### Example
 
@@ -385,18 +399,20 @@ end
 
 The check on `fa < fb` is due to the possibility that $f$ is increasing (in which case `fa < fb`) or decreasing (in which case `fa > fb`).
 
-To see this used, we consider the monotonic function $f(x) = x - \sin(x)$ over $[0, 5\pi]$. To graph, we have:
+To see this used, we consider the monotonic function $f(x) = x - \sin(x)$ over $[0, 5\pi]$. We make @fig-plot-of-numerically-found-inverse-to-x-minus-sinx with the following commands. (We plot over the range $[f(a), f(b)]$ here, as we can guess $f(x)$ is *increasing*.)
 
+::: {#fig-plot-of-numerically-found-inverse-to-x-minus-sinx}
 ```{julia}
 f(x) = x - sin(x)
 a, b = 0, 5pi
-plot(inverse_function(f, a, b), f(a), f(b); aspect_ratio=:equal)
+plot(inverse_function(f, a, b), f(a), f(b); aspect_ratio=:equal, legend=false)
 ```
+Plot of numerically identified inverse function of $f(x) = x - \sin(x)$.
+:::
 
-(We plot over the range $[f(a), f(b)]$ here, as we can guess $f(x)$ is *increasing*.)
 
 
-#### The `find_zero` function to solve `f(x) = g(x)`
+### The `find_zero` function to solve `f(x) = g(x)`
 
 Solving `f(x) = g(x)` is related to solving `h(x) = 0`. The key is to make a new function using the difference of the two sides: `h(x) = f(x) - g(x)`.
 
@@ -404,20 +420,23 @@ Solving `f(x) = g(x)` is related to solving `h(x) = 0`. The key is to make a new
 ##### Example
 
 
-The equation $\cos(x) = x$ has just one solution, as can be seen in this plot:
+The equation $\cos(x) = x$ has just one solution, as can be seen in @fig-plot-cosx-x-over-minus-pi-pi where both $y=\cos(x)$ and $y=x$ are plotted over $[-\pi,\pi]$. Find it.
 
-
+::: {#fig-plot-cosx-x-over-minus-pi-pi}
 ```{julia}
+#| echo: false
 f(x) = cos(x)
 g(x) = x
 plot(f, -pi, pi)
 plot!(g)
 ```
 
-Find it.
+Plot of $f(x)=\cos(x)$ and $g(x) = x$ over $[-\pi, \pi]$.
+:::
 
 
-We see from the graph that it is clearly between $0$ and $2$, so all we need is a function. (We have two.) The trick is to observe that solving $f(x) = g(x)$ is the same problem as solving for $x$ where $f(x) - g(x) = 0$. So we define the difference and use that:
+
+We see from the graphs that the lone intersection is clearly between $0$ and $2$, so all we need is a function. (We have two.) The trick is to observe that solving $f(x) = g(x)$ is the same problem as solving for $x$ where $f(x) - g(x) = 0$. So we define the difference and use that:
 
 
 ```{julia}
@@ -426,7 +445,7 @@ find_zero(h, (0, 2))
 ```
 
 ::: {.callout-note}
-### Solving `f(x) = g(x)` and `f(x) = c`
+## Solving `f(x) = g(x)` and `f(x) = c`
 
 The above examples show a means to translate a given problem into one that can be solved with `find_zero`. Basically to solve either when a function is a non-zero constant (`f(x) = c`) or when a function is equal to some other function (`f(x) = g(x)`), the difference between the two sides is formed and turned into a function, called `h` above.
 
@@ -438,16 +457,21 @@ find_zero(cos(x) ~ x, (0, 2))
 ```
 :::
 
-[![Intersection of two curves as illustrated by Canadian artist Kapwani Kiwanga.](figures/intersection-biennale.jpg)](https://www.gallery.ca/whats-on/touring-exhibitions-and-loans/around-the-world/canada-pavilion-at-the-venice-biennale/kapwani-kiwanga-trinket){width=40%}
+::: {#fig-intersection-of-two-curves-biennale}
+
+![](figures/intersection-biennale.jpg){width=60%}
+
+Intersection of two curves as illustrated by Canadian artist [Kapwani Kiwanga](https://www.gallery.ca/whats-on/touring-exhibitions-and-loans/around-the-world/canada-pavilion-at-the-venice-biennale/kapwani-kiwanga-trinket)
+:::
 
 ##### Example
 
 
 We wish to compare two trash collection plans
 
+* Plan 1: You pay $47.49$ plus $0.77$ per bag.
 
-  * Plan 1: You pay $47.49$ plus $0.77$ per bag.
-  * Plan 2: You pay $30.00$ plus $2.00$ per bag.
+* Plan 2: You pay $30.00$ plus $2.00$ per bag.
 
 
 There are some cases where plan 1 is cheaper and some where plan 2 is. Categorize them.
@@ -461,13 +485,16 @@ plan1(x) = 47.49 + 0.77x
 plan2(x) = 30.00 + 2.00x
 ```
 
-Assuming this is a realistic problem and an average American household might produce $10$-$20$ bags of trash a month (yes, that seems too much!) we plot in that range:
+Assuming this is a realistic problem and an average American household might produce $10$-$20$ bags of trash a month (yes, that seems too much!) @fig-plot-two-trash-plans shows the two plots in that range.
 
-
+::: {#fig-plot-two-trash-plans}
 ```{julia}
-plot(plan1, 10, 20)
-plot!(plan2)
+#| echo: false
+plot(plan1, 10, 20; label="Plan 1")
+plot!(plan2; label="Plan 2")
 ```
+Plots of two plans for trash collection
+:::
 
 We can see the intersection point is around $14$ and that if a family generates between $0$-$14$ bags of trash per month that plan $2$ would be cheaper.
 
@@ -518,14 +545,16 @@ end
 For each model, we wish to find the value of $x$ after launching where the height is modeled to be $0$. That is how far will the arrow travel before touching the ground?
 
 
-For the model without wind resistance, we can graph the function easily enough. Let's guess the distance is no more than $500$ feet:
+For the model without wind resistance, we can graph the function easily enough. Let's guess the distance is no more than $500$ feet.
 
-
+::: {#fig-plot-j-over-0-500-no-peak}
 ```{julia}
 plot(j, 0, 500)
 ```
+Plot of projectile motion modeled by `j` over $[0, 500]$
+:::
 
-Well, we haven't even seen the peak yet. Better to do a little spade work first. This is a quadratic function, so we can use `solve` from `SymPy` to find the roots:
+Well, in @fig-plot-j-over-0-500-no-peak we haven't even seen the peak yet. Better to do a little spade work first. This is a quadratic function, so we can use `solve` from `SymPy` to find the roots:
 
 
 ```{julia}
@@ -533,21 +562,28 @@ Well, we haven't even seen the peak yet. Better to do a little spade work first.
 solve(j(x) ~ 0, x)
 ```
 
-We see that $1250$ is the largest root. So we plot over this domain to visualize the flight:
+We see that $1250$ is the largest root. In @fig-plot-j-over-0-1250-found-by-solve we use this domain to visualize the flight.
 
-
+::: {#fig-plot-j-over-0-1250-found-by-solve}
 ```{julia}
+#| echo: false
 plot(j, 0, 1250)
 ```
+Plot of `j` over $[0, 1250]$
+:::
 
-As for the model with wind resistance,  a quick plot over the same interval, $[0, 1250]$ yields:
+As for the model with wind resistance,  a quick plot over the same interval, $[0, 1250]$ yields @fig-plot-d-over-0-1250-wait-what. This graph eventually goes negative and then stops. This is due to the asymptote in model when `(a - gamma^2*x)/a` is zero. To plot the trajectory until it returns to $0$, we need to identify the value of the zero. This model is non-linear and we don't have the simplicity of using `roots` to find out the answer, so we solve for when $a-\gamma^2 x$ is $0$:
 
 
+
+::: {#fig-plot-d-over-0-1250-wait-what}
 ```{julia}
+#| echo: false
 plot(d, 0, 1250)
 ```
+Plot of model, `d`, with wind resistance over $[0, 1250]$. Once the $x$ values cross over the asymptote value, not plot is drawn.
+:::
 
-This graph eventually goes negative and then stops. This is due to the asymptote in model when `(a - gamma^2*x)/a` is zero. To plot the trajectory until it returns to $0$, we need to identify the value of the zero. This model is non-linear and we don't have the simplicity of using `roots` to find out the answer, so we solve for when $a-\gamma^2 x$ is $0$:
 
 
 ```{julia}
@@ -556,7 +592,7 @@ a = 200 * cos(pi/4)
 b = a/gamma^2
 ```
 
-Note that the function is infinite at `b`:
+Note that the function is infinite at `b`, as `b` is a vertical asymptote:
 
 
 ```{julia}
@@ -576,13 +612,15 @@ The answer is approximately $140.7$
 (The bisection method only needs to know the sign of the function. Other bracketing methods would have issues with an endpoint with an infinite function value. To use them, some value between the zero and `b` would needed.)
 
 
-Finally, we plot both graphs at once to see that it was a very windy day indeed.
+Finally, we plot both graphs at once in @fig-plot-projectile-motion-motion-with-wind to see that it was a very windy day indeed.
 
-
+::: {#fig-plot-projectile-motion-motion-with-wind}
 ```{julia}
 plot(j, 0, 1250, label="no wind")
 plot!(d, 0, x1, label="windy day")
 ```
+Plots of both `j` and `d` showing the difference on the trajectory that wind can make
+:::
 
 ##### Example: bisection and non-continuity
 
@@ -590,13 +628,16 @@ plot!(d, 0, x1, label="windy day")
 The Bolzano theorem assumes a continuous function $f$, and when applicable, yields an algorithm to find a guaranteed zero.
 
 
-However, the algorithm itself does not know that the function is continuous or not, only that the function changes sign. As such, it can produce useful answers that are not "zeros" when applied to discontinuous functions.
+However, the algorithm itself does not know that the function is continuoust, only that the function changes sign. As such, it can produce useful answers that are not "zeros" when applied to discontinuous functions.
 
 
 In general a function over floating point values could be considered as a large table of mappings: each of the $2^{64}$ floating point values gets assigned a value. This is a discrete mapping, there is nothing the computer sees related to continuity.
 
+::: {.relationship title="Continuity needs verification"}
 
-> The concept of continuity, if needed, must be verified by the user of the algorithm.
+For numeric algorithms, the concept of continuity, if needed, must be verified by the user of the algorithm. Floating point ultimately is about discrete functions.
+:::
+
 
 
 
@@ -610,21 +651,21 @@ As an example, let $f(x) = 1/x$. Clearly the interval $[-1,1]$ is a "bracketing"
 
 
 ```{julia}
-fᵢ(x) = 1/x
-x0 = find_zero(fᵢ, (-1, 1))
+f(x) = 1/x
+x0 = find_zero(f, (-1, 1))
 ```
 
 The function is not defined at the answer, but we do have the fact that just to the left of the answer (`prevfloat`) and just to the right of the answer (`nextfloat`) the function changes sign:
 
 
 ```{julia}
-sign(fᵢ(prevfloat(x0))), sign(fᵢ(nextfloat(x0)))
+sign(f(prevfloat(x0))), sign(f(nextfloat(x0)))
 ```
 
-So, the "bisection method" applied here finds a point where the function crosses $0$, either by continuity or by jumping over the $0$.  (A `jump` discontinuity at $x=c$ is defined by the left and right limits of $f$ at $c$ existing but being unequal. The algorithm can find $c$ when this type of function jumps over $0$.)
+So, the "bisection method" applied here finds a point where the function crosses $0$, either by continuity or by jumping over the $0$.  (A `jump` discontinuity at $x=c$ is defined by the left and right limits of $f$ at $c$ existing but being unequal.)
 
 
-#### Using parameterized functions (`f(x,p)`) with `find_zero`
+### Using parameterized functions (`f(x,p)`) with `find_zero`
 
 
 Geometry will tell us that $\cos(x) - x/p$ for *one* $x$ in $[0, \pi/2]$ whenever $p>0$. We could set up finding this value for a given $p$ by making $p$ part of the function definition, but as an illustration of passing parameters, we leave `p` as a parameter (in this case, as a second value with default of $1$):
@@ -646,6 +687,33 @@ find_zero.(f, Ref(I), 1:5) # solutions for p=1,2,3,4,5
 ```
 
 (The use of `Ref` above prevents broadcasting over the specified bracketing interval.)
+
+
+### An alternate interface to `find_zero`
+
+
+The `find_zero` function in the `Roots` package is an interface to one of several methods. For now we focus on the *bracketing* methods, later we will see others. Bracketing methods, among others,  include `Roots.Bisection()`, the basic bisection method though with a different sense of "middle" than $(a+b)/2$ and used by default above; `Roots.A42()`, which will typically converge much faster than simple bisection; `Roots.Brent()` for the classic method of Brent, and `FalsePosition()` for a family of *regula falsi* methods. These can all be used by specifying the method in a call to `find_zero`.
+
+
+Alternatively, `Roots` implements the `CommonSolve` interface popularized by its use in the `DifferentialEquations.jl` ecosystem, a wildly successful area for `Julia`. The basic setup involves two steps: setup a "problem"; solve the problem.
+
+
+To set up a problem we call `ZeroProblem` with the function and an initial bracketing interval, as in:
+
+
+```{julia}
+f(x) = x^5 - x - 1
+prob = ZeroProblem(f, (1,2))
+```
+
+Then we can "solve" this problem with `solve`. For example:
+
+
+```{julia}
+solve(prob), solve(prob, Roots.Brent()), solve(prob, Roots.A42())
+```
+
+Though the answers are identical, the methods employed were not. The first call, with an unspecified method, defaults to bisection.
 
 ### The `find_zeros` function
 
@@ -701,33 +769,6 @@ f.(zs)
 (For a continuous function this should be the case that the values returned by `find_zeros` are approximate zeros. Bear in mind that if $f$ is not continuous the algorithm might find jumping points that are not zeros and may not even be in the domain of the function.)
 
 
-### An alternate interface to `find_zero`
-
-
-The `find_zero` function in the `Roots` package is an interface to one of several methods. For now we focus on the *bracketing* methods, later we will see others. Bracketing methods, among others,  include `Roots.Bisection()`, the basic bisection method though with a different sense of "middle" than $(a+b)/2$ and used by default above; `Roots.A42()`, which will typically converge much faster than simple bisection; `Roots.Brent()` for the classic method of Brent, and `FalsePosition()` for a family of *regula falsi* methods. These can all be used by specifying the method in a call to `find_zero`.
-
-
-Alternatively, `Roots` implements the `CommonSolve` interface popularized by its use in the `DifferentialEquations.jl` ecosystem, a wildly successful area for `Julia`. The basic setup involves two steps: setup a "problem"; solve the problem.
-
-
-To set up a problem we call `ZeroProblem` with the function and an initial interval, as in:
-
-
-```{julia}
-f(x) = x^5 - x - 1
-prob = ZeroProblem(f, (1,2))
-```
-
-Then we can "solve" this problem with `solve`. For example:
-
-
-```{julia}
-solve(prob), solve(prob, Roots.Brent()), solve(prob, Roots.A42())
-```
-
-Though the answers are identical, the methods employed were not. The first call, with an unspecified method, defaults to bisection.
-
-
 ## Extreme value theorem
 
 
@@ -736,8 +777,7 @@ The Extreme Value Theorem is another consequence of continuity.
 
 To discuss the extreme value theorem, we define an *absolute maximum*.
 
-::: {.callout-note icon=false}
-## Absolute maximum, absolute minimum
+::: {.definition title="Absolute maximum, absolute minimum"}
 
 The absolute maximum of $f(x)$ over an interval $I$, when it exists, is the value $f(c)$, $c$ in $I$, where $f(x) \leq f(c)$ for any $x$ in $I$.
 
@@ -747,10 +787,11 @@ Similarly, an *absolute minimum* of $f(x)$ over an interval $I$ can be defined, 
 
 Related but different is the concept of a relative of *local extrema*:
 
-::: {.callout-note icon=false}
-## Local maximum, local minimum
+::: {.definition title="Local maximum, local minimum, local extrema"}
 
-A local maxima for $f$ is a value $f(c)$ where $c$ is in **some** *open* interval $I=(a,b)$, $I$ in the domain of $f$, and $f(c)$ is an absolute maxima for $f$ over $I$. Similarly, a local minima for $f$ is a value $f(c)$ where $c$ is in **some** *open* interval $I=(a,b)$, $I$ in the domain of $f$, and $f(x)$ is an absolute minima for $f$ over $I$.
+A local maxima for $f$ is a value $f(c)$ where $c$ is in **some** *open* interval $I=(a,b),$ $I$ in the domain of $f$, and $f(c)$ is an absolute maxima for $f$ over $I$.
+
+Similarly, a local minima for $f$ is a value $f(c)$ where $c$ is in **some** *open* interval $I=(a,b)$, $I$ in the domain of $f$, and $f(x)$ is an absolute minima for $f$ over $I$.
 
 
 The term *local extrema* is used to describe either a local maximum or local minimum.
@@ -761,24 +802,13 @@ The key point, is the extrema are values in the *range* that are realized by som
 
 This chart of the [Hardrock 100](http://hardrock100.com/) illustrates the two concepts.
 
+::: {#fig-hardrock-100-elevation-profile}
+![](figures/hardrock-100.jpeg)
 
-```{julia}
-#| echo: false
-###{{{hardrock_profile}}}
-imgfile = "figures/hardrock-100.jpeg"
-caption = """
-Elevation profile of the  Hardrock 100 ultramarathon. Treating the elevation profile as a function, the absolute maximum is just about 14,000 feet and the absolute minimum about 7600 feet. These are of interest to the runner for different reasons. Also of interest would be each local maxima and local minima - the peaks and valleys of the graph - and the total elevation climbed - the latter so important/unforgettable its value makes it into the chart's title.
-"""
+Elevation profile of the  Hardrock 100 ultramarathon (for one race, it alternates direction). Treating the elevation profile as a function, the absolute maximum is just about 14,000 feet and the absolute minimum about 7600 feet. These are of interest to the runner for different reasons. Also of interest would be each local maxima and local minima - the peaks and valleys of the graph - and the total elevation climbed - the latter so important/unforgettable its value makes it into the chart's title.
+:::
 
-# ImageFile(:limits, imgfile, caption)
-nothing
-```
-
-[![Elevation profile of the  Hardrock 100 ultramarathon. Treating the elevation profile as a function, the absolute maximum is just about 14,000 feet and the absolute minimum about 7600 feet. These are of interest to the runner for different reasons. Also of interest would be each local maxima and local minima - the peaks and valleys of the graph - and the total elevation climbed - the latter so important/unforgettable its value makes it into the chart's title.
-](figures/hardrock-100.jpeg)](https://hardrock100.com){width=50%}
-
-
-This figure shows the two concepts as well.
+@fig-absolute-relative also illustrates the two concepts.
 
 ::: {#fig-absolute-relative}
 
@@ -821,11 +851,11 @@ plt = let
 	annotate!([
 		(a, 0,          text(L"a", :top)),
 		(b,0,           text(L"b", :top)),
-		(a + κ/5,  p(a),      text(raw"absolute max", 10, :left)),
-		(z₁, p(z₁)-κ,     text(raw"absolute min", 10, :top)),
+		(a + κ/5,  p(a),    text(raw"absolute max, endpoint", 10, :left)),
+		(z₁, p(z₁)-κ,       text(raw"absolute min, relative min", 10, :top)),
 		(z₂, p(z₂) + κ,     text(raw"relative max", 10, :bottom)),
 		(z₃, p(z₃) - κ,     text(raw"relative min", 10, :top)),
-		(b, p(b) + κ,       text(raw"endpoint", 10, :bottom))
+		(b, p(b) + κ,       text(raw"endpoint", 10, :bottom, :right))
 
 	])
 
@@ -847,8 +877,7 @@ Figure illustrating absolute and relative minima for a function $f(x)$ over $I=[
 
 The extreme value theorem discusses an assumption that ensures absolute maximum and absolute minimum values exist.
 
-::: {.callout-note icon=false}
-## The extreme value theorem
+::: {.theorem title="The extreme value theorem"}
 
 If $f(x)$ is continuous over a closed  interval $[a,b]$ then $f$ has an absolute maximum and an absolute  minimum over $[a,b]$.
 
@@ -883,13 +912,13 @@ plot(x -> x * exp(-x), 0, 5)
 ##### Example
 
 
-The tangent function does not have a *guarantee* of an absolute maximum or a minimum over $(-\pi/2, \pi/2),$ as it is not *continuous* at the endpoints. In fact, it doesn't have either extrema - it has vertical asymptotes at each endpoint of this interval.
+The tangent function does not have a *guarantee* of an absolute maximum or a minimum over $(-\pi/2, \pi/2),$ as it is not *continuous* at the endpoints. In fact, it doesn't have either extrema---it has vertical asymptotes at each endpoint of this interval.
 
 
 ##### Example
 
 
-The function $f(x) = x^{2/3}$ over the interval $[-2,2]$ has cusp at $0$. However, it is continuous on this closed interval, so must have an absolute maximum and absolute minimum. They can be seen from the graph to occur at the endpoints and the cusp at $x=0$, respectively:
+The function $f(x) = x^{2/3}$ over the interval $[-2,2]$ has a cusp at $0$. However, it is continuous on this closed interval, so must have an absolute maximum and absolute minimum. They can be seen from the graph to occur at the endpoints and the cusp at $x=0$, respectively:
 
 
 ```{julia}
@@ -923,29 +952,36 @@ That $f(I)$ is an interval is a consequence of the intermediate value theorem. T
 
 On the real line, sets that are closed and bounded are "compact," a term that generalizes to other settings.
 
+::: {.relationship title="Images"}
 
-> Continuity implies that the *image* of a compact set is compact.
-
-
-
-Now let $(c,d)$ be an *open* interval in the range of $f$. An open interval is an open set. On the real line, an open set is one where each point in the set, $a$, has some $\delta$ such that if $|b-a| < \delta$ then $b$ is also in the set.
+Continuity implies that the *image* of a compact set is compact.
+:::
 
 
-> Continuity implies that the *preimage* of an open set is an open set.
+Now let $(c,d)$ be an *open* interval in the range of $f$. An open interval is an open set. On the real line, an open set is one where each point in the set, $a$, has some $\delta$ such that if $\lvert b-a \rvert < \delta$ then $b$ is also in the set.
+
+::: {.relationship title="Pre-images"}
+Continuity implies that the *preimage* of an open set is an open set.
+:::
 
 
 
-The *preimage* of an open set, $I$, is $\{a: f(a) \in I\}$. (All $a$ with an image in $I$.) Taking some pair $(a,y)$ with $y$ in $I$ and $a$ in the preimage as $f(a)=y$. Let $\epsilon$ be such that $|x-y| < \epsilon$ implies $x$ is in $I$. Then as $f$ is continuous at $a$, given $\epsilon$ there is a $\delta$ such that $|b-a| <\delta$ implies $|f(b) - f(a)| < \epsilon$ or $|f(b)-y| < \epsilon$ which means that $f(b)$ is in the $I$ so $b$ is in the preimage, implying the preimage is an open set.
+The *preimage* of an open set, $I$, is $\{a: f(a) \in I\}$. (All $a$ with an image in $I$.) Taking some pair $(a,y)$ with $y$ in $I$ and $a$ in the preimage as $f(a)=y$. Let $\epsilon$ be such that $\lvert x-y \rvert < \epsilon$ implies $x$ is in $I$. Then as $f$ is continuous at $a$, given $\epsilon$ there is a $\delta$ such that  $\lvert b-a \rvert <\delta$ implies $\lvert f(b) - f(a) \rvert < \epsilon$ or $\lvert f(b)-y \rvert < \epsilon$ which means that $f(b)$ is in the $I$ so $b$ is in the preimage, implying the preimage is an open set.
 
 
 ## Questions
 
 ###### Question
-Consider the following plot
+Consider the following plot in @fig-plot-airy-over-minus5-5.
 
+::: {#fig-plot-airy-over-minus5-5}
 ```{julia}
+#| echo: false
 plot(airy, -5, 5; xticks=-5:5)
 ```
+
+Plot of `airy` function over $[-5, 5]$
+:::
 
 There is a guaranteed zero between:
 
@@ -962,11 +998,15 @@ radioq(choices, answer; keep_order=true)
 
 
 ###### Question
-Consider the following plot
+Consider the  plot in @fig-plot-erf-from-minus5-to-5 of the `erf` function.
 
+::: {#fig-plot-erf-from-minus5-to-5}
 ```{julia}
 plot(erf, -5, 5; xticks=-5:5)
 ```
+
+Plot of `erf` function over $[-5, 5]$
+:::
 
 There is a guaranteed zero to `erf(x) = 0.5` between
 
@@ -1041,12 +1081,15 @@ numericq(val, 1e-3)
 ###### Question
 
 
-The `airyai` function has infinitely many negative roots, as the function oscillates when $x < 0$ and *no* positive roots. Find the *second largest root* using the graph to bracket the answer, and then solve.
+The `airyai` function has infinitely many negative roots, as the function oscillates when $x < 0$ and *no* positive roots. @fig-plot-airyai-over-minus10-10-find-second shows the graph over $[-10,10]$. In this interval, *numerically* find the *second largest root* using the graph to bracket the answer, and then solve.
 
-
+::: {#fig-plot-airyai-over-minus10-10-find-second}
 ```{julia}
 plot(airyai, -10, 10)   # `airyai` loaded in `SpecialFunctions` by `CalculusWithJulia`
 ```
+
+Plot of `airyai` function over $[-10, 10]$.
+:::
 
 The second largest root is:
 
@@ -1115,10 +1158,14 @@ Trajectories of potential cannonball fires with air-resistance included. (http:/
 nothing
 ```
 
-![Trajectories of potential cannonball fires with air-resistance included. (http://ej.iop.org/images/0143-0807/33/1/149/Full/ejp405251f1_online.jpg)
-](figures/cannonball.jpg){width=50%}
 
-In 1638, according to Amir D. [Aczel](http://books.google.com/books?id=kvGt2OlUnQ4C&pg=PA28&lpg=PA28&dq=mersenne+cannon+ball+tests&source=bl&ots=wEUd7e0jFk&sig=LpFuPoUvODzJdaoug4CJsIGZZHw&hl=en&sa=X&ei=KUGcU6OAKJCfyASnioCoBA&ved=0CCEQ6AEwAA#v=onepage&q=mersenne%20cannon%20ball%20tests&f=false), an experiment was performed in the French Countryside. A monk, Marin Mersenne, launched a cannonball straight up into the air in an attempt to help Descartes prove facts about the rotation of the earth. Though the experiment was not successful, Mersenne later observed that the time for the cannonball to go up was less than the time to come down. ["Vertical Projection in a Resisting Medium: Reflections on Observations of Mersenne".](http://www.maa.org/publications/periodicals/american-mathematical-monthly/american-mathematical-monthly-contents-junejuly-2014)
+::: {#fig-woodcut-trajectories-air-resistance}
+![](figures/cannonball.jpg){width=50%}
+
+Trajectories of potential cannonball fires with air-resistance included
+:::
+
+In 1638, according to Amir D. [Aczel](http://books.google.com/books?id=kvGt2OlUnQ4C&pg=PA28&lpg=PA28&dq=mersenne+cannon+ball+tests&source=bl&ots=wEUd7e0jFk&sig=LpFuPoUvODzJdaoug4CJsIGZZHw&hl=en&sa=X&ei=KUGcU6OAKJCfyASnioCoBA&ved=0CCEQ6AEwAA#v=onepage&q=mersenne%20cannon%20ball%20tests&f=false), an experiment was performed in the French Countryside. A monk, Marin Mersenne, launched a cannonball straight up into the air in an attempt to help Descartes prove facts about the rotation of the earth. Though the experiment was not successful, Mersenne later observed that the time for the cannonball to go up was less than the time to come down. ["Vertical Projection in a Resisting Medium: Reflections on Observations of Mersenne"](https://doi.org/10.4169/amer.math.monthly.121.06.499).
 
 
 This isn't the case for simple ballistic motion where the time to go up is equal to the time to come down. We can "prove" this numerically. For simple ballistic motion:
@@ -1140,8 +1187,8 @@ Let $v_0= 390$. The three times in question can be found from the zeros of `f` a
 choices = ["``(0.0, 12.1875, 24.375)``",
 	"``(-4.9731, 0.0, 4.9731)``",
 	"``(0.0, 625.0, 1250.0)``"]
-answ = 1
-radioq(choices, answ)
+answer = 1
+radioq(choices, answer)
 ```
 
 ###### Question What goes up must come down... (again)
@@ -1176,8 +1223,8 @@ ta = find_zero(D(h), (t0, tf))
 choices = ["``(0, 13.187, 30.0)``",
 	"``(0, 32.0, 390.0)``",
 	"``(0, 2.579, 13.187)``"]
-answ = 3
-radioq(choices, answ)
+answer = 3
+radioq(choices, answer)
 ```
 
 ###### Question
@@ -1192,14 +1239,14 @@ Part of the proof of the intermediate value theorem rests on knowing what the li
 choices = [L"It must be that $L > y$ as each $f(x)$ is.",
 L"It must be that $L \geq y$",
 L"It can happen that $L < y$, $L=y$, or $L>y$"]
-answ = 2
-radioq(choices, 2, keep_order=true)
+answer = 2
+buttonq(choices, answer)
 ```
 
 ###### Question
 
 
-The extreme value theorem has two assumptions: a continuous function and a *closed* interval. Which of the following examples fails to satisfy the consequence of the  extreme value theorem because the interval is not closed? (The consequence - the existence of an absolute maximum and minimum - can happen even if the theorem does not apply.)
+The extreme value theorem has two assumptions: a continuous function and a *closed* interval. Which of the following examples fails to satisfy the consequence of the  extreme value theorem because the interval is not closed? (The consequence---the existence of an absolute maximum and minimum---can happen even if the theorem does not apply.)
 
 
 ```{julia}
@@ -1210,8 +1257,8 @@ choices = [
 "``f(x) = \\sin(x),~ I=(-\\pi, \\pi)``",
 "``f(x) = \\sin(x),~ I=(-\\pi/2, \\pi/2)``",
 "None of the above"]
-answ = 3
-radioq(choices, answ, keep_order=true)
+answer = 3
+buttonq(choices, answer)
 ```
 
 ###### Question
@@ -1228,8 +1275,8 @@ choices = [
 "``f(x) = 1/x,~ I=[-2, -1]``",
 "``f(x) = 1/x,~ I=[-1, 1]``",
 "none of the above"]
-answ = 3
-radioq(choices, answ, keep_order=true)
+answer = 3
+buttonq(choices, answer)
 ```
 
 ###### Question
@@ -1246,37 +1293,37 @@ choices = [
 "``f(x) = 1/x,~      I=[-4, -1]``",
 "``f(x) = \\text{floor}(x),~ I=[-1/2, 1/2]``",
 "none of the above"]
-answ = 4
-radioq(choices, answ, keep_order=true)
+answer = 4
+buttonq(choices, answer)
 ```
 
 ###### Question
 
-The extreme value theorem is true when $f$ is a continuous function on an interval $I$ *and* $I=[a,b]$ is a *closed* interval. Which of these illustrates why it doesn't apply as $f$ is not continuous on $I$ but is defined on $I$?
+The extreme value theorem is true when $f$ is a continuous function on an interval $I$ *and* $I=[a,b]$ is a *closed* interval. Which of the graphs in @fig-examples-possibly-of-needed-conditions-in-extreme-value-theorem illustrates why it doesn't apply as $f$ is not continuous on $I$ but is defined everywhere on $I$?
 
-
+::: {#fig-examples-possibly-of-needed-conditions-in-extreme-value-theorem}
 ```{julia}
 #| hold: true
 #| echo: false
 
-let
+several_plots = let
     gr()
-     empty_style = (xaxis=([], false),
-                    yaxis=([], false),
-                    framestyle=:origin,
-                    legend=false)
-	axis_style = (arrow=true, side=:head, line=(:gray, 1))
+    empty_style = (xaxis=([], false),
+                   yaxis=([], false),
+                   framestyle=:origin,
+                   legend=false)
+	axis_style = (arrow=true, side=:head, line=(:gray, 1, :dash))
 
     ts = range(0, 2pi, 100)
 
     # defined on I; not continuous on I
     p1 = plot(;empty_style..., aspect_ratio=:equal)
     title!(p1, "(a)")
-    plot!(p1, x -> 1 - abs(2x), -1, 1, color=:black)
-    plot!(p1, zero; line=(:black, 1), arrow=true, side=:head)
-    C = Shape(0.03 .* sin.(ts), 1 .+ 0.03 .* cos.(ts))
+    plot!(p1, x -> 2.1 - abs(2x), -1, 1, color=:black)
+    plot!(p1, zero; axis_style...)
+    C = Shape(0.04 .* sin.(ts), 2.1-0.025 .+ 0.04 .* cos.(ts))
     plot!(p1, C, fill=(:white, 1), line=(:black,1))
-    C = Shape(0.03 .* sin.(ts), - 0.25 .+ 0.03 .* cos.(ts))
+    C = Shape(0.04 .* sin.(ts),  1.25 .+ 0.04 .* cos.(ts))
     plot!(p1, C, fill=(:black,1))
     annotate!(p1, [
 		(-1,0,text(L"a", :top)),
@@ -1298,7 +1345,7 @@ let
     p3 = plot(;empty_style...)
     title!(p3, "(c)")
     plot!(p3, x -> 1/(1-x), 0, .95, color=:black)
-    ylims!((-0.25, 1/(1 - 0.96)))
+    ylims!((-1.2, 1/(1 - 0.96)))
     plot!(p3, [0,1.05],[0,0]; axis_style...)
 	vline!(p3, [1]; line=(:black, 1, :dash))
     annotate!(p3,[
@@ -1323,89 +1370,27 @@ let
 
     l = @layout[a b; c d]
     p = plot(p1, p2, p3, p4, layout=l)
-    imgfile = tempname() * ".png"
-    savefig(p, imgfile)
-    hotspotq(imgfile, (0,1/2), (1/2,1))
 end
+
+imgfile = tempname() * ".png"
+savefig(several_plots, imgfile)
+hotspotq(imgfile, (0,1/2), (1/2,1))
+
 ```
+Several plots, select one to match question
+:::
 
 
+The extreme value theorem is true when $f$ is a continuous function on an interval $I$ and $I=[a,b]$ is a *closed* interval. Which of the graphs in @fig-examples-possibly-of-needed-conditions-in-extreme-value-theorem-take-2 illustrates when the theorem's assumptions are true?
 
-The extreme value theorem is true when $f$ is a continuous function on an interval $I$ and $I=[a,b]$ is a *closed* interval. Which of these illustrates when the theorem's assumptions are true?
-
-
+::: {#fig-examples-possibly-of-needed-conditions-in-extreme-value-theorem-take-2}
 ```{julia}
 #| hold: true
 #| echo: false
 ## come on; save this figure...
-let
-    gr()
-     empty_style = (xaxis=([], false),
-                    yaxis=([], false),
-                    framestyle=:origin,
-                    legend=false)
-	axis_style = (arrow=true, side=:head, line=(:gray, 1))
-
-    ts = range(0, 2pi, 100)
-
-    # defined on I; not continuous on I
-    p1 = plot(;empty_style..., aspect_ratio=:equal)
-    title!(p1, "(a)")
-    plot!(p1, x -> 1 - abs(2x), -1, 1, color=:black)
-    plot!(p1, zero; line=(:black, 1), arrow=true, side=:head)
-    C = Shape(0.03 .* sin.(ts), 1 .+ 0.03 .* cos.(ts))
-    plot!(p1, C, fill=(:white, 1), line=(:black,1))
-    C = Shape(0.03 .* sin.(ts), - 0.25 .+ 0.03 .* cos.(ts))
-    plot!(p1, C, fill=(:black,1))
-    annotate!(p1, [
-		(-1,0,text(L"a", :top)),
-        (1,0,text(L"b", :top))
-	])
-
-    # not defined on I
-    p2 = plot(;empty_style...)
-    title!(p2, "(b)")
-    plot!(p2, x -> 1/(1-x), 0, .95, color=:black)
-    plot!(p2, x-> -1/(1-x), 1.05, 2, color=:black)
-    plot!(p2, zero; axis_style...)
-    annotate!(p2,[
-		(0,0,text(L"a", :top)),
-		(2, 0, text(L"b", :top))
-	])
-
-    # not continuous on I
-    p3 = plot(;empty_style...)
-    title!(p3, "(c)")
-    plot!(p3, x -> 1/(1-x), 0, .95, color=:black)
-    ylims!((-0.1, 1/(1 - 0.96)))
-    plot!(p3, [0,1.05],[0,0]; axis_style...)
-	vline!(p3, [1]; line=(:black, 1, :dash))
-    annotate!(p3,[
-		(0,0,text(L"a", :top)),
-		(1, 0, text(L"b", :top))
-	])
-
-    # continuous
-     p4 = plot(;empty_style...)
-    title!(p4, "(d)")
-	f(x) = x^x
-	a, b = 0, 2
-    ylims!(p4, (-.25, f(b)))
-    plot!(p4, f, a, b; line=(:black,1))
-    plot!(p4, [a-.1, b+.1], [0,0]; axis_style...)
-	scatter!([0,2],[ f(0),f(2)]; marker=(:circle,:black))
-	annotate!([
-	(a, 0, text(L"a", :top)),
-		(b, 0, text(L"b", :top))
-
-	])
-
-    l = @layout[a b; c d]
-    p = plot(p1, p2, p3, p4, layout=l)
-    imgfile = tempname() * ".png"
-    savefig(p, imgfile)
-    hotspotq(imgfile, (1/2,1), (0,1/2))
-end
+imgfile = tempname() * ".png"
+savefig(several_plots, imgfile)
+hotspotq(imgfile, (1/2,1), (0,1/2))
 ```
 
 ```{julia}
@@ -1413,6 +1398,8 @@ end
 plotly();
 ```
 
+Several plots, select one to match question
+:::
 
 ###### Question
 
@@ -1454,8 +1441,8 @@ L"There is no value $c$ for which $f(c)$ is an absolute maximum over $I$.",
 L"There is just one value of $c$ for which $f(c)$ is an absolute maximum over $I$.",
 L"There are many values of $c$ for which $f(c)$ is an absolute maximum over $I$."
 ]
-answ = 3
-radioq(choices, answ, keep_order=true)
+answer = 3
+radioq(choices, answer, keep_order=true)
 ```
 
 ###### Question
@@ -1472,8 +1459,8 @@ L"There is no value $M$ for which $M=f(c)$, $c$ in $I$ for which $M$ is an absol
 L"There is just one value $M$ for which $M=f(c)$, $c$ in $I$ for which $M$ is an absolute maximum over $I$.",
 L"There are many values $M$ for which $M=f(c)$, $c$ in $I$ for which $M$ is an absolute maximum over $I$."
 ]
-answ = 2
-radioq(choices, answ, keep_order=true)
+answer = 2
+radioq(choices, answer, keep_order=true)
 ```
 
 ###### Question
@@ -1489,8 +1476,8 @@ choices = [
 "``f(x) = \\sin(x),\\quad I=[-\\pi/2, \\pi/2]``",
 "``f(x) = \\sin(x),\\quad I=[0, 2\\pi]``",
 "``f(x) = \\sin(x),\\quad I=[-2\\pi, 2\\pi]``"]
-answ = 3
-radioq(choices, answ)
+answer = 3
+radioq(choices, answer)
 ```
 
 ###### Question
@@ -1504,4 +1491,62 @@ The zeros of the equation $\cos(x) \cdot \cosh(x) = 1$ are related to vibrations
 #| echo: false
 val = maximum(find_zeros(x -> cos(x) * cosh(x) - 1, (0, 6pi)))
 numericq(val)
+```
+
+
+##### Question
+
+The `find_zeros` function only works *most of the time*. Here are three examples.
+
+Consider the function defined below:
+
+```{julia}
+f(x) = x < -1 ? x + 1 :
+    x < 1  ? 0 :
+    x - 1
+```
+
+This function is flat between $[-1, 1]$. Does `find_zeros(f, -3, 3)` find *all* the zeros of $f$?
+
+```{julia}
+#| echo: false
+choices = ["Yes",
+           L"No. It finds a lot, but there are infinitely many"]
+answer = 2
+buttonq(choices, answer)
+```
+
+The function defined by:
+
+```{julia}
+f(x) = x^7 - 16129x^2 + 254x - 1
+```
+
+has three zeros in $[0,10]$. Does `find_zeros` find them all?
+
+```{julia}
+#| echo: false
+choices = ["Yes",
+           "No. There are two *really* close together near ``0.0078...`` and `find_zeros` finds just one"]
+answer = 2
+buttonq(choices, answer)
+```
+
+
+The function defined by
+
+```{julia}
+f(x) = iszero(x) ? 0.0 : x * sin(1/x)
+```
+
+has infinitely many zeros in $[-1,1]$. How many does `find_zeros` find?
+
+```{julia}
+#| echo: false
+choices = ["Between 0-10",
+           "Between 11 - 50",
+           "Between 50 - 100",
+           "More than 100"]
+answer = 3
+buttonq(choices, answer)
 ```

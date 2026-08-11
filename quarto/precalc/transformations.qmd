@@ -1,22 +1,14 @@
-# Function manipulations
+# Function transformations
 
 
 {{< include ../_common_code.qmd >}}
 
-In this section we will use these add-on packages:
+In this section we will use this add-on package:
 
 
 ```{julia}
-using CalculusWithJulia
 using Plots
-plotly()
-```
-
-```{julia}
-#| echo: false
-#| results: "hidden"
-using DataFrames
-nothing
+plotly();
 ```
 
 ---
@@ -38,24 +30,20 @@ $$
 We have given meaning to a new function $f+g$ by defining what is does to $x$ with the rule on the right hand side. Similarly, we can define operations for subtraction, multiplication, addition, and powers.
 
 
-These mathematical concepts aren't defined for functions in base `Julia`, though they could be if desired, by a commands such as:
-
-
-```{julia}
-import Base: +
-f::Function + g::Function = x -> f(x) + g(x)
-```
-
-This adds a method to the generic `+` function for functions. The type annotations `::Function` ensure this applies only to functions. To see that it would work, we could do odd-looking things like:
-
+These mathematical concepts aren't defined for function instances in base `Julia`. For example, a common mistake in computing $\sin^2(1)$ would be to try that syntax exactly:
 
 ```{julia}
-ss = sin + sqrt
-ss(4)
+#| error: true
+sin^2(1)
 ```
 
-Doing this works, as Julia treats functions as first class objects, lending itself to [higher](https://en.wikipedia.org/wiki/Higher-order_programming) order programming. However, this definition in general is kind of limiting, as functions in mathematics and Julia can be much more varied than just the univariate functions we have defined addition for. Further, users shouldn't be modifying base methods on types they don't control, as that can lead to really unexpected and undesirable behaviours. This is called *type piracy*. We won't pursue this possibility further. Rather we will define new function by what they do to their values, such as `h(x) = f(x) + g(x)`.
+The error message might seem cryptic but it comes from there not being a power operation (`^`) for `sin` defined. Similarly, out of the box there are not operations for `+`, `-`, `*`, or `/` defined for functions.^[There *could* be such operations defined. For example, if `+` is imported from `Base`, then this command `f::Function + g::Function = x -> f(x) + g(x)` would define such a operation.  However, this definition in general is kind of limiting, as functions in mathematics and Julia can be much more varied than just the univariate functions we have defined addition for. Further, users shouldn't be modifying base methods on types they don't control, as that can lead to really unexpected and undesirable behaviours. This is called *type piracy*.]
 
+To define such a function, we would specify what it does to each value of `x`, along the lines of:
+
+```{julia}
+fplusg(x) = f(x) + g(x)
+```
 
 ### Composition of functions
 
@@ -82,24 +70,27 @@ $$
 
 Though they may be *typographically* similar don't be fooled, the following graph shows that the two functions aren't even close except for $x$ near $0$ (for example, one composition is always non-negative, whereas the other is not):
 
-
+::: {#fig-plot-sin-xsquared-sinsquared-x}
 ```{julia}
 #| hold: true
 f(x) = x^2
 g(x) = sin(x)
-fg = f ∘ g      # typed as f \circ[tab] g
-gf = g ∘ f      # typed as g \circ[tab] f
+fg(x) = f(g(x))
+gf(x) = g(f(x))
 plot(fg, -2, 2, label="f∘g")
 plot!(gf, label="g∘f")
 ```
 
-:::{.callout-note}
-## Note
-Unlike how the basic arithmetic operations are treated, `Julia` defines the infix Unicode operator `\circ[tab]` to represent composition of functions, mirroring mathematical notation. This infix operations takes in two functions and returns a composed function. It can be useful and will mirror standard mathematical usage up to issues with precedence rules.
-
+Plot of $f(x) = \sin^2(x)$ and $g(x) = \sin(x^2)$, both written as compositions, illustrating the order of composition is important
 :::
 
 Starting with two functions and composing them requires nothing more than a solid grasp of knowing the rules of function evaluation. If $f(x)$ is defined by some rule involving $x$, then $f(g(x))$ just replaces each $x$ in the rule with a $g(x)$.
+
+
+::: {.callout-note}
+## Infix operator
+Composition of two functions does have an infix operator, `∘`, entered as `\circ[tab]`. This mirrors the mathematical usage of this syntax, though the order of operations are such that calling the composed function on a value requires an extra set of parentheses: `(f∘g)(x)`, as the expresssion `f∘g(x)` evaluates `g(x)` before the composition.
+:::
 
 
 So if $f(x) = x^2 + 2x - 1$ and $g(x) = e^x - x$ then $f \circ g$ would be (before any simplification)
@@ -123,10 +114,11 @@ $$
 
 Here we look at a few compositions:
 
+* The function $h(x) = \sqrt{1 - x^2}$ can be seen as $f\circ g$ with $f(x) = \sqrt{x}$ and $g(x) = 1-x^2$.
 
-  * The function $h(x) = \sqrt{1 - x^2}$ can be seen as $f\circ g$ with $f(x) = \sqrt{x}$ and $g(x) = 1-x^2$.
-  * The function $h(x) = \sin(x/3 + x^2)$ can be viewed as $f\circ g$ with $f(x) = \sin(x)$ and $g(x) = x/3 + x^2$.
-  * The function $h(x) = e^{-1/2 \cdot x^2}$  can be viewed as $f\circ g$ with $f(x) = e^{-x}$ and $g(x) = (1/2) \cdot x^2$.
+* The function $h(x) = \sin(x/3 + x^2)$ can be viewed as $f\circ g$ with $f(x) = \sin(x)$ and $g(x) = x/3 + x^2$.
+
+* The function $h(x) = e^{-1/2 \cdot x^2}$  can be viewed as $f\circ g$ with $f(x) = e^{-x}$ and $g(x) = (1/2) \cdot x^2$.
 
 
 Decomposing a function into a composition of functions is not unique, other compositions could have been given above. For example, the last function is also $f(x) = e^{-x/2}$ composed with $g(x) = x^2$.
@@ -144,19 +136,19 @@ The real value of composition is to break down more complicated things into a se
 It is very useful to mentally categorize functions within families. The difference between $f(x) = \cos(x)$ and $g(x) = 12\cos(2(x - \pi/4))$ is not that much---both are cosine functions, one is just a simple enough transformation of the other. As such, we expect bounded, oscillatory behaviour with the details of how large and how fast the oscillations are to depend on the specifics of the function. Similarly, both these functions $f(x) = 2^x$ and $g(x)=e^x$ behave like exponential growth, the difference being only in the rate of growth. There are families of functions that are qualitatively similar, but quantitatively different, linked together by a few basic transformations.
 
 
-There is a set of operations of functions, which does not really change the type of function. Rather, it basically moves and stretches how the functions are graphed. We discuss these four main transformations of $f$:
+There is a set of operations of functions, which does not really change the type of function. Rather, it basically moves and stretches how the functions are graphed. We discuss the four main transformations of $f$ from @tbl-four-main-transformations.
 
+::: {#tbl-four-main-transformations .striped .hover tbl-colwidths="[25,75]"}
 
-```{julia}
-#| echo: false
+| Transformation      | Description    |
+|:--------------------|:---------------|
+| *vertical shifts*   | The function $h(x) = k + f(x)$ will have the same graph as $f$  shifted **up**  $k$ units.|
+| *horizontal shifts* |	The function $h(x) = f(x - k)$  will have the same graph as $f$  shifted **over** right by $k$ units. |
+| *stretching*        |	The function $h(x) = kf(x)$ will have the same graph as $f$  **stretch**ed by a factor $k$ of  in the $y$ direction. |
+| *scaling*           |The function $h(x) = f(kx)$  will have the same graph as $f$ **scale**d horizontally by a factor of $1$ over $k$ |
 
-nms = ["*vertical shifts*","*horizontal shifts*","*stretching*","*scaling*"]
-acts = [L"The function $h(x) = k + f(x)$ will have the same graph as $f$ shifted up by $k$ units.",
-L"The function $h(x) = f(x - k)$ will have the same graph as $f$ shifted right by $k$ units.",
-L"The function $h(x) = kf(x)$ will have the same graph as $f$ stretched by a factor of $k$ in the $y$ direction.",
-L"The function $h(x) = f(kx)$ will have the same graph as $f$ compressed horizontally by a factor of $1$ over $k$."]
-table(DataFrame(Transformation=nms, Description=acts))
-```
+: Four main transformations of a function.
+:::
 
 The functions $h$ are derived from $f$ in a predictable way. To implement these transformations within `Julia`, we define operators (functions which transform one function into another). As these return functions, the function bodies are anonymous functions. The basic definitions are similar, save for the `x -> ...` part that signals the creation of an anonymous function to return:
 
@@ -175,44 +167,58 @@ To illustrate, let's define a hat-shaped function as follows:
 f(x) = max(0, 1 - abs(x))
 ```
 
-A plot over the interval $[-2,2]$ is shown here:
+A plot over the interval $[-2,2]$ is shown in @fig-plot-hat-function:
 
 
+::: {#fig-plot-hat-function}
 ```{julia}
-plot(f, -2,2)
+plot(f, -2, 2; aspect_ratio=:equal)
 ```
+Plot of $f(x) = \max(0, 1 - \lvert x\rvert)$ over $[-2,2]$
+:::
 
 The same graph of $f$ and its image shifted up by $2$ units would be given by:
 
-
+::: {#fig-plot-hat-function-also-up-2}
 ```{julia}
-plot(f, -2, 2, label="f")
-plot!(up(f, 2), label="up")
+plot(f, -2, 2; aspect_ratio=:equal, label="f")
+plot!(up(f, 2); label="up")
 ```
 
-A graph of $f$ and its shift over by $2$ units would be given  by:
+Plot of $f(x) = \max(0, 1 - \lvert x\rvert)$ and its transformation shifted up by $2$ units
+:::
 
+A graph of $f$ and its shift over by $2$ units would be generated  by:
 
+::: {#fig-plot-hat-function-shifted-over-2}
 ```{julia}
-plot(f, -2, 4, label="f")
-plot!(over(f, 2), label="over")
+plot(f, -2, 4; aspect_ratio=:equal, label="f")
+plot!(over(f, 2); label="over")
+```
+Plot of $f(x) = \max(0, 1 - \lvert x\rvert)$ and its transformation shifted over by $2$ units
+:::
+
+A graph of $f$ and it being stretched by $2$ units would be generated by:
+
+::: {#fig-plot-hat-function-stretched-by-2}
+```{julia}
+plot(f, -2, 2; aspect_ratio=:equal, label="f")
+plot!(stretch(f, 2); label="stretch")
 ```
 
-A graph of $f$ and it being stretched by $2$ units would be given by:
+Plot of $f(x) = \max(0, 1 - \lvert x\rvert)$ and its transformation stretched in #y# direction by $2$ units
+:::
 
 
+Finally, a graph of $f$ and it being scaled by $2$ would be generated by:
+
+::: {{{{{{{#fig-plot-hat-function-scaled-by-2}
 ```{julia}
-plot(f, -2, 2, label="f")
-plot!(stretch(f, 2), label="stretch")
+plot(f, -2, 2; aspect_ratio=:equal, label="f")
+plot!(scale(f, 2); label="scale")
 ```
-
-Finally, a graph of $f$ and it being scaled by $2$ would be given by:
-
-
-```{julia}
-plot(f, -2, 2, label="f")
-plot!(scale(f, 2), label="scale")
-```
+Plot of $f(x) = \max(0, 1 - \lvert x\rvert)$ and its transformation scaled in $x$ by $2$ units
+:::
 
 Scaling by $2$ shrinks the non-zero domain, scaling by $1/2$ would stretch it. If this is not intuitive, the definition `x-> f(x/c)` could have been used, which would have opposite behaviour for scaling.
 
@@ -220,37 +226,69 @@ Scaling by $2$ shrinks the non-zero domain, scaling by $1/2$ would stretch it. I
 ---
 
 
-More exciting is what happens if we compose these operations.
-
-
-A shift right by $2$ and up by $1$ is achieved through
-
+More exciting is what happens if we compose these operations. Before doing so, let's note how the syntax of composition would be:
 
 ```{julia}
-plot(f, -2, 4, label="f")
-plot!(up(over(f,2), 1), label="over and up")
+#| eval: false
+up(over(f, 2), 1)
 ```
 
-Shifting and scaling can be confusing. Here we graph `scale(over(f,2),1/3)`:
-
+The `1` is the value for `up` and can get lost without careful parsing. It might be better to see something like this instead:
 
 ```{julia}
-plot(f, -1,9, label="f")
-plot!(scale(over(f,2), 1/3), label="over and scale")
+#| eval: false
+f |> over(2) |> up(1)
 ```
 
-This graph is over by $6$ with a width of $3$ on each side of the center. Mathematically, we have $h(x) = f((1/3)\cdot x - 2)$
+Meaning, take `f`, shift it over, `2` and then up `1`. To make this happen, we need to pass in a function and return a function from both `over` and `up`. We define another set of functions using multiple dispatch to sort out which is which:
+
+```{julia}
+up(k)      = f -> up(f, k)
+over(k)    = f -> over(f, k)
+stretch(k) = Base.Fix2(stretch, k)
+scale(k)   = Base.Fix2(scale, k)
+```
+
+We did this two ways, the last two using `Fix2` to fix the second argument, leaving a function of just the first argument.
+
+
+Now, a shift right by $2$ and up by $1$ is achieved through
+
+::: {#fig-plot-hat-over-up-composed-call}
+```{julia}
+plot(f, -2, 4; aspect_ratio=:equal, label="f")
+plot!(f |> over(2) |> up(1); label="over and up")
+```
+
+Plot of $f(x) = \max(0, 1 - \lvert x\rvert)$ and it transform after moving over by $2$ and up by $1$ using chaining notation
+:::
+
+Shifting and scaling can be confusing. Here we graph the action of `over` by $2$ and then `scale` by $1/3$:
+
+::: {#fig-plot-hat-over-scale-composed}
+```{julia}
+plot(f, -1, 9; aspect_ratio=:equal, label="f")
+plot!(f |> over(2) |> scale(1/3); label="over and scale")
+```
+
+Plot of $f(x)$ and it transform being over $2$ and then scaled by $1/3$
+:::
+
+@fig-plot-hat-over-scale-composed show $f(x)$ after being moved over by $2$ and *then$ scaled by $1/3$. It's center moves to $6$ and instead of stretching from $6-1$ to $6+1$ it stretches from $6-3$ to $6+3$.  Mathematically, we have $h(x) = f((1/3)\cdot x - 2)$
 
 
 Compare this to the same operations in opposite order:
 
-
+::: {#fig-plot-hat-scale-over-composed}
 ```{julia}
-plot(f, -1, 5, label="f")
-plot!(over(scale(f, 1/3), 2), label="scale and over")
+plot(f, -1, 5; aspect_ratio=:equal, label="f")
+plot!(f |> scale(1/3) |> over(2); label="scale and over")
 ```
 
-This graph first scales the symmetric graph, stretching from $-3$ to $3$, then shifts over right by $2$. The resulting function is $f((1/3)\cdot (x-2))$.
+Plot of $f(x)$ and it transform being first scaled by $1/3$ and then shifted over $2$
+:::
+
+@fig-plot-hat-scale-over-composed shows the transform of $f(x)$  first scaled, stretching from $-3$ to $3$, then shifted over right by $2$. The resulting function is $f((1/3)\cdot (x-2))$.
 
 
 As a last example, following up on the last example, a common transformation mathematically is
@@ -260,19 +298,36 @@ $$
 h(x) = \frac{1}{a}f(\frac{x - b}{a}).
 $$
 
-We can view this as a composition of "scale" by $1/a$, then  "over" by $b$,  and finally "stretch" by $1/a$:
+We can view this as a composition of "scale" by $1/a$, then  "over" by $b$,  and finally "stretch" by $1/a$, as seen in @fig-plot-hat-function-wavelet-transform:
 
-
+::: {#fig-plot-hat-function-wavelet-transform}
 ```{julia}
 #| hold: true
 a = 2; b = 5
-h(x) = stretch(over(scale(f, 1/a), b), 1/a)(x)
-plot(f, -1, 8, label="f"; xticks=-1:8)
-plot!(h, label="h")
+plot(f, -1, 8; aspect_ratio=:equal, label="f", xticks=-1:8)
+plot!(f |> scale(1/a) |> over(b) |> stretch(1/a); label="h")
 ```
 
-(This transformation keeps the same amount of area in the triangles, can you tell from the graph?)
+Plot showing transform $\frac{1}{a}f(\frac{x - b}{a})$
+:::
 
+This transformation keeps the same amount of area in the triangles, can you tell from the graph?
+
+##### Example: a growth model in fisheries
+
+
+The von Bertalanffy growth [equation](https://en.wikipedia.org/wiki/Von_Bertalanffy_function) is $L(t) =L_\infty \cdot (1 - e^{-k\cdot(t-t_0)})$. This family of functions can be viewed as a transformation of the exponential function $f(t)=e^t$. Part is a scaling and shifting (the $e^{-k \cdot (t - t_0)}$) along with some shifting and stretching. The various parameters have physical importance which can be measured: $L_\infty$ is a carrying capacity for the species or organism, and $k$ is a rate of growth. These parameters may be estimated from data by finding the "closest" curve to a given data set. For this set of parameters^[From [Campbell and Phillips](https://doi.org/10.1093/icesjms/34.2.295) shows steady but decelerating growth of a whelk population.]
+
+::: {#fig-von-Bertalanffy-plot}
+```{julia}
+L, k = 53.1120, 0.0335  # from https://doi.org/10.1093/icesjms/34.2.295
+t0 = 1968
+u = exp |> scale(-k) |> over(t0) |> stretch(-1) |> up(1) |> stretch(L)
+plot(u, t0, t0+200; legend=false)
+```
+
+Plot of von-Bertalanffy model applied to a whelk population
+:::
 
 ##### Example
 
@@ -308,11 +363,14 @@ c = 80
 
 Putting this together, we have our graph is "scaled" by $d$, "over" by $c$, "stretched" by $b$ and "up" by $a$. Here we plot it over slightly more than one year so that we can see that the shortest day of light is in late December ($x \approx -10$ or $x \approx 355$).
 
-
+::: {#fig-plot-newyork-daylight-sinusoidal-model}
 ```{julia}
-newyork(t) = up(stretch(over(scale(sin, d), c), b), a)(t)
+newyork = sin |> scale(d) |> over(c) |> stretch(b) |> up(a)
 plot(newyork, -20, 385)
 ```
+
+Plot of a sinusoidal model for length of daylight in New York City
+:::
 
 To test, if we match up with the model powering [dateandtime.info](http://dateandtime.info/citysunrisesunset.php?id=5128581) we note that it predicts "$12$h $10$m $38$s" on September $23$th, $2015$. This is day $266$ (`Date(2015, 9, 23) - Date(2015, 1, 1) + Day(1)`). Our model prediction has a difference of
 
@@ -325,43 +383,28 @@ delta = (newyork(266) - datetime) * 60
 This is off by a fair amount---almost $8$ minutes. Clearly a trigonometric model, based on the assumption of circular motion of the earth around the sun, is not accurate enough for precise work, but it does help one understand how summer days are longer than winter days and how the length of a day changes fastest at the spring and fall equinoxes.
 
 
-##### Example: the pipeline operator
 
+##### Example: Representing data visually
 
-In the last example, we described our sequence as scale, over, stretch, and up, but code this in reverse order, as the composition $f \circ g$ is done from right to left. A more convenient notation would be to have syntax that allows the composition of $g$ then $f$ to be written $x \rightarrow g \rightarrow f$. `Julia` provides the [pipeline](https://docs.julialang.org/en/v1/manual/functions/#Function-composition-and-piping) operator for chaining function calls together.
+The `Plots.jl` package also uses transformations to display different shapes on a graphic. This next example shows how scale can be used to display a third piece of information to augment the two pieces shown through location.
 
+Suppose we have a data set like @tbl-palmer-penguins-data:^[Which comes from the "Palmer Penguins" data set]
 
-For example, if $g(x) = \sqrt{x}$ and $f(x) =\sin(x)$ we could call $f(g(x))$ through:
-
-
-```{julia}
-#| hold: true
-g(x) = sqrt(x)
-f(x) = sin(x)
-pi/2 |> g |> f
-```
-
-The output of the preceding expression is passed as the input to the next.  This notation is especially convenient when the enclosing function is not the main focus.  (Some programming languages have more developed [fluent interfaces](https://en.wikipedia.org/wiki/Fluent_interface) for chaining function calls. Julia has more powerful chaining macros provided in packages, such as `DataPipes.jl` or `Chain.jl`.)
-
-##### Example: a growth model in fisheries
-
-
-The von Bertalanffy growth [equation](https://en.wikipedia.org/wiki/Von_Bertalanffy_function) is $L(t) =L_\infty \cdot (1 - e^{k\cdot(t-t_0)})$. This family of functions can be viewed as a transformation of the exponential function $f(t)=e^t$. Part is a scaling and shifting (the $e^{k \cdot (t - t_0)}$) along with some shifting and stretching. The various parameters have physical importance which can be measured: $L_\infty$ is a carrying capacity for the species or organism, and $k$ is a rate of growth. These parameters may be estimated from data by finding the "closest" curve to a given data set.
-
-##### Example: Representing data visually.
-
-Suppose we have a data set like the following:^[Which comes from the "Palmer Penguins" data set]
-
+::: {#tbl-palmer-penguins-data .striped .hover}
 |flipper length | bill length | body mass | gender | species |
-|---------------|-------------|-----------|--------|:--------|
+|:--------------|:------------|-----------|--------|:--------|
 | 38.8          | 18.3        | 3701      | male   | Adelie  |
 | 48.8          | 18.4        | 3733      | male   | Chinstrap |
 | 47.5          | 15.0        | 5076      | male   | Gentoo |
 
-We might want to plot on an $x$-$y$ axis flipper length versus bill length but also indicate body size with a large size marker for bigger sizes.
+: Data set on sampled penguin attributes
+:::
 
-We could do so by transforming a marker: scaling by size, then shifting it to an `x-y` position; then plotting. Something like this:
+We might want to plot on an $x$-$y$ axis flipper length versus bill length but also indicate body size with a larger-sized marker for bigger sizes.
 
+We could do so by transforming a marker: scaling by size, then shifting it to an `x-y` position; then plotting. @fig-plot-palmer-penguin-shapes illustrates.
+
+::: {#fig-plot-palmer-penguin-shapes}
 ```{julia}
 flipper  = [38.8, 48.8, 47.5]
 bill     = [18.3, 18.4, 15.0]
@@ -369,7 +412,7 @@ bodymass = [3701, 4733, 5076]
 
 shape = Shape(:star5)
 p = plot(; legend=false)
-for (x,y,sz) in zip(flipper, bill, bodymass)
+for (x, y, sz) in zip(flipper, bill, bodymass)
     sz = (sz - 2000) ÷ 1000
 
     new_shape = Plots.translate(Plots.scale(shape, sz, sz), x, y);
@@ -379,36 +422,18 @@ end
 p
 ```
 
+Plot of penguin data using size of marker to represent flipper length
+:::
+
 While some of the commands in this example are unfamiliar and won't be explained further, the use of `translate` and `scale` for shapes is very similar to how transformations for functions are being described (Though this `translate` function combines `up` and `over`; and this `scale` function allows different values depending on direction.) In the above, the function names are qualified, as they are not exported by the `Plots.jl` package. More variables from the data set could be encoded through colors, different shapes etc. allowing very data-rich graphics.
 
 
 ### Operators
 
-
-The functions `up`, `over`, etc. are operators that take a function as an argument and return a function. The use of operators fits in with the template `action(f, args...)`. The action is what we are doing, such as `plot`, `over`, and others to come. The function `f` here is just an object that we are performing the action on. For example, a plot takes a function and renders a graph using the additional arguments to select the domain to view, etc.
-
-
-Creating operators that return functions involves the use of anonymous functions, using these operators is relatively straightforward. Two basic patterns are
+In computer science a *higher order function* is one that either takes a function as input, returns a function as its output, or both. We prefer the less standard, but more mathematical sounding *operator* to describe higher-order functions like `up` and `over`.  The use of operators fits in with the template `action(f, args...)`. The action is what we are doing, such as `plot`, `over`, and others to come. The function `f` here is just an object that we are performing the action on. For example, a plot takes a function and renders a graph using the additional arguments to select the domain to view, etc.
 
 
-  * Storing the returned function, then calling it:
-
-
-```{julia}
-#| eval: false
-l(x) = action1(f, args...)(x)
-l(10)
-```
-
-  * Composing two operators:
-
-
-```{julia}
-#| eval: false
-action2( action1(f, args..), other_args...)
-```
-
-Composition like the above is convenient, but can get confusing if more than one composition is involved.
+Creating operators that return functions typically involves the use of anonymous functions, using these operators is relatively straightforward. In this next example, we create two new operators that will be prototypes for two foundational operator in calculus.
 
 
 ##### Example: two operators
@@ -420,22 +445,31 @@ Composition like the above is convenient, but can get confusing if more than one
 ```{julia}
 D(f::Function) = k -> f(k) - f(k-1)
 ```
+As written, `D` takes a function, `f`, and then returns a function that finds the difference of `f` at `k` and `k-1`.
 
-To see that it works, we take a typical function
+To see how `D` works, we take a typical function:
 
 
 ```{julia}
 f(k) = 1 + k^2
 ```
 
-and check:
-
+Then we have:
 
 ```{julia}
 D(f)(3), f(3) - f(3-1)
 ```
 
-That the two are the same value is no coincidence. (Again, pause for a second to make sure you understand why `D(f)(3)` makes sense. If this is unclear, you could name the function `D(f)` and then call this with a value of `3`.)
+That the two are the same value is by design.
+
+The calling syntax `D(f)(3)` is a bit awkward and is read as two steps: the first finds `D(f)` the second calls this function at `3`. The first could have been stored and then called, as with:
+
+```{julia}
+df = D(f)
+df(3)
+```
+
+
 
 
 Now we want a function to cumulatively *sum* the values $S(f)(k) = f(1) + f(2) + \cdots + f(k-1) + f(k)$, as a function of $k$. Adding up $k$ terms is easy to do with a generator and the function `sum`:
@@ -457,7 +491,8 @@ So one function adds, the other subtracts. Addition and subtraction are somehow 
 
 ```{julia}
 k = 10    # some arbitrary value k >= 1
-D(S(f))(k), f(k)
+λ = D(S(f))
+λ(k), f(k)
 ```
 
 Any positive integer value of `k` will give the same answer (up to overflow). This says the difference of the accumulation process is just the last value to accumulate.
@@ -467,10 +502,11 @@ Adding after subtracting also leaves the function alone, save for a vestige of $
 
 
 ```{julia}
-S(D(f))(15),  f(15) - f(0)
+γ = S(D(f))
+γ(15),  f(15) - f(0)
 ```
 
-That is the accumulation of differences is just the difference of the end values.
+That is, the accumulation of differences is just the difference of the end values.
 
 
 These two operations are discrete versions of the two main operations of calculus---the derivative and the integral. This relationship will be known as the "fundamental theorem of calculus."
@@ -489,8 +525,8 @@ If $f(x) = 1/x$ and $g(x) = x-2$, what is $g(f(x))$?
 #| hold: true
 #| echo: false
 choices=["``1/(x-2)``", "``1/x - 2``", "``x - 2``", "``-2``"]
-answ = 2
-radioq(choices, answ)
+answer = 2
+radioq(choices, answer)
 ```
 
 ###### Question
@@ -504,8 +540,8 @@ If $f(x) = e^{-x}$ and $g(x) = x^2$ and $h(x) = x-3$, what is $f \circ g \circ h
 #| echo: false
 choices=["``e^{-x^2 - 3}``", "``(e^x -3)^2``",
          "``e^{-(x-3)^2}``", "``e^x+x^2+x-3``"]
-answ = 3
-radioq(choices, answ)
+answer = 3
+radioq(choices, answer)
 ```
 
 ###### Question
@@ -520,8 +556,8 @@ If $h(x) = (f \circ g)(x) = \sin^2(x)$ which is  a possibility for $f$ and $g$:
 choices = [raw"``f(x)=x^2; \quad g(x) = \sin^2(x)``",
 	       raw"``f(x)=x^2; \quad g(x) = \sin(x)``",
 	       raw"``f(x)=\sin(x); \quad g(x) = x^2``"]
-answ = 2
-radioq(choices, answ)
+answer = 2
+radioq(choices, answer)
 ```
 
 ###### Question
@@ -538,7 +574,7 @@ choices = [
     raw"``h(x) = 6 + \sin(x + 4)``",
     raw"``h(x) = 6 + \sin(x-4)``",
     raw"``h(x) = 6\sin(x-4)``"]
-answ = 3
+answer = 3
 radioq(choices, 3)
 ```
 
@@ -554,9 +590,45 @@ Let $h(x) = 4x^2$ and $f(x) = x^2$. Which is **not** true:
 choices = [L"The graph of $h(x)$ is the graph of $f(x)$ stretched by a factor of ``4``",
 	   L"The graph of $h(x)$ is the graph of $f(x)$ scaled by a factor of ``2``",
 	   L"The graph of $h(x)$ is the graph of $f(x)$ shifted up by ``4`` units"]
-answ = 3
-radioq(choices, answ)
+answer = 3
+radioq(choices, answer)
 ```
+
+###### Question
+
+Consider the function
+
+$$
+g(x) = f(\frac{x - a}{b})
+$$
+
+This is
+
+```{julia}
+#| echo: false
+choices = ["`over` by `a` and then `scale` by `1/b`",
+           "`scale` by `1/b` and then `over` by `a`"]
+answer = 2
+buttonq(choices, answer)
+```
+
+Consider the function
+
+$$
+g(x) = f(\frac{x}{b} - a)
+$$
+
+This is
+
+```{julia}
+#| echo: false
+choices = ["`over` by `a` and then `scale` by `1/b`",
+           "`scale` by `1/b` and then `over` by `a`"]
+answer = 1
+buttonq(choices, answer)
+```
+
+
 
 ###### Question
 
@@ -579,25 +651,17 @@ radioq(choices, answ)
 
 This is the graph of a transformed sine curve.
 
-
+::: {#fig-transformed-sine-graph-question}
 ```{julia}
 #| hold: true
 #| echo: false
 f(x) = 2*sin(pi*x)
 p = plot(f, -2,2)
 ```
+Plot of a transformation of the sine function
+:::
 
-What is the period of the graph?
-
-
-```{julia}
-#| hold: true
-#| echo: false
-val = 2
-numericq(val)
-```
-
-What is the amplitude of the graph?
+What is the period of the graph in @fig-transformed-sine-graph-question?
 
 
 ```{julia}
@@ -607,7 +671,17 @@ val = 2
 numericq(val)
 ```
 
-What is the form of the function graphed?
+What is the amplitude of the graph in @fig-transformed-sine-graph-question?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+val = 2
+numericq(val)
+```
+
+What is the form of the function graphed in @fig-transformed-sine-graph-question?
 
 
 ```{julia}
@@ -619,8 +693,8 @@ raw"``\sin(2x)``",
 raw"``\sin(\pi x)``",
 raw"``2 \sin(\pi x)``"
 ]
-answ = 4
-radioq(choices, answ)
+answer = 4
+radioq(choices, answer)
 ```
 
 ###### Question
@@ -647,8 +721,8 @@ choices = [
 q"D(S(f))(n) = f(n)",
 q"S(D(f))(n) = f(n) - f(0)"
 ]
-answ = 2
-radioq(choices, answ, keep_order=true)
+answer = 2
+radioq(choices, answer, keep_order=true)
 ```
 
 ###### Question
@@ -671,6 +745,6 @@ choices = [
 q"D(S(f))(n) = f(n)",
 q"S(D(f))(n) = f(n) - f(0)"
 ]
-answ = 1
-radioq(choices, answ, keep_order=true)
+answer = 1
+radioq(choices, answer, keep_order=true)
 ```

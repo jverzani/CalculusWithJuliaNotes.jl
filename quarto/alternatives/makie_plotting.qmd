@@ -1,15 +1,12 @@
 # Calculus plots with Makie
 
-{{< include ../_common_code.qmd >}}
 
 The [Makie.jl webpage](https://github.com/JuliaPlots/Makie.jl) says
 
 
 > From the Japanese word Maki-e, which is a technique to sprinkle lacquer with gold and silver powder. Data is basically the gold and silver of our age, so let's spread it out beautifully on the screen!
 
-
-
-`Makie` itself is a metapackage for a rich ecosystem. We show how to use the interface provided by the `GLMakie` backend to produce the familiar graphics of calculus.
+`Makie` itself is a metapackage for a rich ecosystem. We show how to use the interface provided by the `CairoMakie` backend to produce the familiar graphics of calculus.
 
 
 :::{.callout-note}
@@ -21,139 +18,94 @@ The [Makie.jl webpage](https://github.com/JuliaPlots/Makie.jl) says
 ## Figures
 
 
-Makie draws graphics onto a canvas termed a "scene" in the Makie documentation. A scene is an implementation detail, the basic (non-mutating) plotting commands described below return a `FigureAxisPlot` object, a compound object that combines a figure, an axes, and a plot object. The `show` method for these objects display the figure.
+Makie draws graphics onto a canvas termed a "scene" in the Makie documentation. A scene is an implementation detail, the basic (non-mutating) plotting commands described below return a `FigureAxisPlot` object, a compound object that combines a figure, an axes, and a plot object. We also briefly show the details of constructing a separate figure and axis.
+The `show` method for figures displays the resulting graphic.
 
 
-For `Makie` there are the `GLMakie`, `WGLMakie`, and `CairoMakie` backends for different types of canvases. In the following, we have used `GLMakie`. `WGLMakie` is useful for incorporating `Makie` plots into web-based technologies.
+For `Makie` there are the different backends for different types of canvases. In the following, we have used `CairoMakie`.
 
 
 We begin by loading the main package and the `norm` function from the standard `LinearAlgebra` package:
 
 
 ```{julia}
-using GLMakie
+using CairoMakie
 import LinearAlgebra: norm
 ```
 
-The package load time as of recent version of `Makie` is quite reasonable for a complicated project. (The time to first plot is under 3 seconds on a typical machine.)
+```{julia}
+#| echo: false
+set_theme!(Figure = (size = (width, height),))
+nothing
+```
+
+The package load time as of recent version of `Makie` is quite reasonable for a complicated project. (The time to first plot is around five seconds on a typical machine.)
 
 ## Points (`scatter`)
 
+The task of plotting the points, say $(1,2)$, $(2,3)$, $(3,2)$ can be done different ways.
 
-The task of plotting the points, say $(1,2)$, $(2,3)$, $(3,2)$ can be done different ways. Most plotting packages, and `Makie` is no exception, allow the following: form vectors of the $x$ and $y$ values then plot those with `scatter`:
+* We can plot two vectors holding the `x` and `y` coordinates, e.g. `[1,2,3]` and `[2,3,2]`.
+* Using a tuple to represent a point, we can plot a vector of tuples, e.g. `[(1,2), (2,3), (3,2)]`.
+* More idiomatically, using a `Point2` object to represent a point, a vector of point objects can be plotted, e.g. `[Point2(1,2), Point2(2,3), Point2(3,2)]`.
 
-
-```{julia}
-xs = [1,2,3]
-ys = [2,3,2]
-scatter(xs, ys)
-```
-
-The `scatter` function creates and returns an object, which when displayed shows the plot.
+The `Point2` function also accepts a vector or tuple for input to describe the point. There is also `Point3` for 3-d plotting. `Makie` uses a GPU, when present, to accelerate the graphic rendering. GPUs employ 32-bit numbers. Julia uses an `f0` to indicate 32-bit floating points. Hence the alternate types `Point2f0` to store 2D points as 32-bit numbers and `Points3f0` to store 3D points as 32-bit numbers are seen in the documentation for Makie.
 
 
-### `Point2`, `Point3`
-
-
-When learning about points on the Cartesian plane, a "`t`"-chart is often produced:
-
-
-```
-x | y
------
-1 | 2
-2 | 3
-3 | 2
-```
-
-The `scatter` usage above used the columns. The rows are associated with the points, and these too can be used to produce the same graphic. Rather than make vectors of $x$ and $y$ (and optionally $z$) coordinates, it is more idiomatic to create a vector of "points." `Makie` utilizes a `Point` type to store a 2 or 3 dimensional point. The `Point2` and `Point3` constructors will be utilized.
-
-
-`Makie` uses a GPU, when present, to accelerate the graphic rendering. GPUs employ 32-bit numbers. Julia uses an `f0` to indicate 32-bit floating points. Hence the alternate types `Point2f0` to store 2D points as 32-bit numbers and `Points3f0` to store 3D points as 32-bit numbers are seen in the documentation for Makie.
-
-
-We can plot a vector of points in as direct manner as vectors of their coordinates:
-
+It is not so difficult to convert between these storage formats. For example starting with
 
 ```{julia}
-pts = [Point2(1,2), Point2(2,3), Point2(3,2)]
-scatter(pts)
+xs = [1, 2, 3]
+ys = [2, 3, 2]
 ```
 
-A typical usage is to generate points from some vector-valued function. Say we have a parameterized function `r` taking $R$ into $R^2$ defined by:
-
+We can convert to a vector of tuples using broadcasting or `zip`:
 
 ```{julia}
-r(t) = [sin(t), cos(t)]
+tuple.(xs, ys), collect(zip(xs, ys))
 ```
 
-Then broadcasting values gives a vector of vectors, each identified with a point:
-
+A vector of points can be generated similarly:
 
 ```{julia}
-ts = [1,2,3]
-r.(ts)
+Point2.(xs, ys), Point2.(zip(xs, ys))
 ```
 
-We can broadcast `Point2` over this to create a vector of `Point` objects:
-
+The `unzip` function from the `CalculusWithJulia` package can reverse this direction:
 
 ```{julia}
-pts = Point2.(r.(ts))
+using CalculusWithJulia: unzip # just SplitApplyCombine.invert
+unzip(Point2.(xs, ys))
 ```
 
-These then can be plotted directly:
-
+We illustrate in @fig-makie-plot-of-points-in-2-and-3 where we generate a vector of points using these two functions:
 
 ```{julia}
-scatter(pts)
+r(t) = [cos(t), sin(t)]
+h(t) = (cos(t), sin(t), t)
+ts = range(0, 2pi, 25)
 ```
 
-The plotting of points in three dimensions is essentially the same, save the use of `Point3` instead of `Point2`.
-
+::: {#fig-makie-plot-of-points-in-2-and-3 layout-ncol=2}
+```{julia}
+scatter(Point2.(r.(ts)))
+```
 
 ```{julia}
-r(t) = [sin(t), cos(t), t]
-ts = range(0, 4pi, length=100)
-pts = Point3.(r.(ts))
-scatter(pts; markersize=5)
+scatter(Point3.(h.(ts)))
 ```
 
----
-
-
-To plot points generated in terms of vectors of coordinates, the component vectors must be created.  The "`t`"-table shows how, simply loop over each column and add the corresponding $x$ or $y$ (or $z$) value.  This utility function does exactly that, returning the vectors in a tuple.
-
-
-```{julia}
-unzip(vs) = Tuple([vs[j][i] for j in eachindex(vs)] for i in eachindex(vs[1]))
-```
-
-:::{.callout-note}
-## Note
-In the `CalculusWithJulia` package, `unzip` is implemented using `SplitApplyCombine.invert`.
+A scatter plot in 2d and 3d generated by broadscasting `Point2` over a vector of 2 component vectors and `Point3` over a vector of 3 component tuples.
 
 :::
 
-We might have then:
+
+### Attributes of a marker
 
 
-```{julia}
-scatter(unzip(r.(ts))...; markersize=5)
-```
+A point is drawn with a "marker" with a certain size and color. These attributes can be adjusted, as in @fig-makie-scatter-with-marker-attributes.
 
-where splatting is used to specify the `xs`, `ys`, and `zs` to `scatter`.
-
-
-(Compare to `scatter(Point3.(r.(ts)))` or `scatter(Point3∘r).(ts))`.)
-
-
-### Attributes
-
-
-A point is drawn with a "marker" with a certain size and color. These attributes can be adjusted, as in the following:
-
-
+::: {#fig-makie-scatter-with-marker-attributes}
 ```{julia}
 scatter(xs, ys;
         marker=[:x,:cross, :circle],
@@ -161,25 +113,26 @@ scatter(xs, ys;
         color=:blue)
 ```
 
+Different marker attributes
+:::
+
+
 Marker attributes include
 
 
-  * `marker` a symbol, shape.
-  * `marker_offset` offset coordinates
-  * `markersize` size (radius pixels) of marker
-
+* `marker` a symbol, shape
+* `markersize` size (radius pixels) of marker
+* `marker_offset` offset coordinates
+* `color` to adjust color
 
 A single value will be repeated. A vector of values of a matching size will specify the attribute on a per point basis.
 
 
 ## Curves
 
-
-A visualization of a curve in calculus is comprised of line segments. The `lines` command of `Makie` will render a curve by connecting a series of points with straight-line segments. By taking a sufficient number of points the connect-the-dot figure can appear curved.
-
+A visualized curve in calculus is comprised of line segments. The `lines` command of `Makie` will render a curve by connecting a series of points with straight-line segments. By taking a sufficient number of points the connect-the-dot figure can appear curved.
 
 ### Plots of univariate functions
-
 
 The basic plot of univariate calculus is the graph of a function $f$ over an interval $[a,b]$. This is implemented using a familiar strategy: produce a series of representative values between $a$ and $b$; produce the corresponding $f(x)$ values; plot these as points and connect the points with straight lines.
 
@@ -189,7 +142,7 @@ To create regular values between `a` and `b` typically the `range` function or t
 
 For example:
 
-
+::: {#fig-makie-basic-f-a-b-plot}
 ```{julia}
 f(x) = sin(x)
 a, b = 0, 2pi
@@ -197,54 +150,50 @@ xs = range(a, b, length=250)
 lines(xs, f.(xs))
 ```
 
-`Makie` also will read the interval notation of `IntervalSets` and select its own set of intermediate points:
+Use of `lines` to generate a curve
+:::
+
+Makie has a recipe that allows the `y` position to be just the function---`lines(xs, f)` would have generated @fig-makie-basic-f-a-b-plot as well.
 
 
-```{julia}
-lines(a..b, f)
-```
+`Makie` also will read the interval notation of `IntervalSets` and select its own set of intermediate points, so this command would also render the same plot as that of @fig-makie-basic-f-a-b-plot:  `lines(a..b, f)`.
+
+
+As with `scatter`, `lines` can also be drawn using a vector of points. (Though the advantage isn't clear here, this will be useful when the points are generated in different manners.)  In this case, this approach would involve a command like  `lines(Point2.(xs, f.(xs)))`.
 
 As with `scatter`, `lines` returns an object that produces a graphic when displayed.
 
-
-As with `scatter`, `lines` can also be drawn using a vector of points:
-
-
-```{julia}
-pts = [Point2(x, f(x)) for x ∈ xs]
-lines(pts)
-```
-
-(Though the advantage isn't clear here, this will be useful when the points are generated in different manners.)
-
-
 When a `y` value is `NaN` or infinite, the connecting lines are not drawn:
 
-
+::: {#fig-makie-nan-disrupts-plotting}
 ```{julia}
 xs = 1:5
 ys = [1,2,NaN, 4, 5]
 lines(xs, ys)
 ```
 
-As with other plotting packages, this is useful to represent discontinuous functions, such as what occurs at a vertical asymptote or a step function.
+An `NaN` value in the `y` vector has no connecting line segment
+:::
 
+As with other plotting packages, this is useful to represent discontinuous functions, such as what occurs at a vertical asymptote or a step function.
 
 #### Adding to a figure (`lines!`, `scatter!`, ...)
 
-
-To *add* or *modify* a scene can be done using a mutating version of a plotting primitive, such as `lines!` or `scatter!`. The names follow `Julia`'s convention of using an `!` to indicate that a function modifies an argument, in this case the underlying figure.
+To *add* or *modify* a figure can be done using a mutating version of a plotting primitive, such as `lines!` or `scatter!`. The names follow `Julia`'s convention of using an `!` to indicate that a function modifies an argument, in this case the underlying figure.
 
 
 Here is one way to show two plots at once:
 
-
+::: {#fig-makie-example-adding-a-layer}
 ```{julia}
 xs = range(0, 2pi, length=100)
-lines(xs, sin.(xs))
-lines!(xs, cos.(xs))
+lines(xs, sin)       # use function, not values from sin.(xs)
+lines!(xs, cos)
 current_figure()
 ```
+
+Using `lines!` to add a layer
+:::
 
 :::{.callout-note}
 ## Current figure
@@ -255,37 +204,43 @@ The `current_figure` call is needed to have the figure display, as the returned 
 We will see soon how to modify the line attributes so that the curves can be distinguished.
 
 
-The following shows the construction details in the graphic:
+@fig-makie-example-adding-a-layer-scatter shows the construction details to produce the graphic.
 
-
+::: {#fig-makie-example-adding-a-layer-scatter}
 ```{julia}
 xs = range(0, 2pi, length=10)
-lines(xs, sin.(xs))
-scatter!(xs, sin.(xs);
+lines(xs, sin)
+scatter!(xs, sin;
          markersize=10)
 current_figure()
 ```
 
-As an example, this shows how to add the tangent line to a graph. The slope of the tangent line being computed by `ForwardDiff.derivative`.
+Using `scatter!`  to show the points used when creating a dot-to-dot plot
+:::
 
+As an example, @fig-makie-example-adding-a-layer-tangent-line shows how to add the tangent line to a graph. The slope of the tangent line being computed by `ForwardDiff.derivative`.
 
+::: {#fig-makie-example-adding-a-layer-tangent-line}
 ```{julia}
-import ForwardDiff
+using ForwardDiff: derivative
 f(x) = x^x
 a, b= 0, 2
 c = 0.5
 xs = range(a, b, length=200)
 
-tl(x) = f(c) + ForwardDiff.derivative(f, c) * (x-c)
+tl(x) = f(c) + derivative(f, c) * (x-c)
 
-lines(xs, f.(xs))
-lines!(xs, tl.(xs), color=:blue)
+lines(xs, f)
+lines!(xs, tl, color=:blue)
 current_figure()
 ```
 
-This example, modified from a [discourse](https://discourse.julialang.org/t/how-to-plot-step-functions-x-correctly-in-julia/84087/5) post by user `@rafael.guerra`, shows how to plot a step function (`floor`) using `NaN`s to create line breaks. The marker colors set for `scatter!` use `:white` to match the background color.
+Adding a tangent line to a curve at a point
+:::
 
+This example^[This example is modified from a [discourse](https://discourse.julialang.org/t/how-to-plot-step-functions-x-correctly-in-julia/84087/5) post by user `@rafael.guerra`.] shows how to plot a step function (`floor`) using `NaN`s to create line breaks. The marker colors set for `scatter!` use `:white` to match the background color.
 
+::: {#fig-makie-example-adding-a-layer-step-function}
 ```{julia}
 x = -5:5
 δ = 5eps() # for rounding purposes; our interval is [i,i+1) ≈ [i, i+1-δ]
@@ -300,15 +255,17 @@ scatter!(xx, yy, color=repeat([:black, :white, :white], length(xx)÷3))
 
 current_figure()
 ```
+Using layers to plot a step function
+:::
+
 
 ### Text (`annotations`)
 
 Text can be placed at a point, as a marker is. To place text, the desired text and a position need to be specified along with any adjustments to the default attributes.
 
+For example @fig-makie-example-adding-a-layer-annotations show an annotation and the use of `fontsize` to adjust the displayed text size.
 
-For example:
-
-
+::: {#fig-makie-example-adding-a-layer-annotations}
 ```{julia}
 xs = 1:5
 pts = Point2.(xs, xs)
@@ -320,26 +277,32 @@ annotation!(pts;
 current_figure()
 ```
 
-The graphic shows that `fontsize` adjusts the displayed size.
+Using `annotation!` to add text within  a graphic
+:::
 
 
 Attributes for `text`, among many others, include:
 
 
-  * `align` Specify the text alignment through `(:pos, :pos)`, where `:pos` can be `:left`, `:center`, or `:right`.
-  * `fontsize` the font point size for the text
-  * `font` to indicate the desired font
+* `align` Specify the text alignment through `(:pos, :pos)`, where `:pos` can be `:left`, `:center`, or `:right`.
+
+* `fontsize` the font point size for the text
+
+* `font` to indicate the desired font
 
 
-Annotations with an arrow can be useful to highlight a feature of a graph. This example is modified from the documentation and utilizes some interval functions to draw an arrow with an arc:
+Annotations with an arrow can be useful to highlight a feature of a graph. The code to produce @fig-makie-example-adding-a-layer-annotations-arrows is modified from the documentation of Makie; it utilizes some interval functions to draw an arrow with an arc.^[This example annotates the underlying `Axis` object, extracted using tuple destructuring. A more direct approach of creating a `Figure` object and then an `Axis` object will be illustrated later.]
 
+::: {#fig-makie-example-adding-a-layer-annotations-arrows}
 ```{julia}
 g(x) = cos(6x) * exp(x)
 xs = 0:0.01:4
 
-_, ax, _ = lines(xs, g.(xs); axis = (; xgridvisible = false, ygridvisible = false))
+# this next line gets the Axis object from the FigureAxisPlot object
+_, ax, _ = lines(xs, g;
+                 axis = (; xgridvisible = false, ygridvisible = false))
 
-annotation!(ax, 1, 20, 2.1, g(2.1),
+annotation!(ax, 1, 20, 2.1, g(2.1), # annotate an Axis object
     text = "A relative maximum",
     path = Ann.Paths.Arc(0.3),
     style = Ann.Styles.LineArrow(),
@@ -349,21 +312,25 @@ annotation!(ax, 1, 20, 2.1, g(2.1),
 current_figure()
 ```
 
+Use of `path` and `style` attributes of `annotation!` to draw an arrow
+:::
 
 #### Line attributes
 
-
 In a previous example, we added the argument `color=:blue` to the `lines!` call. This was to set an attribute for the line being drawn. Lines have other attributes that allow different ones to be distinguished, as above where colors indicate the different graphs.
-
 
 Other attributes can be seen from the help page for `lines`, and include:
 
 
-  * `color` set with a symbol, as above, or a string
-  * `label` a label for the line to display in a legend
-  * `linestyle` available styles are set by a symbol, one of `:dash`, `:dot`, `:dashdot`, or `:dashdotdot`.
-  * `linewidth` width of line
-  * `transparency` the `alpha` value, a number between $0$ and $1$, smaller numbers for more transparent.
+* `color` set with a symbol, as above, or a string
+
+* `label` a label for the line to display in a legend
+
+* `linestyle` available styles are set by a symbol, one of `:dash`, `:dot`, `:dashdot`, or `:dashdotdot`.
+
+* `linewidth` width of line
+
+* `transparency` the `alpha` value, a number between $0$ and $1$, smaller numbers for more transparent.
 
 
 #### Simple legends
@@ -392,7 +359,7 @@ The basic plots we have seen are of type `FigureAxisPlot`. The "axis" part contr
 
 For example:
 
-
+::: {#fig-makie-title-axis-label-xlabel-ylabel}
 ```{julia}
 xs = 0..2pi
 lines(xs, sin;
@@ -400,9 +367,14 @@ lines(xs, sin;
       )
 ```
 
+Passing `title`, `xlabel`, and `ylabel` values to the underlying axis
+:::
+
+
 To access the `axis` element of a plot **after** the plot is constructed, values can be assigned to the `axis` property of the `FigureAxisPlot` object. For example:
 
 
+::: {#fig-makie-title-axis-label-xlabel-ylabel-after-construction}
 ```{julia}
 xs = 0..2pi
 p = lines(xs, sin;
@@ -413,52 +385,58 @@ p.axis.xticks = MultiplesTicks(5, pi, "π") # label 5 times using `pi`
 current_figure()
 ```
 
-The ticks are most easily set as a collection of values. Above, the `MultiplesTicks` function was used to label with multiples of $\pi$.
+One way to access the underlying axis after construction. (The more systematic way is to produce a `Figure` and construct an `Axis` object to modify.)
+:::
 
+The ticks are most easily set as a collection of values. Above, the `MultiplesTicks` function was used to label with multiples of $\pi$.
 
 Later we will discuss how `Makie` allows for subsequent modification of several parts of the plot (not just the ticks) including the data.
 
+#### Figure size, $x$ and $y$ limits
 
-#### Figure resolution, $x$ and $y$ limits
+As just mentioned, the basic plots we have seen are of type `FigureAxisPlot`. The "figure" part can be used to adjust the background color or the size. As with attributes for the axis, these too can be passed to a simple constructor:
 
-
-As just mentioned, the basic plots we have seen are of type `FigureAxisPlot`. The "figure" part can be used to adjust the background color or the resolution. As with attributes for the axis, these too can be passed to a simple constructor:
-
-
+::: {#fig-makie-title-axis-figure-size}
 ```{julia}
 lines(xs, sin;
       axis=(title="Plot of sin(x)", xlabel="x", ylabel="sin(x)"),
-      figure=(;resolution=(300, 300))
+      figure=(;size=(300, 300))
       )
 ```
 
-The `;` in the tuple passed to `figure` is one way to create a *named* tuple with a single element. Alternatively, `(resolution=(300,300), )` – with a trailing comma – could have been used.
+Adjust `size` value for the enclosing `Figure` object
+:::
+
+The `;` in the tuple passed to `figure` is one way to create a *named* tuple with a single element.
 
 
-To set the limits of the graph there are shorthand functions `xlims!`, `ylims!`, and `zlims!`. This might prove useful if vertical asymptotes are encountered, as in this example:
+To set the limits of the graph there are shorthand functions `xlims!`, `ylims!`, and `zlims!`. This might prove useful if vertical asymptotes are encountered, as in the code to produce @fig-makie-xlims-ylims.
 
 
+::: {#fig-makie-xlims-ylims}
 ```{julia}
 f(x) = 1/x
 a,b = -1, 1
 xs = range(-1, 1, length=200)
-lines(xs, f.(xs))
+lines(xs, f)
 ylims!(-10, 10)
 
 current_figure()
 ```
 
-This still leaves the artifact due to the vertical asymptote at $0$ having different values from the left and the right.
+Adjusting the range of possible `y` values with `ylims!`
+:::
 
+Adjusting the `y` limits still leaves an artifact due to the vertical asymptote at $0$ having different values from the left and the right.
 
 ### Plots of parametric functions
-
 
 A space curve is a plot of a function $f:R^2 \rightarrow R$ or $f:R^3 \rightarrow R$.
 
 
 To construct a curve from a set of points, we have a similar pattern in both $2$ and $3$ dimensions:
 
+::: {#fig-makie-parametric-plot-examples layout-ncol=2}
 
 ```{julia}
 r(t) = [sin(2t), cos(3t)]
@@ -467,9 +445,6 @@ pts = Point2.(r.(ts))  # or (Point2∘r).(ts)
 lines(pts)
 ```
 
-Or
-
-
 ```{julia}
 r(t) = [sin(2t), cos(3t), t]
 ts = range(0, 2pi, length=200)
@@ -477,32 +452,34 @@ pts = Point3.(r.(ts))
 lines(pts)
 ```
 
-Alternatively, vectors of the $x$, $y$, and $z$ components can be produced and then plotted using the pattern `lines(xs, ys)` or `lines(xs, ys, zs)`. For example, using `unzip`, as above, we might have done the prior example with:
+Two and three dimensional parametric plots
+:::
 
-
-```{julia}
-xs, ys, zs = unzip(r.(ts))
-lines(xs, ys, zs)
-```
+Alternatively, vectors of the $x$, $y$, and $z$ components can be produced and then plotted using the pattern `lines(xs, ys)` or `lines(xs, ys, zs)`. For example, using `unzip`, as above, we might have done the prior example with `lines(unzip(r.(ts))...)`.
 
 #### Aspect ratio
 
 
-A simple plot of a parametrically defined circle will show an ellipse, as the aspect ratio of the $x$ and $y$ axis is not $1$. To enforce this, we can pass a value of `aspect=1` to the underlying "Axis" object. For example:
+A simple plot of a parametrically defined circle will show an ellipse, as the aspect ratio of the $x$ and $y$ axis is not $1$. To enforce this, we can pass a value of `aspect=1` to the underlying "Axis" object. @fig-makie-aspect-ratio-1 provides an example.
 
-
+::: {#fig-makie-aspect-ratio-1}
 ```{julia}
 ts = range(0, 2pi, length=100)
-xs, ys = sin.(ts), cos.(ts)
-lines(xs, ys; axis=(; aspect = 1))
+lines(sin.(ts), cos.(ts);
+      axis=(; aspect = 1))
 ```
+
+Passing `aspect=1` to the axis make the `x` and `y`-axis scales equal
+:::
 
 #### Tangent vectors (`arrows`)
 
 
-A tangent vector along a curve can be drawn quite easily using the `arrows` function. There are different interfaces for `arrows`, but we show the one which uses a vector of positions and a vector of "vectors". For the latter, we utilize the `derivative` function from `ForwardDiff`:
+A tangent vector along a curve can be drawn quite easily using the `arrows` function. There are different interfaces for `arrows`, but we show the one which uses a vector of positions and a vector of "vectors". For the latter, we utilize the `derivative` function from `ForwardDiff`. In 3 dimensions the differences are minor, as seen in the code to produce @fig-makie-parametric-plot-tangent-vectors.
 
 
+
+::: {#fig-makie-parametric-plot-tangent-vectors layout-ncol=2}
 ```{julia}
 r(t) = [sin(t), cos(t)] # vector, not tuple
 ts = range(0, 4pi, length=200)
@@ -510,15 +487,14 @@ lines(Point2.(r.(ts)))
 
 nts = 0:pi/4:2pi
 us = r.(nts)
-dus = ForwardDiff.derivative.(r, nts)
+dus = derivative.(r, nts)
 
-arrows!(Point2.(us), Point2.(dus))
+arrows2d!(Point2.(us), Point2.(dus))
 
 current_figure()
 ```
 
-In 3 dimensions the differences are minor:
-
+and
 
 ```{julia}
 r(t) = [sin(t), cos(t), t] # vector, not tuple
@@ -527,37 +503,39 @@ lines(Point3.(r.(ts)))
 
 nts = 0:pi/2:(4pi-pi/2)
 us = r.(nts)
-dus = ForwardDiff.derivative.(r, nts)
+dus = derivative.(r, nts)
 
-arrows!(Point3.(us), Point3.(dus))
+arrows3d!(Point3.(us), Point3.(dus))
 
 current_figure()
 ```
 
-#### Arrow attributes
+Plot of tangent lines in both two and three dimenstions
+:::
 
+
+#### Arrow attributes
 
 Attributes for `arrows` include
 
+* `arrowsize` to adjust the size
 
-  * `arrowsize` to adjust the size
-  * `lengthscale` to scale the size
-  * `arrowcolor` to set the color
-  * `arrowhead` to adjust the head
-  * `arrowtail` to adjust the tail
+* `lengthscale` to scale the size
+
+* `arrowcolor` to set the color
+
+* `arrowhead` to adjust the head
+
+* `arrowtail` to adjust the tail
 
 
 ## Surfaces
 
-
-Plots of surfaces in $3$ dimensions are useful to help understand the behavior of multivariate functions.
-
+Plots of surfaces in $3$ dimensions are useful to help understand the behavior of multivariate functions. There are a few common visualizations.
 
 #### Surfaces defined through $z=f(x,y)$
 
-
 The "`peaks`" function defined below has a few prominent peaks:
-
 
 ```{julia}
 function peaks(x, y)
@@ -568,51 +546,71 @@ function peaks(x, y)
 end
 ```
 
-Here we see how `peaks` can be visualized over the region $[-5,5]\times[-5,5]$:
+@fig-makie-surface-peaks shows how `peaks` can be visualized over the region $[-5,5]\times[-5,5]$:
 
-
+::: {#fig-makie-surface-peaks}
 ```{julia}
 xs = ys = range(-5, 5, length=25)
 surface(xs, ys, peaks)
 ```
 
-The calling pattern `surface(xs, ys, f)` implies a rectangular grid over the $x$-$y$ plane defined by `xs` and `ys` with $z$ values given by $f(x,y)$.
+Surface plot produced by `surface(xs, ys, f)`
+:::
 
+The calling pattern `surface(xs, ys, f)` implies a rectangular grid over the $x$-$y$ plane defined by `xs` and `ys` with $z$ values given by $f(x,y)$.
 
 Alternatively a "matrix" of $z$ values can be specified. For a function `f`, this is conveniently generated by the pattern `f.(xs, ys')`, the `'` being important to get a matrix of all $x$-$y$ pairs through `Julia`'s broadcasting syntax.
 
 
+::: {#fig-makie-surface-using-broadcasting}
 ```{julia}
 zs = peaks.(xs, ys')
-surface(xs, ys, zs)
+surface(xs, ys, zs);
 ```
 
-To see how this graph is constructed, the points $(x,y,f(x,y))$ are plotted over the grid and displayed.
+Surface generated by `surface(xs, ys, zs)` where `zs` is a matrix of values
+:::
 
 
-Here we downsample to illustrate:
+##### Example: surface graph construction
+
+To see how a surface graph is constructed, the points $(x,y,f(x,y))$ are plotted over the grid and displayed.
 
 
+In this examplpe,  we downsample to illustrate.
+
+::: {#fig-makie-surface-plot-scatter}
 ```{julia}
 xs = ys = range(-5, 5, length=5)
 pts = [Point3(x, y, peaks(x,y)) for x in xs for y in ys]
 scatter(pts, markersize=25)
 ```
 
-These points are then connected. The `wireframe` function illustrates just the frame:
+Points used in downsampled graphic
 
+:::
 
+The points in @fig-makie-surface-plot-scatter are then connected. The `wireframe` function illustrates just the frame in @fig-makie-surface-plot-wireframe.
+
+::: {#fig-makie-surface-plot-wireframe}
 ```{julia}
 wireframe(xs, ys, peaks.(xs, ys'); linewidth=5)
 ```
 
-The `surface` call triangulates the frame and fills in the shading:
+Wireframe used in downsampled graphic
+:::
 
 
+The `surface` call triangulates the frame and fills in the shading.
+
+::: {#fig-makie-surface-plot-surface}
 ```{julia}
 surface!(xs, ys, peaks.(xs, ys'))
 current_figure()
 ```
+
+The `surface` shading used in the downsampled graphic
+:::
 
 #### Parametrically defined surfaces
 
@@ -641,9 +639,7 @@ end
 
 With the data suitably massaged, we can directly plot either a `surface` or `wireframe` plot.
 
-
 ---
-
 
 As an aside, The above can be done more campactly with nested list comprehensions:
 
@@ -662,11 +658,12 @@ xs, ys, zs = unzip(r.(us, vs'))
 ---
 
 
-For example, a sphere can be parameterized by $r(u,v) = (\sin(u)\cos(v), \sin(u)\sin(v), \cos(u))$ and visualized through:
+For example, a sphere can be parameterized by $r(u,v) = (\sin(u)\cos(v), \sin(u)\sin(v), \cos(u))$ and visualized through these commands to produce @fig-makie-parametric-sphere.
 
-
+::: {#fig-makie-parametric-sphere}
 ```{julia}
 r(u,v) = [sin(u)*cos(v), sin(u)*sin(v), cos(u)]
+
 us = range(0, pi, length=25)
 vs = range(0, pi/2, length=25)
 xs, ys, zs = parametric_grid(us, vs, r)
@@ -676,8 +673,12 @@ wireframe!(xs, ys, zs)
 current_figure()
 ```
 
-A surface of revolution for $g(u)$ revolved about the $z$ axis can be visualized through:
+Part of sphere plotted using a parametric description of the data
+:::
 
+A surface of revolution for $g(u)$ revolved about the $z$ axis can be visualized through the commands to produce @fig-makie-parametric-surface-revolution.
+
+::: {#fig-makie-parametric-surface-revolution}
 
 ```{julia}
 g(u) = u^2 * exp(-u)
@@ -692,9 +693,12 @@ wireframe!(xs, ys, zs)
 current_figure()
 ```
 
-A torus with big radius $2$ and inner radius $1/2$ can be visualized as follows
+Surface of revolution formed by revolving `g` around the `z` axis.
+:::
 
+A torus with big radius $2$ and inner radius $1/2$ is visualized in @fig-makie-parametric-surface-torus.
 
+::: {#fig-makie-parametric-surface-torus}
 ```{julia}
 r1, r2 = 2, 1/2
 r(u,v) = ((r1 + r2*cos(v))*cos(u), (r1 + r2*cos(v))*sin(u), r2*sin(v))
@@ -706,21 +710,27 @@ surface(xs, ys, zs)
 wireframe!(xs, ys, zs)
 current_figure()
 ```
+Surface of torus plotted as a parametrically defined surface
+:::
 
-A Möbius strip can be produced with:
+A Möbius strip is produced in @fig-makie-parametric-surface-mobius-strip.
 
-
+::: {#fig-makie-parametric-surface-mobius-strip}
 ```{julia}
-ws = range(-1/4, 1/4, length=8)
-thetas = range(0, 2pi, length=30)
 r(w, θ) = ((1+w*cos(θ/2))*cos(θ), (1+w*cos(θ/2))*sin(θ), w*sin(θ/2))
 
+ws = range(-1/4, 1/4, length=8)
+thetas = range(0, 2pi, length=30)
 xs, ys, zs = parametric_grid(ws, thetas, r)
 
 surface(xs, ys, zs)
 wireframe!(xs, ys, zs)
 current_figure()
 ```
+
+A Möbius strip can be parameterized and displayed
+:::
+
 
 ## Contour plots (`contour`, `contourf`, `heatmap`)
 
@@ -731,43 +741,54 @@ For a function $z = f(x,y)$ an alternative to a surface plot, is a contour plot.
 For a function $f(x,y)$, the syntax for generating a contour plot follows that for `surface`.
 
 
-For example, using the `peaks` function, previously defined, we have a contour plot over the region $[-5,5]\times[-5,5]$ is generated through:
+For example, using the `peaks` function, previously defined, we have a contour plot over the region $[-5,5]\times[-5,5]$ is generated through `contour(xs, ys, peaks)`. A figure is shown in @fig-makie-contour-peaks`.
 
-
+::: {#fig-makie-contour-peaks}
 ```{julia}
 xs = ys = range(-5, 5, length=100)
 contour(xs, ys, peaks)
 ```
 
-The default of $5$ levels can be adjusted using the `levels` keyword:
+Contour plot of `peaks`
+:::
+
+The default of $5$ levels can be adjusted using the contour function's `levels` keyword. @fig-makie-contour-peaks-levels show the `peaks` function with `levels = 20`. The `levels` argument can also specify precisely what levels are to be drawn.
 
 
+
+::: {#fig-makie-contour-peaks-levels}
 ```{julia}
 contour(xs, ys, peaks; levels = 20)
 ```
 
-The `levels` argument can also specify precisely what levels are to be drawn.
+Contour plot of `peaks` with the display of 20 levels specified
+:::
 
 
 The contour graph makes identification of peaks and valleys easy as the limits of patterns of nested contour lines.
 
+A *filled* contour plot is produced by `contourf`, as seen in @fig-makie-contour-peaks-filled.
 
-A *filled* contour plot is produced by `contourf`:
-
-
+::: {#fig-makie-contour-peaks-filled}
 ```{julia}
 contourf(xs, ys, peaks)
 ```
 
-A related, but alternative visualization, using color to represent magnitude is a heatmap, produced by the  `heatmap` function. The calling syntax is similar to `contour` and `surface`:
+The `contourf` command produces filled contour plots
+:::
+
+A related, but alternative visualization, using color to represent magnitude is a heatmap, produced by the  `heatmap` function. The calling syntax is similar to `contour` and `surface`. @fig-makie-heatmatp-peaks shows peaks and valleys through "hotspots" on the graph.
 
 
+::: {#fig-makie-heatmatp-peaks}
 ```{julia}
 heatmap(xs, ys, peaks)
 ```
 
-This graph shows peaks and valleys through "hotspots" on the graph.
+Heatmap of `peaks` function
+:::
 
+##### Example
 
 The `MakieGallery` package includes an example of a surface plot with both a wireframe and 2D contour graph added. It is replicated here using the `peaks` function scaled by $5$.
 
@@ -783,32 +804,43 @@ zs = peaks.(xs, ys') / 5;
 The `zs` were generated, as `wireframe` does not provide the interface for passing a function.
 
 
-The `surface` and `wireframe` are produced as follows. Here we manually create the figure and axis object so that we can set the viewing angle through the `elevation` argument to the axis object:
+The `surface` and `wireframe` graphics are produced as follows. In the following we manually create the figure and axis object (using `Figure` and `Axis` as shown). We do this to set the viewing angle through the `elevation` argument to the axis object. We plot onto this axis in producing @fig-makie-peaks-surface-wireframe and then display the `Figure` object.
 
-
+::: {#fig-makie-peaks-surface-wireframe}
 ```{julia}
 fig = Figure()
-ax3 = Axis3(fig[1,1];
+ax3 = Axis3(fig[1,1];   # upper left of `fig`
             elevation=pi/9, azimuth=pi/16)
+
 surface!(ax3, xs, ys, zs)
 wireframe!(ax3, xs, ys, zs;
            overdraw = true, transparency = true,
            color = (:black, 0.1))
-current_figure()
+
+fig                    # Figure object displays graphic
 ```
 
-To add the contour, a simple call via `contour!(scene, xs, ys, zs)` will place the contour at the $z=0$ level which will make it hard to read. Rather, placing at the "bottom" of the figure is desirable. To identify that the minimum value, is identified (and rounded) and the argument `transformation = (:xy, zmin)` is passed to `contour!`:
+Surface and wireframe for the `peaks` function
+:::
 
+Next, we add a contour graph to @fig-makie-peaks-surface-wireframe to produce @fig-makie-peaks-surface-wireframe-contour. A simple call via `contour!(scene, xs, ys, zs)` will place the contour at the $z=0$ level which will make it hard to read. Rather, placing at the "bottom" of the figure is desirable.
 
+To identify that the minimum value, is identified (and rounded) and the argument `transformation = (:xy, zmin)` is passed to `contour!`:
+
+::: {#fig-makie-peaks-surface-wireframe-contour}
 ```{julia}
-ezs = extrema(zs)
-zmin, zmax = floor(first(ezs)), ceil(last(ezs))
+zmin, zmax = extrema(zs)
+zmin, zmax = floor(zmin), ceil(zmax) # round down/up
 contour!(ax3, xs, ys, zs;
          levels = 15, linewidth = 2,
          transformation = (:xy, zmin))
-zlims!(zmin, zmax)
-current_figure()
+zlims!(ax3, zmin, zmax)
+
+fig
 ```
+
+Surface, wireframe, and contour for the `peaks` function
+:::
 
 The `transformation` plot attribute sets the "plane" (one of `:xy`, `:yz`, or `:xz`) at a location, in this example `zmin`.
 
@@ -819,15 +851,18 @@ The manual construction of a figure and an axis object will be further discussed
 ### Three dimensional contour plots
 
 
-The `contour` function can also plot $3$-dimensional contour plots. Concentric spheres, contours of $x^2 + y^2 + z^2 = c$ for $c > 0$ are presented by the following:
+The `contour` function can also plot $3$-dimensional contour plots. Concentric spheres, contours of $x^2 + y^2 + z^2 = c$ for $c > 0$ are presented in @fig-makie-countour-three-d.
 
-
+::: {#fig-makie-countour-three-d}
 ```{julia}
 f(x,y,z) = x^2 + y^2 + z^2
 xs = ys = zs = range(-3, 3, length=100)
 
 contour(xs, ys, zs, f)
 ```
+
+Three dimensional contour plot
+:::
 
 ### Implicitly defined curves and surfaces
 
@@ -843,14 +878,16 @@ The graph of an equation is the collection of all $(x,y)$ values satisfying the 
 
 The contour graph can produce these graphs by setting the `levels` argument to `[0]`.
 
-
+::: {#fig-makie-implicit-plot}
 ```{julia}
 f(x,y) = x^3 + x^2 + x + 1 - x*y        # solve x^3 + x^2 + x + 1 = x*y
 xs = range(-5, 5, length=100)
 ys = range(-10, 10, length=100)
 
-contour(xs, ys, f.(xs, ys'); levels=[0])
+contour(xs, ys, f; levels=[0])
 ```
+Using `contour` to graph an implicitly defined function
+:::
 
 The `implicitPlots.jl` function uses the `Contour` package along with a `Plots` recipe to plot such graphs. Here we see how to use `Makie` in a similar manner:
 
@@ -888,57 +925,90 @@ To plot the equation $F(x,y,z)=0$, for $F$ a scalar-valued function, again the i
 
 With `Makie`, many implicitly defined surfaces can be adequately represented using `contour` with the attribute `levels=[0]`. We will illustrate this technique.
 
-The `Implicit3DPlotting` package takes an approach like `ImplicitPlots` to represent these surfaces. It replaces the `Contour` package computation with a $3$-dimensional alternative provided through the `Meshing` and `GeometryBasics` packages. This package has a `plot_implicit_surface` function that does something similar to below. We don't illustrate it, as it *currently* doesn't work with the latest version of `Makie`.
+::: {.callout-note}
+## GLMakie
 
-To begin, we plot a sphere implicitly as a solution to $F(x,y,z) = x^2 + y^2 + z^2 - 1 = 0$>
-
+The `CairoMakie` backend does not handle these next few plots, so we use `GLMakie.contour` in the following after importing with:
 
 ```{julia}
-f(x,y,z) = x^2 + y^2 + z^2 - 1
+import GLMakie
+```
+:::
+
+To begin, we plot a sphere implicitly as a solution to $F(x,y,z) = x^2 + y^2 + z^2 - 1 = 0$ in @fig-makie-implicit-plot-3d.
+
+::: {#fig-makie-implicit-plot-3d}
+```{julia}
+f(x) = norm(x)^2 - 1
+ϕ(x,y,z) = (x,y,z)
 xs = ys = zs = range(-3/2, 3/2, 100)
-contour(xs, ys, zs, f; levels=[0])
+GLMakie.contour(xs, ys, zs, f∘ϕ; levels=[0], colormap=:RdBu)
 ```
 
+Three dimensional implicitly defined surface plotted with `contour`
+:::
 
 
-Here we visualize an intersection of a sphere with another figure:
+@fig-makie-implicit-plot-3d-intersection visualizes an intersection of a sphere with another figure. To show the different surfaces, different colormaps are chosen.
 
-
+::: {#fig-makie-implicit-plot-3d-intersection}
 ```{julia}
 r₂(x) = sum(x.^2) - 2 # a sphere
 r₄(x) = sum(x.^4) - 1
 ϕ(x,y,z) = (x,y,z)
 
 xs = ys = zs = range(-2, 2, 100)
-contour(xs, ys, zs, r₂∘ϕ; levels = [0], colormap=:RdBu)
-contour!(xs, ys, zs, r₄∘ϕ; levels = [0], colormap=:viridis)
+GLMakie.contour(xs, ys, zs, r₂∘ϕ; levels = [0], colormap=:RdBu)
+GLMakie.contour!(xs, ys, zs, r₄∘ϕ; levels = [0], colormap=:viridis)
 current_figure()
 ```
 
-This example comes from [Wikipedia](https://en.wikipedia.org/wiki/Implicit_surface) showing an implicit surface of genus $2$:
+Two implicitly defined surfaces in three dimensions disambiguated through different colormaps
+:::
 
+@fig-makie-implicit-genus-2-function presents an example  from [Wikipedia](https://en.wikipedia.org/wiki/Implicit_surface) showing an implicit surface of genus $2$.
 
+::: {#fig-makie-implicit-genus-2-function}
 ```{julia}
 f(x,y,z) = 2y*(y^2 -3x^2)*(1-z^2) + (x^2 +y^2)^2 - (9z^2-1)*(1-z^2)
 xs = ys = zs = range(-5/2, 5/2, 100)
-contour(xs, ys, zs, f; levels=[0], colormap=:RdBu)
-
+GLMakie.contour(xs, ys, zs, f; levels=[0], colormap=:RdBu)
 ```
 
-(This figure does not render well though, as the hole is not shown.)
+Implicit surface of a genus 2 function. This figure does not render well though, as the hole is not displayed.
+:::
 
 
-For one last example from Wikipedia, we have the Cassini oval which "can be defined as the point set for which the *product* of the distances to $n$ given points is constant." That is:
+The `Implicit3DPlotting` package takes an approach like `ImplicitPlots` to represent these surfaces. It replaces the `Contour` package computation with a $3$-dimensional alternative provided through the `Meshing` and `GeometryBasics` packages. This package has a `plot_implicit_surface` function that does something similar as just illustrated, but handles the "hole" not shown in @fig-makie-implicit-genus-2-function.
 
+The `plot_implicit_surface` takes a function of a single argument, so we wrap `f` within `splat` which takes that single argument and "splats" them so `f` can be used. The result appears in @fig-makie-implicit-genus-2-function-Implicit3DPlotting.
+
+::: {#fig-makie-implicit-genus-2-function-Implicit3DPlotting}
+```{julia}
+using Implicit3DPlotting
+plot_implicit_surface(splat(f); xlims=(-5/2, 5/2), ylims=(-5/2, 5/2))
+```
+
+Implicit surface of a genus 2 function. This surface, rendered with the `Implicit3DPlotting` package, shows the holes present in the surface.
+:::
+
+
+
+For one last example from Wikipedia, we have the Cassini oval which "can be defined as the point set for which the *product* of the distances to $n$ given points is constant."
+
+::: {#fig-makie-implicit-cassini-oval}
 
 ```{julia}
-function cassini(λ, ps = ((1,0,0), (-1, 0, 0)))
+function cassini(λ, ps = ((1,0,0), (-1, 0, 0))) # cassini returns a function
     n = length(ps)
     x -> prod(norm(x .- p) for p ∈ ps) - λ^n
 end
-xs = ys = zs = range(-2, 2, 100)
-contour(xs, ys, zs, cassini(0.80) ∘ ϕ; levels=[0], colormap=:RdBu)
+xs = ys = zs = range(-3/2, 3/2, 100)
+GLMakie.contour(xs, ys, zs, cassini(0.80) ∘ ϕ; levels=[0], colormap=:RdBu)
 ```
+
+Cassini oval implicitly defined
+:::
 
 ## Vector fields. Visualizations of $f:R^2 \rightarrow R^2$
 
@@ -962,20 +1032,26 @@ Broadcasting over `(xs, ys')` ensures each pair of possible values is encountere
 
 Calling `arrows` on the prepared data produces the graphic:
 
-
+::: {#fig-makie-arrows-vector-field}
 ```{julia}
-arrows(pts, dus)
+arrows2d(pts, dus)
 ```
+
+Vectorfield plot generated by `arrows2d`. Modification is needed.
+:::
 
 The grid seems rotated at first glance; but is also confusing. This is due to the length of the vectors as the $(x,y)$ values get farther from the origin. Plotting the *normalized* values (each will have length $1$) can be done easily using `norm` (which is found in the standard `LinearAlgebra` library):
 
-
+::: {#fig-makie-arrows-vector-field-modified}
 ```{julia}
 dvs = dus ./ norm.(dus)
-arrows(pts, dvs)
+arrows2d(pts, dvs)
 ```
 
-The rotational pattern becomes much clearer now.
+Vectorfield plot generated by `arrows2d` after modification
+:::
+
+The rotational pattern in @fig-makie-arrows-vector-field-modified is much clearer than from @fig-makie-arrows-vector-field.
 
 
 The `streamplot` function also illustrates this phenomenon. This implements an "algorithm [that] puts an arrow somewhere and extends the streamline in both directions from there. Then, it chooses a new position (from the remaining ones), repeating the exercise until the streamline  gets blocked, from which on a new starting point, the process repeats."
@@ -983,13 +1059,16 @@ The `streamplot` function also illustrates this phenomenon. This implements an "
 
 The `streamplot` function expects a `Point` not a pair of values, so we adjust `f` slightly and call the function using the pattern `streamplot(g, xs, ys)`:
 
-
+::: {#fig-makie-arrows-vector-field-streamplot}
 ```{julia}
 f(x, y) = [y, -x]
 g(xs) = Point2(f(xs...))
 
 streamplot(g, -5..5, -5..5)
 ```
+
+Graph produced by `streamplot`
+:::
 
 (We used interval notation to set the viewing range, a range could also be used.)
 
@@ -1000,10 +1079,25 @@ The calling pattern of `streamplot` is different than other functions, such as `
 
 :::
 
-## Layoutables and Observables
+## Layoutables
 
+The `FigureAxisPlot` comprises an enclosing figure and one or more axes. These can be constructed directly through a pattern like the following:
 
-### Layoutables
+::: {#fig-makie-figure-axis}
+```{julia}
+F = Figure()        # can pass size=(w,h)
+ax = Axis(F[1,1])   # can pass title, xlabel, ylabel, ...
+ylims!(ax, (-5, 5)) # can limit viewing window size for an axis
+
+xs = range(-8, 8, 100)
+ys = xs .+ sin.(xs)
+lines!(ax, xs, ys)  # layer on the axis, not the figure
+
+F                   # display figure
+```
+
+Basic pattern to construct a figure and an axis to layer on
+:::
 
 
 `Makie` makes it really easy to piece together figures from individual plots. To illustrate, we create a graphic consisting of a plot of a function, its derivative, and its second derivative. In our graphic, we also leave space for a label.
@@ -1015,14 +1109,17 @@ The Layout [Tutorial](https://makie.juliaplots.org/stable/tutorials/layout-tutor
 
 :::
 
-The basic plotting commands, like `lines`, return a `FigureAxisPlot` object. For laying out our own graphic, we manage the figure and axes manually. The commands below create a figure, then assign axes to portions of the figure:
+For laying out our own composite graphic, we manage the figure and axes manually. The commands below create a figure, then assign axes to certain portions of the figure:
 
 
 ```{julia}
 F = Figure()
-af   = F[2,1:2]   = Axis(F)
-afp  = F[3,1:end] = Axis(F)
-afpp = F[4,:]     = Axis(F)
+#af   = F[2,1:2]   = Axis(F)
+#afp  = F[3,1:end] = Axis(F)
+#afpp = F[4,:]     = Axis(F)
+af   = Axis(F[2,1:2])
+afp  = Axis(F[3,1:end])
+afpp = Axis(F[4,:])
 ```
 
 The axes are named `af`, `afp` and `afpp`, as they will hold the respective graphs. The key here is the use of matrix notation to layout the graphic in a grid. The first one is row 2 and columns 1 through 2; the second row 3 and again all columns, the third is row 4 and all columns.
@@ -1054,7 +1151,7 @@ lines!(afpp, xs, fpp)
 lines!(afpp, xs, zero, color=:blue);
 ```
 
-We can give title information to each axis:
+We can give title information to each axis on construction or after construction, through commands like:
 
 
 ```{julia}
@@ -1075,14 +1172,24 @@ is zero, the function f has an inflection point.
 """);
 ```
 
-Finally we display the figure:
+We display the figure in @fig-makie-layoutables
 
-
+::: {#fig-makie-layoutables}
 ```{julia}
 F
 ```
 
-### Observables
+Figure containing multiple axes
+:::
+
+
+## Observables
+
+::: {.callout-note}
+## This needs updating
+
+As over `v"0.24"` of Makie, there is an alternative to using `Observables`. These notes need updating to reflect that change.
+:::
 
 
 The basic components of a plot in `Makie` can be updated [interactively](https://makie.juliaplots.org/stable/documentation/nodes/index.html#observables_interaction). Historically `Makie` used the `Observables` package which allows complicated interactions to be modeled quite naturally. In the following we give a simple example, though newer versions of `Makie` rely on a different mechanism.
@@ -1093,14 +1200,15 @@ In Makie, an `Observable` is a structure that allows its value to be updated, si
 
 This simple example shows how an observable `h` can be used to create a collection of points representing a secant line. The figure shows the value for `h=3/2`.
 
-
+::: {#fig-makie-observable}
 ```{julia}
+begin
 f(x) = sqrt(x)
 c = 1
 xs = 0..3
-h = Observable(3/2)
+h′ = Observable(3/2)
 
-points = lift(h) do h
+points = lift(h′) do h
     xs = [0,c,c+h,3]
     tl = x -> f(c) + (f(c+h)-f(c))/h * (x-c)
     [Point2(x, tl(x)) for x ∈ xs]
@@ -1109,23 +1217,31 @@ end
 lines(xs, f)
 lines!(points)
 current_figure()
+end
 ```
 
-We can update the value of `h` using `setindex!` notation (square brackets). For example, to see that the secant line is a good approximation to the tangent line as $h \rightarrow 0$ we can set `h` to be `1/4` and replot:
+Illustration of using an `Observable`
+:::
 
+We can update the value of `h` using `setindex!` notation (square brackets). For example, to see that the secant line is a good approximation to the tangent line as $h \rightarrow 0$ we can set `h` to be `1/4` and replot in @fig-makie-observable-updated.
 
+::: {#fig-makie-observable-updated}
 ```{julia}
-h[] = 1/4
+h′[] = 1/4
 current_figure()
 ```
+
+Same plot as in @fig-makie-observable with `h'` value updated
+:::
 
 The line `h[] = 1/4` updated `h` which then updated `points` (a points is lifted up from `h`) which updated the graphic. (In these notes, we replot to see the change, but in an interactive session, the current *displayed* figure would be updated; no replotting would be necessary.)
 
 
 Finally, this example shows how to add a slider to adjust the value of `h` with a mouse. The slider object is positioned along with a label using the grid reference, as before.
 
-
+::: {#fig-makie=slider-added}
 ```{julia}
+let
 f(x) = sqrt(x)
 c = 1
 xs = 0..3
@@ -1145,7 +1261,11 @@ end
 lines!(ax, xs, f)
 lines!(ax, points)
 scatter!(ax, points; markersize=10)
-current_figure()
+    current_figure()
+end
 ```
+
+A slider added in position `F[2,2]` and connected through `lift`
+:::
 
 The slider value is "lifted" by its `value` component, as shown. Otherwise, the above is fairly similar to just using an observable for `h`.

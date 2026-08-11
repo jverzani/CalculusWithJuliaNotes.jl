@@ -18,13 +18,13 @@ import SymPy # imported only: some functions, e.g. degree, need qualification
 ---
 
 
-While `SymPy` can be used to represent polynomials, there are also native `Julia` packages available for this and related tasks. These packages include `Polynomials`, `MultivariatePolynomials`, and `AbstractAlgebra`, among many others. (A search on [juliahub.com](https://juliahub.com) found almost $100$ packages matching "polynomial".) We will look at the `Polynomials` package in the following, as it is straightforward to use and provides the features we are looking at for *univariate* polynomials.
+While `SymPy` can be used to represent polynomials, there are also native `Julia` packages available for this and related tasks. These packages include `Polynomials`, `MultivariatePolynomials`, and `AbstractAlgebra`, among many others.^[A search on [juliahub.com](https://juliahub.com) found over $50$ packages matching "polynomial".] In this section, we  look at the `Polynomials` package, as it is straightforward to use and provides the features we are looking at for *univariate* polynomials.
 
 
 ## Construction
 
 
-The polynomial expression $p = a_0 + a_1\cdot x + a_2\cdot x^2 + \cdots + a_n\cdot x^n$ can be viewed mathematically as a vector of numbers with respect to some "basis", which for standard polynomials, as above, is just the set of monomials, $1, x, x^2, \dots, x^n$. With this viewpoint, the polynomial $p$ can be identified with the vector `[a0, a1, a2, ..., an]`. The `Polynomials` package provides a wrapper for such an identification through the `Polynomial` constructor. We have previously loaded this add-on package.
+The polynomial expression $p = a_0 + a_1\cdot x + a_2\cdot x^2 + \cdots + a_n\cdot x^n$ can be viewed mathematically as a collection of numbers ($a_0$, $a_1$, $\dots$, $a_n$) with respect to some "basis", which for standard polynomials, as above, is just the set of monomials, $1, x, x^2, \dots, x^n$. With this viewpoint, the polynomial $p$ can be identified with the vector `[a0, a1, a2, ..., an]`. The `Polynomials` package provides a wrapper for such an identification through the `Polynomial` constructor. We have previously loaded this add-on package.
 
 
 To illustrate, the polynomial $p = 3 + 4x + 5x^2$ is constructed with
@@ -34,7 +34,7 @@ To illustrate, the polynomial $p = 3 + 4x + 5x^2$ is constructed with
 p = Polynomial([3,4,5])
 ```
 
-where the vector `[3,4,5]` represents the coefficients. The polynomial $q = 3 + 5x^2 + 7x^4$ has some coefficients that are $0$, these too must be indicated on construction, so we would have:
+where the vector `[3,4,5]` represents the coefficients. The polynomial $q = 3 + 5x^2 + 7x^4$ differs from $p$ in that some coefficients that are $0$. These must be indicated on construction. To represent $q$, we have:
 
 
 ```{julia}
@@ -87,7 +87,7 @@ x = variable(p)
 ```
 
 This variable is a `Polynomial` object that prints as `x`.
-These variables can be manipulated as any polynomial. We can then construct polynomials through expressions like:
+These variables can be algebraically manipulated as any polynomial. For example, wWe could construct polynomials through expressions like:
 
 
 ```{julia}
@@ -150,19 +150,23 @@ r + s
 ## Graphs
 
 
-Polynomial objects have a plot recipe defined – plotting from the `Plots` package should be as easy as calling `plot`:
+Polynomial objects have a plot recipe defined---plotting from the `Plots` package should be as easy as calling `plot` passing the polynomial as the first argument:
 
-
+::: {#fig-plot-polynomial-using-basic-recipe}
 ```{julia}
-plot(r, legend=false)  # suppress the legend
+plot(r; legend=false)  # suppress the legend
 ```
+Plot of polynomial `r` using the basic plot recipe
+:::
 
 The choice of domain is heuristically identified; it can be manually adjusted, as with:
 
-
+::: {#fig-plot-polynomial-using-specified-interval-1point5-to-2point5}
 ```{julia}
 plot(r, 1.5, 2.5; legend=false)
 ```
+Plot of polynomial `r` over the interval $[3/2, 5/2]$
+:::
 
 ## Roots
 
@@ -177,7 +181,7 @@ p = x^5 - x - 1
 roots(p)
 ```
 
-A consequence of the fundamental theorem of algebra and the factor theorem is that any fifth degree polynomial with integer coefficients has $5$ roots, where possibly some are complex. For real coefficients, these complex values must come in conjugate pairs, which can be observed from the output. The lone real root is approximately `1.1673039782614187`. This value being a numeric approximation to the irrational root.
+A consequence of the fundamental theorem of algebra and the factor theorem is that any fifth degree polynomial with integer coefficients has $5$ roots, where possibly some are complex. For real coefficients, these complex values must come in conjugate pairs, which can be observed from the output. The lone real root (with imaginary part that is `0.0im`) is approximately `1.16730397⋯`. This value being a numeric approximation to the irrational root.
 
 
 :::{.callout-note}
@@ -196,17 +200,9 @@ p = (x-1)^5
 roots(p)
 ```
 
-The `Polynomials` package has the `multroot` function to identify roots of polynomials when there are multiplicities expected. This function is not exported, so is called through:
 
+Internally, the `Polynomials` package has a routine^[`Polynomials.Multroot.multroot`] to identify multiple roots and this is used on conversion to a `FactoredPolynomial`:
 
-```{julia}
-#| hold: true
-x = variable()
-p = (x-1)^5
-Polynomials.Multroot.multroot(p)
-```
-
-Converting to the `FactoredPolynomial` type also does this work:
 
 ```{julia}
 convert(FactoredPolynomial, p)
@@ -248,15 +244,36 @@ The line is then given from the *point-slope* form by, say, $y= y_0 + m\cdot (x-
 
 A line, $y=mx+b$ can be a linear polynomial or a constant depending on $m$, so we could say $2$ points determine a polynomial of degree $1$ or less. Similarly, $3$ distinct points determine a degree $2$ polynomial or less, $\dots$, $n+1$ distinct points determine a degree $n$ or less polynomial. Finding a polynomial, $p$  that goes through $n+1$ points (i.e., $p(x_i)=y_i$ for each $i$) is called  [polynomial interpolation](https://en.wikipedia.org/wiki/Polynomial_interpolation). The main theorem is:
 
+::: {.theorem title="Polynomial interpolation theorem"}
 
-> *Polynomial interpolation theorem*: There exists a unique polynomial of degree $n$ or less that interpolates the points $(x_0,y_0), (x_1,y_1), \dots, (x_n, y_n)$ when the $x_i$ are distinct.
+For $n+1$ points $(x_0,y_0), (x_1,y_1), \dots, (x_n, y_n)$  with distinct $x_i$ there exists a *unique* polynomial. $p$, of degree $n$ or less that interpolates each point. That is, $p(x_i) = y_i$ for every $i$.
+:::
 
 
 
 (Uniqueness follows as suppose $p$ and $q$ satisfy the above, then $(p-q)(x) = 0$ at each of the $x_i$ and is of degree $n$ or less, so must be the $0$ polynomial. Existence comes by construction. See the Lagrange basis in the questions.)
 
 
-Knowing we can succeed, we approach the problem of $3$ points, say $(x_0, y_0)$, $(x_1,y_1)$, and $(x_2, y_2)$. There is a polynomial $p = a\cdot x^2 + b\cdot x + c$ with $p(x_i) = y_i$. This gives $3$ equations for the $3$ unknown values $a$, $b$, and $c$:
+
+Suppose three points on a polynomial are $(1,3)$, $(2,1)$, $(3,2)$. Find the degree $2$ (or less) polynomial that interpolates the points.
+
+ Numerically, the `fit` function from the `Polynomials` package will return the interpolating polynomial.
+
+
+```{julia}
+p = fit(Polynomial, [1,2,3], [3,1,2])
+```
+
+And note:
+
+
+```{julia}
+p(1) == 3, p(2) == 1, p(3) == 2
+```
+
+We *can* find a general formula for the interpolating polynomial using `SymPy` for three points, say $(x_0, y_0)$, $(x_1,y_1)$, and $(x_2, y_2)$. The theorem says there is a polynomial $p = a\cdot x^2 + b\cdot x + c$, with any of $a$, $b$, or $c$  *possibly* $0$, satisfying $p(x_i) = y_i$.
+
+The interpolating condition leads to three equations:
 
 
 $$
@@ -268,68 +285,68 @@ a\cdot x_2^2 + b\cdot x_2 + c &= y_2\\
 $$
 
 
-Solving this with `SymPy` is tractable. A generator is used below to create the $3$ equations; the `zip` function is a simple means to iterate over $2$ or more iterables simultaneously:
+Solving this with `SymPy` is tractable. A generator is used below to create the three equations:
 
 
 ```{julia}
 SymPy.@syms a b c xs[0:2] ys[0:2]
-eqs = tuple((a*xi^2 + b*xi + c ~ yi for (xi,yi) in zip(xs, ys))...)
+eqs = [a*xi^2 + b*xi + c ~ yi for (xi,yi) in zip(xs, ys)]
 abc = SymPy.solve(eqs, (a,b,c))
 ```
 
-As can be seen, the terms do get quite unwieldy when treated symbolically. Numerically, the `fit` function from the `Polynomials` package will return the interpolating polynomial. To compare,
-
-
-```{julia}
-fit(Polynomial, [1,2,3], [3,1,2])
-```
-
-and we can compare that the two give the same answer with, for example:
+As can be seen, the terms do get quite unwieldy when treated symbolically.
+We can compare with the numeric fit. For example, the value of `b` numerically was `6.5` and symbolically is identical and can be found as follows:
 
 
 ```{julia}
 abc[b]((xs .=> [1,2,3])..., (ys .=> [3,1,2])...)
 ```
 
-(Ignore the tricky way of substituting in each value of `xs` and `ys` for the symbolic values in `x` and `y`.)
+(Ignore the tricky way of substituting in each value of `xs` and `ys` for the symbolic values in `x` and `y`, it is shortcut to `xs₀=>1, xs₁=>2, xs₂=>3, ...`.)
 
 
-##### Example Inverse quadratic interpolation
+##### Example: Inverse quadratic interpolation
 
 
-A related problem, that will arise when finding iterative means to solve for zeros of functions, is *inverse* quadratic interpolation. That is finding $q$ that goes through the points $(x_0,y_0), (x_1, y_1), \dots, (x_n, y_n)$ satisfying $q(y_i) = x_i$. (That is $x$ and $y$ are reversed, as with inverse functions.) For the envisioned task, where the inverse quadratic function  intersects the $x$ axis is of interest, which is at the constant term of the polynomial (as it is like the $y$ intercept of  typical polynomial). Let's see what that is in general by replicating the above steps (though now the assumption is the $y$ values are distinct):
+A related problem, that will arise when finding iterative means to solve for zeros of functions, is *inverse* quadratic interpolation. That is finding $q$ that goes through the points $(x_0,y_0), (x_1, y_1), \dots, (x_n, y_n)$ satisfying $q(y_i) = x_i$. (That is $x$ and $y$ are reversed, as with inverse functions.) For the envisioned task, where the inverse quadratic function  intersects the $x$ axis is of interest, which is at the constant term of the polynomial (as it is like the $y$ intercept of  typical polynomial).
 
+To find this for the points  $(1,3)$, $(2,1)$, $(3,2)$ we flip around the order above and use a `y` variable to distinguish:
 
 ```{julia}
-#| hold: true
-SymPy.@syms a b c xs[0:2] ys[0:2]
-eqs = tuple((a*yi^2 + b*yi + c ~ xi for (xi, yi) in zip(xs,ys))...)
-abc = SymPy.solve(eqs, (a,b,c))
-abc[c]
+ip = fit(Polynomial, [3,1,2], [1,2,3]; var= :y)
 ```
 
-We can graphically see the result for the specific values of `xs` and `ys` as follows:
+We see that $-2$ (or `ip(0)`) is the $x$ intercept.
 
+
+@fig-inverse-quadratic-interpolation shows the $x$ intercept of the inverse quadratic interpolating polynomial for the specific values of `xs` and `ys` as follows:
+
+::: {#fig-inverse-quadratic-interpolation}
 
 ```{julia}
 #| hold: true
 #| echo: false
-SymPy.@syms a b c xs[0:2] ys[0:2]
-eqs = tuple((a*yi^2 + b*yi + c ~ xi for (xi, yi) in zip(xs,ys))...)
-abc = SymPy.solve(eqs, (a,b,c))
-abc[c]
+let
+    SymPy.@syms a b c xs[0:2] ys[0:2]
+    eqs = tuple((a*yi^2 + b*yi + c ~ xi for (xi, yi) in zip(xs,ys))...)
+    abc = SymPy.solve(eqs, (a,b,c))
 
-𝒙s, 𝒚s = [1,2,3], [3,1,2]
-q = fit(Polynomial, 𝒚s,  𝒙s)  # reverse
-# plot
-us = range(-1/4, 4, length=100)
-vs = q.(us)
-plot(vs, us, legend=false)
-scatter!(𝒙s, 𝒚s)
-plot!(zero)
-x0 = abc[c]((xs .=> 𝒙s)..., (ys .=> 𝒚s)...)
-scatter!([SymPy.N(x0)], [0], markershape=:star)
+    𝒙s, 𝒚s = [1,2,3], [3,1,2]
+    q = fit(Polynomial, 𝒚s,  𝒙s; var=:y)  # reverse
+    # plot
+    us = range(-1/8, 3.5, length=100)
+    vs = q.(us)
+    plot(vs, us; xticks=-4:3, legend=false)
+    scatter!(𝒙s, 𝒚s; marker=(3, :blue) )
+    plot!(zero)
+    scatter!([(q(0), 0)], marker=(6,:star,:red))
+end
 ```
+
+Plot of inverse quadratic interpolating polynomial through three points with the $x$ intercept marked with a star
+
+:::
+
 
 ## Questions
 
@@ -382,15 +399,16 @@ numericq(length(st))
 ###### Question
 
 
-Mathematically we say the $0$ polynomial has no degree. What convention does `Polynomials` use? (Look at `degree(zero(Polynomial))`.)
+Mathematically we say the $0$ polynomial has no degree. What convention does `Polynomials` use?
 
 
 ```{julia}
 #| hold: true
 #| echo: false
 choices = ["`nothing`", "`-1`", "`0`", "`Inf`", "`-Inf`"]
-answ = 2
-radioq(choices, answ, keep_order=true)
+answer = 2
+explanation = "Look at `degree(zero(Polynomial))`"
+buttonq(choices, answer; explanation)
 ```
 
 ###### Question
@@ -424,7 +442,7 @@ Make graphs of both `q` and `sin`. Over which interval is the approximation (vis
 choices = ["``[0,1]``",
 "``[0,\\pi]``",
 "``[0,2\\pi]``"]
-radioq(choices, 1, keep_order=true)
+buttonq(choices, 1)
 ```
 
 (This [blog post](https://www.nullhardware.com/blog/fixed-point-sine-and-cosine-for-embedded-systems/) shows how this approximation is valuable under some specific circumstances.)
@@ -459,8 +477,10 @@ A basis used by [Lagrange](https://en.wikipedia.org/wiki/Lagrange_polynomial) is
 
 
 $$
-l_i(x) = \prod_{0 \leq j \leq n; j \ne i} \frac{x-x_j}{x_i - x_j} =
-\frac{(x-x_0)\cdot(x-x_1)\cdot \cdots \cdot (x-x_{i-1}) \cdot (x-x_{i+1}) \cdot \cdots \cdot (x-x_n)}{(x_i-x_0)\cdot(x_i-x_1)\cdot \cdots \cdot (x_i-x_{i-1}) \cdot (x_i-x_{i+1}) \cdot \cdots \cdot (x_i-x_n)}.
+\begin{align*}
+l_i(x) &= \prod_{0 \leq j \leq n; j \ne i} \frac{x-x_j}{x_i - x_j}  \\
+&= \frac{(x-x_0)\cdot(x-x_1)\cdot \cdots \cdot (x-x_{i-1}) \cdot (x-x_{i+1}) \cdot \cdots \cdot (x-x_n)}{(x_i-x_0)\cdot(x_i-x_1)\cdot \cdots \cdot (x_i-x_{i-1}) \cdot (x_i-x_{i+1}) \cdot \cdots \cdot (x_i-x_n)}.
+\end{align*}
 $$
 
 That is $l_i(x)$ is a product of terms like $(x-x_j)/(x_i-x_j)$ *except* when $j=i$.
@@ -486,7 +506,7 @@ All terms like ``(x-x_j)/(x_0 - x_j)`` will be ``1`` when ``x=x_0`` and these ar
 """,
 	"The term ``(x_0-x_0)`` will be ``0``, so the product will be zero"
 	]
-radioq(choices, 1)
+buttonq(choices, 1)
 ```
 
 What is the value of $l_i(x_i)$?
@@ -518,7 +538,7 @@ The term like ``(x-x_1)/(x_0 - x_1)`` will be ``0`` when ``x=x_1`` and so the pr
 """,
 	"The term ``(x-x_1)/(x_0-x_1)`` is omitted from the product, so the answer is non-zero."
 	]
-radioq(choices, 1)
+buttonq(choices, 1)
 ```
 
 What is the value of $l_i(x_j)$ *if* $i \ne j$?
@@ -544,10 +564,42 @@ What is the value of $p(x_j)$?
 #| hold: true
 #| echo: false
 choices = ["``0``", "``1``", "``y_j``"]
-radioq(choices, 3)
+buttonq(choices, 3)
 ```
 
 This last answer is why $p$ is called an *interpolating* polynomial and this question shows an alternative way to identify interpolating polynomials from solving a system of linear equations.
+
+
+###### Question
+
+Symbolically, the inverse quadratic polynomial through three points can be identified symbolically using a pattern similar to that shown for polynomial interpolation. This shows the formula for the $x$ intercept:
+
+
+```{julia}
+#| hold: true
+SymPy.@syms a b c xs[0:2] ys[0:2]
+eqs = [a*yi^2 + b*yi + c ~ xi for (xi, yi) in zip(xs,ys)]
+abc = SymPy.solve(eqs, (a,b,c))
+abc[c]
+```
+
+As with the example, plug in the following values for the $x$ and $y$ coordinates of the three points in the example above:
+
+```{julia}
+#| echo: false
+abc[c]((xs .=> [1,2,3])..., (ys .=> [3,1,2])...) # answer not shown
+```
+
+What value is identified?
+
+```{julia}
+#| echo: false
+val = -2
+numericq(val)
+```
+
+
+
 
 
 ###### Question
@@ -581,7 +633,7 @@ It is ``0\cdot T_0(x) +	1\cdot T_1(x) + 2\cdot T_2(x) + 3\cdot T_3(x) = 0``
 	    raw"""
 It is ``0\cdot T_0(x) +	1\cdot T_1(x) + 2\cdot T_2(x) + 3\cdot T_3(x) = -2 - 8\cdot x + 4\cdot x^2 + 12\cdot x^3``
 """]
-radioq(choices, 3)
+buttonq(choices, 3)
 ```
 
 :::{.callout-note}

@@ -63,68 +63,53 @@ Rather than express sequences by the $a_0$, $h$, and $n$, `Julia` uses the start
 
 
 ```{julia}
-1:10
+1:5
 ```
 
-But wait, nothing different printed? This is because `1:10` is efficiently stored. Basically, a recipe to generate the next number from the previous number is created and `1:10` just stores the start and end points (the step size is implicit in how this is stored) and that recipe is used to generate the set of all values. To expand the values, you have to ask for them to be `collect`ed (though this typically isn't needed in practice, as values are usually *iterated* over):
+But wait, nothing different printed? This is because `1:5` is efficiently stored. Basically, a recipe to generate the next number from the previous number is created and `1:5` just stores the start and end points (the step size is implicit in how this is stored) and that recipe is used to generate the set of all values. To expand the values, you have to ask for them to be `collect`ed (though this typically isn't needed in practice, as values are usually *iterated* over):
 
 
 ```{julia}
-collect(1:10)
+collect(1:5)
 ```
 
-When a non-default step size is needed, it goes in the middle, as in `a:h:b`. For example, counting by sevens from $1$ to $50$ is achieved by:
+When a non-default step size is needed, it goes in the middle, as in `a:h:b`. For example, counting by sevens from $1$ to 29 is achieved by:
 
 
 ```{julia}
-collect(1:7:50)
+collect(1:7:29)
 ```
 
 Or counting down from 100:
 
 
 ```{julia}
-collect(100:-7:1)
+collect(100:-7:70)
 ```
 
-In this last example, we said end with $1$, but it ended with $2$. The ending value in the range is a suggestion to go up to, but not exceed. Negative values for `h`  are used to make decreasing sequences.
+In this last example, we said end with $70$, but it ended with $72$. The ending value in the range is a suggestion to go up to, but not exceed. Negative values for `h`  are used to make decreasing sequences.
 
 
 ### The range function
 
 
-For generating points to make graphs, a natural set of points to specify is $n$ evenly spaced points between $a$ and $b$. We can mimic creating this set with the range operation by solving for the correct step size. We have $a_0=a$ and $a_0 + (n-1) \cdot h = b$. (Why $n-1$ and not $n$?) Solving yields $h = (b-a)/(n-1)$. To be concrete we might ask for $9$ points between $-1$ and $1$:
+For generating points to make graphs, a natural set of points to specify is $n$ *evenly* spaced points between $a$ and $b$. We can mimic creating this set with the range operation by solving for the correct step size. We have $a_0=a$ and $a_0 + (n-1) \cdot h = b$. (Why $n-1$ and not $n$?) Solving yields $h = (b-a)/(n-1)$. To be concrete we might ask for $5$ points between $-1$ and $1$:
 
 
 ```{julia}
 #| hold: true
-a, b, n = -1, 1, 9
+a, b, n = -1, 1, 5
 h = (b-a)/(n-1)
 collect(a:h:b)
 ```
 
-Pretty neat. If we were doing this many times - such as once per plot - we'd want to encapsulate this into a function, for example using a comprehension:
+Now, our recipe is straightforward, but only because it avoids somethings. Look at  something simple:
 
 
 ```{julia}
-function evenly_spaced(a, b, n)
-    h = (b-a)/(n-1)
-    [a + i*h for i in 0:n-1]
-end
-```
-
-Great, let's try it out:
-
-
-```{julia}
-evenly_spaced(0, 2pi, 5)
-```
-
-Now, our implementation was straightforward, but only because it avoids somethings. Look at  something simple:
-
-
-```{julia}
-evenly_spaced(1/5, 3/5, 3)
+a, b, n = 1/5, 3/5, 3
+h = (b-a)/(n-1)
+collect(a:h:b)
 ```
 
 It seems to work as expected. But looking just at the algorithm it isn't quite so clear:
@@ -137,7 +122,7 @@ It seems to work as expected. But looking just at the algorithm it isn't quite s
 Floating point roundoff leads to the last value *exceeding* `0.6`, so should it be included? Well, here it is pretty clear it *should* be, but better to have something programmed that hits both `a` and `b` and adjusts `h` accordingly. Something which isn't subject to the vagaries of `(3/5 - 1/5)/2` not being `0.2`.
 
 
-Enter the base function `range` which solves this seemingly simple - but not really - task. It can use `a`, `b`, and `n`. Like the range operation, this function returns a generator which can be collected to realize the values.
+Enter the base function `range` which solves this seemingly simple---but not really---task. It can use `a`, `b`, and `n`. Like the range operation, this function returns a generator which can be collected to realize the values.
 
 
 The number of points is specified as a third argument (though keyword arguments can be given):
@@ -153,11 +138,25 @@ There is also the `LinRange(a, b, n)` function which can be more performant than
 
 :::
 
+
 ## Modifying sequences
 
 
 Now we concentrate on some more general styles to modify a sequence to produce a new sequence.
 
+### The repeat function
+
+The `repeat` function is used to repeat entries of an array a certain number of times. For a vector, there are two different patterns of interest: repeating the first element $k$ times, then the second, then the third etc. Or repeating the entire vector a number of times. The first one repeats *inner* values, the second *outer*. We illustrate with two examples:
+
+```{julia}
+repeat(1:3, inner=2)   # repeat 1 twice, then 2 twice, then 3 twice
+```
+
+and
+
+```{julia}
+repeat(1:3, outer=2)   # repeat 1:3 twice
+```
 
 ### Filtering
 
@@ -167,28 +166,28 @@ The act of throwing out elements of a collection based on some condition is call
 For example, another way to get the values between $0$ and $100$ that are multiples of $7$ is to start with all $101$ values and throw out those that don't match. To check if a number is divisible by $7$, we could use the `rem` function. It gives the remainder upon division. Multiples of `7` match `rem(m, 7) == 0`. Checking for divisibility by seven is unusual enough there is nothing built in for that, but checking for division by $2$ is common, and for that, there is a built-in function `iseven`.
 
 
-The `filter` function does this in `Julia`; the basic syntax being `filter(predicate_function, collection)`. The "`predicate_function`" is one that returns either `true` or `false`, such as `iseven`. The output of `filter` consists of the new collection of values - those where the predicate returns `true`.
+The `filter` function does this in `Julia`; the basic syntax being `filter(predicate_function, collection)`. The "`predicate_function`" is one that returns either `true` or `false`, such as `iseven`. The output of `filter` consists of the new collection of values---those in the collection for which the predicate returns `true`.
 
 
-To see it used, lets start with the numbers between `0` and `25` (inclusive) and filter out those that are even:
+To see it used, lets start with the numbers between `0` and `9` (inclusive) and filter out those that are even:
 
 
 ```{julia}
-filter(iseven, 0:25)
+filter(iseven, 0:9)
 ```
 
 To get the numbers between $1$ and $100$ that are divisible by $7$ requires us to write a function akin to `iseven`, which isn't hard (e.g., `is_seven(x) = x%7 == 0` or if being fancy `Base.Fix2(iszero∘rem, 7)`), but isn't something we continue with just yet.
 
 
-For another example, here is an inefficient way to list the prime numbers between $100$ and $200$. This uses the `isprime` function from the `Primes` package
+For another example, here is an inefficient way to list the prime numbers between $100$ and $130$. This uses the `isprime` function from the `Primes` package
 
 
 ```{julia}
-using Primes
+using Primes: isprime
 ```
 
 ```{julia}
-filter(isprime, 100:200)
+filter(isprime, 100:130)
 ```
 
 Illustrating `filter` at this point is mainly a motivation to illustrate that we can start with a regular set of numbers and then modify or filter them. The function takes on more value once we discuss how to write predicate functions.
@@ -202,7 +201,7 @@ Let's return to the case of the set of even numbers between $0$ and $100$. We ha
 
   * The collection of numbers $0, 2, 4, 6 \dots, 100$, or the arithmetic sequence with step size $2$, which is returned by `0:2:100`.
   * The numbers between $0$ and $100$ that are even, that is `filter(iseven, 0:100)`.
-  * The set of numbers $\{2k: k=0, \dots, 50\}$.
+  * The set of numbers $\{2k: k=0, \dots, 5\}$.
 
 
 While `Julia` has a special type for dealing with sets, we will use a vector for such a set. (Unlike a set, vectors can have repeated values, but, as vectors are more widely used, we demonstrate them.) Vectors are described more fully in a previous section, but as a reminder, vectors are constructed using square brackets: `[]` (a special syntax for [concatenation](http://docs.julialang.org/en/latest/manual/arrays/#concatenation)). Square brackets are used in different contexts within `Julia`, in this case we use them to create a *collection*. If we separate single values in our collection by commas (or semicolons), we will create a vector:
@@ -215,48 +214,45 @@ x = [0, 2, 4, 6, 8, 10]
 That is of course only part of the set of even numbers we want. Creating more might be tedious were we to type them all out, as above. In such cases, it is best to *generate* the values.
 
 
-For this simple case, a range can be used, but more generally a [comprehension](https://docs.julialang.org/en/v1/manual/arrays/#man-comprehensions) provides this ability using a construct that closely mirrors  a set definition, such as $\{2k: k=0, \dots, 50\}$. The simplest use of a comprehension takes this form (as we described in the section on vectors):
+For this simple case, a range can be used, but more generally a [comprehension](https://docs.julialang.org/en/v1/manual/arrays/#man-comprehensions) provides this ability using a construct that closely mirrors  a set definition, such as $\{2k: k=0, \dots, 5\}$. The simplest use of a comprehension takes this form (as we described in the section on vectors):
 
 
 `[expr for variable in collection]`
 
 
-The expression typically involves the variable specified after the keyword `for`. The collection can be a range, a vector, or many other items that are *iterable*. Here is how the mathematical set $\{2k: k=0, \dots, 50\}$ may be generated by a comprehension:
+The expression typically involves the variable specified after the keyword `for`. The collection can be a range, a vector, or many other items that are *iterable*. (We previously discussed the `map` and broadcasting alternatives to a comprehension, but those are most useful once we have discussed user-defined functions.)
+
+
+
+Here is how the mathematical set $\{2k: k=0, \dots, 5\}$ may be generated by a comprehension:
 
 
 ```{julia}
-[2k for k in 0:50]
+[2k for k in 0:5]
 ```
 
-The expression is `2k`, the variable `k`, and the collection is the range of values, `0:50`. The syntax is basically identical to how the math expression is typically read aloud.
+The expression is `2k`, the variable `k`, and the collection is the range of values, `0:5`. The syntax is basically identical to how the math expression is typically read aloud.
 
 
-For some other examples, here is how we can create the first $10$ numbers divisible by $7$:
+For some other examples, here is how we can create the first 5 numbers divisible by $7$:
 
 
 ```{julia}
-[7k for k in 1:10]
+[7k for k in 1:5]
 ```
 
-Here is how we can square the numbers between $1$ and $10$:
+Here is how we can square the numbers between $1$ and 5:
 
 
 ```{julia}
-[x^2 for x in 1:10]
+[x^2 for x in 1:5]
 ```
 
-To generate other progressions, such as powers of $2$, we could do:
+To generate other progressions, such as decreasing powers of $2$, we could do:
 
 
 ```{julia}
-[2^i for i in 1:10]
-```
-
-Here are decreasing powers of $2$:
-
-
-```{julia}
-[1/2^i for i in 1:10]
+[1/2^i for i in 1:5]
 ```
 
 Sometimes, the comprehension does not produce the type of output that may be expected. This is related to `Julia`'s more limited abilities to infer types at the command line. If the output type is important, the extra prefix of `T[]` can be used, where `T` is the desired type.
@@ -269,14 +265,14 @@ A typical pattern would be to generate a collection of numbers and then apply a 
 
 
 ```{julia}
-sum([2^i for i in 1:10])
+sum([2^i for i in 1:5])
 ```
 
 Conceptually this is easy to understand: one step generates the numbers, the other adds them up. Computationally it is a bit inefficient. The generator syntax allows this type of task to be done more efficiently. To use this syntax, we just need to drop the `[]`:
 
 
 ```{julia}
-sum(2^i for i in 1:10)
+sum(2^i for i in 1:5)
 ```
 
 The difference being no intermediate object is created to store the collection of all values specified by the generator. Not all functions allow generators as arguments, but most common reductions do.
@@ -314,7 +310,7 @@ The same `if` can be used in a comprehension. For example, this is an alternativ
 
 
 ```{julia}
-[k for k in 1:100 if rem(k,7) == 0]
+[k for k in 71:100 if rem(k,7) == 0]
 ```
 
 #### Example: Making change
@@ -402,11 +398,11 @@ If the command is run again, it is almost certain that a different value will be
 rand()
 ```
 
-This call will return a vector of $10$ such random numbers:
+This call will return a vector of 4 such random numbers:
 
 
 ```{julia}
-rand(10)
+rand(4)
 ```
 
 The `rand` function is easy to use. The only common source of confusion is the subtle distinction between `rand()` and `rand(1)`, as the latter is a vector of $1$ random number and the former just $1$ random number.
@@ -544,23 +540,6 @@ answ = 1
 radioq(choices, answ)
 ```
 
-###### Question
-
-An arithmetic sequence ($a_0$, $a_1 = a_0 + h$, $a_2=a_0 + 2h, \dots,$ $a_n=a_0 + n\cdot h$) is specified with a starting point ($a_0$), a step size ($h$), and a number of points $(n+1)$. This is not the case with the colon constructor which take a starting point, a step size, and a suggested last value. This is not the case a with the default for the `range` function, with signature `range(start, stop, length)`. However, the documentation for `range` shows that indeed the three values ($a_0$, $h$, and $n$) can be passed in. Which signature (from the docs) would allow this:
-
-```{julia}
-#| echo: false
-choices = [
-    "`range(start, stop, length)`",
-    "`range(start, stop; length, step)`",
-    "`range(start; length, stop, step)`",
-    "`range(;start, length, stop, step)`"]
-answer = 3
-explanation = """
-This is a somewhat vague question, but the use of `range(a0; length=n+1, step=h)` will produce the arithmetic sequence with this parameterization.
-"""
-buttonq(choices, answer; explanation)
-```
 
 ###### Question
 
@@ -708,28 +687,22 @@ Credit card numbers have a check digit to ensure data entry of a 16-digit number
 
 Let's see if `4137 8947 1175 5804` is a valid credit card number?
 
-First, we enter it as a value and immediately break the number into its digits:
+First, we enter it as a value, the immediately break the number into its digits and call `reverse` to flip their order:
 
 ```{julia}
 x = 4137_8947_1175_5804  # _ in a number is ignored by parser
-xs = digits(x)
+xs = reverse(digits(x))
 ```
 
-We reverse the order, so the first number in digits is the largest place value in `xs`
+
+Now, the 1st, 3rd, 5th, ... digit is doubled. We do this by creating a vector with the pattern 2,1,2, ... and then multiplying by this component by component:^[There are many different ways this alternate multiplying by `2` can be achieved, but most benefit from knowing an if-then-else command.]
 
 ```{julia}
-reverse!(xs)
+two_ones = repeat([2,1]; outer=length(xs) ÷ 2)
+xs = two_ones .* xs
 ```
 
-Now, the 1st, 3rd, 5th, ... digit is doubled. We do this through indexing:
-
-```{julia}
-for i in 1:2:length(xs)
-    xs[i] = 2 * xs[i]
-end
-```
-
-Numbers greater than 9, have their digits added, then all the resulting numbers are added. This can be done with a generator:
+Numbers greater than 9, have their digits added, then all the resulting numbers are added. This can be done different ways. Here we use a generator:
 
 
 ```{julia}
@@ -747,5 +720,14 @@ Darn. A typo. is `4137 8047 1175 5804` a possible credit card number?
 ```{julia}
 #| hold: true
 #| echo: false
-booleanq(true)
+let
+    x = 4137_8047_1175_5804
+    xs = digits(x)
+    reverse!(xs)
+    two_ones = repeat([2,1]; outer=length(xs) ÷ 2)
+    xs = two_ones .* xs
+    z = sum(sum(digits(xi)) for xi in xs)
+    val = iszero(rem(z,10))
+    booleanq(val)
+end
 ```

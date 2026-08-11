@@ -1,5 +1,12 @@
 # Euler's method
 
+::: {#fig-euler-publication}
+![](./figures/euler.png)
+
+Figure from first publication of Euler's method. From [Gander and Wanner](http://www.unige.ch/~gander/Preprints/Ritz.pdf).
+:::
+
+
 
 {{< include ../_common_code.qmd >}}
 
@@ -8,7 +15,7 @@ This section uses these add-on packages:
 
 ```{julia}
 using CalculusWithJulia
-using Plots
+using Plots; plotly()
 using SymPy
 using Roots
 ```
@@ -17,7 +24,7 @@ using Roots
 ---
 
 
-The following section takes up the task of numerically approximating solutions to differential equations. `Julia` has a huge set of state-of-the-art tools for this task starting with the [DifferentialEquations](https://github.com/SciML/DifferentialEquations.jl) package. We don't use that package in this section, focusing on  simpler methods and implementations for pedagogical purposes, but any further exploration should utilize the tools provided therein. A brief introduction to the package follows in an upcoming [section](./differential_equations.html).
+The following section takes up the task of numerically approximating solutions to some ordinary differential equations. `Julia` has a huge set of state-of-the-art tools for this task starting with the [DifferentialEquations](https://github.com/SciML/DifferentialEquations.jl) package. We don't use that package in this section, focusing on  simpler methods and implementations for pedagogical purposes, but any further exploration should utilize the tools provided therein. A brief introduction to the package follows in an upcoming [section](./differential_equations.html).
 
 
 ---
@@ -49,24 +56,24 @@ With the given initial condition, the solution becomes:
 out = dsolve(D(u)(x) - F(u(x),x), u(x), ics=Dict(u(x0) => y0))
 ```
 
-Plotting this solution over the slope field
+Plotting this solution over the slope field, as in @fig-plot-soln-to-ode-with-vectorfield-plot-tangent-to-integral-curve we see that the vectors that are drawn seem to be tangent to the graph of the solution. This is no coincidence, the tangent lines to integral curves are in the direction of the slope field.
 
 
+::: {#fig-plot-soln-to-ode-with-vectorfield-plot-tangent-to-integral-curve}
 ```{julia}
 p = plot(legend=false)
 vectorfieldplot!((x,y) -> [1, F(x,y)], xlims=(0, 2.5), ylims=(0, 10))
 plot!(rhs(out),  linewidth=5)
 ```
+Plot of a vector field for $F(y,x)$ and a solution to $y'=F(y,x)$.
+:::
 
-we see that the vectors that are drawn seem to be tangent to the graph of the solution. This is no coincidence, the tangent lines to integral curves are in the direction of the slope field.
-
-
-What if the graph of the solution were not there, could we use this fact to *approximately* reconstruct the solution?
+What if the graph of the solution were not in @fig-plot-soln-to-ode-with-vectorfield-plot-tangent-to-integral-curve, could we use this fact about tangency to *approximately* reconstruct the solution?
 
 
 That is, if we stitched together pieces of the slope field, would we get a curve that was close to the actual answer?
 
-
+::: {#fig-animation-of-stitching-together-tangents}
 ```{julia}
 #| hold: true
 #| echo: false
@@ -112,15 +119,16 @@ imgfile = tempname() * ".gif"
 gif(anim, imgfile, fps = 1)
 
 
-caption = """
-Illustration of a function stitching together slope field lines to
-approximate the answer to an initial-value problem. The other function drawn is the actual solution.
-"""
-
+caption = ""
 ImageFile(imgfile, caption)
 ```
 
-The illustration suggests the answer is yes, let's see. The solution is drawn over $x$ values $1$ to $2$. Let's try piecing together $5$ pieces between $1$ and $2$ and see what we have.
+Illustration of a function stitching together slope field lines to
+approximate the answer to an initial-value problem. The other function drawn is the actual solution.
+:::
+
+
+The animation in @fig-animation-of-stitching-together-tangents The  suggests the answer is yes, let's see. The solution is drawn over $x$ values $1$ to $2$. Let's try piecing together $5$ pieces between $1$ and $2$ and see what we have.
 
 
 The slope-field vectors are *scaled* versions of the vector `[1, F(y,x)]`. The `1` is the part in the direction of the $x$ axis, so here we would like that to be $0.2$ (which is $(2-1)/5$. So our vectors would be `0.2 * [1, F(y,x)]`. To allow for generality, we use `h` in place of the specific value $0.2$.
@@ -147,10 +155,10 @@ $$
 x_2 = x_1 + h, \quad y_2 = y_1 + h F(y_1, x_1).
 $$
 
-We just shifted the indices forward by $1$. But graphically what is this? It takes the tip of the first part of our "stitched" together solution, finds the slope filed there (`[1, F(y,x)]`) and then uses this direction to stitch together one more piece.
+We just shifted the indices forward by $1$. But graphically what is this? It takes the tip of the first part of our "stitched" together solution, finds the slope field there (`[1, F(y,x)]`) and then uses this direction to stitch together one more piece.
 
 
-Clearly, we can repeat. The $n$th piece will end at:
+Clearly, we can repeat. The $n+1$st piece will end at:
 
 
 $$
@@ -176,13 +184,17 @@ for i in 1:n
 end
 ```
 
-So how did we do? Let's look graphically:
+So how did we do? @fig-euler-yp-yx-n-5 shows the graph of the exact answer and the stiched-together answer.
 
+::: {#fig-euler-yp-yx-n-5}
 
 ```{julia}
-plot(exp(-1/2)*exp(x^2/2), x0, 2)
-plot!(xs, ys)
+plot(exp(-1/2)*exp(x^2/2), x0, 2; label="Exact")
+plot!(xs, ys; label="euler, n=5")
 ```
+
+Plot of an exact solution and an approximate solution using $5$ steps to the differential equationss $y'=y\cdot x$.
+:::
 
 Not bad. We wouldn't expect this to be exact---due to the concavity of the solution, each step is an underestimate. However, we see it is an okay approximation and would likely be better with a smaller $h$. A topic we pursue in just a bit.
 
@@ -231,18 +243,19 @@ With `euler`, it becomes easy to explore different values.
 For example, we thought the solution would look better with a smaller $h$ (or larger $n$). Instead of $n=5$, let's try $n=50$:
 
 
+::: {#fig-euler-yp-yx-n-50}
 ```{julia}
 u12 = euler(F, 1, 2, 1, 50)
-plot(exp(-1/2)*exp(x^2/2), x0, 2)
-plot!(u12, x0, 2)
+plot(exp(-1/2)*exp(x^2/2), x0, 2; label="Exact")
+plot!(u12, x0, 2; label="euler, n=50")
 ```
+Plot of an exact solution and an approximate solution using $50$ steps to the differential equation $y'=y\cdot x$.
+:::
 
 It is more work for the computer, but not for us, and clearly a much better approximation to the actual answer is found.
 
 
 ## The Euler method
-
-![Figure from first publication of Euler's method. From [Gander and Wanner](http://www.unige.ch/~gander/Preprints/Ritz.pdf).](./figures/euler.png)
 
 The name of our function reflects the [mathematician](https://en.wikipedia.org/wiki/Leonhard_Euler) associated with the iteration:
 
@@ -266,11 +279,7 @@ The total error, or more commonly, *global truncation error*, is the error betwe
 Other, somewhat more complicated, methods have global truncation errors that involve higher powers of $h$---that is for the same size $h$, the error is smaller. In analogy is the fact that Riemann sums have error that depends on $h$, whereas other methods of approximating the integral have smaller errors. For example, Simpson's rule had error related to $h^4$. So, the Euler method may not be employed if there is concern about total resources (time, computer, ...), it is important for theoretical purposes in a manner similar to the role of the Riemann integral.
 
 
-In the examples, we will see that for many problems the simple Euler method is satisfactory, but not always so. The task of numerically solving differential equations is not a one-size-fits-all one. In the following, a few different modifications are presented to the basic Euler method, but this just scratches the surface of the topic.
-
-
-#### Examples
-
+In the examples, we will see that for many problems the simple Euler method is satisfactory, but not always so. The task of numerically solving differential equations is not a one-size-fits-all one. In the following, a few different modifications are presented to the basic Euler method, but what is presented just scratches the surface of the topic.
 
 ##### Example
 
@@ -287,14 +296,17 @@ f(xn)
 
 We graphically compare our approximate answer with the exact one:
 
-
+::: {#fig-euler-yp-x-plus-y}
 ```{julia}
-𝒐ut = dsolve(D(u)(x) - F(u(x),x), u(x), ics = Dict(u(x0) => y0))
-plot(rhs(𝒐ut), x0, xn)
-plot!(f, x0, xn)
+out = dsolve(D(u)(x) - F(u(x),x), u(x), ics = Dict(u(x0) => y0))
+plot(rhs(out), x0, xn; label="Exact")
+plot!(f, x0, xn; label="euler, n=25")
 ```
 
-From the graph it appears our value for `f(xn)` will underestimate the actual value of the solution slightly.
+Plot of an exact solution to $y'=x + y$ and an approximate one using `euler` with $n=25$
+:::
+
+From @fig-euler-yp-x-plus-y it appears our value for `f(xn)` will underestimate the actual value of the solution slightly.
 
 
 ##### Example: the power series method and Euler
@@ -321,23 +333,25 @@ out1 = dsolve(eqn, u(x), ics=Dict(u(0) => 1), hint="1st_power_series")
 
 The approximate value given by the Euler method is
 
-
+::: {#fig-approx-soln-to-yp-sin-x-y}
 ```{julia}
 x0, xn, y0 = 0, 2, 1
 
-plot(legend=false)
+plot()
 vectorfieldplot!((x,y) -> [1, F(y,x)], xlims=(x0, xn), ylims=(0,5))
-plot!(rhs(out1).removeO(),  linewidth=5)
+plot!(rhs(out1).removeO();  line=(5, :dash), label="SymPy power series")
 
 u = euler(F, x0, xn, y0, 10)
-plot!(u, linewidth=5)
+plot!(u; line=(5, :dot), label="euler, n=10")
 ```
+Plot of a power-series solution to $y'=\sin(y,x)$ returned by `SymPy` and an approximate one using `euler` with $n=25$
+:::
 
 We see that the answer found from using a polynomial series matches that of Euler's method for a bit, but as time evolves, the approximate solution given by Euler's method more closely tracks the slope field.
 
 ----
 
-The [power series method](https://en.wikipedia.org/wiki/Power_series_solution_of_differential_equations) to solve a differential equation starts with an assumption that the solution can be represented as a power series with some positive radius of convergence. This is formally substituted into the differential equation and derivatives may be taken term by term. The resulting coefficients are equated for like powers giving a system of equations to be solved.
+The [power series method](https://en.wikipedia.org/wiki/Power_series_solution_of_differential_equations) to solve a differential equation starts with an assumption that the solution can be represented as a power series with some positive radius of convergence. This is formally substituted into the differential equation and derivatives are taken term by term. The resulting coefficients are equated for like powers giving a system of equations to be solved.
 
 An example of the method applied to the ODE $f''(x) - 2xf'(x) + \lambda f(x)=0$ is given in the reference above and follows below. Assume $f(x) = \sum_{n=0}^\infty a_n x^n$. Then
 
@@ -391,9 +405,9 @@ We can see these terms in the `SymPy` solution which uses the power series metho
 
 ```{julia}
 @syms x::real u()
-∂ = Differential(x)
-eqn = (∂∘∂)(u(x)) - 2*x*∂(u(x)) + λ*u(x) ~ 0
-inits = Dict(u(0) => a_0, ∂(u(x))(0) => a_1)
+D = Differential(x)
+eqn = (D∘D)(u(x)) - 2*x*D(u(x)) + λ*u(x) ~ 0
+inits = Dict(u(0) => a_0, D(u(x))(0) => a_1)
 dsolve(eqn, u(x); ics=inits)
 ```
 
@@ -406,22 +420,11 @@ dsolve(eqn, u(x); ics=inits)
 
 The [Brachistochrone problem](http://www.unige.ch/~gander/Preprints/Ritz.pdf) was posed by Johann Bernoulli in 1696. It asked for the curve between two points for which an object will fall faster along that curve than any other. For an example, a bead sliding on a wire will take  a certain amount of time to get from point $A$ to point $B$, the time depending on the shape of the wire. Which shape will take the least amount  of time?
 
-
-```{julia}
-#| hold: true
-#| echo: false
-imgfile = "figures/bead-game.jpg"
-caption = """
+::: {#fig-bead-game}
+![](./figures/bead-game.jpg)
 
 A child's bead game. What shape wire will produce the shortest time for a bead to slide from a top to the bottom?
-
-"""
-#ImageFile(:ODEs, imgfile, caption)
-nothing
-```
-
-![A child's bead game. What shape wire will produce the shortest time for a bed to slide from a top to the bottom?](./figures/bead-game.jpg)
-
+:::
 
 Restrict our attention to the $x$-$y$ plane, and consider a path, between the point $(0,A)$ and $(B,0)$. Let $y(x)$ be the distance from $A$, so $y(0)=0$ and at the end $y$ will be $A$.
 
@@ -429,32 +432,24 @@ Restrict our attention to the $x$-$y$ plane, and consider a path, between the po
 [Galileo](http://www-history.mcs.st-and.ac.uk/HistTopics/Brachistochrone.html) knew the straight line was not the curve, but incorrectly thought the answer was a part of a circle.
 
 
-```{julia}
-#| hold: true
-#| echo: false
-imgfile = "figures/galileo.gif"
-caption = """
-As early as 1638, Galileo showed that an object falling along `AC` and then `CB` will fall faster than one traveling along `AB`, where `C` is on the arc of a circle.
-From the [History of Math Archive](http://www-history.mcs.st-and.ac.uk/HistTopics/Brachistochrone.html).
-"""
-#ImageFile(:ODEs, imgfile, caption)
-nothing
-```
+::: {#fig-galileo-result-history-of-math}
+![](./figures/galileo.png)
 
-![As early as 1638, Galileo showed that an object falling along `AC`
+As early as 1638, Galileo showed that an object falling along `AC`
 and then `CB` will fall faster than one traveling along `AB`, where
-`C` is on the arc of a circle.  From the [History of Math
+`C` is on the arc of a circle.  Low-res image from the [History of Math
 Archive](http://www-history.mcs.st-and.ac.uk/HistTopics/Brachistochrone.html).
-](./figures/galileo.png)
+:::
 
-This simulation also suggests that a curved path is better than the shorter straight one:
+This simulation in @fig-brachistochrone-animation also suggests that a curved path is better than the shorter straight one:
 
-
+::: {#fig-brachistochrone-animation}
 ```{julia}
 #| hold: true
 #| echo: false
 ##{{{brach_graph}}}
-
+let
+    gr()
 function brach(f, x0, vx0, y0, vy0, dt, n)
     m = 1
     g = 9.8
@@ -514,20 +509,22 @@ end
 
 
 n = 4
-anim = @animate for i=[1,5,10,15,20,25,30,35,40,45,50,55,60]
+anim = @animate for i in 1:2:60 #[1,5,10,15,20,25,30,35,40,45,50,55,60]
     make_brach_graph(i)
 end
 
 imgfile = tempname() * ".gif"
-gif(anim, imgfile, fps = 1)
+gif(anim, imgfile, fps = 8)
 
 
-caption = """
-The race is on. An illustration of beads falling along a path, as can be seen, some paths are faster than others. The fastest path would follow a cycloid. See [Bensky and Moelter](https://pdfs.semanticscholar.org/66c1/4d8da6f2f5f2b93faf4deb77aafc7febb43a.pdf) for details on simulating a bead on a wire.
-"""
-
-ImageFile(imgfile, caption)
+    caption = ""
+    plotly()
+    ImageFile(imgfile, caption)
+end
 ```
+
+The race is on. An illustration of beads falling along a path, as can be seen, some paths are faster than others. The fastest path would follow a cycloid. See [Bensky and Moelter](https://pdfs.semanticscholar.org/66c1/4d8da6f2f5f2b93faf4deb77aafc7febb43a.pdf) for details on simulating a bead on a wire.
+:::
 
 Now, the natural question is which path is best?  The solution can be [reduced](http://mathworld.wolfram.com/BrachistochroneProblem.html) to solving this equation for a positive $C$:
 
@@ -576,7 +573,7 @@ $$
 y_{n+1} = y_n + h \cdot F(y_{n+1}, x_{n+1}).
 $$
 
-Seems innocuous, but the value we are trying to find, $y_{n+1}$, is now on both sides of the equation, so is only *implicitly* defined. In this code, we use the `find_zero` function from the `Roots` package. The caveat is, this function needs a good initial guess, and the one we use below need not be widely applicable.
+Seems innocuous, but the value we are trying to find, $y_{n+1}$, is now on both sides of the equation, so is only *implicitly* defined. In this code, we lazily use the `find_zero` function from the `Roots` package. The caveat is, this is non-performant and this function needs a good initial guess; the one we use below need not be widely applicable.
 
 
 ```{julia}
@@ -595,55 +592,66 @@ function back_euler(F, x0, xn, y0, n)
 end
 ```
 
-We then have with $C=1$ over the interval $[0,1.2]$ the following:
+We then have with $C=1$ over the interval $[0,1.2]$ the graph in @fig-back-euler-solution-to-brachistochrone.
 
+::: {#fig-back-euler-solution-to-brachistochrone}
 
 ```{julia}
 F(y, x; C=1) = sqrt(C/y - 1)
 x0, xn, y0 = 0, 1.2, 0
-cyc = back_euler(F, x0, xn, y0, 50)
-plot(x -> 1 - cyc(x), x0, xn)
+cycloid = back_euler(F, x0, xn, y0, 50)
+plot(x -> 1 - cycloid(x), x0, xn; legend=false)
 ```
 
-Remember, $y$ is the displacement from the top, so it is non-negative. Above we flipped the graph to make it look more like expectation. In general, the trajectory may actually dip below the ending point and come back up. The above won't see this, for as written $dy/dx \geq 0$, which need not be the case, as the defining equation is in terms of $(dy/dx)^2$, so the derivative could have any sign.
-
+Remember, $y$ is the displacement from the top, so it is non-negative. #fig-back-euler-solution-to-brachistochrone  flips the graph to make it look more like expectation. In general, the trajectory may actually dip below the ending point and come back up. The above won't see this, for as written $dy/dx \geq 0$, which need not be the case, as the defining equation is in terms of $(dy/dx)^2$, so the derivative could have any sign.
+:::
 
 ##### Example: stiff equations
 
 
-The Euler method is *convergent*, in that as $h$ goes to $0$, the approximate solution will converge to the actual answer. However, this does not say that for a fixed size $h$, the approximate value will be good. For example, consider the differential equation $y'(x) = -5y$. This has solution $y(x)=y_0 e^{-5x}$. However, if we try the Euler method to get an answer over $[0,2]$ with $h=0.5$ we don't see this:
+The Euler method is *convergent*, in that as $h$ goes to $0$, the approximate solution will converge to the actual answer. However, this does not say that for a fixed size $h$, the approximate value will be good. For example, consider the differential equation $y'(x) = -5y$. This has solution $y(x)=y_0 e^{-5x}$. However, if we try the Euler method to get an answer over $[0,2]$ with $h=0.5$ we don't see this, as seen in @fig-too-stiff-this-equation.
 
-
+::: {#fig-too-stiff-this-equation}
 ```{julia}
 F(y,x) = -5y
 x0, xn, y0 = 0, 2, 1
 u = euler(F, x0, xn, y0, 4)     # n =4 => h = 2/4
 vectorfieldplot((x,y) -> [1, F(y,x)], xlims=(0, 2), ylims=(-5, 5))
-plot!(x -> y0 * exp(-5x), 0, 2, linewidth=5)
-plot!(u, 0, 2, linewidth=5)
+plot!(x -> y0 * exp(-5x), 0, 2; linewidth=5, label="Exact")
+plot!(u, 0, 2; linewidth=5, label="euler, n=4")
 ```
+
+For this rapidly decaying vector field, the Euler method overshoots with big step sizes
+:::
+
 
 What we see is that the value of $h$ is too big to capture the decay scale of the solution. A smaller $h$, can do much better:
 
-
+::: {#fig-too-stiff-this-equation-but-n-50}
 ```{julia}
 u₁ = euler(F, x0, xn, y0, 50)    # n=50 => h = 2/50
-plot(x -> y0 * exp(-5x), 0, 2)
-plot!(u₁, 0, 2)
+plot(x -> y0 * exp(-5x), 0, 2; label="Exact")
+plot!(u₁, 0, 2; label="euler, n=50")
 ```
+For the same rapidly decaying vector field, the Euler method tracks better with smaller step sizes
+:::
+
 
 This is an example of a [stiff equation](https://en.wikipedia.org/wiki/Stiff_equation). Such equations cause explicit methods like the Euler one problems, as small $h$s are needed to good results.
 
 
 The implicit, backward Euler method does not have this issue, as we can see here:
 
-
+::: {#fig-too-stiff-this-equation-but-back-euler-n-4}
 ```{julia}
 u₂ = back_euler(F, x0, xn, y0, 4)     # n =4 => h = 2/4
 vectorfieldplot((x,y) -> [1, F(y,x)],  xlims=(0, 2), ylims=(-1, 1))
-plot!(x -> y0 * exp(-5x), 0, 2, linewidth=5)
-plot!(u₂, 0, 2, linewidth=5)
+plot!(x -> y0 * exp(-5x), 0, 2; linewidth=5, label="Exact")
+plot!(u₂, 0, 2; linewidth=5, label="back_euler, n=4")
 ```
+
+For the same rapidly decaying vector field, the backwards Euler method tracks better even with larger step sizes
+:::
 
 ##### Example: The pendulum
 
@@ -678,11 +686,11 @@ $$
 Here we need *two* initial conditions: one for the initial value $u(t_0)$ and the initial value of $u'(t_0)$. We have seen if we start at an angle $a$ and release the bob from rest, so $u'(0)=0$ we get a sinusoidal answer to the linearized model. What happens here? We let $a=1$, $l=5$ and $g=9.8$:
 
 
-We write a function to solve this starting from $(x_0, y_0)$ and ending at $x_n$:
+We write a function to solve this equation for the pendulum starting from $(x_0, y_0)$ and ending at $x_n$:
 
 
 ```{julia}
-function euler2(x0, xn, y0, yp0, n; g=9.8, l = 5)
+function euler_p(x0, xn, y0, yp0, n; g=9.8, l = 5)
   xs, us, vs = zeros(n+1), zeros(n+1), zeros(n+1)
   xs[1], us[1], vs[1] = x0, y0, yp0
   h = (xn - x0)/n
@@ -697,23 +705,30 @@ end
 
 Let's take $a = \pi/4$ as the initial angle, then the approximate solution should be $\pi/4\cos(\sqrt{g/l}x)$ with period $T = 2\pi\sqrt{l/g}$. We try first to plot them over 4 periods:
 
-
+::: {#fig-euler-2-but-amiss}
 ```{julia}
 l, g = 5, 9.8
 T = 2pi * sqrt(l/g)
 x0, xn, y0, yp0 = 0, 4T, pi/4, 0
-plot(euler2(x0, xn, y0, yp0, 20), 0, 4T)
+plot(euler_p(x0, xn, y0, yp0, 20), 0, 4T)
 ```
 
-Something looks terribly amiss. The issue is the step size, $h$, is too large to capture the oscillations. There are basically only $5$ steps to capture a full up and down motion. Instead, we try to get $20$ steps per period so $n$ must be not $20$, but $4 \cdot 20 \cdot T \approx 360$. To this graph, we add the approximate one:
+Possible solution to pendulum, but doesn't capture behavior at all
+:::
 
+Something looks terribly amiss in @fig-euler-2-but-amiss. The issue is the step size, $h$, is too large to capture the oscillations. There are basically only $5$ steps to capture a full up and down motion. Instead, we try to get $20$ steps per period so $n$ must be not $20$, but $4 \cdot 20 \cdot T \approx 360$. To the graph in @fig-euler-2-more-steps, we add the solution to the linearized equations
 
+::: {#fig-euler-2-more-steps}
 ```{julia}
-plot(euler2(x0, xn, y0, yp0, 360), 0, 4T)
-plot!(x -> pi/4*cos(sqrt(g/l)*x), 0, 4T)
+plot(euler_p(x0, xn, y0, yp0, 360), 0, 4T; label="euler_p, n=360")
+plot!(x -> pi/4*cos(sqrt(g/l)*x), 0, 4T; label="Approximate")
 ```
 
-Even now, we still see that something seems amiss, though the issue is not as dramatic as before. The oscillatory nature of the pendulum is seen, but in the Euler solution, the amplitude grows, which would necessarily mean energy is being put into the system.  A familiar instance of a pendulum would be a child on a swing. Without pumping the legs---putting energy in the system---the height of the swing's arc will not grow.  Though we now have oscillatory motion, this growth indicates the solution is still not quite right. The issue is likely due to each step mildly overcorrecting and resulting in an overall growth.  One of the questions pursues this a bit further.
+Plot of possible solution to the linearized pendulum problem. The approximation is better than @fig-euler-2-but-amiss, as it captures the oscillatory behavior, but the approximation could still be improved..
+
+:::
+
+Even now, @fig-euler-2-more-steps shows something still seems amiss, though the issue is not as dramatic as before. The oscillatory nature of the pendulum is seen, but in the Euler solution, the amplitude grows, which would necessarily mean energy is being put into the system.  A familiar instance of a pendulum would be a child on a swing. Without pumping the legs---putting energy in the system---the height of the swing's arc will not grow.  Though we now have oscillatory motion, this growth indicates the solution is still not quite right. The issue is likely due to each step mildly overcorrecting and resulting in an overall growth.  One of the questions pursues this a bit further.
 
 
 ## Questions
@@ -849,10 +864,10 @@ numericq(u(3/2))
 ##### Question: The pendulum revisited.
 
 
-The issue with the pendulum's solution growing in amplitude can be addressed using a modification to the Euler method attributed to [Cromer](http://astro.physics.ncsu.edu/urca/course_files/Lesson14/index.html). The fix is to replace the term `sin(us[i])` in the line `vs[i+1] = vs[i] + h * (-g / l) * sin(us[i])` of the `euler2` function with `sin(us[i+1])`, which uses the updated angular velocity in the $2$nd step in place of the value before the step.
+The issue with the pendulum's solution growing in amplitude can be addressed using a modification to the Euler method attributed to [Cromer](http://astro.physics.ncsu.edu/urca/course_files/Lesson14/index.html). The fix is to replace the term `sin(us[i])` in the line `vs[i+1] = vs[i] + h * (-g / l) * sin(us[i])` of the `euler_p` function with `sin(us[i+1])`, which uses the updated angular velocity in the $2$nd step in place of the value before the step.
 
 
-Modify the `euler2` function to implement the Euler-Cromer method. What do you see?
+Modify the `euler_p` function to implement the Euler-Cromer method. What do you see?
 
 
 ```{julia}

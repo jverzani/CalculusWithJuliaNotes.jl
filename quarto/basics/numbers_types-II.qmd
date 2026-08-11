@@ -1,0 +1,675 @@
+# Number systems
+
+
+{{< include ../_common_code.qmd >}}
+
+```{julia}
+#| echo: false
+#| results: "hidden"
+using CalculusWithJulia
+
+nothing
+```
+
+In mathematics there are many different number systems in common use. For example by the end of pre-calculus, all of the following have been introduced:
+
+
+* The integers, $\{\dots, -3, -2, -1, 0, 1, 2, 3, \dots\}$;
+
+* The rational numbers, $\{p/q: p, q  \text{ are integers}, q \neq 0\}$;
+
+* The real numbers, $\{x: -\infty < x < \infty\}$;
+
+* The complex numbers, $\{a + bi: a,b \text{ are real numbers and } i^2=-1\}$.
+
+
+On top of these, we have special subsets, such as the natural numbers $\{1, 2, \dots\}$ (sometimes including $0$), the even numbers, the odd numbers, the positive numbers, the non-negative numbers, etc.
+
+
+Mathematically, these number systems are naturally nested within each other as integers are rational numbers which are real numbers, which can be viewed as part of the complex numbers.
+
+
+Calculators typically have just one type of number---floating point values. These model the real numbers.
+
+`Julia`, on the other hand, has a rich type system, and within that has several different number types. There are types that model each of the four main systems above, and within each type, specializations for how these values are stored.
+
+
+For now, let's consider the number $1$. It can be viewed as either an integer, rational, real, or complex number. To construct "$1$" in each type within `Julia` we have these different styles:
+
+
+```{julia}
+1, 1.0, 1//1, 1 + 0im
+```
+
+The basic number types in `Julia` are `Int`, `Float64`, `Rational` and `Complex`, though in fact there are many more, and the last two aren't even *concrete* types. This distinction is important, as the type of number dictates how it will be displayed, how it will be stored, and how precisely the stored value can be expected to be to the mathematical value it models.
+
+
+Though there are explicit constructors for these types, these notes avoid them unless necessary, as `Julia`'s parser can distinguish these types through an easy to understand syntax:
+
+
+* integers have no decimal point;
+
+* floating point numbers have a decimal point (or are written with scientific notation);
+
+* rationals are constructed from integers using the double division operator, `//`; and
+
+* complex numbers are formed by including a term with the imaginary unit, `im`.
+
+
+:::{.callout-note}
+## Warning
+Heads up, the difference between `1` and `1.0` is subtle. Even more so, as `1.` will parse as `1.0`. This means some expressions, such as `2.*3`, are ambiguous, as the `.` might be part of the `2` (as in `2. * 3`) or the operation `*` (as in `2 .* 3`).
+
+:::
+
+
+The key distinction is between integers and floating points. While floating point values include integers, and so can be used exclusively on the calculator, the difference is that an integer is guaranteed to be an exact value, whereas a floating point value, while often an exact representation of a number is also often just an *approximate* value. This can be an advantage---floating point values can model a much wider range of numbers.
+
+In nearly all cases the differences are not noticeable. To see why take, for instance, this simple calculation involving mixed types.
+
+
+```{julia}
+1 + 1.25 + 3//2
+```
+
+The sum of an integer, a floating point number and rational number returns a floating point number without a complaint.
+
+### Promotion
+
+This is  because behind the scenes, `Julia` will often "promote" the two numbers to a common type. In particular, before adding mixed-type numbers, the two are promoted to a common type by `promote`. In the example, first when computing `1 + 1.25` the integer `1` will be promoted to a floating point value, `1.0`, and then the two values are added. Similarly, with `2.25 + 3//2`, where the fraction is promoted to the floating point value `1.5` and afterwards addition is carried out.
+
+We can see the promotion here:
+
+```{julia}
+promote(1, 1.25)
+```
+
+and
+
+```{julia}
+promote(2.25, 3//2)
+```
+
+
+
+## Integers
+
+Integers are often used casually, as they come about from parsing. As with a calculator, floating point numbers *could* be used for integers, but in `Julia`---and other languages---it proves useful to have numbers known to have *exact* values. Integers are needed for indexing and counting.
+
+Except on older machines, the default integer is stored with 64 bits, though there are many available types for integers. With $64$ bits, the range of integers that can be represented is $-9223372036854775808=-(2^{63})$ to $9223372036854775807 = 2^{63}-1$.
+
+## Floating point numbers
+
+Floating point numbers are a model for the real numbers. With the same size storage, the integers provide exact numbers evenly spaced between the smallest and largest integer. Floating point values are exact for some values but as there are infinitely many real numbers are only approximations except in special cases. This leads to some differences between math done by hand and math done on the computer.
+
+### Float64
+
+`Float64` is the most common type of floating point number, as it is the most supported by the underlying hardware. `Julia` has other floating point types, notably `Float32` and `BigFloat` for certain uses, but our focus here is on 64-bit floating point numbers.
+
+The double-precision model for floating point numbers has three parts: a sign, an exponent (for a base of $2$), and a significand (in base $2$) representing numbers as $\pm a \cdot 2^n$. The 64 bits are apportioned as follows: $1$ is for the sign, $11$ for the exponent, $52$ for the significand.
+
+
+The $52$ bits of the significand are used to represent $1.a_1a_2a_3\cdots a_{52}$ in base $2$ or $1 + a_12^{-1} + a_22^{-2} + a_32^{-3} + \cdots a_{52}2^{-52} = b/2^{52}$ for some integer $b$. This means the significand represents a rational number.
+
+The following shows the bits in the significand for a given number written in the form above:^[The output of `bitstring` is 64 characters. The first is the sign bit, the second through twelfth the exponent, the rest the significand. The notation `[13:end]` is used to return just those for the significand. A value of `[2:12]` would return the bits for the exponent.]
+
+```{julia}
+bitstring(1 + 1/2 + 1/4 + 0/8 + 1/16 + 1/32 + 0/64)[13:end] # 1101100…
+```
+
+
+The 11 bits for the exponent covers a range from $-1023$ to $1024$ which in base $10$ is around $10^{-308}$ to $10^{308}$.
+
+Together these can represent exactly any *rational* number of the form $\pm a \cdot 2^b$ where $a$ is a sum of powers of $1/2$ and $b$ is an integer with $1.0 \leq a \leq 1 + (1/2^1) + (1/2^2) + \cdots + (1/2^{52})$ and $-1023 \leq b \leq 1024$.
+
+@fig-floating-point-concentration shows the possible positive values *were* there only $2$ bits for the exponent (for $-1, 0, 1, 2$) and $2$ bits for the significand ($1 + 0/4 + 0/2$, $1 + 1/4 + 0/2$, $1 + 0/4 + 1/2$, $1 + 1/4 + 1/2$). The main takeaway is that numbers get less concentrated the farther they get from $0$.
+
+::: {#fig-floating-point-concentration layout-ncol=1}
+
+```{julia}
+#| echo: false
+#| fig: floating_point_concentration
+#| fig-label: floating point concentration
+using Plots
+gr()
+using LaTeXStrings
+xvals = [0, 1/2, 1, 2, 4, 8]
+xlabels = [L"0", L"\frac{1}{2}", L"1", L"2", L"4", L"8"]
+p = plot(; size=(600, 200), xlim = (0, 8.5), ylim=(-1, 1),
+         xaxis=([], false),
+         yaxis=([], false),
+         framestyle=:origin,
+         legend=false,
+         )
+
+plot!(p, [(0,0), (8.5,0)]; arrow=true, line=(2, :black))
+xs = range(0, 1 - 1/2, 5)[1:end-1]
+for (i,xi) in enumerate(xvals[2:end-1])
+    for x in xs
+        x₀ = xi + 2^(i-0)*x/2
+        Δ = 1/20
+        plot!(p, [(x₀, -Δ), (x₀, 2Δ)]; linecolor=:black)
+    end
+end
+
+plot!(p; annotations=tuple.(xvals, zero.(xvals), text.(xlabels, :top)))
+p
+```
+
+Figure showing concentration of floating point values. The vertical ticks represent representable floating point values (were there only 2 bits (not 52) for the mantissa) and 2 bits (not 11) for the exponent. This leaves a range from a range of $-1/2$ to not quite $8$ being representable *without* using subnormal numbers. When the intervals double in length (from $[2^{i},2^{i+1}]$ to $[2^{i+1}, 2^{i+2}]$) there are the same number of representable floating point values, so the concentration of representable values halves. With more bits there is a higher concentration, but the discrete nature is always present and leads to necessary approximations for modeling most all real numbers.
+:::
+
+In addition, there are special bit patterns recognized as `0.0` and even `-0.0`, which is a distinct number. There are also patterns for $+\infty$ (`Inf`) and $-\infty$ (`-Inf`). There are also patterns for `NaN`, or "not a number", a value that is the result of some mathematical operations, such as `0.0 / 0.0`. Finally, there are *subnormal* numbers representing even smaller numbers near $0$ than described above, which are as small as $2^{-1023} \approx 1.11 \cdot 10^{-308}$.
+
+
+### Scientific notation
+
+Floating point numbers smaller than $10^{-4}$ or bigger or equal to $10^6$ (in absolute value) are displayed in scientific notation. Internally, most floating point numbers are stored in base $2$ scientific notation as $a \cdot 2^b$ with $a=1.xxx\dots$. But when displayed, numbers are represented in base $10$ and when scientific notation is used the numbers are normalized in the  from $a \cdot 10^b$ where $1.0 \leq a < 10$.
+
+The significand and exponent are separated by the character `e`---which is not the same as the constant $e$---rather denotes a 64-bit number separated into a significand and an exponent by a formatting character. (`Float32` uses an `f` as a separator.)
+
+Consider these two numbers one close to $0$ one far from $0$:
+
+```{julia}
+0.0000000123456789, 123456789.0
+```
+
+Their display is subtly different, as only a minus sign after `e` distinguishes them.
+
+The parser will read in numbers with an `e` in the proper format as though they are scientific notation:
+
+```{julia}
+1e8
+```
+
+The above creates the same value as `10.0^8`, but not `1e^8` which will error unless a value for `e` has been assigned.
+
+### Inexactness and consequences
+
+For numbers not representable in floating point, some rounding must go on to fit the number into a representable floating point value. As such, some computed values are not quite what they would be mathematically:
+
+```{julia}
+sqrt(2) * sqrt(2) - 2, sin(1pi)
+```
+
+These values are *very* small numbers, but not exactly $0$, as they are mathematically.
+
+More surprisingly, simple fractions may also lead to mathematically different results:
+
+```{julia}
+1/10 + 2/10 - 3/10
+```
+
+This, of course, is due to none of these fractions being of the form $a\cdot 2^b$ for integers $a, b$.
+
+Another surprise: floating point addition is not necessarily associative. That is the property $a + (b+c) = (a+b) + c$ may not hold exactly. For example:
+
+
+```{julia}
+l2r = (1/10 + 2/10) + 3/10
+r2l = 1/10 + (2/10 + 3/10)
+l2r - r2l
+```
+
+One other surprise. Mathematically, for real numbers, subtraction of similar-sized numbers is not exceptional, for example $1 - \cos(x)$ is positive if $0 < x < \pi/2$, say. This will not be the case for floating point values. If $x$ is close enough to $0$, then $\cos(x)$ and $1$ will be so close, that they will be represented by the same floating point value, `1.0`, so the difference will be zero:
+
+
+```{julia}
+1.0 - cos(1e-8)
+```
+
+## Rational numbers
+
+
+Rational numbers can be used when the exactness of the number is more important than the speed or wider range of values offered by floating point numbers. In `Julia` a rational number is comprised of a numerator and a denominator, each an integer of the same type, and reduced to lowest terms. The operations of addition, subtraction, multiplication, and division will keep their answers as rational numbers. As well, raising a rational number to an integer value will produce a rational number.
+
+
+As mentioned, these are constructed using double slashes:
+
+
+```{julia}
+1//2, 2//1, 6//4
+```
+
+Rational numbers are exact, so the following are identical to their mathematical counterparts:
+
+
+```{julia}
+1//10 + 2//10 == 3//10
+```
+
+and associativity:
+
+
+```{julia}
+(1//10 + 2//10) + 3//10 == 1//10 + (2//10 + 3//10)
+```
+
+Here we see that the type is preserved under the basic  operations:
+
+
+```{julia}
+(1//2 + 1//3 * 1//4 / 1//5) ^ 6
+```
+
+For powers, a non-integer exponent is converted to floating point, so this operation is defined, though will always return a floating point value:
+
+
+```{julia}
+(1//2)^(1//2)   # the first parentheses are necessary as `^` will be evaluated before `//`.
+```
+
+## Complex numbers
+
+Complex numbers in `Julia` are stored as two numbers, a real and imaginary part, each some type of `Real` number. The special constant `im` is used to represent $i=\sqrt{-1}$.  This makes the construction of complex numbers fairly standard:
+
+
+```{julia}
+1 + 2im, 3 + 4.0im
+```
+
+(These two aren't exactly the same, the `3` is promoted from an integer to a float to match the `4.0`. Each of the components must be of the same type of number.)
+
+
+Mathematically, complex numbers are needed so that certain equations can be satisfied. For example $x^2 = -2$ has solutions $-\sqrt{2}i$ and $\sqrt{2}i$ over the complex numbers. Finding this in `Julia` requires some attention, as we have both `sqrt(-2)` and `sqrt(-2.0)` throwing a `DomainError`, as the `sqrt` function expects non-negative real arguments. However first creating a complex number and then taking a square root does work:
+
+
+```{julia}
+sqrt(-2 + 0im)
+```
+
+For complex arguments, the `sqrt` function will return complex values (even if the answer is a real number).
+
+
+This means, if you wanted to perform the quadratic equation for any real inputs, your computations might involve something like the following:
+
+
+```{julia}
+a,b,c = 1,2,3  ## x^2 + 2x + 3
+discr = b^2 - 4a*c
+(-b + sqrt(discr + 0im))/(2a), (-b - sqrt(discr + 0im))/(2a)
+```
+
+When learning calculus, the only common usage of complex numbers arises when solving polynomial equations for roots, or zeros, though they are very important for subsequent work using the concepts of calculus.
+
+## Irrational numbers
+
+`Julia` has a a few mathematical constants that are stored with a special type `Irrational`. One such value is `pi`. There are others in the `Base.MathConstants` module, and an external package `IrrationalConstants.jl`.
+
+`Irrational` values may have special methods defined for them which can lead to subtle differences, such as:
+
+```{julia}
+sin(pi), sin(2pi)
+```
+
+In computing the product `2pi` first the two values are promoted to `Float64` and then multiplied, leaving a floating-point approximation of $2\pi$ for `sin` to evaluate.
+
+## Other types of data: strings and symbols
+
+
+For text, `Julia` has a `String` type. When double quotes are used to specify a string, the parser creates this type:
+
+```{julia}
+x = "The quick brown fox jumped over the lazy dog"
+typeof(x)
+```
+
+Values can be inserted into a string through *interpolation* using a dollar sign.
+
+```{julia}
+animal = "lion"
+x = "The quick brown $(animal) jumped over the lazy dog"
+```
+
+The use of parentheses allows more complicated expressions; it isn't always necessary.
+
+Longer strings can be produced using *triple* quotes:
+
+```{julia}
+lincoln = """
+Four score and seven years ago our fathers brought forth, upon this continent, a new nation, conceived in Liberty, and dedicated to the proposition that all men are created equal.
+"""
+```
+
+Strings are comprised of *characters* which can be produced directly using *single* quotes:
+
+```{julia}
+'c'
+```
+
+We won't use characters in these notes.
+
+Finally, `Julia` has *symbols* which are *interned* strings which are used as identifiers. Symbols are used for advanced programming techniques; we will only see them as shortcuts to specify plotting arguments.
+
+
+
+
+## Questions
+
+
+```{julia}
+#| echo: false
+choices = ["Integer", "Rational", "Floating point", "Complex", "None, an error occurs"]
+nothing
+```
+
+###### Question
+
+
+The number created by `pi/2` is?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+answ = 3
+radioq(choices, answ, keep_order=true)
+```
+
+###### Question
+
+
+The number created by `2/2` is?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+answ = 3
+radioq(choices, answ, keep_order=true)
+```
+
+###### Question
+
+
+The number created by `2//2` is?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+answ = 2
+radioq(choices, answ, keep_order=true)
+```
+
+###### Question
+
+
+The number created by `1 + 1//2 + 1/3` is?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+answ = 3
+radioq(choices, answ, keep_order=true)
+```
+
+###### Question
+
+
+The number created by `2^3` is?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+answ = 1
+radioq(choices, answ, keep_order=true)
+```
+
+###### Question
+
+
+The number created by `sqrt(im)` is?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+answ = 4
+radioq(choices, answ, keep_order=true)
+```
+
+###### Question
+
+
+The number created by `2^(-1)` is?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+answ = 3
+radioq(choices, answ, keep_order=true)
+```
+
+###### Question
+
+
+The "number" created by `1/0` is?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+answ = 3
+radioq(choices, answ, keep_order=true)
+```
+
+###### Question
+
+
+Is `(2 + 6) + 7` equal to  `2 + (6 + 7)`?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+yesnoq(true)
+```
+
+###### Question
+
+
+Is `(2/10 + 6/10) + 7/10` equal to `2/10 + (6/10 + 7/10)`?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+yesnoq(false)
+```
+
+###### Question
+
+
+The following *should* compute `2^(-1)`, which if entered directly will return `0.5`. Does it?
+
+
+```{julia}
+#| eval: false
+a, b = 2, -1
+a^b
+```
+
+```{julia}
+#| hold: true
+#| echo: false
+yesnoq(false)
+```
+
+(This shows the special casing that is done when powers use literal numbers.)
+
+
+###### Question
+
+In [NewScientist](https://www.newscientist.com/article/2112537-smallest-sliver-of-time-yet-measured-sees-electrons-fleeing-atom/) we learn "For the first time, physicists have measured changes in an atom to the level of zeptoseconds, or trillionths of a billionth of a second---the smallest division of time yet observed."
+
+That is
+
+```{julia}
+1e-9 / 1e12
+```
+
+Finding the value through division introduces a floating point deviation. Which of the following values will directly represent a zeptosecond?
+
+```{julia}
+#| echo: false
+as = ["1/10^21", "1e-21"]
+explanation = "The scientific notation is correct. Due to integer overflow `10^21` is not the same number as `10.0^21`."
+buttonq(as, 2; explanation)
+```
+
+###### Question
+
+Signed integers are stored on a computer in a special manner. We will see with 8 bit integers, formed by `Int8`. Eight bit means only 8 0's or 1's are used to store a given number. This is a useful format for storing many small integers but for this example, useful as we can more easily track the values.
+
+The first bit is a sign bit. Based on these two outputs, can you guess how that works:
+
+```{julia}
+bitstring(Int8(-1)), bitstring(Int8(1))
+```
+
+```{julia}
+#| echo: false
+choices = ["The first digit is `1` for positive numbers, `0` for negative numbers",
+           "The first digit is `0` for positive numbers, `1` for negative numbers"]
+answer = 2
+buttonq(choices, answer)
+```
+
+Positive numbers and negative numbers are stored a bit differently. Positive numbers just use binary: $a_0 \cdot 2^0 + a_1 \cdot 2^1 + a_2 \cdot 2^2 + \cdots a_7 \cdot 2^7$. The number $27$ is $1 + 2 + 8 + 16$. so have $a_0 = a_1 = a_3 = a_4 = 1$, the others are $0$. The bitstring shows:
+
+```{julia}
+bitstring(Int8(27))
+```
+
+Which bit pattern is used?
+
+```{julia}
+#| echo: false
+choices = ["`sign bit | a₀ | a₁ | a₂ | a₃ | a₄ | a₅ | a₆ | a₇`",
+           "`sign bit | a₇ | a₆ | a₅ | a₄ | a₃ | a₂ | a₁ | a₀`"]
+answer = 2
+buttonq(choices, answer)
+```
+
+Negative numbers are stored using *two's complement* format:
+
+* represent the positive number
+* flip `0` to `1`; `1` to `0`
+* add `1` to the value (long addition with carrying)
+
+For $-27$ we have
+
+* first $27$: `00011011`
+* then flip each: `11100100`
+* finally add $1$: `11100101`
+
+```{julia}
+bitstring(Int8(-27))
+```
+
+The largest positive number is $127$ for 8-bits and is represented by `01111111`. What is the bit pattern of $-127$?
+
+```{julia}
+#| echo: false
+choices = ["`01111111 => 10000000 => 10000001`",
+           "`01111111 => 10000000 => 100000000`"]
+answer = 1
+explanation = "Add the `1` on the right side, not the left side"
+buttonq(choices, answer; explanation)
+```
+
+The smallest negative number is $-128$. Why?
+
+```{julia}
+#| echo: false
+choices = ["Subtracting 1 from `10000001` leaves `10000000` which is the smallest negative number",
+           "Tricky, the smallest negative number is ``-127``"
+           ]
+answer = 1
+buttonq(choices, answer)
+```
+
+Why all this fuss? Couldn't there be an easier way?
+
+This storage has a big advantage when adding numbers. Let's look at adding $-5$ to $6$. we have:
+
+```
+-5 => 11111011
+ 6 => 00000110
+      --------
+     100000001  => 00000001
+```
+
+The addition is done by carrying a `1` across and then *dropping* the 9th number when there is such a carry. This leaves the representation for what number?
+
+```{julia}
+#| echo: false
+choices = ["`1`", "`-1`", "`0`"]
+answer = 1
+buttonq(choices, answer)
+```
+
+
+The largest *positive* number that can be represented is $2^0 + 2^1 + 2^2 + \cdots + 2^7$, where $7$ is the number of bits minus $1$. The representation is `01111111`. What happens if we add `1` to this number?
+
+
+```{julia}
+#| echo: false
+choices = ["The value after carrying is `100000000`. After dropping the 9th number, we get `00000000` or zero",
+           "The value after carrying is `10000000` or ``-128``"]
+answer = 2
+explanation = "Addition wraps around from the largest to the smallest and goes from there."
+buttonq(choices, answer)
+```
+
+The largest possible number for a type is returned by `typemax`. For `Int64` (just `Int` on most systems) what is the largest number?
+
+```{julia}
+#| echo: false
+numericq(typemax(Int64))
+```
+
+
+###### Question
+
+The `Float64` type uses $11$ bits for an exponent (base $2$) between $-1023$ and $1024$. We can see how these are stored as follows:
+
+```{julia}
+bitstring(2.0^(-1023))[2:12], bitstring(2.0^(1024))[2:12]
+```
+
+This is the full range of values. However the values are *shifted* with $0$ representing $-1023$ and $x$ representing $1024$. The value $x$ is can be found from:
+
+```{julia}
+#| eval: false
+2^0 + 2^1 + 2^2 + 2^3 + 2^4 + 2^5 + 2^6 + 2^7 + 2^8 + 2^9 + 2^10
+```
+
+What is the value of $x$?
+
+```{julia}
+#| echo: false
+val = sum(2^i for i in 0:10)
+numericq(val)
+```
+
+The value `1023` is called a bias. The exponent is coded as the binary value as a positve integer minus $1023$. A bias is used, and not the two's complement format, as storage with a bias makes multiplying by powers of $2$ as easy as shifting the bits.
+
+To find the storage for, say, $2^4 + 2^2 + 2^0$ or `00000010101` we would add `1023` or `01111111111` and see:
+
+```
+  00000010101
++ 01111111111
+  -----------
+  10000010100
+```
+
+Which we can see:
+
+```{julia}
+bitstring(2.0^(2^4 + 2^2 + 2^0))[2:12]
+```

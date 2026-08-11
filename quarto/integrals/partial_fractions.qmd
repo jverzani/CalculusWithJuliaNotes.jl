@@ -11,12 +11,13 @@ using SymPy
 ---
 
 
+
 Integration is facilitated when an antiderivative for $f$ can be found, as then definite integrals can be evaluated through the fundamental theorem of calculus.
 
 
 However, despite differentiation being an algorithmic procedure, integration is not. There are "tricks" to try, such as substitution and integration by parts. These work in some cases---but not all!
 
-However, there are classes of functions for which algorithms exist. For example, the `SymPy` `integrate` function mostly implements an algorithm that decides if an elementary function has an antiderivative. The [elementary](http://en.wikipedia.org/wiki/Elementary_function) functions include exponentials, their inverses (logarithms), trigonometric functions, their inverses, and powers, including $n$th roots. Not every elementary function will have an antiderivative comprised of (finite) combinations of elementary functions. The typical example is $e^{x^2}$, which has no simple antiderivative, despite its ubiquitousness.
+Yet, there are classes of functions for which algorithms exist. For example, the `SymPy` `integrate` function mostly implements an algorithm that decides if an elementary function has an antiderivative. The [elementary](http://en.wikipedia.org/wiki/Elementary_function) functions include exponentials, their inverses (logarithms), trigonometric functions, their inverses, and powers, including $n$th roots. Not every elementary function will have an antiderivative comprised of (finite) combinations of elementary functions. The typical example is $e^{x^2}$, which has no simple antiderivative, despite its ubiquitousness.
 
 
 There are classes of functions where an (elementary) antiderivative can always be found. Polynomials provide a case. More surprisingly, so do their ratios, *rational functions*.
@@ -30,8 +31,7 @@ Let $f(x) = p(x)/q(x)$, where  $p$ and $q$ are polynomial functions with real co
 
 The function $q(x)$ will factor over the real numbers. The fundamental theorem of algebra can be applied to say that $q(x)=q_1(x)^{n_1} \cdots q_k(x)^{n_k}$ where $q_i(x)$ is a linear or quadratic polynomial and $n_k$ a positive integer.
 
-::: {.callout-note icon=false}
-## Partial Fraction Decomposition
+::: {.definition title="Partial Fraction Decomposition"}
 
 There are unique polynomials $a_{ij}$ with degree $a_{ij} <$ degree $q_i$ such that
 
@@ -60,7 +60,7 @@ The value of this decomposition is that the terms $a_{ij}(x)/q_i(x)^j$ each have
 
 :::{.callout-note}
 ## Note
-Many calculus texts will give some examples for finding a partial fraction decomposition. We push that work off to `SymPy`, as for all but the easiest cases - a few are in the problems - it can be a bit tedious.
+Many calculus texts will give some examples for finding a partial fraction decomposition. We push that work off to `SymPy`, as for all but the easiest cases---a few are in the problems---it can be a bit tedious.
 
 :::
 
@@ -211,14 +211,15 @@ integrate(B/((a*x)^2 - 1)^4, x)
 ---
 
 
-In [Bronstein](http://www-sop.inria.fr/cafe/Manuel.Bronstein/publications/issac98.pdf) this characterization can be found - "This method, which dates back to Newton, Leibniz and Bernoulli, should not be used in practice, yet it remains the method found in most calculus texts and is often taught. Its major drawback is the factorization of the denominator of the integrand over the real or complex numbers." We can also find the following formulas which formalize the above exploratory calculations ($j>1$ and $b^2 - 4c < 0$ below):
+In [Bronstein](http://www-sop.inria.fr/cafe/Manuel.Bronstein/publications/issac98.pdf) this characterization can be found---"This method, which dates back to Newton, Leibniz and Bernoulli, should not be used in practice, yet it remains the method found in most calculus texts and is often taught. Its major drawback is the factorization of the denominator of the integrand over the real or complex numbers." We can also find the following formulas which formalize the above exploratory calculations ($j>1$ and $b^2 - 4c < 0$ below):
 
 
 $$
 \begin{align*}
 \int \frac{A}{(x-a)^j} &= \frac{A}{1-j}\frac{1}{(x-a)^{j-1}}\\
 \int \frac{A}{x-a}     &= A\log(x-a)\\
-\int \frac{Bx+C}{x^2 + bx + c}     &= \frac{B}{2} \log(x^2 + bx + c) + \frac{2C-bB}{\sqrt{4c-b^2}}\cdot \arctan\left(\frac{2x+b}{\sqrt{4c-b^2}}\right)\\
+\int \frac{Bx+C}{x^2 + bx + c}     &= \frac{B}{2} \log(x^2 + bx + c)\\
+&\quad + \frac{2C-bB}{\sqrt{4c-b^2}}\cdot \arctan\left(\frac{2x+b}{\sqrt{4c-b^2}}\right)\\
 \int \frac{Bx+C}{(x^2 + bx + c)^j} &= \frac{B' x + C'}{(x^2 + bx + c)^{j-1}} + \int \frac{C''}{(x^2 + bx + c)^{j-1}}
 \end{align*}
 $$
@@ -231,10 +232,13 @@ That is integrating $f(x)/g(x)$, a rational function, will yield an output that 
 
 
 $$
-\int f(x)/g(x) = P(x) + \frac{C(x)}{D{x}} + \sum v_i \log(V_i(x)) + \sum w_j \arctan(W_j(x))
+\begin{align*}
+\int f(x)/g(x) &= P(x) + \frac{C(x)}{D{x}} + \sum v_i \log(V_i(x))\\
+&\quad + \sum w_j \arctan(W_j(x)).
+\end{align*}
 $$
 
-(Bronstein also sketches the modern method which is to use a Hermite reduction to express $\int (f/g) dx = p/q + \int (g/h) dx$, where $h$ is square free (the "`j`" are all $1$). The latter can be written over the complex numbers as logarithmic terms of the form $\log(x-a)$, the "`a`s"found following a method due to Trager and Lazard, and Rioboo, which is mentioned in the SymPy documentation as the method used.)
+(Bronstein also sketched the modern method which is to use a Hermite reduction to express $\int (f/g) dx = p/q + \int (g/h) dx$, where $h$ is square free (the "`j`" are all $1$). The latter can be written over the complex numbers as logarithmic terms of the form $\log(x-a)$, the "`a`s"found following a method due to Trager and Lazard, and Rioboo, which is mentioned in the SymPy documentation as the method used.)
 
 
 #### Examples
@@ -447,8 +451,8 @@ choices = [
 L"The value $c$ is a removable singularity, so the integral will be identical.",
 L"The resulting function has an identical domain and is equivalent for all $x$."
 ]
-answ = 2
-radioq(choices, answ, keep_order=true)
+answer = 2
+radioq(choices, answer, keep_order=true)
 ```
 
 If $m = n$, then why can we cancel out the $(x-c)^n$ and not have a concern?
@@ -462,8 +466,8 @@ choices = [
 L"The value $c$ is a removable singularity, so the integral will be identical.",
 L"The resulting function has an identical domain and is equivalent for all $x$."
 ]
-answ = 2
-radioq(choices, answ, keep_order=true)
+answer = 2
+radioq(choices, answer, keep_order=true)
 ```
 
 If $m < n$, then why can we cancel out the $(x-c)^m$ and not have a concern?
@@ -477,8 +481,8 @@ choices = [
 L"The value $c$ is a removable singularity, so the integral will be identical.",
 L"The resulting function has an identical domain and is equivalent for all $x$."
 ]
-answ = 3
-radioq(choices, answ, keep_order=true)
+answer = 3
+radioq(choices, answer, keep_order=true)
 ```
 
 ###### Question
