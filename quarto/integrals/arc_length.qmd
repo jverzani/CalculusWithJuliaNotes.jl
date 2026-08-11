@@ -8,8 +8,7 @@ This section uses these add-on packages:
 
 ```{julia}
 using CalculusWithJulia
-using Plots
-plotly()
+using Plots; plotly()
 using SymPy
 using QuadGK
 using Roots
@@ -17,7 +16,7 @@ using Roots
 
 ---
 
-
+::: {#fig-kids-jumprope}
 ```{julia}
 #| hold: true
 #| echo: false
@@ -31,10 +30,12 @@ A kids' jump rope by Lifeline is comprised of little plastic segments of uniform
 nothing
 ```
 
-![A kids' jump rope by Lifeline is comprised of little plastic segments of uniform length around a cord. The length of the rope can be computed by adding up the lengths of each segment, regardless of how the rope is arranged.
-](./figures/jump-rope.png)
+![](./figures/jump-rope.png)
 
-The length of the jump rope in the picture can be computed by either looking at the packaging it came in, or measuring the length of each plastic segment and multiplying by the number of segments. The former is easier, the latter provides the intuition as to how we can find the length of curves in the $x-y$ plane. The idea is old, [Archimedes](http://www.maa.org/external_archive/joma/Volume7/Aktumen/Polygon.html) used fixed length segments of polygons to approximate $\pi$ using the circumference of circle producing the bounds $3~\frac{1}{7} > \pi > 3~\frac{10}{71}$.
+A kids' jump rope by Lifeline is comprised of little plastic segments of uniform length around a cord. The length of the rope can be computed by adding up the lengths of each segment, regardless of how the rope is arranged.
+:::
+
+The length of the jump rope in @fig-kids-jumprope can be computed by either looking at the packaging it came in, or measuring the length of each plastic segment and multiplying by the number of segments. The former is easier, the latter provides the intuition as to how we can find the length of curves in the $x-y$ plane. The idea is old, [Archimedes](http://www.maa.org/external_archive/joma/Volume7/Aktumen/Polygon.html) used fixed length segments of polygons to approximate $\pi$ using the circumference of circle producing the bounds $3~\frac{1}{7} > \pi > 3~\frac{10}{71}$.
 
 
 A more modern application is the algorithm used by GPS devices to record a path taken. However, rather than record times for a fixed distance traveled, the GPS device records position ($(x,y)$) or longitude and latitude at fixed units of time - similar to how parametric functions are used. The device can then compute distance traveled and speed  using some familiar formulas.
@@ -43,13 +44,10 @@ A more modern application is the algorithm used by GPS devices to record a path 
 ## Arc length formula
 
 
-Recall the distance formula gives the distance between two points: $\sqrt{(x_1 - x_0)^2 + (y_1 - y_0)^2}$.
-
 
 Consider now two functions $g(t)$ and $f(t)$ and the parameterized graph between $a$ and $b$ given by the points $(g(t), f(t))$ for $a \leq t \leq b$. Assume that both $g$ and $f$ are differentiable on $(a,b)$ and continuous on $[a,b]$ and furthermore that $\sqrt{g'(t)^2 + f'(t)^2}$ is Riemann integrable.
 
-::: {.callout-note icon=false}
-## The arc length of a curve
+::: {.definition title="The arc length of a parameterized curve"}
 
 For $f$ and $g$ as described, the arc length of the parameterized curve is given by
 
@@ -63,13 +61,12 @@ For the special case of the graph of a function $f(x)$ between $a$ and $b$ the f
 
 :::{.callout-note}
 ## Note
-The form of the integral may seem daunting with the square root and the derivatives. A more general writing would create a vector out of the two functions: $\phi(t) = \langle g(t), f(t) \rangle$. It is natural to then let $\phi'(t) = \langle g'(t), f'(t) \rangle$. With this, the integrand is just the norm - or length - of the derivative, or $L=\int \| \phi'(t) \| dt$. This is similar to the distance traveled being the integral of the speed, or the absolute value of the derivative of position.
+The form of the integral may seem daunting with the square root and the derivatives. A more general writing would create a vector out of the two functions: $\phi(t) = \langle g(t), f(t) \rangle$. It is natural to then let $\phi'(t) = \langle g'(t), f'(t) \rangle$. With this, the integrand is just the norm---or length---of the derivative, or $L=\int \| \phi'(t) \| dt$. This is similar to the distance traveled being the integral of the speed, or the absolute value of the derivative of position.
 
 :::
 
-To see why, any partition of the interval $[a,b]$ by $a = t_0 < t_1 < \cdots < t_n =b$ gives rise to $n+1$ points in the plane given by $(g(t_i), f(t_i))$.
 
-
+::: {#fig-arc-length-as-riemann-sum-animation}
 ```{julia}
 #| hold: false
 #| echo: false
@@ -113,21 +110,27 @@ end
 
 imgfile = tempname() * ".gif"
 gif(anim, imgfile, fps = 1)
-caption = L"""
-
-The arc length of the parametric curve can be approximated using straight line segments connecting points. This gives rise to an integral expression defining the length in terms of the functions $f$ and $g$.
-
-"""
+caption = ""
 
 plotly()
 ImageFile(imgfile, caption)
 ```
 
-The distance between points $(g(t_i), f(t_i))$ and $(g(t_{i-1}), f(t_{i-1}))$ is just
+The arc length of the parametric curve can be approximated using straight line segments connecting points. This gives rise to an integral expression defining the length in terms of the functions $f$ and $g$.
+
+:::
+
+Recall the distance formula:
+
+$$
+\text{distance between points} = \sqrt{(x_1 - x_0)^2 + (y_1 - y_0)^2}.
+$$
+
+We use this to see why the arc-length formula has its form. Let $a = t_0 < t_1 < \cdots < t_n =b$ be any partition of the interval $[a,b]$.  This partition gives rise to $n+1$ points in the plane given by $(g(t_i), f(t_i))$. The distance between points $(g(t_i), f(t_i))$ and $(g(t_{i-1}), f(t_{i-1}))$ is given by the distance formula:
 
 
 $$
-d_i = \sqrt{(g(t_i)-g(t_{i-1}))^2 + (f(t_i)-f(t_{i-1}))^2}
+d_i = \sqrt{(g(t_i)-g(t_{i-1}))^2 + (f(t_i)-f(t_{i-1}))^2}.
 $$
 
 The total approximate distance of the curve would be $L_n = d_1 + d_2 + \cdots + d_n$. This is exactly how we would compute the length of the jump rope or the distance traveled from GPS recordings.
@@ -157,7 +160,7 @@ $$
 The values $\xi_i$ and $\psi_i$ are guaranteed by the mean value theorem and must be in $[t_{i-1}, t_i]$.
 
 
-With this, if $\sqrt{f'(t)^2 + g'(t)^2}$ is integrable, as assumed, then as the size of the partition goes to zero, the sum of the $d_i$, $L_n$, must converge to the integral:
+With this, if $\sqrt{f'(t)^2 + g'(t)^2}$ is integrable, as assumed, then as the size of the partition goes to zero (as suggested in @fig-arc-length-as-riemann-sum-animation) the sum of the $d_i$, $L_n$, must converge to the integral:
 
 
 $$
@@ -190,13 +193,19 @@ F = integrate(sqrt(1 + (2x)^2), x)
 F(1) - F(0)
 ```
 
-That number has some context, as can be seen from the graph, which gives simple lower and upper bounds of $\sqrt{1^2 + 1^2} = 1.414...$ and $1 + 1 = 2$.
+That number has some context, as can be seen from the graph in @fig-plot-x-squared-bounds-are-easy-for-arclength, which gives simple lower and upper bounds of $\sqrt{1^2 + 1^2} = 1.414...$ and $1 + 1 = 2$.
 
-
+::: {#fig-plot-x-squared-bounds-are-easy-for-arclength}
 ```{julia}
+#| echo: false
 f(x) = x^2
-plot(f, 0, 1)
+plot(f, 0, 1; legend=false,  line=(2, :black))
+plot!([(0,0), (1,1)];        line=(1, :black, :dot))
+plot!([(0,0), (1,0), (1,1)]; line=(1, :black, :dash))
 ```
+
+The graph of $f(x) = x^2$ over $[0,1]$ has length *between* $\sqrt{2}$ (dotted line) and $2 = 1 + 1$ (dashed line segments)
+:::
 
 :::{.callout-note}
 ## Note
@@ -211,8 +220,12 @@ Let $f(t) = R\cos(t)$ and $g(t) = R\sin(t)$. Then the parametric curve over $[0,
 
 
 $$
-L = \int_0^{2\pi} \sqrt{(R\cos(t))^2 + (-R\sin(t))^2} dt = R\int_0^{2\pi} \sqrt{\cos(t)^2 + \sin(t)^2} dt =
-R\int_0^{2\pi} dt = 2\pi R.
+\begin{align*}
+L &= \int_0^{2\pi} \sqrt{(R\cos(t))^2 + (-R\sin(t))^2} dt\\
+&= R\int_0^{2\pi} \sqrt{\cos(t)^2 + \sin(t)^2} dt \\
+&= R\int_0^{2\pi} dt \\
+&= 2\pi R.
+\end{align*}
 $$
 
 ##### Example
@@ -239,32 +252,35 @@ Which isn't so satisfying. From a quick graph, we see the answer should be no mo
 
 
 ```{julia}
-N(ex)
+float(ex)
 ```
 
 ##### Example
 
 
-A [catenary shape](http://en.wikipedia.org/wiki/Catenary) is the shape a hanging chain will take as it is suspended between two posts. It appears elsewhere, for example, power wires will also have this shape as they are suspended between towers.  A formula for a catenary can be written in terms of the hyperbolic cosine, `cosh` in `julia` or exponentials.
+A [catenary shape](http://en.wikipedia.org/wiki/Catenary) is the shape a hanging chain will take as it is suspended between two posts. It appears elsewhere, for example, power wires will also have this shape as they are suspended between towers.  A formula for a catenary can be written in terms of the hyperbolic cosine, `cosh` in `Julia` or exponentials.
 
 
 $$
 y = a \cosh(x/a) = a \cdot \frac{e^{x/a} + e^{-x/a}}{2}.
 $$
 
-Suppose we have the following chain hung between $x=-1$ and $x=1$ with $a = 2$:
+Suppose we have a chain hung between $x=-1$ and $x=1$ with $a = 2$, as in @fig-catenary-with-a-equal-2-over-minus-1-1.
 
-
+::: {#fig-catenary-with-a-equal-2-over-minus-1-1}
 ```{julia}
 chain(x; a=2) = a * cosh(x/a)
 plot(chain, -1, 1)
 ```
 
+Plot of catenary $a\cosh(x/a)$ with $a=2$ over $[-1,1]$
+:::
+
 How long is the chain? Looking at the graph we can guess an answer is between $2$ and $2.5$, say, but it isn't much work to get an approximate numeric answer. Recall, the accompanying `CalculusWithJulia` package defines `f'` to find the derivative using the `ForwardDiff` package.
 
 
 ```{julia}
-quadgk(x -> sqrt(1 + chain'(x)^2), -1, 1)[1]
+first(quadgk(x -> sqrt(1 + chain'(x)^2), -1, 1))
 ```
 
 We used a numeric approach, but this can be solved by hand and the answer is surprising.
@@ -273,24 +289,27 @@ We used a numeric approach, but this can be solved by hand and the answer is sur
 ##### Example
 
 
-This picture of Jasper John's [Near the Lagoon](http://www.artic.edu/aic/collections/artwork/184095) was taken at The Art Institute Chicago.
+@fig-jasper-johns-catenary-chicago shows Jasper Johns' [Near the Lagoon](http://www.artic.edu/aic/collections/artwork/184095) from The Art Institute of Chicago.
 
-
+::: {#fig-jasper-johns-catenary-chicago}
 ```{julia}
 #| hold: true
 #| echo: false
 imgfile = "figures/johns-catenary.jpg"
-caption = "One of Jasper Johns' Catenary series. Art Institute of Chicago."
+caption = "One of Jasper Johns' Catenary series. The Art Institute of Chicago."
 # ImageFile(:integrals, imgfile, caption)
 nothing
 ```
 
-![One of Jasper Johns' Catenary series. Art Institute of Chicago.](./figures/johns-catenary.jpg)
+![](./figures/johns-catenary.jpg)
+
+One of Jasper Johns' Catenary series (The Art Institute of Chicago)
+:::
 
 The museum notes have
 
 
-> For his Catenary series (1997–2003), of which Near the Lagoon is    the largest and last work, Johns formed catenaries—a term used to    describe the curve assumed by a cord suspended freely from two points—by tacking ordinary household string to the canvas or its    supports.
+> For his Catenary series (1997–2003), of which Near the Lagoon is the largest and last work, Johns formed catenaries—a term used to describe the curve assumed by a cord suspended freely from two points—by tacking ordinary household string to the canvas or its supports.
 
 
 
@@ -324,7 +343,7 @@ Rounding, we take $a=13$. With these parameters ($a=13$, $b = 131$), we compute 
 a = 13
 b = 118 + a
 f(x) = cat(x; a=13, b=118+13)
-quadgk(x -> sqrt(1 + f'(x)^2), -78/2, 78/2)[1]
+first(quadgk(x -> sqrt(1 + f'(x)^2), -78/2, 78/2))
 ```
 
 ##### Example
@@ -339,8 +358,9 @@ The Verrazzano-Narrows [Bridge](https://www.brownstoner.com/brooklyn-life/verraz
 Suppose the drop of the main cables is $147$ meters over this span. Then the cable itself can be modeled as a parabola with
 
 
-  * The $x$-intercepts $a = 1298/2$ and $-a$ and
-  * vertex $(0,b)$ with $b=-147$.
+* The $x$-intercepts $a = 1298/2$ and $-a$ and
+
+* vertex $(0,b)$ with $b=-147$.
 
 
 The parabola that fits these three points is
@@ -362,6 +382,7 @@ val, _ = quadgk(x -> sqrt(1 + f'(x)^2), -a, a)
 val
 ```
 
+::: {#fig-verrazzano-bridge-unloaded-during-construction}
 ```{julia}
 #| hold: true
 #| echo: false
@@ -373,8 +394,12 @@ The Verrazzano-Narrows Bridge during construction. The unloaded suspension cable
 nothing
 ```
 
-![The Verrazzano-Narrows Bridge during construction. The unloaded suspension cables form a catenary.](./figures/verrazzano-unloaded.jpg)
+![](./figures/verrazzano-unloaded.jpg)
 
+The Verrazzano-Narrows Bridge during construction. The unloaded suspension cables form a catenary.
+:::
+
+::: {#fig-verrazzano-bridge-loaded-after-construction}
 ```{julia}
 #| hold: true
 #| echo: false
@@ -386,13 +411,15 @@ A rendering of the Verrazzano-Narrows Bridge after construction (cf. [nycgovpark
 nothing
 ```
 
-![A rendering of the Verrazzano-Narrows Bridge after construction (cf. [nycgovparks.org](https://www.nycgovparks.org/highlights/verrazano-bridge)). The uniformly loaded suspension cables would form a parabola, presumably a fact the artist of this rendering knew. (The spelling in the link is not the official spelling, which carries two zs.)
-](./figures/verrazzano-loaded.jpg)
+![](./figures/verrazzano-loaded.jpg)
+
+A rendering of the Verrazzano-Narrows Bridge after construction (cf. [nycgovparks.org](https://www.nycgovparks.org/highlights/verrazano-bridge)). The uniformly loaded suspension cables would form a parabola, presumably a fact the artist of this rendering knew. (The spelling in the link is not the official spelling, which carries two zs.)
+:::
 
 ##### Example
 
 
-The [nephroid](http://www-history.mcs.st-and.ac.uk/Curves/Nephroid.html) is a curve that can be described parametrically by
+The [nephroid](https://mathshistory.st-andrews.ac.uk/Curves/Nephroid/) is a curve that can be described parametrically by
 
 
 $$
@@ -405,13 +432,16 @@ $$
 
 Taking $a=1$ we have this graph:
 
-
+::: {#fig-nephroid-with-a-equal-1}
 ```{julia}
 a = 1
-𝒈(t) = a*(3cos(t) - cos(3t))
-𝒇(t) = a*(3sin(t) - sin(3t))
-plot(𝒈, 𝒇, 0, 2pi)
+g(t) = a * (3cos(t) - cos(3t))
+f(t) = a * (3sin(t) - sin(3t))
+plot(g, f, 0, 2pi)
 ```
+
+Parametric plot of nephroid
+:::
 
 Find the length of the perimeter of the closed figure formed by the graph.
 
@@ -420,7 +450,7 @@ We have $\sqrt{g'(t)^2 + f'(t)^2} = \sqrt{18 - 18\cos(2t)}$. An antiderivative i
 
 
 ```{julia}
-quadgk(t -> sqrt(𝒈'(t)^2 + 𝒇'(t)^2), 0, 2pi)[1]
+quadgk(t -> sqrt(g'(t)^2 + f'(t)^2), 0, 2pi)[1]
 ```
 
 The answer seems like a floating point approximation of $24$, which  suggests that  this integral is tractable. Pursuing this, the integrand simplifies:
@@ -446,14 +476,18 @@ By graphing, we see that integrating over $[0,2\pi]$ gives twice the answer to i
 
 
 $$
-L = \int_0^{2\pi} \sqrt{g'(t)^2 + f'(t)^2}dt = \int_0^{2\pi} 3\sqrt{2}\sqrt{2\sin(t)^2} =
-3 \cdot 2 \cdot 2 \int_0^\pi \sin(t) dt = 3 \cdot 2 \cdot 2 \cdot 2 = 24.
+\begin{align*}
+L &= \int_0^{2\pi} \sqrt{g'(t)^2 + f'(t)^2}dt = \int_0^{2\pi} 3\sqrt{2}\sqrt{2\sin(t)^2}\\
+&= 3 \cdot 2 \cdot 2 \int_0^\pi \sin(t) dt = 3 \cdot 2 \cdot 2 \cdot 2 \\
+&= 24.
+\end{align*}
 $$
 
 ##### Example
 
 The following link shows how the perimeter of a complex figure relates to the perimeter of a circle:
 
+::: {#fig-tweet-of-pineapple-shape-being-formed}
 ```{julia}
 #| echo: false
 tweet = """
@@ -463,10 +497,13 @@ tweet = """
 HTMLoutput(tweet)
 ```
 
+Relationship of perimeter of circle to a complex shape
+:::
+
 ##### Example
 
 
-A teacher of small children assigns his students the task of computing the length of a jump rope by counting the number of $1$-inch segments it is made of. He knows that if a student is accurate, no matter how fast or slow they count the answer will be the same. (That is, unless the student starts counting in the wrong direction by mistake). The teacher knows this, as he is certain that the length of curve is independent of its parameterization, as it is a property intrinsic to the curve.
+A teacher of small children assigns his students the task of computing the length of a jump rope by counting the number of $1$-inch segments it is made of. He knows that if a student is accurate, no matter how fast or slow they count the answer will be the same. (That is, unless the student starts counting in the wrong direction by mistake). The teacher knows this, as they are certain that the length of curve is independent of its parameterization, as it is a property intrinsic to the curve.
 
 
 Mathematically, suppose a curve is described parametrically by $(g(t), f(t))$ for $a \leq t \leq b$. A new parameterization is provided by $\gamma(t)$. Suppose $\gamma$ is strictly increasing, so that an inverse function exists. (This assumption is implicitly made by the teacher, as it implies the student won't start counting in the wrong direction.) Then the same curve is described by composition through $(g(\gamma(u)), f(\gamma(u)))$, $\gamma^{-1}(a) \leq u \leq \gamma^{-1}(b)$. That the arc length is the same follows from substitution:
@@ -495,7 +532,7 @@ $$
 \gamma(u) = \int_0^u \sqrt{g'(t)^2 + f'(t)^2} dt.
 $$
 
-Supposing $\sqrt{g'(t)^2 + f'(t)^2}$ is continuous and positive, This transformation is increasing, as its derivative by the Fundamental Theorem of Calculus is $\gamma'(u) = \sqrt{g'(u)^2 + f'(u)^2}$, which by assumption is positive. (It is certainly non-negative.) So there exists an inverse function. That it exists is one thing, computing all of this is a different matter, of course.
+Supposing $\sqrt{g'(t)^2 + f'(t)^2}$ is continuous and positive, This transformation is increasing, as its derivative---by the Fundamental Theorem of Calculus---is $\gamma'(u) = \sqrt{g'(u)^2 + f'(u)^2}$, which by assumption is positive. (It is certainly non-negative.) So there exists an inverse function. That it exists is one thing, computing all of this is a different matter, of course.
 
 
 For a simple example, we have $g(t) = R\cos(t)$ and $f(t)=R\sin(t)$ parameterizing the circle of radius $R$. The arc length between $0$ and $t$ is simply $\gamma(t) = Rt$, which we can easily see from the formula.  The inverse of this function is $\gamma^{-1}(u) = u/R$, so we get the parameterization $(g(Rt), f(Rt))$ for $0/R \leq t \leq 2\pi/R$.
@@ -517,37 +554,39 @@ Where $C = 2c + c^2$ is a constant. But, despite it not looking too daunting, th
 
 
 ```{julia}
-𝒂, 𝒃 = 1, 2
-𝒔(u) = quadgk(t -> sqrt(𝒂^2 * sin(t)^2 + 𝒃^2 * cos(t)^2), 0, u)[1]
+a, b = 1, 2
+s(u) = first(quadgk(t -> sqrt(a^2 * sin(t)^2 + b^2 * cos(t)^2), 0, u))
 ```
 
-This  has a graph, which does not look familiar, but we can see is monotonically increasing, so will have an inverse function:
+This  has a graph shown in @fig-plot-arc-length-parameterization which does not look familiar, but we can see is monotonically increasing, so will have an inverse function whose domain will be $[0, s(2\pi)]$.
+
+::: {#fig-plot-arc-length-parameterization}
+```{julia}
+plot(s, 0, 2pi)
+```
+
+Plot of $s$ over $[0, 2\pi]$. This monotonic function has some inverse function.
+:::
+
+The inverse function can be found by solving numerically. We use the bracketing version of `find_zero` for this:
 
 
 ```{julia}
-plot(𝒔, 0, 2pi)
+sinv(u) = find_zero(x -> s(x) - u, (0, s(2pi)))
 ```
 
-The range is $[0, s(2\pi)]$.
+@fig-plot-g-f-parameterized-by-arc-length shows that the new parameterization yields the same elliptical curve.
 
-
-The inverse function can be found by solving, we use the bracketing version of `find_zero` for this:
-
-
-```{julia}
-sinv(u) = find_zero(x -> 𝒔(x) - u, (0, 𝒔(2pi)))
-```
-
-Here we see visually that the new parameterization yields the same curve:
-
-
+::: {#fig-plot-g-f-parameterized-by-arc-length}
 ```{julia}
 #| hold: true
-g(t) = 𝒂 * cos(t)
-f(t) = 𝒃 * sin(t)
-
-plot(t -> g(𝒔(t)), t -> f(𝒔(t)), 0, sinv(2*pi))
+g(t) = a * cos(t)
+f(t) = b * sin(t)
+plot(g∘s, f∘s, 0, sinv(2*pi))
 ```
+
+Plot of $(g(s(t)), f(s(t)))$ shows the parameterization doesn't effect the shape of the resulting curve
+:::
 
 #### Example: An implication of concavity
 
@@ -563,69 +602,79 @@ Following (faithfully) [Kantorwitz and Neumann](https://www.researchgate.net/pub
 ```{julia}
 #| hold: true
 #| echo: false
-function trajectory(x; g = 9.8, v0 = 50, theta = 45*pi/180, k = 1/8)
+let
+    gr()
+    function trajectory(x; g = 9.8, v0 = 50, theta = 45*pi/180, k = 1/8)
+        a = v0 * cos(theta)
+        (g/(k*a) + tan(theta))* x + (g/k^2) * log(1 - k/a*x)
+    end
+    v0 = 50; theta = 45*pi/180; k = 1/5
     a = v0 * cos(theta)
-    (g/(k*a) + tan(theta))* x + (g/k^2) * log(1 - k/a*x)
+    Δ = a/k
+    a = find_zero(trajectory, (50, Δ-1/10))
+    plt = plot(;legend=false,  ylims=(0,90))
+    plot!(trajectory,0, a; line=(5, :blue))
+
+    u=25
+    fu = trajectory(u)
+    v = find_zero(x -> trajectory(x) - fu, (50, Δ))
+    plot!([u,v], [fu,fu]; line=(1, :black))#, linestyle = :dash)
+
+    c = find_zero(trajectory', (50, 100))
+    plot!([c,c],[0, trajectory(c)]; line=(1, :black))
+
+
+    h(y)= tangent(trajectory, u)(y) - tangent(trajectory, v)(y)
+    d = find_zero(h, (u,v))
+    plot!(tangent(trajectory, u), 5, 110; line=(1, :black))
+    plot!(tangent(trajectory, v), 80, 150; line=(1, :black))
+
+    plot!(zero)
+    𝒚 = 4
+    annotate!([(0, 𝒚, text(L"a")), (152, 𝒚, text(L"b")), (u, 𝒚, text(L"u")),
+               (v, 𝒚, text(L"v")), (c, 𝒚, text(L"c",:right))])
+
+    plotly()
+    plt
 end
-v0 = 50; theta = 45*pi/180; k = 1/5
-𝒂 = v0 * cos(theta)
-Δ = 𝒂/k
-a = find_zero(trajectory, (50, Δ-1/10))
-plot(trajectory,0, a, legend=false, linewidth=5)
-
-u=25
-fu = trajectory(u)
-v = find_zero(x -> trajectory(x) - fu, (50, Δ))
-plot!([u,v], [fu,fu])#, linestyle = :dash)
-
-c = find_zero(trajectory', (50, 100))
-plot!([c,c],[0, trajectory(c)])
-
-
-h(y)= tangent(trajectory, u)(y) - tangent(trajectory, v)(y)
-d = find_zero(h, (u,v))
-plot!(tangent(trajectory, u), 0, 110)
-plot!(tangent(trajectory, v), 75, 150)
-
-plot!(zero)
-𝒚 = 4
-annotate!([(0, 𝒚, "a"), (152, 𝒚, "b"), (u, 𝒚, "u"), (v, 𝒚, "v"), (c, 𝒚, "c")])
 ```
 
 Graph of function $f(x)$ with both $f$ and $f'$ strictly concave down.
 :::
 
-By Rolle's theorem there exists $c$ in $(a,b)$, a critical point, as in the picture. There must be a critical point by Rolle's theorem, and it must be unique, as the derivative, which exists by the assumptions, must be strictly decreasing due to concavity of $f$ and hence there can be at most $1$ critical point.
+By Rolle's theorem there exists a critical point $c$ in $(a,b)$, as in the picture. There must be a unique critical point as the derivative, which exists by the assumptions, must be strictly decreasing due to concavity of $f$.
 
 Take $a < u < c < v < b$ with $f(u) = f(v)$.
 
 
-Some facts about this picture can be proven from the definition of concavity:
-
-
-> The slope of the tangent line at $u$ goes up slower than the slope of the tangent line at $v$ declines:  $f'(u) < -f'(v)$.
-
-
-
-Since $f'$ is *strictly* concave, we have for any $a<u<v<b$ from the definition of concavity that for all $0 \leq t \leq 1$
+Some facts about this picture can be proven from this definition of *strict* concavity of $f'$ for all $0 \le t \le 1$:
 
 
 $$
 tf'(u) + (1-t)f'(v) < f'(tu + (1-t)v).
 $$
 
-So
 
+First:
+
+> The slope of the tangent line at $u$ goes up slower than the slope of the tangent line at $v$ declines:  $f'(u) < -f'(v)$.
+
+
+
+Since $f'$ is *strictly* concave, we have by integrating both sides of the concavity inequality:
 
 $$
-\begin{align*}
-\int_0^1 (tf'(u) + (1-t)f'(v)) dt &< \int_0^1 f'(tu + (1-t)v) dt, \text{or}\\
-\frac{f'(u) + f'(v)}{2} &< \frac{1}{v-u}\int_u^v f'(w) dw,
-\end{align*}
+\int_0^1 (tf'(u) + (1-t)f'(v)) dt < \int_0^1 f'(tu + (1-t)v) dt.
+$$
+
+Integrating the left-hand side and using  the substitution $w = tu + (1-t)v$ on the right yields:
+
+$$
+\frac{f'(u) + f'(v)}{2} < \frac{1}{v-u}\int_u^v f'(w) dw.
 $$
 
 
-by the substitution $w = tu + (1-t)v$. Using the fundamental theorem of calculus to compute the mean value of the integral of $f'$ over $[u,v]$ gives the following as a consequence of strict concavity of $f'$:
+Using the fundamental theorem of calculus to compute the integral of $f'$ over $[u,v]$ gives the following as a consequence of strict concavity of $f'$:
 
 
 $$
@@ -768,7 +817,7 @@ $$
 $$
 
 
-Letting $h=f(u \rightarrow c)$ we get the *inequality*
+Letting $u \rightarrow c$ we get the *inequality*:
 
 
 $$
@@ -798,14 +847,22 @@ This comes from solving the projectile motion equations with a drag force *propo
 ```{julia}
 #| hold: true
 @syms gₑ::positive, k::positive, v₀::positive, θ::positive, x::positive
-ex = (gₑ/(k*v₀*cos(θ)) + tan(θ))*x + gₑ/k^2 * log(1 - k/(v₀*cos(θ))*x)
-diff(ex, x, x), diff(ex, x, x, x,)
+ex = (gₑ/(k*v₀*cos(θ)) + tan(θ))*x + gₑ/k^2 * log(1 - k*x/(v₀*cos(θ)))
+diff(ex, x, x)
 ```
 
-Both the second and third derivatives are negative (as $0 \leq x < (v_0\cos(\theta))/k$ due to the logarithm term), so, both $f$ and $f'$ are strictly concave down. Hence the results above apply. That is the arrow will fly further as it goes up, than as it comes down and will carve out more area on its way up, than its way down. The trajectory could also show time versus height, and the same would hold, e.g, the arrow would take longer to go up than come down.
+So the second derivative is negative. Furthermore:
+
+```{julia}
+diff(ex, x, x, x)
+```
+
+But the logarithm term in `ex` ensures $1 - k\cdot x / (v_0\cos(\theta)) > 0$, so $f'''$ is also negative and $f'$ is strictly concave down. Hence the results above apply.
+
+That is the arrow will fly further as it goes up, than as it comes down and will carve out more area on its way up, than its way down. The trajectory could also show time versus height, and the same would hold, e.g, the arrow would take longer to go up than come down.
 
 
-In general, the drag force need not be proportional to the velocity, but merely in opposite direction to the velocity vector $\langle x'(t), y'(t) \rangle$:
+In general, Kantorwitz and Neumann note that the drag force need not be proportional to the velocity---merely in opposite direction to the velocity vector $\langle x'(t), y'(t) \rangle$:
 
 
 $$

@@ -14,11 +14,18 @@ using SymPy
 using Roots
 ```
 
+```{julia}
+function CalculusWithJulia.plotif(f::Function, g::Function, a::Real, b::Real; kwargs...)
+    plot(f, a, b; legend=false, line=(1, :black), title="Plot of f colored when g ≥ 0")
+    gg = x -> g(x) ≥ 0 ? f(x) : NaN
+    plot!(gg; line=(5, :red, :dot))
+end
+```
 
 ---
 
 
-This section explores properties of a function, $f(x)$, that are described by properties of its first and second derivatives, $f'(x)$ and $f''(x)$. As part of the conversation two tests are discussed that characterize when a critical point is a relative maximum or minimum. (We know that any relative maximum or minimum occurs at a critical point, but it is not true that *any* critical point will be a relative maximum or minimum.)
+This section explores properties of a function, $f(x)$, that are described by properties of its first and second derivatives, $f'(x)$ and $f''(x)$. As part of the conversation, two tests are discussed that characterize when a critical point is a relative maximum or minimum. (We know that any relative maximum or minimum occurs at a critical point, but it is not true that *any* critical point will be a relative maximum or minimum.)
 
 
 ## Positive or increasing on an interval
@@ -26,18 +33,21 @@ This section explores properties of a function, $f(x)$, that are described by pr
 
 We start with some vocabulary:
 
+::: {.definition title="Positive on an interval"}
 
-> A function $f$ is **positive** on an interval $I$ if for any $a$ in $I$ it must be that $f(a) > 0$.
+A function $f$ is **positive** on an interval $I$ if for any $a$ in $I$ it must be that $f(a) > 0$.
 
 
+Of course, we  define *negative* in a parallel manner.
 
-Of course, we  define *negative* in a parallel manner. The intermediate value theorem says a continuous function can not change from positive to negative without crossing $0$. This is not the case for functions with jumps, of course.
+:::
+
+The intermediate value theorem says a continuous function can not change from positive to negative without crossing $0$. This is not the case for functions with jumps, of course.
 
 
 Next,
 
-::: {.callout-note icon=false}
-## Strictly increasing
+::: {.definition title="Strictly increasing"}
 
 A function, $f$, is (strictly) **increasing** on an interval $I$ if for any $a < b$ it must be that $f(a) < f(b)$.
 
@@ -47,51 +57,61 @@ The word strictly is related to the inclusion of the $<$ precluding the possibil
 A parallel definition with $a < b$ implying $f(a) > f(b)$ would be used for a *strictly decreasing* function.
 :::
 
-We can try and prove these properties for a function algebraically – we'll see both are related to the zeros of some function. However, before proceeding to that it is usually helpful to get an idea of where the answer is using exploratory graphs.
+
+We introduce a helper function `plotif` from the `CalculusWithJulia` package that highlights the graph of a function $f$ when another function $g(x)$ satisfies $g(x) \geq 0$. This function is called as `plotif(f, g, a, b)`.
 
 
-We will use a helper function, `plotif(f, g, a, b)` that plots the function `f` over `[a,b]` highlighting the regions in the domain when `g` is non-negative. Such a function is defined for us in the accompanying `CalculusWithJulia` package, which has been previously loaded.
+To see where a function is positive, we simply pass the function object in for *both* `f` and `g` above. For example, in @fig-plotif-sin-sin-minus-2pi-2pi we look at where $f(x) = \sin(x)$ is positive.
 
-
-To see where a function is positive, we simply pass the function object in for *both* `f` and `g` above. For example, let's look at where $f(x) = \sin(x)$ is positive:
-
-
+::: {#fig-plotif-sin-sin-minus-2pi-2pi}
 ```{julia}
 #| hold: true
 f(x) = sin(x)
 plotif(f, f, -2pi, 2pi)
+plot!(zero)
 ```
 
-Let's graph with `cos` in the masking spot and see what happens:
+Plot of $f(x) = \sin(x)$ over $[-2\pi,2\pi]$ highlighting where $f(x) \geq 0$
+:::
 
+Let's graph with `cos` in the masking spot and see what happens.
 
+::: {#fig-plotif-sin-cos-minus-2pi-2pi}
 ```{julia}
 plotif(sin, cos, -2pi, 2pi)
 ```
 
-Maybe surprisingly, we see that the increasing parts of the sine curve are now highlighted. Of course, the cosine is the derivative of the sine function, now we discuss that this is no coincidence.
+Plot of $f(x) = \sin(x)$ over $[-2\pi,2\pi]$ highlighting where $f'(x) = \cos(x) \geq 0$
+:::
+
+Maybe surprisingly, in  @fig-plotif-sin-cos-minus-2pi-2pi we see that the increasing parts of the sine curve are now highlighted. Of course, the cosine is the derivative of the sine function, now we discuss that this is no coincidence.
 
 
 For the sequel, we will use `f'` notation to find numeric derivatives, with the notation being defined in the `CalculusWithJulia` package using the `ForwardDiff` package.
 
-
-## The relationship of the derivative and increasing
+## Positive derivatives and increasing functions
 
 
 The derivative, $f'(x)$, computes the slope of the tangent line to the graph of $f(x)$ at the point $(x,f(x))$. If the derivative is positive, the tangent line will have an increasing slope. Clearly if we see an increasing function and mentally layer on a tangent line, it will have a positive slope. Intuitively then, increasing functions and positive derivatives are related concepts. But there are some technicalities.
 
 
-Suppose $f(x)$ has a derivative on $I$ . Then
+Suppose $f(x)$ has a derivative on $I$. Then
 
+::: {.relationship title="Positive derivative and strictly increasing function"}
 
-> If $f'(x)$ is positive on an interval $I=(a,b)$, then $f(x)$ is strictly increasing on $I$.
+If $f'(x)$ is positive on an interval $I=(a,b)$, then $f(x)$ is strictly increasing on $I$.
+
+:::
 
 
 
 Meanwhile,
 
+::: {.relationship title="Strictly increasing function and non-negative derivative"}
 
-> If a function $f(x)$ is increasing on $I$, then $f'(x) \geq 0$.
+If a function $f(x)$ is increasing on $I$, then $f'(x) \geq 0$.
+
+:::
 
 
 
@@ -110,14 +130,17 @@ The second part, follows from the secant line equation. The derivative can be wr
 So, to visualize where a function is increasing or flat, we can just pass in the derivative as the masking function in our `plotif` function.
 
 
-For example, here, with a more complicated function, the intervals where the function is increasing are highlighted by passing in the functions derivative to `plotif`:
+For example, in @fig-plotif-sin-pi-x-times-x-cubed-minus-4-x-squared-plus-2, with a more complicated function, the intervals where the function is increasing are highlighted by passing in the function's derivative to `plotif`.
 
-
+::: {#fig-plotif-sin-pi-x-times-x-cubed-minus-4-x-squared-plus-2}
 ```{julia}
 #| hold: true
 f(x) = sin(pi*x) * (x^3 - 4x^2 + 2)
 plotif(f, f', -2, 2)
 ```
+
+Plot of $f(x) = \sin(\pi\cdot x) \cdot (x^3 - 4x^2 + 2)$ over $[-2,2]$ highlighting when $f'(x) \geq 0$
+:::
 
 ### First derivative test
 
@@ -128,26 +151,26 @@ When a function changes from increasing to decreasing, or decreasing to increasi
 When discussing the mean value theorem, we defined *relative extrema* :
 
 
->   * The function $f(x)$ has a *relative  maximum* at $c$ if the value $f(c)$ is an *absolute maximum* for some *open* interval containing $c$.
->   * Similarly, $f(x)$ has a *relative minimum* at $c$ if the value $f(c)$ is an absolute minimum for *some* open interval about $c$.
+::: {.definition title="Relative maximum, minimum"}
+
+* The function $f(x)$ has a *relative  maximum* at $c$ if the value $f(c)$ is an *absolute maximum* for some *open* interval containing $c$.
+
+* Similarly, $f(x)$ has a *relative minimum* at $c$ if the value $f(c)$ is an absolute minimum for *some* open interval about $c$.
+
+:::
 
 
 
-We know since [Fermat](http://tinyurl.com/nfgz8fz) that:
+We discussed Fermat's theorem which in short says that relative maxima and minima *must* occur at *critical* points of the function.
 
-
-> Relative maxima and minima *must* occur at *critical* points.
-
-
-
-Fermat says that *critical points* – where the function is defined, but its derivative is either $0$ or undefined – are *interesting* points, however:
+However:
 
 
 > A critical point need not indicate a relative maxima or minima.
 
 
 
-Again, $f(x)=x^3$ provides the example at $x=0$. This is a critical point, but clearly not a relative maximum or minimum - it is just a slight pause for a strictly increasing function.
+Again, $f(x)=x^3$ provides the example at $x=0$. This is a critical point, but clearly not a relative maximum or minimum---it is just a slight pause for a strictly increasing function.
 
 
 This leaves the question:
@@ -160,20 +183,21 @@ This leaves the question:
 This question can be answered by considering the first derivative.
 
 
-::: {.callout-note icon=false}
-## The first derivative test
+::: {.relationship title="The first derivative test"}
 
 If $c$ is a critical point for $f(x)$ and *if* $f'(x)$ changes sign at $x=c$, then $f(c)$ will be either a relative maximum or a relative minimum.
 
-   * $f$ will have  a relative maximum at $c$ if the derivative changes sign from $+$ to $-$.
-   * $f$ will have  a relative minimum at $c$ if the derivative changes sign from $-$ to $+$.
+* $f$ will have  a relative maximum at $c$ if the derivative changes sign from $+$ to $-$.
 
-   Further,  If $f'(x)$ does *not* change sign at $c$, then $f$ will  *not* have a relative maximum or minimum at $c$.
+* $f$ will have  a relative minimum at $c$ if the derivative changes sign from $-$ to $+$.
+
+
+Further,  If $f'(x)$ does *not* change sign at $c$, then $f$ will  *not* have a relative maximum or minimum at $c$.
 
 :::
 
 
-The classification part, should be clear: e.g., if the derivative is positive then negative, the function $f$ will increase to $(c,f(c))$ then decrease from $(c,f(c))$ – so $f$ will have a local maximum at $c$.
+The classification part, should be clear: e.g., if the derivative is positive then negative, the function $f$ will increase to $(c,f(c))$ then decrease from $(c,f(c))$---so $f$ will have a local maximum at $c$.
 
 
 Our definition of critical point *assumes* $f(c)$ exists, as $c$ is in the domain of $f$. With this assumption, vertical asymptotes are avoided. However, it need not be that $f'(c)$ exists. The absolute value function at $x=0$ provides an example: this point is a critical point where the derivative changes sign, but $f'(x)$ is not defined  at exactly $x=0$. Regardless, it is guaranteed that $f(c)$ will be a relative minimum by the first derivative test.
@@ -184,13 +208,16 @@ Our definition of critical point *assumes* $f(c)$ exists, as $c$ is in the domai
 
 Consider the function $f(x) = e^{-\lvert x\rvert} \cos(\pi x)$ over $[-3,3]$:
 
-
+::: {#fig-plotif-of-exp-abs-x-times-cos-pi-x-over-minus3-3}
 ```{julia}
 f(x) = exp(-abs(x)) * cos(pi * x)
 plotif(f, f', -3, 3)
 ```
 
-We can see the first derivative test in action: at the peaks and valleys – the relative extrema – the highlighting changes. This is because $f'$ is changing sign as the function changes from increasing to decreasing or vice versa.
+Plot of $f(x) = e^{-\lvert x \rvert \cdot \cos(\pi \cdot x)}$ over $[-3,3]$ highlighting when $f'(x) \geq 0$
+:::
+
+In @fig-plotif-of-exp-abs-x-times-cos-pi-x-over-minus3-3 we can see the first derivative test in action: at the peaks and valleys---the relative extrema---the highlighting changes. This is because $f'$ is changing sign as the function changes from increasing to decreasing or vice versa.
 
 
 This function has a critical point at $0$, as can be seen. It corresponds to a point where the derivative does not exist. It is still identified through `find_zeros`, which picks up zeros and in case of discontinuous functions, like `f'`, zero crossings:
@@ -214,19 +241,23 @@ f(x) = sin(pi*x) * (x^3 - 4x^2 + 2)
 cps = find_zeros(f', -2, 2)
 ```
 
-We should be careful though, as `find_zeros` may miss zeros that are not simple or too close together. A critical point will correspond to a relative maximum if the function crosses the axis, so these can not be "pauses." As this is exactly the case we are screening for, we double check that all the critical points are accounted for by graphing the derivative:
+We should be careful though, as `find_zeros` may miss zeros that are not simple or too close together. A critical point will correspond to a relative maximum if the function crosses the axis, so these can not be "pauses." As this is exactly the case we are screening for, we double check that all the critical points are accounted for by graphing the derivative in @fig-plot-derivative-sin-pix-times-x-cubed-minus-4-x-squared-plus-2. We see the six zeros as stored in `cps` and note that at each the function clearly crosses the $x$ axis.
 
-
+::: {#fig-plot-derivative-sin-pix-times-x-cubed-minus-4-x-squared-plus-2}
 ```{julia}
+#| echo: false
 plot(f', -2, 2, legend=false)
 plot!(zero)
 scatter!(cps, 0*cps)
 ```
 
-We see the six zeros as stored in `cps` and note that at each the function clearly crosses the $x$ axis.
+Plot of the derivative of $f(x) = \sin(\pi\cdot x) \cdot (x^3 - 4x^2 + 2)$ over $[-2,2]$ with the critical points of $f(x)$ (in this case the zeros of $f'(x)$ emphasized. At each, the derivative changes sign.
+:::
 
 
-From this last graph of the derivative we can also characterize the graph of $f$: The left-most critical point coincides with a relative minimum of $f$, as the derivative changes sign from negative to positive. The critical points then alternate relative maximum, relative minimum, relative maximum, relative minimum, and finally relative maximum.
+
+
+From the graph of the derivative we can also characterize the graph of $f$: The left-most critical point coincides with a relative minimum of $f$, as the derivative changes sign from negative to positive. The critical points then alternate relative maximum, relative minimum, relative maximum, relative minimum, and finally relative maximum.
 
 
 ##### Example
@@ -246,12 +277,11 @@ cps = find_zeros(g', -2, 2)
 We see the three values $-1$, $0$, $1$ that correspond to the two zeros and the relative maximum of $x^2 - 1$. We could graph things, but instead we characterize these values using a sign chart. A piecewise continuous function can only change sign when it crosses $0$ or jumps over $0$. The derivative will be continuous, except possibly at the three values above, so is piecewise continuous.
 
 
-A sign chart picks convenient values between crossing points to test if the function is  positive or negative over those intervals. When computing by hand, these would ideally be values for which the function is easily computed. On the computer, this isn't a concern; below the midpoint is chosen:
+A sign chart picks convenient values between crossing points to test if the function is  positive or negative over those intervals. When computing by hand, these would ideally be values for which the function is easily computed. On the computer, this isn't a concern but we want to easily find the $x$ values to evaluate. Below, we specify them directly, but an algorithm to identify the midpoints isn't hard to imagine:
 
 
 ```{julia}
-pts = sort(union(-2, cps, 2))  # this includes the endpoints (a, b) and the critical points
-test_pts = pts[1:end-1] + diff(pts)/2 # midpoints of intervals between pts
+test_pts = [ -1.5, -0.5, 0.5, 1.5]
 [test_pts sign.(g'.(test_pts))]
 ```
 
@@ -269,37 +299,44 @@ Such values are often summarized graphically on a number line using a *sign char
 
 Reading this we have:
 
+* the derivative changes sign from negative to positive at $x=-1$, so $g(x)$ will have a relative minimum.
 
-  * the derivative changes sign from negative to positive at $x=-1$, so $g(x)$ will have a relative minimum.
-  * the derivative changes sign from positive to negative at $x=0$, so $g(x)$ will have a relative maximum.
-  * the derivative changes sign from negative to positive at $x=1$, so $g(x)$ will have a relative minimum.
+* the derivative changes sign from positive to negative at $x=0$, so $g(x)$ will have a relative maximum.
+
+* the derivative changes sign from negative to positive at $x=1$, so $g(x)$ will have a relative minimum.
 
 
 In the `CalculusWithJulia` package there is  `sign_chart` function that will do such work for us, though with a different display:
 
 
 ```{julia}
-sign_chart(g', -2, 2)
+sc = sign_chart(g', -2, 2)
 ```
 
-(This function numerically identifies $x$-values for the specified function which are zeros, infinities, or points where the function jumps $0$. It then shows the resulting sign pattern of the function from left to right.)
+The `sign_chart` function uses `find_zeros` to search for zeros of $f(x)$, zeroes of $1/f(x)$, and through the use of bisection, will identify other sign changes of each. For identified values, it then indicates the sign on the immediate left and right. In this case, the function identifies $-1$, $0$, and $1$. As the returned value is a named tuple,  the command `first.(sc)` can be used to get these identified values.
 
 
-We did this all without graphs. But, let's look at the graph of the derivative:
-
-
+::: {#fig-plot-of-g-prime-over-minus-2-2-g-is-sqrt-abs-x-squared-minus-1}
 ```{julia}
-plot(g', -2, 2)
+#| echo: false
+plot(rangeclamp(g', 40), -2, 2; label="g'")
 ```
 
-We see asymptotes at $x=-1$ and $x=1$! These aren't zeroes of $f'(x)$, but rather where $f'(x)$ does not exist. The conclusion is correct - each of $-1$, $0$ and $1$ are critical points with the identified characterization - but not for the reason that they are all zeros.
+Plot of the derivative of $g(x) = \sqrt{\lvert x^2 - 1 \rvert}$ over $[-2,2]$
+:::
 
+We did this all without graphs.
+@fig-plot-of-g-prime-over-minus-2-2-g-is-sqrt-abs-x-squared-minus-1 shows the graph of the derivative of $g(x)$.
+We see asymptotes at $x=-1$ and $x=1$! These aren't zeroes of $f'(x)$, but rather where $f'(x)$ does not exist. The conclusion is correct---each of $-1$, $0$ and $1$ are critical points with the identified characterization---but not for the reason that they are all zeros. A plot of $g(x)$ is shown in @fig-plot-g-over-minus-2-2-g-is-sqrt-abs-x-squared-minus-1.
 
+::: {#fig-plot-g-over-minus-2-2-g-is-sqrt-abs-x-squared-minus-1}
 ```{julia}
-plot(g, -2, 2)
+#| echo: false
+plot(g, -2, 2; label="g")
 ```
 
-Finally, why does `find_zeros` find these values that are not zeros of $g'(x)$? As discussed briefly above, it uses the bisection algorithm on bracketing intervals to find zeros which are guaranteed by the intermediate value theorem, but when applied to discontinuous functions, as `f'` is, will also identify values where the function jumps over $0$.
+Plot of $g(x) = \sqrt{\lvert x^2 - 1 \rvert}$ over $[-2,2]$
+:::
 
 
 ##### Example
@@ -341,12 +378,15 @@ fp(2pi - pi/2), fp(2pi + pi/2)
 Again, both negative. The function $f(x)$ is just decreasing near $2\pi$, so again the critical point is neither a relative minimum nor maximum.
 
 
-A graph verifies this:
+A graph of `fx` in @fig-plot-fx-sinx-minus-x-over-minus3-pi-3-pi verifies this.
 
-
+::: {#fig-plot-fx-sinx-minus-x-over-minus3-pi-3-pi}
 ```{julia}
 plot(fx, -3pi, 3pi)
 ```
+
+Plot of `fx` ($\sin(x)-x$) over  $[-3\pi, 3\pi]$
+:::
 
 We see that at $0$ and $2\pi$ there are "pauses" as the function decreases. We should also see that this pattern repeats. The critical points found by `solve` are only those within a certain domain. Any value that satisfies $\cos(x) - 1 = 0$ will be a critical point, and there are infinitely many of these of the form $n \cdot 2\pi$ for $n$ an integer.
 
@@ -371,13 +411,22 @@ sign_chart((x -> sin(x)-x)', -3pi, 3pi)
 ##### Example
 
 
-Suppose you know $f'(x) = (x-1)\cdot(x-2)\cdot (x-3) = x^3 - 6x^2 + 11x - 6$ and $g'(x) = (x-1)\cdot(x-2)^2\cdot(x-3)^3 = x^6 -14x^5 +80x^4-238x^3+387x^2-324x+108$.
+Suppose you know the derivatives of two functions $f(x)$ and $g(x)$:
+
+$$
+\begin{align*}
+f'(x) &= (x-1)\cdot(x-2)\cdot (x-3)    \\
+&= x^3 - 6x^2 + 11x - 6                \\
+g'(x) &= (x-1)\cdot(x-2)^2\cdot(x-3)^3 \\
+&= x^6 -14x^5 +80x^4-238x^3+387x^2-324x+108.
+\end{align*}
+$$
 
 
 How would the graphs of $f(x)$ and $g(x)$ differ, as they share identical critical points?
 
 
-The graph of $f(x)$ - a function we do not have a formula for - can have its critical points characterized by the first derivative test. As the derivative changes sign at each, all critical points correspond to relative maxima. The sign pattern is negative/positive/negative/positive so we have from left to right a relative minimum, a relative maximum, and then a relative minimum. This is consistent with a $4$th degree polynomial with $3$ relative extrema.
+The graph of $f(x)$---a function we do not have a formula for---can have its critical points characterized by the first derivative test. As the derivative changes sign at each, all critical points correspond to relative maxima. The sign pattern is negative/positive/negative/positive so we have from left to right a relative minimum, a relative maximum, and then a relative minimum. This is consistent with a $4$th degree polynomial with $3$ relative extrema.
 
 
 For the graph of $g(x)$ we can apply the same analysis. Thinking for a moment, we see as the factor $(x-2)^2$ comes as a power of $2$, the derivative of $g(x)$ will not change sign at $x=2$, so there is no relative extreme value there. However, at $x=3$ the factor has an odd power, so the derivative will change sign at $x=3$. So, as $g'(x)$ is positive for large *negative* values, there will be a relative maximum at $x=1$ and, as $g'(x)$ is positive for large *positive* values, a relative minimum at $x=3$.
@@ -404,12 +453,13 @@ g'  +   0   -   0   -   0   +     g'-sign
 ## Concavity
 
 
-Consider the function $f(x) = x^2$. Over this function we draw some secant lines for a few pairs of $x$ values:
+Consider the function $f(x) = x^2$ plotted in @fig-graph-with-secant-lines-drawn. Over the graph of this function we drew two secant lines for a few pairs of $x$ values:
 
-
+::: {#fig-graph-with-secant-lines-drawn}
 ```{julia}
 #| echo: false
 let
+    gr()
     f(x) = x^2
     seca(f,a,b) = x -> f(a) + (f(b) - f(a)) / (b-a) * (x-a)
     p = plot(f, -2, 3, legend=false, linewidth=5, xlim=(-2,3), ylim=(-2, 9))
@@ -419,49 +469,69 @@ let
     plot!(p,seca(f, 0, 3/2))
     a,b = 0, 3/2; xs = range(a, stop=b, length=50)
     plot!(xs, seca(f, a, b).(xs), linewidth=5)
+    plotly()
     p
 end
 ```
+
+Plot of function $f(x) = x^2$ over $[-2,3]$ with two secant lines drawn. The lines are above the graph of the function between the two points defining them.
+:::
 
 The graph attempts to illustrate that for this function the secant line between any two points $a < b$ will lie above the graph over $[a,b]$.
 
 
 This is a special property not shared by all functions. Let $I$ be an open interval.
 
-::: {.callout-note icon=false}
-## Concave up
+::: {.definition title="Concave up"}
 
-A function $f(x)$ is concave up on $I$ if for any $a < b$ in $I$, the secant line between $a$ and $b$ lies above the graph of $f(x)$ over $[a,b]$.
+A function $f(x)$ is *concave up* on $I$ if for any $a < b$ in $I$, the secant line between $a$ and $b$ lies above the graph of $f(x)$ over $[a,b]$.
 
 A similar definition exists for *concave down* where the secant lines lie below the graph.
 :::
 
-Notationally, concave up says  for any $x$ in $[a,b]$:
+Notationally, concave up says for any $x$ and $[a,b]$ in $I$ that
 
 
 $$
 f(a) + \frac{f(b) - f(a)}{b-a} \cdot (x-a) \geq f(x) \quad\text{ (concave up) }
 $$
 
-Replacing $\geq$ with $\leq$ defines *concave down*, and with either $>$ or $<$ will add the prefix "strictly." These definitions are useful for a general definition of [convex functions](https://en.wikipedia.org/wiki/Convex_function).
+Similarly, for and $t$ in $[0,1]$ and $[a,b]$ in $I$ this must hold:
+
+$$
+t \cdot f(a) + (1-t) \cdot f(b) \geq f(t\cdot a + (1-t)\cdot b).
+$$
+
+
+Replacing $\geq$ above with $\leq$ defines *concave down* over $I$.
+
+Strictly concave up would replace $\geq$ with $>$ for any $x$ in $(a,b)$. These definitions are useful for a general definition of [convex functions](https://en.wikipedia.org/wiki/Convex_function).
 
 
 We won't work with these definitions in this section, rather we will characterize concavity for functions which have either a first or second derivative:
 
+::: {.relationship title="First derivative and concavity"}
 
->   * If $f'(x)$ exists and is *increasing* on $(a,b)$, then $f(x)$ is concave up on $(a,b)$.
->   * If $f'(x)$ is *decreasing* on $(a,b)$, then $f(x)$ is concave *down*.
+* If $f'(x)$ exists and is *increasing* on $(a,b)$, then $f(x)$ is concave up on $(a,b)$.
+
+* If $f'(x)$ is *decreasing* on $(a,b)$, then $f(x)$ is concave *down*.
+
+:::
 
 
 
 A proof of this makes use of the same trick used to establish the mean value theorem from Rolle's theorem. Assume $f'$ is increasing and let $g(x) = f(x) - (f(a) + M \cdot (x-a))$, where $M$ is the slope of the secant line between $a$ and $b$. By construction $g(a) = g(b) = 0$. If $f'(x)$ is increasing, then so is $g'(x) = f'(x) + M$. By its definition above, showing $f$ is concave up is the same as showing $g(x) \leq 0$. Suppose to the contrary that there is a value where $g(x) > 0$ in $[a,b]$. We show this can't be. Assuming $g'(x)$ always exists, after some work, Rolle's theorem will ensure there is a value where $g'(c) = 0$ and $(c,g(c))$ is a relative maximum, and as we know there is at least one positive value, it must be $g(c) > 0$. The first derivative test then ensures that $g'(x)$ will be positive to the left of $c$ and negative to the right of $c$, since $c$ is at a critical point and not an endpoint. But this can't happen as $g'(x)$ is assumed to be increasing on the interval.
 
 
-The relationship between increasing functions and their derivatives – if $f'(x) > 0$ on $I$, then $f$ is increasing on $I$ – gives this second characterization of concavity when the second derivative exists:
+The relationship between increasing functions and their derivatives – if $f'(x) > 0$ on $I$, then $f$ is increasing on $I$---gives this second characterization of concavity when the second derivative exists:
 
+::: {.relationship title="Second derivative and concavity"}
 
->   * If $f''(x)$ exists and is positive on $I$, then $f(x)$ is concave up on $I$.
->   * If $f''(x)$ exists and is negative on $I$, then $f(x)$ is concave down on $I$.
+* If $f''(x)$ exists and is positive on $I$, then $f(x)$ is concave up on $I$.
+
+* If $f''(x)$ exists and is negative on $I$, then $f(x)$ is concave down on $I$.
+
+:::
 
 
 
@@ -471,15 +541,19 @@ This follows,  as we can think of $f''(x)$ as just the first derivative of the f
 ##### Example
 
 
-Let's look at the function $x^2 \cdot e^{-x}$ for positive $x$. A quick graph shows the function is concave up, then down, then up in the region plotted:
+Let's look at the function $g(x) = x^2 \cdot e^{-x}$ for positive $x$. @fig-plot-g-x-squared-times-exp-minus-x-over-0-8 shows a graph of $g(x)$ using `plotif` to highlight when $g''(x)$ is non-negative. The function is concave up, then down, then up in the region plotted.
 
-
+::: {#fig-plot-g-x-squared-times-exp-minus-x-over-0-8}
 ```{julia}
+#| echo: false
 g(x) = x^2 * exp(-x)
 plotif(g, g'', 0, 8)
 ```
 
-From the graph, we would expect that the second derivative - which is continuous - would have two zeros on $[0,8]$:
+Plot of $g(x) = x^2 \cdot e^{-x}$ over $[0,8]$ highlighting when $g''(x) \geq 0$
+:::
+
+From the graph, we would expect that the second derivative---which is continuous---would have two zeros on $[0,8]$:
 
 
 ```{julia}
@@ -496,16 +570,17 @@ sign_chart(g'', 0, 8)
 ### Second derivative test
 
 
-Concave up functions are "opening" up, and often clearly $U$-shaped, though that is not necessary. At a relative minimum, where there is a $U$-shape, the graph will be concave up; conversely at a relative maximum, where the graph has a downward $\cap$-shape, the function will be concave down. This observation becomes:
+Concave up functions are "opening" up, and often clearly $U$-shaped, though that is not necessary. At a relative minimum, where there is a $U$-shape, the graph will be concave up; conversely at a relative maximum, where the graph has a downward ∩-shape, the function will be concave down. This observation becomes:
 
-::: {.callout-note icon=false}
-## The second derivative test
+::: {.definition title="The second derivative test"}
 
 If $c$ is a critical point of $f(x)$ with $f''(c)$ existing in a neighborhood of $c$, then
 
-   * $f$ will have a relative minimum at the critical point $c$ if $f''(c) > 0$,
-   * $f$ will have a relative maximum at the critical point $c$ if $f''(c) < 0$, and
-   * *if* $f''(c) = 0$ the test is *inconclusive*.
+* $f$ will have a relative minimum at the critical point $c$ if $f''(c) > 0$,
+
+* $f$ will have a relative maximum at the critical point $c$ if $f''(c) < 0$, and
+
+* the test is *inconclusive* if $f''(c) = 0$,
 
 :::
 
@@ -536,12 +611,16 @@ We can check the sign of the second derivative for each critical point:
 That $j''(0.6) < 0$ implies that at $0.6$, $j(x)$ will have a relative maximum. As $j''(1) > 0$, the second derivative test says at $x=1$ there will be a relative minimum. That $j''(0) = 0$ says that only that there **may** be a relative maximum or minimum at $x=0$, as the second derivative test does not speak to this situation. (This last check, requiring a function evaluation to be `0`,  is susceptible to floating point errors, so isn't very robust as a general tool.)
 
 
-This should be consistent with this graph, where $-0.25$, and $1.25$ are chosen to capture the zero at $0$ and the two relative extrema:
+This should be consistent with the graph in @fig-plotif-j-j-double-prime-j-is-x-to-the-5-minus-2x-to-the-4-plusx-cubed, where $-0.25$, and $1.25$ are chosen to capture the zero at $0$ and the two relative extrema:
 
-
+::: {#fig-plotif-j-j-double-prime-j-is-x-to-the-5-minus-2x-to-the-4-plusx-cubed}
 ```{julia}
 plotif(j, j'', -0.25, 1.25)
 ```
+
+Plot of $j(x) = x^5 - 2x^4 + x^3$ over $[-1/4, 5/4]$ highlighting when $j''(x) \geq 0$
+:::
+
 
 For the graph we see that $0$ **is not** a relative maximum or minimum. We could have seen this numerically by checking the first derivative test, and noting there is no sign change:
 
@@ -553,21 +632,29 @@ sign_chart(j', -3, 3)
 ##### Example
 
 
-One way to visualize the second derivative test is to *locally* overlay on a critical point a parabola. For example, consider $f(x) = \sin(x) + \sin(2x) + \sin(3x)$ over $[0,2\pi]$. It has $6$ critical points over $[0,2\pi]$. In this graphic, we *locally* layer on $6$ parabolas:
+One way to visualize the second derivative test is to *locally* overlay on a critical point a parabola. For example, consider $f(x) = \sin(x) + \sin(2x) + \sin(3x)$ over $[0,2\pi]$. It has $6$ critical points over $[0,2\pi]$. In @fig-plot-of-sin-x-sin-2x-sin-3x-with-parabola-overlays, we *locally* layer on $6$ parabolas at the critical points:
 
-
+::: {#fig-plot-of-sin-x-sin-2x-sin-3x-with-parabola-overlays}
 ```{julia}
-#| hold: true
-f(x) = sin(x) + sin(2x) + sin(3x)
-p = plot(f, 0, 2pi, legend=false, color=:blue, linewidth=3)
-cps = find_zeros(f', (0, 2pi))
-Δ = 0.5
-for c in cps
-    parabola(x) = f(c) + (f''(c)/2) * (x-c)^2
-    plot!(parabola, c - Δ, c + Δ, color=:red, linewidth=5, alpha=0.6)
+#| echo: false
+let
+    gr()
+    f(x) = sin(x) + sin(2x) + sin(3x)
+    parabola_atc(x, c) = f(c) + (f''(c)/2) * (x-c)^2
+    p = plot(f, 0, 2pi; legend=false, line=(2, :blue))
+    cps = find_zeros(f', (0, 2pi))
+    Δ = 0.5
+    for c in cps
+        plot!(Base.Fix2(parabola_atc,c), c - Δ, c + Δ; line=(:red, 5, 0.6))
+    end
+    plotly()
+    p
 end
-p
 ```
+
+Plot of $f(x) =  \sin(x) + \sin(2x) + \sin(3x)$ over $[0,2\pi]$ with parabola overlays at the critical points of $f(x)$
+:::
+
 
 The graphic shows that for this function near the relative extrema the parabolas *approximate* the function well, so that the relative extrema are characterized by the relative extrema of the parabolas.
 
@@ -582,9 +669,11 @@ $$
 The $2$ is a mystery to be answered in the section on [Taylor series](../taylor_series_polynomials.html), the focus here is on the *sign* of $f''(c)$:
 
 
-  * if $f''(c) > 0$ then the approximating parabola opens upward and the critical point is a point of relative minimum for $f$,
-  * if $f''(c) < 0$ then the approximating parabola opens downward and the critical point is a point of relative maximum for $f$, and
-  * were $f''(c) = 0$ then the approximating parabola is just a line – the tangent line at a critical point – and is non-informative about extrema.
+* if $f''(c) > 0$ then the approximating parabola opens upward and the critical point is a point of relative minimum for $f$,
+
+* if $f''(c) < 0$ then the approximating parabola opens downward and the critical point is a point of relative maximum for $f$, and
+
+* were $f''(c) = 0$ then the approximating parabola is just a line---the tangent line at a critical point---and is non-informative about extrema.
 
 
 That is, the parabola picture is just the second derivative test in this light.
@@ -592,63 +681,78 @@ That is, the parabola picture is just the second derivative test in this light.
 
 ### Inflection points
 
+::: {.definition title="Inflection point"}
 
-An inflection point is a value where the *second* derivative of $f$ changes sign. At an inflection point the derivative will change from increasing to decreasing (or vice versa) and the function will change from concave up to down (or vice versa).
+A function $f(x)$ has an inflection point at $x=c$ if $(c, f(c))$is a point on the graph of $f(x)$ where the concavity changes.
+
+:::
+
+For a function with a second derivative, an inflection point is a value where the *second* derivative of $f$ changes sign. When the second derivative is continuous, these points will occur when the second derivative is $0$ *and* changes sign.
 
 
-We can use the `find_zeros` function to identify potential inflection points by passing in the second derivative function. For example, consider the bell-shaped function
+We can use the `sign_chart` function to identify potential inflection points by passing in the second derivative function. For example, consider the bell-shaped function:
 
 
 $$
 k(x) = e^{-x^2/2}.
 $$
 
-A graph suggests relative a maximum at $x=0$, a horizontal asymptote of $y=0$, and two inflection points:
+A graph of $k(x)$ (@fig-plot-of-exp-minus-x-squared-over-2-over-minus3-3) suggests relative a maximum at $x=0$, a horizontal asymptote of $y=0$, and two inflection points.
 
-
+::: {#fig-plot-of-exp-minus-x-squared-over-2-over-minus3-3}
 ```{julia}
 k(x) = exp(-x^2/2)
 plotif(k, k'', -3, 3)
 ```
 
+Plot of $f(x) = e^{-x^2/2}$ over $[-3,3]$
+:::
+
 The inflection points can be found directly, if desired, or numerically with:
 
 
 ```{julia}
-find_zeros(k'', -3, 3)
+sign_chart(k'', -3, 3)
 ```
 
-(The `find_zeros` function may return points which are not inflection points. It primarily returns points where $k''(x)$ changes sign, but *may* also find points where $k''(x)$ is $0$ yet does not change sign at $x$.)
+
+The `sign_chart` function searches for zeros, infinities, and places where the function changes sign. To check for inflection points, a sign change needs to occur, as it does for both values here.
 
 
 ##### Example
 
 
-A car travels from a stop for 1 mile in 2 minutes. A graph of its position as a function of time might look like any of these graphs:
+A car travels from a stop for 1 mile in 2 minutes. A graph of its position as a function of time might look like any of the graphs in @fig-three-plots-different-velocities.
 
-
+::: {#fig-three-plots-different-velocities}
 ```{julia}
 #| echo: false
 let
+    gr()
     v(t) = 30/60*t
     w(t) = t < 1/2 ? 0.0 : (t > 3/2 ? 1.0 : (t-1/2))
     y(t) = 1 / (1 + exp(-t))
     y1(t) = y(2(t-1))
     y2(t) = y1(t) - y1(0)
     y3(t) = 1/y2(2) * y2(t)
-    plot(v, 0, 2, label="f1")
-    plot!(w, label="f2")
-    plot!(y3, label="f3")
+    plt = plot(v, 0, 2; label="f1", xlabel="time", ylabel="position")
+    plot!(plt, w, label="f2")
+    plot!(plt, y3, label="f3")
+    plotly()
+    plt
 end
 ```
 
-All three graphs have the same *average* velocity which is just the $1/2$ miles per minute ($30$ miles an hour). But the instantaneous velocity - which is given by the derivative of the position function) varies.
+Plot of three graphs with same average velocity, but different velocities
+:::
+
+All three graphs have the same *average* velocity which is just the $1/2$ miles per minute ($30$ miles an hour). But the instantaneous velocity---which is given by the derivative of the position function) varies.
 
 
 The graph `f1` has constant velocity, so the position is a straight line with slope $v_0$. The graph `f2` is similar, though for first and last 30 seconds, the car does not move, so must move faster during the time it moves. A more realistic graph would be `f3`. The position increases continuously, as do the others, but the velocity changes more gradually. The initial velocity is less than $v_0$, but eventually gets to be more than $v_0$, then velocity starts to increase less. At no point is the velocity not increasing, for `f3`, the way it is for `f2` after a minute and a half.
 
 
-The rate of change of the velocity is the acceleration. For `f1` this is zero, for `f2` it is zero as well - when it is defined. However, for `f3` we see the increase in velocity is positive in the first minute, but negative in the second minute. This fact relates to the concavity of the graph. As acceleration is the derivative of velocity, it is the second derivative of position - the graph we see. Where the acceleration is *positive*, the position graph will be concave *up*, where the acceleration is *negative* the graph will be concave *down*. The point $t=1$ is an inflection point, and would be felt by most riders.
+The rate of change of the velocity is the acceleration. For `f1` this is zero, for `f2` it is zero as well---when it is defined. However, for `f3` we see the increase in velocity is positive in the first minute, but negative in the second minute. This fact relates to the concavity of the graph. As acceleration is the derivative of velocity, it is the second derivative of position - the graph we see. Where the acceleration is *positive*, the position graph will be concave *up*, where the acceleration is *negative* the graph will be concave *down*. The point $t=1$ is an inflection point, and would be felt by most riders.
 
 
 ## Questions
@@ -659,12 +763,16 @@ The rate of change of the velocity is the acceleration. For `f1` this is zero, f
 
 Consider this graph:
 
-
+::: {#fig-plot-airyai-over-minus-5-0-ask-questions}
 ```{julia}
-plot(airyai, -5, 0)  # airyai in `SpecialFunctions` loaded with `CalculusWithJulia`
+#| echo: false
+plot(airyai, -5, 0;  legend=false)  # airyai in `SpecialFunctions` loaded with `CalculusWithJulia`
 ```
 
-On what intervals (roughly) is the function positive?
+Plot of $f(x)$ over $[-5, 0]$
+:::
+
+On what intervals (roughly) is $f(x)$ positive?
 
 
 ```{julia}
@@ -675,8 +783,8 @@ choices=[
 "``(-5, -4.2)``",
 "``(-5, -4.2)`` and ``(-2.5, 0)``",
 "``(-4.2, -2.5)``"]
-answ = 3
-radioq(choices, answ)
+answer = 3
+radioq(choices, answer)
 ```
 
 ###### Question
@@ -692,17 +800,18 @@ numericq(0; hint=raw"Any value of $x$ will produce the same answer")
 ###### Question
 
 
-Consider this graph:
-
-
+::: {#fig-besselj-1-over-minus5-minus3}
 ```{julia}
 #| hold: true
 #| echo: false
 import SpecialFunctions: besselj
-p = plot(x->besselj(x, 1), -5,-3)
+p = plot(x->besselj(x, 1), -5,-3; legend=false)
 ```
 
-On what intervals (roughly) is the function negative?
+Plot of $f(x)$ over $[-5,3]$
+:::
+
+Consider the graph in @fig-besselj-1-over-minus5-minus3. On what intervals (roughly) is the function negative?
 
 
 ```{julia}
@@ -713,22 +822,24 @@ choices=[
 "``(-25.0, 0.0)``",
 "``(-5.0, -4.0)`` and ``(-4, -3)``",
 "``(-4.0, -3.0)``"]
-answ = 4
-radioq(choices, answ)
+answer = 4
+radioq(choices, answer)
 ```
 
 ###### Question
 
 
-Consider this graph
+Consider the graph in @fig-besselj-1-over-minus5-minus3-increasing.
 
-
+::: {#fig-besselj-1-over-minus5-minus3-increasing}
 ```{julia}
 #| hold: true
 #| echo: false
 plot(x->besselj(x, 21), -5,-3)
 ```
 
+Plot of $f(x)$ over $[-5, 3]$
+:::
 On what interval(s) is this function increasing?
 
 
@@ -741,12 +852,55 @@ choices=[
 "``(-4.7, -3.0)``",
 "``(-0.17, 0.17)``"
 ]
-answ = 3
-radioq(choices, answ)
+answer = 3
+radioq(choices, answer)
 ```
+
 ###### Question
 
-The function
+Consider the following sign chart of a continuous function $f(x)$ over $[0, 2]$
+
+```{julia}
+#| echo: false
+f(x) = 1 + sin(2x) + 4*sin(6x)
+```
+
+```{julia}
+sign_chart(f, 0, 2)
+```
+
+Is $f(x)$ on the interval $[0, 0.607\cdots]$?
+
+```{julia}
+#| echo: false
+choices = ["Yes", "No"]
+answer = 1
+buttonq(choices, answer)
+```
+
+If $f(x)$ positive at $x=1$?
+
+
+```{julia}
+#| echo: false
+choices = ["Yes", "No"]
+answer = 1
+buttonq(choices, answer)
+```
+
+Do you know $f(x)$ is zero at $0.962916\cdots$?
+
+```{julia}
+#| echo: false
+choices = [L"Yes, but only because $f(x)$ is continuous on $[0,2]$ so any sign change must be a zero",
+           "No, the `find_zero` function may find zeros, infinities, or other places where the sign changes"]
+answer = 1
+buttonq(choices, answer)
+```
+
+###### Question
+
+@fig-x-over-2-plus-x-square-sin-pi-over-x shows the function
 
 $$
 f(x) =
@@ -756,9 +910,9 @@ f(x) =
 \end{cases}
 $$
 
-is graphed below over $[-1/3, 1/3]$.
+graphed over $[-1/3, 1/3]$.
 
-
+::: {#fig-x-over-2-plus-x-square-sin-pi-over-x}
 ```{julia}
 #| echo: false
 plt = let
@@ -776,32 +930,31 @@ plt = let
 	xs = range(a, b, 10_000)
 	ys = f.(xs)
 	y0,y1 = extrema(ys)
-	plot(; empty_style..., aspect_ratio=:equal)
-	plot!([a,b],[0,0]; axis_style...)
-	plot!([0,0], [y0,y1]; axis_style...)
-	plot!(xs, f.(xs); line=(:black, 1))
+	plt = plot(; empty_style..., aspect_ratio=:equal)
+	plot!(plt, [a,b],[0,0]; axis_style...)
+	plot!(plt, [0,0], [y0,y1]; axis_style...)
+	plot!(plt, xs, f.(xs); line=(:black, 1))
 
-	plot!(xs, x -> x/2 + x^2; line=(:gray, 1, :dot))
-	plot!(xs, x -> x/2 - x^2; line=(:gray, 1, :dot))
-	plot!(xs, x -> x/2; line=(:gray, 1))
+	plot!(plt, xs, x -> x/2 + x^2; line=(:gray, 1, :dot))
+	plot!(plt, xs, x -> x/2 - x^2; line=(:gray, 1, :dot))
+	plot!(plt, xs, x -> x/2; line=(:gray, 1))
 
 	a1 = (1/4 + 1/5)/2
 	a2 = -(1*1/3 + 4*1/4)/5
-	annotate!([
+	annotate!(plt, [
 	(a1, g(a1), text(L"\frac{x}{2} - x^2", 10, :top)),
 	(a1, f(a1), text(L"\frac{x}{2} + x^2", 10, :bottom)),
 		(-1/6, f(1/6), text(L"\frac{x}{2} + x^2\sin(\frac{\pi}{x})", 10, :bottom))
 	])
-	plot!([-1/6, -1/13.5], [f(1/6), f(-1/13.5)]; axis_style...)
+	plot!(plt, [-1/6, -1/13.5], [f(1/6), f(-1/13.5)]; axis_style...)
+    plotly()
+    plt
 end
 plt
 ```
 
-```{julia}
-#| echo: false
-plotly()
-nothing
-```
+Plot of highly oscillating function near $0$
+:::
 
 This function has a derivative at $0$ that is *positive*
 
@@ -823,25 +976,30 @@ diff(f(x), x)
 ```{julia}
 #| echo: false
 choices = ["Yes", "No"]
-answer = 1
-buttonq(choices, answer; explanation=raw"""
-The slope of the tangent line away from $0$ oscillates from positive to negative at every rational number of the form $1/n$ due to the $\cos(\pi/x)$ term, so it is neither going just up or down around $0$. (This example comes from @Angenent.)
-""")
+answer = 2
+explanation=raw"""
+The slope of the tangent line away from $0$ oscillates from positive to negative at every rational number of the form $1/n$ due to the $\cos(\pi/x)$ term, so it is neither going just up or down around $0$. (This example comes from @Angenent.
+"""
+buttonq(choices, answer; explanation)
 ```
 
 ###### Question
 
 
-Consider this graph
+Consider the graph in @fig-plot-1-over-1-plus-x-square-over-minus3-3-question-concave-up.
 
 
+::: {#fig-plot-1-over-1-plus-x-square-over-minus3-3-question-concave-up}
 ```{julia}
 #| hold: true
 #| echo: false
 p = plot(x -> 1 / (1+x^2), -3, 3)
 ```
 
-On what interval(s) is this function concave up?
+Graph of $f(x)$ over $[-3,3]$
+:::
+
+On what interval(s) is the function concave up?
 
 
 ```{julia}
@@ -853,41 +1011,67 @@ choices=[
 "``(-0.6, 0.6)``",
 " ``(-3.0, -0.6)`` and ``(0.6, 3.0)``"
 ]
-answ = 4
-radioq(choices, answ)
+answer = 4
+radioq(choices, answer)
 ```
 
 ###### Question
 
-Consider the following figure of a graph of $f$:
+Consider the `sign_chart` of $f''(x)$ over $[0, 4]$:
 
+```{julia}
+#| echo: false
+f(x) = x^6/30 - 9*x^5/20 + 29*x^4/12 - 13*x^3/2 + 9*x^2
+```
+
+```{julia}
+sign_chart(f'', 0, 4)
+```
+
+On what intervals is $f(x)$ *concave up*. Select all that are true?
+
+```{julia}
+#| echo: false
+choices = [L"(0,1)",
+           L"(1, 2)",
+           L"(2, 3)",
+           L"(3,4)"]
+answer = [1, 3, 4]
+multiq(choices, answer; keep_order=true)
+```
+
+
+###### Question
+
+Consider  @fig-x-tanh-exp-x-over-minus5-1 of a graph of $f$ where zeros of the function and its first and second derivative have been marked.
+
+::: {#fig-x-tanh-exp-x-over-minus5-1}
 ```{julia}
 #| echo: false
 let
     gr()
     ex(x) = x * tanh(exp(x))
     a, b = -5, 1
-    plot(ex, a, b, legend=false,
+    plt = plot(ex, a, b, legend=false,
          axis=([], false),
 	     line=(:black, 2)
          )
-    plot!([a-.1, b+.1], [0,0], line=(:gray,1), arrow=true, side=:head)
+    plot!(plt, [a-.1, b+.1], [0,0], line=(:gray,1), arrow=true, side=:head)
 
     zs  = find_zeros(ex, (a, b))
     cps = find_zeros(ex', (a, b))
     ips = find_zeros(ex'', (a, b))
 
-    scatter!(zs,  ex.(zs),  fill=(:black,), marker=(8, :circle))
-    scatter!(cps, ex.(cps), fill=(:green,), marker=(8, :diamond))
-    scatter!(ips, ex.(ips), fill=(:brown3,), marker=(8,:star5))
+    scatter!(plt, zs,  ex.(zs),  fill=(:black,), marker=(8, :circle))
+    scatter!(plt, cps, ex.(cps), fill=(:green,), marker=(8, :diamond))
+    scatter!(plt, ips, ex.(ips), fill=(:brown3,), marker=(8,:star5))
+    plotly()
+    plt
 end
 ```
 
-```{julia}
-#| echo: false
-plotly()
-nothing
-```
+Plot of $f(x)$ with various points on the curve marked with symbols
+:::
 
 The black circle denotes what?
 
@@ -897,8 +1081,8 @@ The black circle denotes what?
 choices = [raw"A zero of $f$",
            raw"A critical point of $f$",
            raw"An inflection point of $f$"]
-answ = 1
-radioq(choices, answ)
+answer = 1
+radioq(choices, answer)
 ```
 
 The green diamond denotes what?
@@ -909,8 +1093,8 @@ The green diamond denotes what?
 choices = [raw"A zero of $f$",
            raw"A critical point of $f$",
            raw"An inflection point of $f$"]
-answ = 2
-radioq(choices, answ)
+answer = 2
+radioq(choices, answer)
 ```
 
 
@@ -922,8 +1106,8 @@ The red stars denotes what?
 choices = [raw"Zeros of $f$",
            raw"Critical points of $f$",
            raw"Inflection points of $f$"]
-answ = 3
-radioq(choices, answ)
+answer = 3
+radioq(choices, answer)
 ```
 
 
@@ -950,8 +1134,8 @@ choices = [
     "That the critical point at ``0`` is a relative maximum",
     "That the critical point at ``0`` is a relative minimum"
 ]
-answ = 2
-radioq(choices, answ, keep_order=true)
+answer = 2
+radioq(choices, answer, keep_order=true)
 ```
 
 ###### Question
@@ -969,8 +1153,8 @@ choices = [
 " ``f(x)`` is continuous and differentiable at ``2`` and has a critical point",
 " ``f(x)`` is continuous and differentiable at ``2`` and has a critical point that is a relative minimum by the second derivative test"
 ]
-answ = 3
-radioq(choices, answ, keep_order=true)
+answer = 3
+radioq(choices, answer, keep_order=true)
 ```
 
 ###### Question
@@ -1035,8 +1219,8 @@ choices = [
 "No, the second derivative test is possibly inconclusive",
 "Yes"
 ]
-answ = 1
-radioq(choices, answ)
+answer = 1
+radioq(choices, answer)
 ```
 
 ###### Question
@@ -1053,82 +1237,111 @@ choices = [
 "No, the second derivative test is possibly inconclusive if ``c=0``, but otherwise yes",
 "Yes"
 ]
-answ = 2
-radioq(choices, answ)
+answer = 2
+radioq(choices, answer)
 ```
 
 ###### Question
 
-
+::: {#fig-graph-exp-minus-x-times-sin-pi-x-over-0-3}
 ```{julia}
 #| echo: false
 let
     f(x) = exp(-x) * sin(pi*x)
-    plot(D(f), 0, 3)
+    p1 = plot(f, 0, 3; label="f")
+    p2 = plot(f', 0, 3; label="g")
+    plot(p1, p2)
 end
 ```
 
-The graph shows $f'(x)$. Is it possible that $f(x) = e^{-x} \sin(\pi x)$?
+Plots of $f(x)$ and $g(x)$ over $[0,3]$
+:::
+
+@fig-graph-exp-minus-x-times-sin-pi-x-over-0-3 shows a graph of $f(x)$ and $g(x)$. Is it possible that $f'(x) = g'(x)$?
 
 
 ```{julia}
 #| hold: true
 #| echo: false
-yesnoq(true)
+choices = ["Yes", "No"]
+answer = 1
+explanation = L"Compare features like critical points, increasing decreasing of $f(x)$ to $g(x)$"
+buttonq(choices, answer; explanation)
 ```
 
-(Plot $f(x)$ and compare features like critical points, increasing decreasing to that indicated by $f'$ through the graph.)
+
 
 
 ###### Question
 
-
+::: {#fig-plot-second-derivative-of-x-4-minus-3-x-3-minus-2-x-plus-4}
 ```{julia}
 #| hold: true
 #| echo: false
 f(x) = x^4 - 3x^3 - 2x + 4
-plot(D(f,2), -2, 4)
+p1 = plot(f, -2, 4; label="f")
+p2 = plot(f'', -2, 4; label="g")
+plot(p1, p2)
 ```
 
-The graph shows $f'(x)$. Is it possible that $f(x) = x^4 - 3x^3 - 2x + 4$?
+Plots of $f(x)$ and $g(x)$ over $[-2, 4]$
+:::
+
+@fig-plot-second-derivative-of-x-4-minus-3-x-3-minus-2-x-plus-4 shows the graph of $f(x)$ and $g(x)$. Is it possible that $f''(x) = g(x)$?
 
 
 ```{julia}
 #| hold: true
 #| echo: false
-yesnoq("no")
+choices = ["Yes", "No"]
+answer = 1
+explanation = L"Compare features like critical points, increasing decreasing of $f(x)$ with $g(x)$."
+buttonq(choices, answer; explanation)
+```
+
+###### Question
+
+::: {#fig-plot-f-1-plus-x-to-minus-2}
+```{julia}
+#| echo: false
+let
+    f(x) = (1+x)^(-2)
+    p1 = plot(f, 0, 2; label="f")
+    p2 = plot(f'', 0, 2; label="g")
+    plot(p1, p2)
+end
+```
+
+Plots of $f(x)$ and $g(x)$ over $[0, 2]$
+:::
+
+Is it possible that $f''(x) = g(x)$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = ["Yes", "No"]
+answer = 1
+explanation = L"Compare features like critical points, increasing decreasing of $f(x)$ with $g(x)$."
+buttonq(choices, answer; explanation)
 ```
 
 ###### Question
 
 
-```{julia}
-#| hold: true
-#| echo: false
-f(x) = (1+x)^(-2)
-plot(D(f,2), 0,2)
-```
-
-The graph shows $f''(x)$. Is it possible that $f(x) = (1+x)^{-2}$?
-
-
-```{julia}
-#| hold: true
-#| echo: false
-yesnoq("yes")
-```
-
-###### Question
-
-
+::: {#fig-plot-f-p-x-minus-1-times-x-minus-2-squared-times-x-minus-3-squared}
 ```{julia}
 #| hold: true
 #| echo: false
 f_p(x) = (x-1)*(x-2)^2*(x-3)^2
-plot(f_p, 0.75, 3.5)
+plot(rangeclamp(f_p, 1), 0.75, 3.5; label="f'")
 ```
 
-This plot shows the graph of $f'(x)$. What is true about the critical points and their characterization?
+Plot of $f'(x)$ over $[0.75, 3.5]$
+:::
+
+@fig-plot-f-p-x-minus-1-times-x-minus-2-squared-times-x-minus-3-squared shows the graph of $f'(x)$. What is true about the critical points of $f(x)$ and their characterization?
 
 
 ```{julia}
@@ -1140,8 +1353,8 @@ choices = [
 "The critical points are at ``x=1`` (a relative minimum), ``x=2`` (not a relative extrema), and ``x=3`` (a relative minimum).",
 "The critical points are at ``x=1`` (a relative minimum), ``x=2`` (a relative minimum), and ``x=3`` (a relative minimum).",
 ]
-answ=1
-radioq(choices, answ)
+answer=1
+radioq(choices, answer)
 ```
 
 ###### Question
@@ -1158,8 +1371,8 @@ choices = [
 "The function is decreasing over ``(-\\infty, 1)`` and increasing over ``(1, \\infty)``",
 "The function is negative over ``(-\\infty, 1)`` and positive over ``(1, \\infty)``",
 ]
-answ = 1
-radioq(choices, answ)
+answer = 1
+radioq(choices, answer)
 ```
 
 ###### Question
@@ -1174,8 +1387,8 @@ While driving we accelerate to get through a light before it turns red. However,
 choices = ["A zero of the function",
 "A critical point for the function",
 "An inflection point for the function"]
-answ = 3
-radioq(choices, answ, keep_order=true)
+answer = 3
+radioq(choices, answer, keep_order=true)
 ```
 
 ###### Question
@@ -1194,8 +1407,8 @@ This accurately summarizes how the term is used outside of math books. Does it a
 #| echo: false
 choices = ["Yes. Same words, same meaning",
            """No, but it is close. An inflection point is when the *acceleration* changes from positive to negative, so if "results" are about how a company's rate of change is changing, then it is in the ballpark."""]
-answ = 2
-radioq(choices, answ)
+answer = 2
+radioq(choices, answer)
 ```
 
 ###### Question
@@ -1209,6 +1422,72 @@ The function $f(x) = x^3 + x^4$ has a critical point at $0$ and a second derivat
 #| echo: false
 choices = ["As ``x^3`` has no extrema at ``x=0``, neither will ``f``",
            "As ``x^4`` is of higher degree than ``x^3``, ``f`` will be ``U``-shaped, as ``x^4`` is."]
-answ = 1
-radioq(choices, answ)
+answer = 1
+radioq(choices, answer)
+```
+
+##### Question
+
+Is this a valid alternate definition of concave up on $[a,b]$:
+
+If for any $\alpha$ in $[0,1]$:
+
+$$
+f((1-\alpha)a + \alpha b) \geq (1 - \alpha) f(a)  + \alpha f(b).
+$$
+
+```{julia}
+#| echo: false
+choices = ["Yes", "No"]
+answer = 1
+explanation = L"Yes, this is an alternate form where the slope, where the right hand side interpolates linearly between $f(a)$ and $f(b)$, like the secant line"
+buttonq(choices, answer; explanation)
+```
+
+
+##### Question
+
+For a function with many derivatives, we can define the *order* of a zero of $f(c)$ as follows:
+
+::: {.definition title="Order of a zero of a many times differentiable function"}
+
+If $f(c) = 0$ and $f^{(j)}(c) = 0$ for all $1 \leq j < k$, but $f^{(k)}(c) \neq 0$ the $k$ is order of the zero, $c$.
+
+:::
+
+A *simple* zero is one where $k=1$, or the first derivative is non-zero (and continuous around $c$, but assumption of many times differentiable).
+
+
+Does this statement make sense:
+
+> Close enough to a simple zero, the derivative either positive or negative, but not zero, so that the function increases or decreases through the zero $c$
+
+```{julia}
+#| echo: false
+choices = ["Yes", "No"]
+answer = 1
+buttonq(choices, answer)
+```
+
+Suppose $f(x) = a_0 + a_1 (x - c) + a_2 (x - c)^2 + a_3 (x-c)^3$
+
+If $f(c) = 0$, then what is the value of $a_0$?
+
+```{julia}
+#| echo: false
+numericq(0)
+```
+
+If $f'(c) = 0$ what is the value of $a_1$?
+
+```{julia}
+#| echo: false
+numericq(0)
+```
+
+Under these assumptions, can $f(x)$ be arranged as $f(x) = (x-c)^2 \cdot (a2 + a_3(x-c))$?
+
+```{julia}
+#| echo: false
+yesnoq(true)
 ```

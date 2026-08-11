@@ -9,7 +9,7 @@ This section uses these add-on packages:
 ```{julia}
 using CalculusWithJulia
 using Plots
-plotly()
+#plotly()
 using SymPy
 using Roots
 ```
@@ -32,7 +32,6 @@ Consider the case $f:R^2 \rightarrow R$. We visualize $z=f(x,y)$ through a surfa
 
 
 For the univariate case, the tangent line has many different uses. Here we see the tangent plane also does.
-
 
 ### Equation of the tangent plane
 
@@ -119,6 +118,7 @@ arrow!(pt, [1,0,0], linestyle=:dash)
 arrow!(pt, [0,1,0], linestyle=:dash)
 ```
 
+
 #### Alternate forms
 
 
@@ -169,7 +169,6 @@ For clarity:
 
   * The scalar function $z = f(x,y)$ describes a surface, $(x,y,f(x,y))$; the gradient, $\nabla{f}$, is $2$ dimensional and points in the direction of greatest ascent for the surface.
   * The scalar function $f(x,y,z)$ *also* describes a surface, through level curves $f(x,y,z) = c$, for some *constant* $c$. The gradient $\nabla{f}$ is $3$ dimensional and *orthogonal* to the surface.
-
 
 ##### Example
 
@@ -231,6 +230,7 @@ t = 1/2
 (n1(gamma(t)) × n2(gamma(t))) × gamma'(t)
 ```
 
+
 #### Plotting level curves of $F(x,y,z) = c$
 
 
@@ -250,7 +250,6 @@ f(x,y,z) = (x^2 + ((1+b) * y)^2 + z^2 - 1)^3 - x^2 * z^3 - a * y^2 * z^3
 
 CalculusWithJulia.plot_implicit_surface(f, xlim=-2..2, ylim=-1..1, zlim=-1..2)
 ```
-
 ## Linearization
 
 
@@ -329,7 +328,7 @@ Here, $\nabla{f}$ describes a *normal* to the tangent plane. The description of 
 f(x,y,z) = x^4 -x^3 + y^2 + z^2
 f(v) = f(v...)
 a, b,c = ∇(f)(2,2,2)
-"$a x + $b y  + $c z = $([a,b,c] ⋅ [2,2,2])"
+println("$a x + $b y  + $c z = $([a,b,c] ⋅ [2,2,2])");
 ```
 
 ### Newton's method to solve $f(x,y) = 0$ and $g(x,y)=0$.
@@ -504,6 +503,9 @@ function nm(f, g, x, n=5)
 end
 ```
 
+
+
+
 ##### Example
 
 
@@ -653,6 +655,7 @@ plot(F, 0.01, 5)  # p > 0
 ```
 
 This problem does not have a readily expressed value for $x^*$, but when $p \approx 0$ we should get similar behavior to the intersection of $y=px$ and $y=\pi/2 - x$ for $x^*$, or $x^* \approx \pi/(2(1+p))$ which has derivative of $-\pi/2$ at $p=0$, matching the above graph. For *large* $p$, the problem looks like the intersection of the line $y=1$ with $y=px$ or $x^* \approx 1/p$ which has derivative that goes to $0$ as $p$ goes to infinity, again matching this graph.
+
 
 
 ## Optimization
@@ -807,7 +810,6 @@ det(H_a)
 
 (The test is inconclusive, as it needs the function to "fall away" from the tangent plane in all directions, in this case, along a circular curve, the function touches the tangent plane, so it doesn't fall away.)
 
-
 ##### Example
 
 
@@ -853,6 +855,7 @@ end
 p
 ```
 
+
 ##### Example
 
 
@@ -875,9 +878,8 @@ At $\vec{a}$ this has positive determinant and $f_{xx} > 0$, so $\vec{a}$ corres
 
 ```{julia}
 fₗ(x,y) = x^2 + 2y^2 - x
-fₗ(v) = fₗ(v...)
 gammaₗ(t) = [cos(t), sin(t)]  # traces out x^2 + y^2 = 1 over [0, 2pi]
-gₗ = fₗ ∘ gammaₗ
+gₗ = splat(fₗ) ∘ gammaₗ
 
 cpsₗ = find_zeros(gₗ', 0, 2pi) # critical points of g
 append!(cpsₗ, [0, 2pi])
@@ -907,6 +909,12 @@ So we have the maximum occurs at the angles $2\pi/3$ and $4\pi/3$. Here we visua
 hₗ(x,y) = fₗ(x,y) * (x^2 + y^2 <= 1 ? 1 : NaN)
 ```
 
+
+```{julia}
+#| echo: false
+gr(); # scatter3d! and plotly() are failing!!
+```
+
 ```{julia}
 #| hold: true
 xs = ys = range(-1,1, length=100)
@@ -916,6 +924,11 @@ ts = cpsₗ  # 2pi/3 and 4pi/3 by above
 xs, ys = cos.(ts), sin.(ts)
 zs = fₗ.(xs, ys)
 scatter3d!(xs, ys, zs)
+```
+
+```{julia}
+#| echo: false
+#plotly();
 ```
 
 A contour plot also shows that some---and only one---extrema happens on the interior:
@@ -928,6 +941,7 @@ contour(xs, ys, hₗ)
 ```
 
 The extrema are identified by the enclosing regions, in this case the one around the point $(1/2, 0)$.
+
 
 
 ##### Example: Steiner's problem
@@ -1189,6 +1203,10 @@ end
 
 We now visualize, using the `Contour` package to draw the contour lines in the $x-y$ plane:
 
+```{julia}
+#| echo: false
+gr()
+```
 
 ```{julia}
 #| hold: true
@@ -1215,6 +1233,11 @@ surface_contour(us, vs, f₂, offset=offset)
 pts = [[pt..., offset] for pt in xs₂]
 scatter3d!(unzip(pts)...)
 plot!(unzip(pts)..., linewidth=3)
+```
+
+```{julia}
+#| echo: false
+#plotly()
 ```
 
 ### Newton's method for minimization
@@ -1544,7 +1567,7 @@ $$
 \int \sqrt{1 + y'(x)^2} dx = L.
 $$
 
-The latter being the formula for arc length. This is very much like a optimization problem that Lagrange's method could help solve, but with one big difference: the answer is *not* a point but a *function*.
+The latter being the formula for arc length. This is very much like an optimization problem that Lagrange's method could help solve, but with one big difference: the answer is *not* a point but a *function*.
 
 
 This is a variant of  [Dido](http://www.ams.org/publications/journals/notices/201709/rnoti-p980.pdf)'s problem, described by Bandle as
@@ -2324,7 +2347,6 @@ Which vector is orthogonal to the contour line $x^2 + y^2 = 3$?
 
 
 ```{julia}
-#| hold: true
 #| echo: false
 choices = [
     raw"`` \langle 2x, 2y\rangle``",
@@ -2339,7 +2361,6 @@ Due to the form of the gradient of the constraint, finding when $\nabla{f} = \la
 
 
 ```{julia}
-#| hold: true
 f(x,y) = exp(-x^2-y^2) * (2x^2 + y^2)
 f(v) = f(v...)
 r(t) = sqrt(3)*[cos(t), sin(t)]
@@ -2352,15 +2373,14 @@ Using these points, what is the largest value on the boundary?
 
 
 ```{julia}
-#| hold: true
+#| eval: false
 #| echo: false
 f(x,y) = exp(-x^2-y^2) * (2x^2 + y^2)
-f(v) = f(v...)
 r(t) = sqrt(3)*[cos(t), sin(t)]
 rat(x) = abs(x[1]/x[2]) - 1
-fn = rat ∘ ∇(f) ∘ r
+fn = rat ∘ ∇(splat(f)) ∘ r
 ts = fzeros(fn, 0, 2pi)
 
-val = maximum((f∘r).(ts))
+val = maximum((splat(u)∘r).(ts))
 numericq(val)
 ```

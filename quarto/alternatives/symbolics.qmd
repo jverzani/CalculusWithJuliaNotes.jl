@@ -1,8 +1,6 @@
 # Symbolics.jl
 
 
-
-
 There are a few options in `Julia` for symbolic math, for example, the `SymPy` package which wraps a Python library. This section describes a collection of native `Julia` packages providing many features of symbolic math.
 
 
@@ -238,27 +236,6 @@ w = x^3 + y^3 - 2z^3
 substitute(w, Dict(x=>2, y=>3))
 ```
 
-The `fold` argument can be passed `false` to inhibit evaluation of values. Compare:
-
-
-```{julia}
-ex = 1 + sqrt(x)
-substitute(ex, x=>2), substitute(ex, x=>2, fold=false)
-```
-
-Or
-
-
-```{julia}
-ex = sin(x)
-substitute(ex, x=>π), substitute(ex, x=>π, fold=false)
-```
-
-For the latter, it is more efficient to directly use `Term`, which creates the symbolic expression representing the calling of `sin(π)`:
-
-```{julia}
-Symbolics.Term(sin, [π])
-```
 
 
 ### Simplify
@@ -275,7 +252,7 @@ For example, `0+x` should simplify to `x`, as well `1*x`, `x^0`, or `x^1` should
 
   * `-x` becomes `(-1)*x`
   * `x * x` becomes `x^2` (and `x^n` if more terms). Meaning this expression is represented as a power, not a product
-  * `x + x` becomes `2*x` (and `n*x` if more terms). Similarly, this represented as a product, not a sum.
+  * `x + x` becomes `2*x` (and `n*x` if more terms). Similarly, this is represented as a product, not a sum.
   * `p/q * x` becomes `(p*x)/q)`, similarly `p/q * x/y` becomes `(p*x)/(q*y)`. (Division wraps multiplication.)
 
 
@@ -405,7 +382,7 @@ ex = x^5 - x - 1
 Roots.find_zero(λ, (1, 2))
 ```
 
-### Plotting
+## Plotting
 
 
 Using `Plots`, the plotting of symbolic expressions is similar to the plotting of a function, as there is a plot recipe that converts the expression into a function via `build_function`.
@@ -444,7 +421,7 @@ The ordering of the variables is determined by `Symbolics.get_variables`:
 Symbolics.get_variables(ex)
 ```
 
-### Polynomial manipulations
+## Polynomial manipulations
 
 
 There are some facilities for manipulating polynomial expressions in `Symbolics`. A polynomial, mathematically, is an expression involving one or more symbols with coefficients from a collection that has, at a minimum, addition and multiplication defined. The basic building blocks of polynomials are *monomials*, which are comprised of products of powers of the symbols. Mathematically, monomials are often allowed to have a multiplying coefficient and may be just a coefficient (if each symbol is taken to the power $0$), but here we consider just expressions of the type $x_1^{a_1} \cdot x_2^{a_2} \cdots \cdot x_k^{a_k}$ with the $a_i > 0$ as monomials.
@@ -579,7 +556,7 @@ m,n = degree.(nd(ex))
 m > n ? "limit is infinite" : m < n ? "limit is 0" : "limit is a constant"
 ```
 
-### Vectors and matrices
+## Vectors and matrices
 
 
 Symbolic vectors and matrices can be created with a specified size:
@@ -635,7 +612,7 @@ R \ b
 collect(R \ b)
 ```
 
-### Algebraically solving equations
+## Algebraically solving equations
 
 
 The `~` operator creates a symbolic equation. For example
@@ -679,7 +656,7 @@ eqs = R*X .~ b
 Symbolics.symbolic_linear_solve(eqs, [x,y])
 ```
 
-### Limits
+## Limits
 
 Many symbolic limits involving exponentials and logarithms can be
 computed in Symbolics, as of recent versions. The underlying package
@@ -702,7 +679,7 @@ limit(F(𝑥), 𝑥, Inf)
 ```
 
 
-### Derivatives
+## Derivatives
 
 
 `Symbolics` provides the `derivative` function to compute the derivative of a function with respect to a variable:
@@ -783,164 +760,76 @@ eqs = [ x^2 - y^2, 2x*y]
 Symbolics.jacobian(eqs, [x,y])
 ```
 
-### Integration
+## Integration
 
-The `SymbolicNumericIntegration` package provides a means to integrate *univariate* expressions through its `integrate` function.
+The `SymbolicIntegration` package provides two means to integration *univariate* functions using either the Risch algorithm or a rules-based approach.
+
+```{julia}
+using SymbolicIntegration, Symbolics
+```
+
+The main entry point is the function `integrate`.
+
+This is a substitution test:
+
+```{julia}
+@variables x a b
+integrate(x*exp(-x^2), x)
+```
+
+This is an integration by parts example:
+
+```{julia}
+integrate(x * sin(x), x)
+```
+
+As is this. We
+
+```{julia}
+integrate(a * log(b*x), x)
+```
 
 
-Symbolic integration can be approached in different ways. SymPy implements part of the Risch algorithm in addition to other algorithms. Rules-based algorithms could also be implemented.
-
-
-For a trivial example, here is a  rule that could be used to integrate a single integral
+The integration of rational functions (ratios of polynomials) can be done algorithmically, provided the underlying factorizations can be identified.
 
 
 ```{julia}
-@syms x ∫(x)
-
-is_var(x) = (xs = Symbolics.get_variables(x); length(xs) == 1 && xs[1] === x)
-r = @rule ∫(~x::is_var) => x^2/2
-
-r(∫(x))
+integrate((x-1)/((x-2)^3*(x-4)), x)
 ```
 
-The `SymbolicNumericIntegration` package includes many more predicates for doing rules-based integration, but it primarily approaches the task in a different manner.
+#### Method selection
 
+A third argument to `integrate` can specify the method, as in `integrate(expr, var, method)`.
 
-If $f(x)$ is to be integrated, a set of *candidate* answers is generated. The following is **proposed** as an answer: $\sum q_i \Theta_i(x)$. Differentiating the proposed answer leads to a *linear system of equations* that can be solved.
-
-
-The example in the [paper](https://arxiv.org/pdf/2201.12468v2.pdf) describing the method is with $f(x) = x \sin(x)$ and the candidate thetas are ${x, \sin(x), \cos(x), x\sin(x), x\cos(x)}$ so that the proposed answer is:
-
-
-$$
-\int f(x) dx = q_1 x + q_2 \sin(x) + q_3 \cos(x) + q_4 x \sin(x) + q_5 x \cos(x)
-$$
-
-We differentiate the right hand side:
-
+This function does not get solved by the Risch method:
 
 ```{julia}
-@variables q[1:5] x
-ΣqᵢΘᵢ = dot(collect(q), (x, sin(x), cos(x), x*sin(x), x*cos(x)))
-simplify(Symbolics.derivative(ΣqᵢΘᵢ, x))
+ex = cos(5x)*sin(x)
+integrate(ex, x, RischMethod())
 ```
 
-This must match $x\sin(x)$ so we have by equating coefficients of the respective terms:
-
-
-$$
-q_2 + q_5 = 0, \quad q_4 = 0, \quad q_1 = 0, \quad q_3 = 0, \quad q_5 = -1
-$$
-
-That is $q_2=1$, $q_5=-1$, and the other coefficients are $0$, giving an answer computed with:
-
+However, it can be done with the rules-based method:
 
 ```{julia}
-d = Dict(q[i] => v for (i,v) ∈ enumerate((0,1,0,0,-1)))
-substitute(ΣqᵢΘᵢ, d)
+integrate(ex, x, RuleBasedMethod())
 ```
 
-The package provides an algorithm for the creation of candidates and the means to solve when possible. The `integrate` function is the main entry point. It returns three values: `solved`, `unsolved`, and `err`. The `unsolved` is the part of the integrand which can not be solved through this package. It is  `0` for a given problem when `integrate` is successful in identifying an antiderivative, in which case `solved` is the answer. The value of `err` is a bound on the numerical error introduced by the algorithm.
+
+The example of integrating `(x-1)/((x-2)^3*(x-4))`, done above, is one where the `RischMethod` works, but not the `RuleBasedMethod`.
 
 
-To see, we have:
-
+Each method has different keyword arguments. For `RuleBasedMethod` the `verbose=true` argument will show which rules were applied. In this case, there is a single one:
 
 ```{julia}
-using SymbolicNumericIntegration
-@variables x
-
-integrate(x * sin(x))
+integrate(ex, x, RuleBasedMethod(verbose=true))
 ```
 
-The second term is `0`, as this integrand has an identified antiderivative.
-
+This example, shows two rules are applied:
 
 ```{julia}
-#| eval: false
-integrate(exp(x^2) + sin(x))
+integrate(a * log(b*x), x, RuleBasedMethod(verbose=true))
 ```
 
-This returns `exp(x^2)` for the unsolved part, as this function has no simple antiderivative.
+To read the rules, there are different predicate functions involved. The commonly used `contains_var` predicate checks through pattern matching if the last variable is contained in any of the rest of the specified variables. In the pattern `c * x ^ n` the match is `c` is `b` and `n` is `1`. Neither depends on `x`, so this rule is applied to integrate `log(b*x)`.
 
-
-Powers of trig functions have antiderivatives, as can be deduced using integration by parts. When the fifth power is used, there is a numeric aspect to the algorithm that is seen:
-
-
-```{julia}
-u,v,w = integrate(sin(x)^5)
-```
-
-The derivative of `u` matches up to some numeric tolerance:
-
-
-```{julia}
-Symbolics.derivative(u, x) - sin(x)^5
-```
-
----
-
-
-The integration of rational functions (ratios of polynomials) can be done algorithmically, provided the underlying factorizations can be identified. The `SymbolicNumericIntegration` package has a function `factor_rational` that can identify factorizations.
-
-
-```{julia}
-#| eval: false
-import SymbolicNumericIntegration: factor_rational
-@variables x
-u = (1 + x + x^2)/ (x^2 -2x + 1)
-v = factor_rational(u)
-```
-
-The summands in `v` are each integrable. We can see that `v` is a reexpression through
-
-
-```{julia}
-#| eval: false
-simplify(u - v)
-```
-
-The algorithm is numeric, not symbolic. This can be seen in these two factorizations:
-
-
-```{julia}
-#| eval: false
-u = 1 / expand((x^2-1)*(x-2)^2)
-v = factor_rational(u)
-```
-
-or
-
-
-```{julia}
-#| eval: false
-u = 1 / expand((x^2+1)*(x-2)^2)
-v = factor_rational(u)
-```
-
-As such, the integrals have numeric differences from their mathematical counterparts:
-
-::: {.callout-note}
-#### Errors ahead
-
-These last commands are note being executed, as there are errors.
-:::
-
-
-```{julia}
-#| eval: false
-a,b,c = integrate(u)   # not
-```
-
-We can see a bit of how much through the following, which needs a tolerance set to identify the rational numbers of the mathematical factorization correctly:
-
-
-```{julia}
-#| eval: false
-cs = [first(arguments(term)) for term ∈ arguments(a)] # pick off coefficients
-```
-
-```{julia}
-#| eval: false
-rationalize.(cs[2:end]; tol=1e-8)
-```
+The `contains_var(c, n, x)` call above checks if the constant `b` (matching `c` in the pattern) depends on `x` and if `1` depends on `x` (matching the power `n`, using a default for the variable, in the pattern). The rules comes from [`Rubi`](https://rulebasedintegration.org/) which has some 7000 rules, many of which are implemented in `SymbolicIntegration`.

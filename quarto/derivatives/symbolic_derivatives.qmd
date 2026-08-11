@@ -15,9 +15,11 @@ using TermInterface
 
 The ability to breakdown an expression into operations and their arguments is necessary when trying to apply the differentiation rules. Such rules are applied from the outside in. Identifying the proper "outside" function is usually most of the battle when finding derivatives.
 
+This section takes a detour into this point. **This section can be skipped; the material is not used in the sequel**.
 
-In the following example, we provide a sketch of a framework to differentiate expressions by a chosen symbol to illustrate how the outer function drives the task of differentiation.
+---
 
+In the following example, we provide a sketch of a framework to differentiate expressions by a chosen symbol to illustrate how the outer function drives the task of differentiation; how the steps of differentiation can be automated; and how `Julia`'s multiple dispatch can be leveraged to handle the many different cases to be considered.
 
 The `Symbolics` package provides native symbolic manipulation abilities for `Julia`, similar to `SymPy`, though without the dependence on `Python`. The `TermInterface` package, used by `Symbolics`, provides a generic interface for expression manipulation for this package that *also* is implemented for `Julia`'s expressions and symbols.
 
@@ -66,9 +68,9 @@ function D(ex, var=:x)
 end
 ```
 
-(The use of `Val` is an idiom of `Julia` allowing dispatch on certain values such as function names and numbers.)
+The use of `Val` is an idiom of `Julia` allowing dispatch on certain values such as function names and numbers.
 
-Now to develop methods for `D` for different "outside" functions and arities.
+Now to develop methods for `D` for different "outside" functions and arities. We being by implementing sum, product, and quotient rules.
 
 
 Addition can be unary (`:(+x)` is a valid quoting, even if it might simplify to the symbol `:x` when evaluated), *binary*, or *nary*. Here we implement the *sum rule*:
@@ -88,10 +90,10 @@ function D(::Val{:+}, ::Any, args, var)
 end
 ```
 
-The `args` are always held in a container, so the unary method must pull out the first one. The binary case should read as: apply `D` to each of the two arguments, and then create a quoted expression containing the sum of the results. The dollar signs interpolate into the quoting. (The "primes" are unicode notation achieved through `\prime[tab]` and not operations.) The *nary* method (which catches *any* arity besides `1` and `2`) does something similar, only using splatting to produce the sum.
+The `args` are always held in a container, so the unary method must pull out the first one. The binary case should read as: apply `D` to each of the two arguments, and then create a new expression containing the sum of the results. The dollar signs interpolate into the quoting. (The "primes" are unicode notation achieved through `\prime[tab]` and not operations.) The *nary* method (which catches *any* arity besides `1` and `2`) does something similar, only using splatting to produce the sum.
 
 
-Subtraction must also be implemented in a similar manner, but not for the *nary* case, as subtraction is not associative:
+Subtraction is implemented in a similar manner, but there is no *nary* case; subtraction is not associative:
 
 
 ```{julia}
@@ -99,6 +101,7 @@ function D(::Val{:-}, ::Val{1}, args, var)
 	a′ = D(first(args), var)
 	:(-$a′)
 end
+
 function D(::Val{:-}, ::Val{2}, args, var)
 	a′, b′ = D.(args, var)
 	:($a′ - $b′)
@@ -126,17 +129,17 @@ function D(op::Val{:*}, ::Any, args, var)
 end
 ```
 
-The *nary* case above just peels off the first factor and then uses the binary product rule.
+The *nary* case above just peels off the first factor and then recursively uses the product rule to find `b′`.
 
 
-Division is only a binary operation, so here we have the *quotient rule*:
+Division is only a binary operation:
 
 
 ```{julia}
 function D(::Val{:/}, ::Val{2}, args, var)
 	u,v = args
 	u′, v′ = D(u, var), D(v, var)
-	:( ($u′*$v - $u*$v′)/$v^2 )
+	:(($u′*$v - $u*$v′)/$v^2)
 end
 ```
 

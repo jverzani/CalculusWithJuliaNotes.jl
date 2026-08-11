@@ -21,14 +21,14 @@ Some relationships are easiest to describe in terms of rates or derivatives. For
 
   * Knowing the speed of a car and how long it has been driving can summarize the car's location.
   * One of Newton's famous laws, $F=ma$, describes the force on an  object of mass $m$ in terms of the acceleration. The acceleration  is the derivative of velocity, which in turn is the derivative of  position. So if we know the rates of change of $v(t)$ or $x(t)$, we  can differentiate to find $F$.
-  * Newton's law of [cooling](http://tinyurl.com/z4lmetp). This describes the temperature change in an object due to a difference in temperature with the object's surroundings. The formula being, $T'(t) = -r \left(T(t) - T_a \right)$, where $T(t)$ is temperature at time $t$ and $T_a$ the ambient temperature.
+  * Newton's law of [cooling](http://tinyurl.com/z4lmetp) describes the temperature change in an object due to a difference in temperature with the object's surroundings. The formula being, $T'(t) = -r \left(T(t) - T_a \right)$, where $T(t)$ is temperature at time $t$ and $T_a$ the ambient temperature.
   * [Hooke's law](http://tinyurl.com/kbz7r8l) relates force on an object to the position on the object, through $F = k x$. This is appropriate for many systems involving springs. Combined with Newton's law $F=ma$, this leads to an equation that $x$ must satisfy: $m x''(t) = k x(t)$.
 
 
 ## Motion with constant acceleration
 
 
-Let's consider the case of constant acceleration. This describes how nearby objects fall to earth, as the force due to gravity is assumed to be a constant, so the acceleration is the constant force divided by the constant mass.
+Let's consider the case of motion under a constant acceleration. This scenario describes how nearby objects fall to earth, as the force due to gravity is assumed to be a constant, so the acceleration is the constant force divided by the constant mass.
 
 
 With constant acceleration, what is the velocity?
@@ -189,7 +189,7 @@ let
     T0, Ta, r = 200, 72, 1/2
     f(u, t) = -r*(u - Ta)
     v(t) = Ta + (T0 - Ta) * exp(-r*t)
-    p = plot(v, 0, 6, linewidth=4, legend=false)
+    p = plot(v, 0, 6; ylims=(50, 200), linewidth=4, legend=false)
     [plot!(p, x -> v(a) + f(v(a), a) * (x-a), 0, 6) for a in 1:2:5]
     p
 end
@@ -352,8 +352,7 @@ Special cases include:
   * *separable* if $F(y,x) = G(y)H(x)$.
 
 
-As seen, separable equations are approached by moving the "$y$" terms to one side, the "$x$" terms to the other and integrating. This also applies to autonomous equations then. There are other families of equation types that have exact solutions, and techniques for solution, summarized at this [Wikipedia page](http://tinyurl.com/zywzz4q).
-
+As seen, separable equations are approached by moving the "$y$" terms to one side, the "$x$" terms to the other and integrating. This also applies to autonomous equations then. There are other families of equation types that have exact solutions, and techniques for solution, summarized at the wikipedia page on [ordinary differential equations](https://en.wikipedia.org/wiki/Ordinary_differential_equation).
 
 Rather than go over these various families, we demonstrate that `SymPy` can solve many of these equations symbolically.
 
@@ -368,7 +367,7 @@ Symbolic functions are defined by the  `@syms` macro (also see `?symbols`) using
 @syms x u() # a symbolic variable and a symbolic function
 ```
 
-We will solve the following, known as the *logistic equation*:
+We will solve the following differential equation, known as the *logistic equation*:
 
 
 $$
@@ -387,13 +386,10 @@ To specify a derivative of `u` in our equation we can use `diff(u(x),x)` but her
 
 ```{julia}
 D = Differential(x)
-eqn = D(u)(x) ~ a * u(x) * (1 - u(x)) # use l \Equal[tab] r, Eq(l,r), or just l - r
+eqn = D(u)(x) ~ a * u(x) * (1 - u(x))
 ```
 
 In the above, we evaluate the symbolic function at the variable `x` through the use of `u(x)` in the expression. The equation above uses `~` to combine the left- and right-hand sides as an equation in `SymPy`. (A unicode equals is also available for this task). This is a shortcut for `Eq(l,r)`, but even just using `l - r` would suffice, as the default assumption for an equation is that it is set to `0`.
-
-
-The `Differential` operation is borrowed from the `ModelingToolkit` package, which will be introduced later.
 
 
 To finish, we call `dsolve` to find a solution (if possible):
@@ -420,16 +416,16 @@ We can confirm that the solution is always increasing, hence trapped within $[0,
 diff(rhs(out),x)
 ```
 
-Suppose that $u(0) = 1/2$. Can we solve for $C_1$ symbolically? We can use `solve`, but first we will need to get the symbol for `C₁`:
+Suppose that $u(0) = 1/2$. Can we solve for $C_1$ symbolically? We can use `solve`, but first we will need to get the symbol for `C₁` which is the only unknown one within the set of all free symbols:
 
 
 ```{julia}
 eq = rhs(out)    # just the right hand side
-C1 = first(setdiff(free_symbols(eq), (x,a))) # fish out constant, it is not x or a
+C1 = only(setdiff(free_symbols(eq), (x,a))) # fish out constant, it is not x or a
 c1 = solve(eq(x=>0) - 1//2, C1)
 ```
 
-And we plug in with:
+We can now plug in with:
 
 
 ```{julia}
@@ -444,7 +440,7 @@ x0, y0 = 0, Sym(1//2)
 dsolve(eqn, u(x), ics=Dict(u(x0) => y0))
 ```
 
-(The one subtlety is the need to write the rational value as a symbolic expression, as otherwise it will get converted to a floating point value prior to being passed along.)
+(The one subtlety is the need to write the rational value as a symbolic expression, as otherwise it will get converted to a floating point value prior to being passed along. This could also be achieved with `one(x)/2`.)
 
 
 ##### Example: Hooke's law
@@ -476,7 +472,7 @@ Suppose the spring were started by pulling it down to a bottom and releasing. Th
 dsolve(eqnh, u(x), ics = Dict(u(0) => -a, D(u)(0) =>  0))
 ```
 
-We get that the motion will follow $u(x) = -a \cos(\sqrt{k/m}x)$. This is simple oscillatory behavior. As the spring stretches, the force gets large enough to pull it back, and as it compresses the force gets large enough to push it back. The amplitude of this oscillation is $a$ and the period $2\pi/\sqrt{k/m}$. Larger $k$ values mean shorter periods; larger $m$ values mean longer periods.
+The motion will follow $u(x) = -a \cos(\sqrt{k/m}x)$; simple oscillatory behavior. As the spring stretches, the force gets large enough to pull it back, and as it compresses the force gets large enough to push it back. The amplitude of this oscillation is $a$ and the period $2\pi/\sqrt{k/m}$. Larger $k$ values mean shorter periods; larger $m$ values mean longer periods.
 
 
 ##### Example: the pendulum
@@ -503,7 +499,7 @@ Trying to do so, can cause `SymPy` to hang or simply give up and repeat its inpu
 In general, for the first-order initial value problem characterized by $y'(x) = F(y,x)$, there are conditions ([Peano](http://tinyurl.com/h663wba) and [Picard-Lindelof](http://tinyurl.com/3rbde5e)) that can guarantee the existence (and uniqueness) of equation locally, but there may not be an accompanying method to actually find it. This particular problem has a solution, but it can not be written in terms of elementary functions.
 
 
-However, as [Huygens](https://en.wikipedia.org/wiki/Christiaan_Huygens) first noted, if the angles involved are small, then we approximate the solution through the linearization $\sin(\theta(t)) \approx \theta(t)$. The resulting equation for an approximate answer is just that of Hooke:
+However, as [Huygens](https://en.wikipedia.org/wiki/Christiaan_Huygens) first noted, if the angles involved are small, then we can approximate the solution through the linearization $\sin(\theta(t)) \approx \theta(t)$. The resulting equation for an approximate answer is just that of Hooke:
 
 
 $$

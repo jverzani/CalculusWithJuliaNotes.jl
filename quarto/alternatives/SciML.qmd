@@ -1,7 +1,6 @@
 # The SciML suite of packages
 
 
-
 The `Julia` ecosystem advances rapidly. For much of it, the driving force is the [SciML](https://github.com/SciML) organization (Scientific Machine Learning).
 
 
@@ -17,6 +16,27 @@ These packages are in a process of rapid development and change to them is expec
 :::
 
 
+This section uses these packages from `SciML`:
+
+```{julia}
+using NonlinearSolve
+using ModelingToolkit
+using Optimization
+using OptimizationOptimJL
+using Integrals
+```
+
+In addition, we use these packages:
+
+```{julia}
+using ForwardDiff
+using QuadGK
+using Plots
+using StaticArrays
+using BenchmarkTools
+```
+
+
 ## Symbolic math (`Symbolics`)
 
 
@@ -26,7 +46,7 @@ The `Symbolics`, `SymbolicUtils`, and `ModelingToolkit` packages are provided by
 ## Solving equations
 
 
-Solving one or more equations (simultaneously) is different in the linear case (where solutions are readily found – though performance can distinguish approaches) and the nonlinear case – where for most situations, numeric approaches are required.
+Solving one or more equations (simultaneously) is different in the linear case (where solutions are readily found---though performance can distinguish approaches) and the nonlinear case---where for most situations, numeric approaches are required.
 
 
 ### `LinearSolve`
@@ -69,7 +89,9 @@ However, it is more performant and not much more work to allow for a vector of s
 f(u, p) = @. (u^5 - u - 1)
 ```
 
-The function definition expects a container for the "`x`" variables and allows the passing of a container to hold parameters. We could have used the dotted operations for the power and each subtraction to allow vectorization of these basic math operations, as `u` is a container of values. The `@.` macro makes adding the "dots" quite easy, as illustrated above. It converts  "every function call or operator in expr into a `dot call`."
+The function definition expects a container for the "`x`" variables and allows the passing of a container to hold parameters.
+
+We could have used the dotted operations for the power and each subtraction to allow vectorization of these basic math operations, as `u` is a container of values. The `@.` macro makes adding the "dots" quite easy, as illustrated above. It converts  "every function call or operator in expr into a `dot call`."
 
 
 A problem is set up with this function and an initial guess. The `@SVector` specification for the guess is for performance purposes and is provided by the `StaticArrays` package.
@@ -90,7 +112,7 @@ soln = solve(prob, NewtonRaphson())
 
 Again, the derivative of `f` is computed automatically.
 
-The basic interface for retrieving the numeric solution from the solution object is to use indexing:
+The basic interface for retrieving the numeric solution from the solution object is to use indexing notation with an empty index:
 
 
 ```{julia}
@@ -101,7 +123,7 @@ soln[]
 
 :::{.callout-note}
 ## Note
-This interface is more performant than `Roots`, though it isn't an apples to oranges comparison, as different stopping criteria are used by the two. In order to compare, we help out the call to `NonlinearProblem` to indicate the problem is non-mutating by adding a "`false`", as follows:
+This interface is more performant than `Roots`, though it isn't like comparing apples to oranges, as different stopping criteria are used by the two. In order to compare, we help out the call to `NonlinearProblem` to indicate the problem is non-mutating by adding a "`false`", as follows:
 
 
 ```{julia}
@@ -198,7 +220,7 @@ The gradient can be computed different ways within `Julia`, but here we use the 
 
 
 ```{julia}
-∇peaks(x, p=nothing) = NonlinearSolve.ForwardDiff.gradient(peaks, x)
+∇peaks(x, p=nothing) = ForwardDiff.gradient(peaks, x)
 u0 = @SVector[1.0, 1.0]
 prob = NonlinearProblem(∇peaks, u0)
 u = solve(prob, NewtonRaphson())
@@ -234,29 +256,29 @@ The extra step is to specify a "`NonlinearSystem`." It is a system, as in practi
 
 
 ```{julia}
-ns = NonlinearSystem([eq], [x], [α], name=:ns);
-ns = complete(ns)
+@mtkcompile sys = NonlinearSystem([eq], [x], [α])
 ```
 
-The `name` argument is special. The name of the object (`ns`) is assigned through `=`, but the system must also know this same name. However, the name on the left is not known when the name on the right is needed, so it is up to the user to keep them synchronized. The `@named` macro handles this behind the scenes by simply rewriting the syntax of the assignment:
-
-
-```{julia}
-@named ns = NonlinearSystem([eq], [x], [α]);
-ns = complete(ns)
-```
+The name of the object (`sys`) is assigned through `=`, but the system must also know this same name. However, the name on the left is not known when the name on the right is needed, the`@mtkcompile` macro does this bookkeeping (an alternate is to use `@named`) and builds and compiles the system.
 
 With the system defined, we can pass this to `NonlinearProblem`, as was done with a function. The parameter is specified here, and in this case is `α => 1.0`. The initial guess is `[1.0]`:
 
+A system has unknowns, parameters, and observables:
 
 ```{julia}
-prob = NonlinearProblem(mtkcompile(ns), [1.0], Dict(α => 1.0))
+[:u=>unknowns(sys), :p=>parameters(sys), :o=>observables(sys)]
 ```
 
-The problem is solved as before:
-
+The initial condition and parameters are given as a dictionary mapping the variables to values, as with:
 
 ```{julia}
+op = Dict(x => 1.5, α => 1.0)
+```
+
+Then the problem may be setup and  solved as before:
+
+```{julia}
+prob = NonlinearProblem(sys, op)
 solve(prob, NewtonRaphson())
 ```
 
@@ -295,11 +317,11 @@ The minus sign is needed here as optimization routines find *minimums*, not maxi
 
 
 
-Next, we define an optimization function with information on how its derivatives will be taken. The following uses `ForwardDiff`, which is a good choice in the typical calculus setting, where there are a small number of inputs (just $1$ here.)
+Next, we define an optimization function with information on how its derivatives will be taken. T
 
 
 ```{julia}
-F = OptimizationFunction(A, Optimization.AutoForwardDiff())
+F = OptimizationFunction(A)
 x0 = [4.0]
 prob = OptimizationProblem(F, x0)
 ```
@@ -313,11 +335,11 @@ soln = solve(prob, NelderMead())
 
 :::{.callout-note}
 ## Note
-We use the method `Newton` and not `NewtonRaphson`, as above. Both methods are similar, but they come from different packages – the latter for solving non-linear equation(s), the former for solving optimization problems.
+We use the method `NelderMead` above, and not the more performant `Newton` and not `NewtonRaphson`, as above. Both methods are similar, but they come from different packages---the latter for solving non-linear equation(s), the former for solving optimization problems.
 
 :::
 
-The solution is an object containing the identified answer and more. To get the value, use index notation:
+The solution is an object containing the identified answer and more. To get the value, again use index notation with an empty index:
 
 
 ```{julia}
@@ -334,9 +356,8 @@ height(xstar), A(xstar)
 
 The `minimum` property also holds the identified minimum:
 
-
 ```{julia}
-soln.minimum  # compare with A(soln[], nothing)
+soln.objective  # compare with A(soln[], nothing)
 ```
 
 The package is a wrapper around other packages. The output of the underlying package is presented in the `original` property:
@@ -352,7 +373,7 @@ soln.original
 This problem can also be approached symbolically, using `ModelingToolkit`.
 
 
-For example, we set up the problem with:
+For example, we load the package and set up the problem with:
 
 
 ```{julia}
@@ -363,35 +384,29 @@ y = (P - 2x)/2
 Area = - x*y
 ```
 
-The above should be self explanatory. To put into a form to pass to `solve` we define a "system" by specifying our objective function, the variables, and the parameters.
+The above should be self explanatory. To put into a form to pass to `solve` we define a "system" by specifying our objective function, the variables, and the parameters and then "compile" it through `mtkcompile`, in this case its macro form, as before:
 
 
 ```{julia}
-@named sys = OptimizationSystem(Area, [x], [P]);
-sys = complete(sys)
+@mtkcompile sys = OptimizationSystem(Area, [x], [P]);
 ```
 
-(This step is different, as before an `OptimizationFunction` was defined; we use `@named`, as above, to ensure the system has the same name as the identifier, `sys`.)
-
-
-This system is passed to `OptimizationProblem` along with a specification of the initial condition ($x=4$) and the perimeter ($P=25$). A vector of pairs is used below:
+This system is passed to `OptimizationProblem` along with a specification of the initial condition ($x=4$) and the perimeter ($P=25$). A dictionary is used below:
 
 
 ```{julia}
-prob = OptimizationProblem(sys, [x => 4.0], [P => 25.0]; grad=true, hess=true)
+op = Dict(x => 4.0, P => 25.0)
+prob = OptimizationProblem(sys, op)
 ```
 
-The keywords `grad=true` and `hess=true` instruct for automatic derivatives to be taken as needed. These are needed in the choice of method, `Newton`, below.
-
-
-Solving this problem then follows the same pattern as before, again with `Newton` we have:
+Solving this problem then follows the same pattern as before:
 
 
 ```{julia}
-solve(prob, Newton())
+solve(prob, NelderMead())
 ```
 
-(A derivative-free method like `NelderMead()` could be used and then the `grad` and `hess` keywords above would be unnecessary, though not harmful.)
+We used the  derivative-free method  `NelderMead()`. Other methods are more performant, but this one did not require a conversation about auto differentiation, as `Newton()` would have.
 
 
 ---
@@ -412,13 +427,11 @@ could be similarly approached:
 @variables x
 y = Area/x  # from A = xy
 P = 2x + 2y
-@named sys = OptimizationSystem(P, [x], [Area]);
-sys = structural_simplify(sys)
+@mtkcompile sys = OptimizationSystem(P, [x], [Area]);
 
-u0 = [x => 4.0]
-p = [Area => 25.0]
+op = Dict(x => 4.0, Area => 25.0)
 
-prob = OptimizationProblem(sys, u0, p; grad=true, hess=true)
+prob = OptimizationProblem(sys, op; grad=true, hess=true)
 soln = solve(prob, LBFGS())
 ```
 
@@ -506,7 +519,6 @@ The package follows the same `problem-algorithm-solve` interface, as already see
 
 The interface is designed for $1$-and-higher dimensional integrals.
 
-
 The package is loaded with
 
 
@@ -519,7 +531,7 @@ For a simple definite integral, such as $\int_0^\pi \sin(x)dx$, we have:
 
 ```{julia}
 f(x, p) = sin(x)
-prob = IntegralProblem(f, 0.0, 1pi)
+prob = IntegralProblem(f, (0.0, 1pi))
 soln = solve(prob, QuadGKJL())
 ```
 
@@ -550,7 +562,7 @@ The `Integrals` solution is a bit more verbose, but it is more flexible. For exa
 
 ```{julia}
 f(x, p) = sin.(x)
-prob = IntegralProblem(f, [0.0], [1pi])
+prob = IntegralProblem(f, (0.0, 1pi))
 soln = solve(prob, HCubatureJL())
 ```
 
@@ -588,13 +600,12 @@ Using `Integrals` with `QuadGK` we have:
 ```{julia}
 f(x, p) = sin(p*x)
 function ∫sinpx(p)
-    prob = IntegralProblem(f, 0.0, 1pi, p)
+    prob = IntegralProblem(f, (0.0, 1pi), p)
     solve(prob, QuadGKJL())
 end
 ```
 
 We can compute values at both $p=1$ and $p=2$:
-
 
 ```{julia}
 ∫sinpx(1), ∫sinpx(2)
@@ -624,13 +635,13 @@ The area under a surface generated by $z=f(x,y)$ over a rectangular region $[a,b
 
 For example, the area under the function $f(x,y) = 1 + x^2 + 2y^2$ over $[-1/2, 1/2] \times [-1,1]$ is computed by:
 
-
+XXX
 ```{julia}
 f(x, y) = 1 + x^2 + 2y^2  # match math
 fxp(x, p) = f(x[1], x[2]) # prepare for IntegralProblem
 ls = [-1/2, -1]           # left endpoints
 rs = [1/2, 1]             # right endpoints
-prob = IntegralProblem(fxp, ls, rs)
+prob = IntegralProblem(fxp, (ls, rs)) # tuple of (ls, rs)
 soln = solve(prob, HCubatureJL())
 ```
 
@@ -702,6 +713,7 @@ So we have $\iint_{G(R)} x^2 dA$ is computed by the following with $\alpha=\pi/4
 
 
 ```{julia}
+#| eval: false
 import LinearAlgebra: det
 
 𝑓(uv) = uv[1]^2
@@ -735,6 +747,6 @@ For a trivial example, we have:
 
 ```{julia}
 f(x, p) = [x[1], x[2]^2]
-prob = IntegralProblem(f, [0,0],[3,4])
+prob = IntegralProblem(f, ([0,0],[3,4]))
 solve(prob, HCubatureJL())
 ```

@@ -1,4 +1,4 @@
-# Numeric derivatives
+# Computing derivatives in Julia
 
 
 {{< include ../_common_code.qmd >}}
@@ -19,10 +19,10 @@ using Roots
 ---
 
 
-`SymPy` returns symbolic derivatives. Up to choices of simplification, these answers match those that would be derived by hand. This is useful when comparing with known answers and for seeing the structure of the answer. However, there are times we just want to work with the answer numerically. For that we have other options within `Julia`. We discuss approximate derivatives and automatic derivatives. The latter will find wide usage in these notes.
+`SymPy` returns symbolic derivatives. Up to choices of simplification, these answers match those that would be derived by hand. This is useful when comparing with known answers and for seeing the structure of the answer. However, there are times we just want to work with the answer numerically. For that we have other options within `Julia`. We discuss approximate derivatives and automatic derivatives in this section. The latter will find wide usage in these notes.
 
 
-### Approximate derivatives
+## Approximate derivatives
 
 
 By approximating the limit of the secant line with a value for a small, but positive, $h$, we get an approximation to the derivative. That is
@@ -32,24 +32,25 @@ $$
 f'(x) \approx \frac{f(x+h) - f(x)}{h}.
 $$
 
-This is the forward-difference approximation. The central difference approximation looks both ways:
+This is the *forward-difference approximation*. The *central difference approximation* looks to both sides of $x$:
 
 
 $$
 f'(x) \approx \frac{f(x+h) - f(x-h)}{2h}.
 $$
 
-Though in general they are different, they are both approximations. The central difference is usually more accurate for the same size $h$. However, both are susceptible to round-off errors. The numerator is a subtraction of like-size numbers - a perfect opportunity to lose precision.
+Though in general they are different, both are easy and fast to compute, useful approximations to the derivative. The central difference is usually more accurate for the same size $h$. However, both are susceptible to round-off errors. The numerator is a subtraction of like-size numbers---a perfect opportunity to lose precision.
 
 
-As such there is a balancing act:
+Due to numeric issues there is a balancing act:
+
+* if $h$ is too big the approximation to the limit is not good.
+
+* if $h$ is too small the round-off errors are problematic,
 
 
-  * if $h$ is too small the round-off errors are problematic,
-  * if $h$ is too big the approximation to the limit is not good.
 
-
-For the forward difference $h$ values around $10^{-8}$ are typically good, for the central difference, values around $10^{-6}$ are typically good.
+For the forward difference $h$ values around $10^{-8}$ are typically good, for the central difference, values around $10^{-6}$ are typically good, but these ranges aren't always the case.
 
 
 ##### Example
@@ -78,7 +79,7 @@ abs(factual - fapprox)
 The error is about $1$ part in $100$ million.
 
 
-The central difference is better here:
+The central difference is better here, even with a bigger $h$:^[The [FiniteDifferences](https://github.com/JuliaDiff/FiniteDifferences.jl) and [FiniteDiff](https://github.com/JuliaDiff/FiniteDiff.jl) packages provide performant interfaces for differentiation based on finite differences.]
 
 
 ```{julia}
@@ -88,49 +89,53 @@ cdapprox = (f(c+h) - f(c-h)) / (2h)
 abs(factual - cdapprox)
 ```
 
----
-
-
-The [FiniteDifferences](https://github.com/JuliaDiff/FiniteDifferences.jl) and [FiniteDiff](https://github.com/JuliaDiff/FiniteDiff.jl) packages provide performant interfaces for differentiation based on finite differences.
-
 
 ### Automatic derivatives
 
+Roughly speaking, symbolic derivatives are exact, but can be slow to compute, whereas approximate derivatives are not exact, but fast to compute. However, the widely used automatic derivatives are both exact and fast to compute.
 
-There are some other ways to compute derivatives numerically that give much more accuracy at the expense of slightly increased computing time. Automatic differentiation is the general name for a few different approaches. These approaches promise less complexity - in some cases - than symbolic derivatives and more accuracy than approximate derivatives; the accuracy is on the order of machine precision.
+Automatic differentiation (AD) is the general name for a few different approaches. We utilize forward mode automatic differentiation. The `ForwardDiff` package provides one of [several](https://juliadiff.org/) ways for `Julia` to compute automatic derivatives. `ForwardDiff` is well suited for functions encountered in these notes, which depend on at most a few variables and output no more than a few values at once.
 
-
-The `ForwardDiff` package provides one of [several](https://juliadiff.org/) ways for `Julia` to compute automatic derivatives. `ForwardDiff` is well suited for functions encountered in these notes, which depend on at most a few variables and output no more than a few values at once.
-
-
-The `ForwardDiff` package was loaded in this section; in general its features are available when the `CalculusWithJulia` package is loaded, as that package provides a more convenient interface. The `derivative` function is not exported  by `ForwardDiff`, so its usage requires qualification. To illustrate, to find the derivative of $f(x)$ at a *point* we have this syntax:
+The `ForwardDiff` package was loaded in this section; in general its features are available when the `CalculusWithJulia` package is loaded, as that package provides a more convenient interface. The `derivative` function is not exported  by `ForwardDiff`, so its usage requires qualification. To illustrate, to find the derivative of $f(x)$ at a *point* we have this syntax for `ForwardDiff`:
 
 
 ```{julia}
 ForwardDiff.derivative(f, c)   # derivative is qualified by a module name
 ```
 
-The `CalculusWithJulia` package defines an operator `D` which goes from finding a derivative at a point with `ForwardDiff.derivative` to defining a function which evaluates the derivative at each point. It is defined along the lines of `D(f) = x -> ForwardDiff.derivative(f,x)` in parallel to how the derivative operation for a function is defined mathematically from the definition for its value at a point.
 
+The `CalculusWithJulia` package defines a method for `'` (a postfix operator in `Julia`) so that when applied to a `Function` object a function for computing values of the derivative, as above, is returned.^[The `CalculusWithJulia` package defines a method for `Base.adjoint(f::Function)`. In `Julia` speak this is a form of *type piracy*, as the package modifies a method (`adjoint`) for a type (`Function`) neither of which belongs to the package. As well, the meaning given does not conform with the expected generic meaning of the operation elsewhere in the `Julia` ecosystem. Admittedly this is bad form, but a useful deviation from good practice for pedagogical reasons.]
+
+
+To be clear, this usage returns a function that computes the derivative of `f`:
+
+```{julia}
+f'
+```
+
+And this usage *calls* the derivative of `f` at the value stored by `c`:
+
+```{julia}
+f'(c)
+```
+
+This is the same mathematical notation that is commonly used.
 
 Here we see the error in estimating $f'(1)$:
 
 
 ```{julia}
-fauto = D(f)(c)         # D(f) is a function, D(f)(c) is the function called on c
-abs(factual - fauto)
+abs(factual - f'(c))
 ```
 
-In this case, it is exact.
+In this case, the automatic derivative is exact.
 
-
-The `D` operator is  defined for most all functions in `Julia`, though, like the `diff` operator in `SymPy` there are some for which it won't work.
 
 
 ##### Example
 
 
-For $f(x) = \sqrt{1 + \sin(\cos(x))}$ compare the difference between the forward derivative with $h=1e-8$ and that computed by `D` at $x=\pi/4$.
+For $f(x) = \sqrt{1 + \sin(\cos(x))}$ compare the difference between the forward derivative with $h=1e-8$ and that computed by automatic differentiation at $x=\pi/4$.
 
 
 The forward derivative is found with:
@@ -142,11 +147,11 @@ c, h = pi/4, 1e-8
 fwd = (f(c+h) - f(c))/h
 ```
 
-That given by `D` is:
+That given by automatic differentiation is:
 
 
 ```{julia}
-ds_value = D(f)(c)
+ds_value = f'(c)
 ds_value, fwd, ds_value - fwd
 ```
 
@@ -158,38 +163,25 @@ fp = diff(f(x), x)
 ```
 
 ```{julia}
-actual = convert(Float64, fp(PI/4))
+actual = float(fp(PI/4))
 actual - ds_value, actual - fwd
 ```
 
-#### Convenient notation
-
-
-`Julia` allows the possibility of extending functions to different types. Out of the box, the `'` notation is not employed for functions, but is used for matrices. It is used in postfix position, as with `A'`. We can define it to do the same thing as `D` for functions and then, we can evaluate derivatives with the familiar `f'(x)`. This is done in `CalculusWithJulia` along the lines of `Base.adjoint(f::Function) = D(f)`.
-
-
-Then, we have, for example:
-
-
-```{julia}
-#| hold: true
-f(x) = sin(x)
-f'(pi), f''(pi)
-```
+As expected, the automatic derivative is nearly exact and accurate up to possibly accumulated floating point differences; the forward difference is just pretty close.
 
 ##### Example
 
 
-Suppose our task is to find a zero of the second derivative of $k(x) = e^{-x^2/2}$ in $[0, 10]$, a known bracket. The `D` function takes a second argument to indicate the order of the derivative (e.g., `D(f,2)`), but we use the more familiar notation:
+Suppose our task is to find a zero of the second derivative of $k(x) = e^{-x^2/2}$ in $[0, 10]$, a known bracket. The second derivative is found by `k''` below, with the derivative operation being applied twice behind the scenes. With this, we have:
 
 
 ```{julia}
 #| hold: true
 k(x) = exp(-x^2/2)
-find_zero(k'', 0..10)
+find_zero(k'', (0, 10))
 ```
 
-We pass in the function object, `k''`, and not the evaluated function.
+As with plotting and other uses of functions as arguments, we pass in the function object, `k''`, and not the function evaluated at a point.
 
 
 ## Recap on derivatives in Julia
@@ -197,9 +189,11 @@ We pass in the function object, `k''`, and not the evaluated function.
 
 A quick summary of the $3$ different ways for finding derivatives in `Julia` presented in these notes:
 
-  * Symbolic derivatives are found using `diff` from `SymPy`
-  * Automatic derivatives are found using the notation `f'` which utilizes `ForwardDiff.derivative`
-  * approximate derivatives at a point, `c`, for a given `h` are found with `(f(c+h)-f(c))/h`.
+* Symbolic derivatives are found using `diff` from `SymPy`
+
+* Automatic derivatives are found using the notation `f'` which utilizes `ForwardDiff.derivative`
+
+* approximate derivatives at a point, `c`, for a given `h` are found with `(f(c+h)-f(c))/h`.
 
 
 For example, here all three are computed and compared:
@@ -207,21 +201,17 @@ For example, here all three are computed and compared:
 
 ```{julia}
 #| hold: true
-f(x) = exp(-x)*sin(x)
+f(x) = exp(-x) * sin(x)
 
 c = pi
 h = 1e-8
 
 fp = diff(f(x),x)
 
-fp, fp(c), f'(c), (f(c+h) - f(c))/h
+Dict(:approximate=>(f(c+h) - f(c))/h, :automatic=>f'(c),
+     :symbolic=>fp, :symbolic_evaluated => fp(x=>c))
 ```
 
-:::{.callout-note}
-## Note
-The use of `'` to find derivatives provided by `CalculusWithJulia` is convenient, and used extensively in these notes, but it needs to be noted that it does **not conform** with the generic meaning of `'` within `Julia`'s wider package ecosystem and may cause issue with linear algebra operations; the symbol is meant for the adjoint of a matrix.
-
-:::
 
 ## Questions
 
@@ -241,7 +231,7 @@ val = (f(c+h) - f(c))/h
 numericq(val)
 ```
 
-Using `D` or `f'` find the value using automatic differentiation
+Use `f'` find the value using automatic differentiation
 
 
 ```{julia}
@@ -253,44 +243,11 @@ val = f'(c)
 numericq(val)
 ```
 
-###### Question
-
-
-Mathematically, as the value of `h` in the forward difference gets smaller the forward difference approximation gets better. On the computer, this is thwarted by floating point representation issues (in particular the error in subtracting two like-sized numbers in forming $f(x+h)-f(x)$.)
-
-
-For `1e-16` what is the error (in absolute value) in finding the forward difference approximation for the derivative of $\sin(x)$ at $x=0$?
-
-
-```{julia}
-#| hold: true
-#| echo: false
-f(x) = sin(x)
-h = 1e-16
-c = 0
-approx = (f(c+h)-f(c))/h
-val = abs(cos(c)  - approx)
-numericq(val)
-```
-
-Repeat for $x=\pi/4$:
-
-
-```{julia}
-#| hold: true
-#| echo: false
-f(x) = sin(x)
-h = 1e-16
-c = pi/4
-approx = (f(c+h)-f(c))/h
-val = abs(cos(c)  - approx)
-numericq(val)
-```
 
 ###### Question
 
 
-Let $f(x) = x^x$. Using `D`, find $f'(3)$.
+Let $f(x) = x^x$. Using automatic differentiation, find $f'(3)$.
 
 
 ```{julia}
@@ -304,7 +261,7 @@ numericq(val)
 ###### Question
 
 
-Let $f(x) = \lvert 1 - \sqrt{1 + x}\rvert$. Using `D`, find $f'(3)$.
+Let $f(x) = \lvert 1 - \sqrt{1 + x}\rvert$. Using automatic differentation, find $f'(3)$.
 
 
 ```{julia}
@@ -318,7 +275,7 @@ numericq(val)
 ###### Question
 
 
-Let $f(x) = e^{\sin(x)}$. Using `D`, find $f'(3)$.
+Let $f(x) = e^{\sin(x)}$. Using automatic differentation, find $f'(3)$.
 
 
 ```{julia}
@@ -370,4 +327,84 @@ Find the rate of change with respect to height, $h$, of $f(h) = 32h^3 - 62 h + 1
 fp_(h) = 3*32h^2 - 62
 c = 2
 numericq(fp_(2))
+```
+
+
+###### Question
+
+
+Mathematically, as the value of `h` in the forward difference gets smaller the forward difference approximation gets better. On the computer, this is thwarted by floating point representation issues (in particular the error in subtracting two like-sized numbers in forming $f(x+h)-f(x)$.)
+
+
+For `1e-16` what is the error (in absolute value) in finding the forward difference approximation for the derivative of $\sin(x)$ at $x=0$?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = sin(x)
+h = 1e-16
+c = 0
+approx = (f(c+h)-f(c))/h
+val = abs(cos(c)  - approx)
+numericq(val)
+```
+
+Repeat for $x=\pi/4$:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = sin(x)
+h = 1e-16
+c = pi/4
+approx = (f(c+h)-f(c))/h
+val = abs(cos(c)  - approx)
+numericq(val)
+```
+
+
+##### Question
+
+Let $f(x) = e^{-x^2/2}$. At $c=2$ we can compare the exact answer for the derivative to the forward difference approximation for different values of `h`. For example:
+
+```{julia}
+f(x) = exp(-x^2/2)
+c = 2
+@syms x
+exact = float(diff(f(x), x)(x=>2))
+```
+
+Whereas,
+
+```{julia}
+hs = [1/10^i for i in 0:16]
+fdiffs = [(f(c+h) - f(c))/h for h in hs]
+error = fdiffs .- exact
+[hs error]
+```
+
+Which value of `h` provided the smallest error? Write the exponent as `i` in `1/10^i`.
+
+```{julia}
+#| echo: false
+numericq(8)
+```
+
+
+We repeat with the central difference approximation.
+
+```{julia}
+hs = [1/10^i for i in 0:16]
+cdiffs = [(f(c+h) - f(c-h))/(2h) for h in hs]
+error = cdiffs .- exact
+[hs error]
+```
+
+Which value of `h` provided the smallest error? Write the exponent as `i` in `1/10^i`.
+
+```{julia}
+#| echo: false
+numericq(6)
 ```

@@ -12,7 +12,7 @@ using Roots
 using ForwardDiff: derivative
 ```
 
-This section takes a detour to give some background on why the underlying method of `quadgk` is more efficient than those of Riemann sums. Orthogonal polynomials play a key role. There are many families of such polynomials. We highlight two.
+This section takes an unnecessary detour to give some background on why the underlying method of `quadgk` is more efficient than those of Riemann sums. Orthogonal polynomials play a key role. There are many families of such polynomials. We highlight two.
 
 
 ## Inner product
@@ -50,17 +50,15 @@ $$
 \angle(f,g) = \cos^{-1}\left(\frac{\langle f, g\rangle}{\lVert f \rVert \lVert g \rVert}\right).
 $$
 
-This says, the angle between two orthogonal elements is $90$ degrees (in some orientation)
-
 The Cauchy-Schwarz inequality, $|\langle f, g \rangle| \leq \lVert f \rVert \lVert g\rVert$, for an inner product space, ensures the argument to $\cos^{-1}$ is between $-1$ and $1$.
 
-These properties generalize two-dimensional vectors, with components $\langle x, y\rangle$. Recall, these can be visualized by placing a tail at the origin and a tip at the point $(x,y)$. Such vectors can be added by placing the tail of one at the tip of the other and using the vector from the other tail to the other tip.
+These properties generalize two-dimensional vectors, with components $\langle x, y\rangle$. Recall, vectors can be visualized by placing a tail at the origin and a tip at the point $(x,y)$. Such vectors can be added by placing the tail of one at the tip of the other and using the vector from the other tail to the other tip.
 
 With this, we have a vector anchored at the origin can be viewed as a line segment with slope $y/x$ (rise over run). A perpendicular line segment would have slope $-x/y$ (the negative reciprocal) which would be associated with the vector $\langle y, -x \rangle$. The dot product is just the sum of the multiplied components, or for these two vectors $x\cdot y + y\cdot (-x)$, which is $0$, as the line segments are perpendicular (orthogonal).
 
 Consider now two vectors, say $f$, $g$. We can make a new vector that is orthogonal to $f$ by combining $g$ with a piece of $f$. But what piece?
 
-Consider this
+Consider this calculation (using the known answer):
 
 $$
 \begin{align*}
@@ -75,7 +73,7 @@ Define
 $$
 proj_f(g) = \frac{\langle f,g\rangle }{\langle f, f\rangle} f,
 $$
-then we have $u_1 = f$ and $u_2 = g-proj_f(g)$, $u_1$ and $u_2$ are orthogonal.
+then we have with $u_1 = f$ and $u_2 = g-proj_f(g)$ that $u_1$ and $u_2$ are orthogonal.
 
 A similar calculation shows if $h$ is added to the set of elements, then
 $u_3 = h - proj_{u_1}(h) - proj_{u_2}(h)$ will be orthogonal to $u_1$ and $u_2$. etc.
@@ -94,7 +92,7 @@ $$
 x^2 \mid_{-1}^1 = 1^2 - (-1)^2 = 0.
 $$
 
-Now consider a quadratic polynomial, $u_2(x) =  ax^2 + bx + c$, we want a polynomial which is orthogonal to $u_0$ and $u_1$ with the extra condition that $u_2(1) = c =1$ (or $c=1$.). We can do this using Gram-Schmidt as above, or as here through a system of two equations:
+Now consider a quadratic polynomial, $u_2(x) =  ax^2 + bx + c$, we want a polynomial which is orthogonal to $u_0$ and $u_1$ with the extra condition that $u_2(1) = c =1$ (or $c=1$.). We can do this using Gram-Schmidt as above, or, as here, through a system of two equations:
 
 ```{julia}
 @syms a b c d x
@@ -117,7 +115,7 @@ u3 = a*x^3 + b*x^2 + c*x + d
 eqs = (integrate(u0 * u3, (x, -1, 1)) ~ 0,
        integrate(u1 * u3, (x, -1, 1)) ~ 0,
        integrate(u2 * u3, (x, -1, 1)) ~ 0)
-sols = solve(eqs, (a, b, c, d))  # a => -5c/3, b=>0, d=>0
+sols = solve(eqs, (a, b, c, d))  # a => -5c/3, b => 0, d => 0
 u3 = u3(sols...)
 u3 = simplify(u3/u3(x=>1))       # make u3(1) = 1
 ```
@@ -152,8 +150,6 @@ $$
 
 Unique elements can be defined by specifying some additional property. For Legendre, it was $p_n(1)=1$, for other orthogonal families this may be specified by having leading coefficient of $1$ (monic), or a norm of $1$ (orthonormal), etc.
 
-The above is the *absolutely continuous* case, generalizations of the integral allow this to be more general.
-
 Orthogonality can be extended: If $q(x)$ is any polynomial of degree $m < n$, then
 $\langle q, p_n \rangle = \int_I q(x) p_n(x) w(x) dx = 0$. (See the questions for more detail.)
 
@@ -186,9 +182,9 @@ As this has degree $n$ or less, it can be expressed in terms of $p_0, p_1, \dots
 $$
 \begin{align*}
 \int_I p_m(x) u(x) w(x) dx &=
-\int_I p_m(x) \sum_{j=0}^n p_j(x) w(x) dx \\
-&= \int_I p_m(x) \left(p_m(x) + \textcolor{red}{\sum_{j=0, j\neq m}^{n} p_j(x)}\right) w(x) dx \\
-&= \int_I p_m(x) p_m(x) w(x) dx = h_m
+\int_I p_m(x) \left(\sum_{j=0}^n d_j p_j(x)\right) w(x) dx \\
+&= \int_I p_m(x) \left(d_m p_m(x) + \textcolor{red}{\sum_{j=0, j\neq m}^{n} d_j p_j(x)}\right) w(x) dx \\
+&= d_m \int_I p_m(x) p_m(x) w(x) dx = d_m \cdot h_m
 \end{align*}
 $$
 
@@ -205,8 +201,9 @@ $$
 $$
 
 The last integral being $0$ as $xp_m(x)$ has degree $n-1$ or less and hence is orthogonal to $p_n$.
+If $m < n-1$, then $0 = d_m h_m$, with $h_m > 0$, so $d_m=0$
 
-That is $p_{n+1} - A_n x p_n(x) = d_n p_n(x) + d_{n-1} p_{n-1}(x)$. Setting $B_n=d_n$ and $C_{n-1} = -d_{n-1}$ shows the three-term recurrence applies.
+That is $p_{n+1} - A_n x p_n(x) = u(x) = d_n p_n(x) + d_{n-1} p_{n-1}(x)$. Setting $B_n=d_n$ and $C_{n-1} = -d_{n-1}$ shows the three-term recurrence applies.
 
 
 #### Example: Legendre polynomials
@@ -221,7 +218,7 @@ I    &= [-1,1]\\
 A_n  &= \frac{2n+1}{n+1}\\
 B_n  &= 0\\
 C_n  & = \frac{n}{n+1}\\
-k_{n+1}  &= \frac{2n+1}{n+1}k_n - \frac{n}{n-1}k_{n-1}, k_1=k_0=1\\
+k_{n+1}  &= \frac{2n+1}{n+1}k_n - \frac{n}{n-1}k_{n-1}, \quad k_1=k_0=1\\
 h_n  &= \frac{2}{2n+1}
 \end{align*}
 $$
@@ -385,7 +382,7 @@ As $u$ is continuous, this means there are at least $n$ sign changes, hence $n$ 
 
 
 
-### Integration
+## Integration
 
 Recall, a Riemann sum can be thought of in terms of weights, $w_i$ and nodes $x_i$ for which $\int_I f(x) dx \approx \sum_{i=0}^{n-1} w_i f(x_i)$.
 For a right-Riemann sum with partition given by $a_0 < a_1 < \cdots < a_n$ the nodes are $x_i = a_i$ and the weights are $w_i = (a_i - a_{i-1})$ (or in the evenly spaced case, $w_i = (a_n - a_0)/n$.
@@ -428,7 +425,7 @@ $$
 h(x) = q(x) p_n(x) + r(x)
 $$
 
-and the degree of $r(x)$ is less than $n-1$, the degree of $p_n(x)$. Further, the degree of $q(x)$ is also less than $n-1$, as were it more, then the degree of $q(x)p_n(x)$ would be more than $n-1+n$ or $2n-1$. Let's note that if $x_i$ is a zero of $p_n(x)$ that $h(x_i)= r(x_i)$.
+and the degree of $r(x)$ is no more than $n-1$, the degree of $p_n(x)$ being $n$. Further, the degree of $q(x)$ is also no more than $n-1$, as were it more, then the degree of $q(x)p_n(x)$ would be more than $n-1+n = 2n-1$. Let's note that if $x_i$ is a zero of $p_n(x)$ that $h(x_i)= r(x_i)$.
 
 So
 
@@ -557,18 +554,22 @@ $$
 
 The `QuadGK` package uses a modification to Gauss quadrature to estimate numeric integrals. Let's see how. Behind the scenes, `quadgk` calls `kronrod` to compute nodes and weights.
 
-We have from earlier that
+We have from earlier these Legendre polynomials:
 
 ```{julia}
 u₃(x) = x*(5x^2 - 3)/2
 u₄(x) = 35x^4 / 8 - 15x^2 / 4 + 3/8
 ```
 
+The zeros can readily be found numerically:
+
+
 ```{julia}
 xs = find_zeros(u₄, -1, 1)
 ```
 
-From this we can compute the weights from the derived general formula:
+
+From this we can compute the weights from the derived general formula when $n=4$:
 
 ```{julia}
 k₃, k₄ = 5/2, 35/8
@@ -578,10 +579,10 @@ ws = [k₄/k₃ * 1/(derivative(u₄,xᵢ) * u₃(xᵢ)) * I for xᵢ ∈ xs]
 (xs, ws)
 ```
 
-We compare now to the values returned by `kronrod` in `QuadGK`
+We compare now to the values returned by `kronrod` in `QuadGK` to see they agree after alignment:
 
 ```{julia}
-kxs, kwts, wts = kronrod(4, -1, 1)
+kxs, kwts, wts = QuadGK.kronrod(4, -1, 1)
 [ws wts xs kxs[2:2:end]]
 ```
 
@@ -600,6 +601,54 @@ QL, esterror = quadgk(u, -1, 1)
 
 The first two are expected to not be as accurate, as they utilize a fixed number of nodes.
 
+
+----
+
+The computation in `QuadGK` compares two values to estimate the error and to dexide if a subdivision is needed. The "common case" is based on Gauss nodes for degree $7$ and related nodes for *Kronrod*. The values below are copied from the source code, which caches them for re-use.
+
+```{julia}
+# precomputed n=7 rule in double precision (computed in 100-bit arithmetic),
+# since this is the common case.
+const xd7 = [-9.9145537112081263920685469752598e-01,
+             -9.4910791234275852452618968404809e-01,
+             -8.6486442335976907278971278864098e-01,
+             -7.415311855993944398638647732811e-01,
+             -5.8608723546769113029414483825842e-01,
+             -4.0584515137739716690660641207707e-01,
+             -2.0778495500789846760068940377309e-01,
+             0.0]
+const wd7 = [2.2935322010529224963732008059913e-02,
+             6.3092092629978553290700663189093e-02,
+             1.0479001032225018383987632254189e-01,
+             1.4065325971552591874518959051021e-01,
+             1.6900472663926790282658342659795e-01,
+             1.9035057806478540991325640242055e-01,
+             2.0443294007529889241416199923466e-01,
+             2.0948214108472782801299917489173e-01]
+const wgd7 = [1.2948496616886969327061143267787e-01,
+              2.797053914892766679014677714229e-01,
+              3.8183005050511894495036977548818e-01,
+              4.1795918367346938775510204081658e-01]
+```
+
+These weights can be used directly to integrate a function over $[-1,1]$ in the following manner. We know $\int_{-1}^1 \cos(\pi \cdot x/2) dx$ can be integrated and its value if $4/\pi$ or `1.2732395447351628...` With the weights above, we have this value is approximated by $\sum w_i (f(x_i) + f(-x_i))$.
+
+The Kronrod weights are `wd7` and they yield:^[The awkward `!iszero` avoids double counting the node at `0.0`.]
+
+```{julia}
+f(x) = cos(pi/2 * x)
+kr = sum(w * (f(x) + !iszero(x)*f(-x)) for (w,x) ∈ zip(wd7, xd7))
+kr, kr - 4/pi
+```
+
+The Gauss weights are a bit different, as only 7 are used:
+
+```{julia}
+g = sum(w * (f(x) + !iszero(x)*f(-x)) for (w,x) ∈ zip(wgd7, xd7[2:2:8]))
+g, g - 4/pi
+```
+
+The algorithm compares the value of `kr` to that of `g` and if it is "large" the interval is split making the algorithm adaptive. (Some detail is available at this [Wikipedia](https://en.wikipedia.org/wiki/Gauss%E2%80%93Kronrod_quadrature_formula) page.)
 
 ## Questions
 

@@ -8,8 +8,7 @@ This section uses these add-on packages:
 
 ```{julia}
 using CalculusWithJulia
-using Plots
-plotly()
+using Plots; plotly()
 using SymPy
 using QuadGK
 ```
@@ -21,9 +20,9 @@ using QuadGK
 A function $f(x)$ is Riemann integrable over an interval $[a,b]$ if some limit involving Riemann sums exists. This limit will fail to exist if $f(x) = \infty$ in $[a,b]$. As well, the Riemann sum idea is undefined if either $a$ or $b$ (or both) are infinite, so the limit won't exist in this case.
 
 
-To define integrals  with either functions having singularities or infinite domains, the idea of an improper integral is introduced with definitions to handle the two cases above.
+To define integrals  when a function has a singularity or there is an infinite domains, the idea of an improper integral is introduced.
 
-
+::: {#fig-area-under-sqrt-x-animation}
 ```{julia}
 #| hold: true
 #| echo: false
@@ -39,7 +38,7 @@ function make_sqrt_x_graph(n)
     f(x) = 1/sqrt(x)
     val = N(integrate(f(x), (x, 1/2^n, b)))
 
-	title = L"area under $f$ over $[2^{-%$n}, %$b]$ is $%$(rpad(round(val, digits=2), 4))$"
+	title = L"area under $f$ over $[2^{-%$n}, %$b]$ is $%$(rpad(round(val, digits=2), 4, '0'))$"
 
 
     plt = plot(f, range(a, stop=b, length=1000);
@@ -53,11 +52,7 @@ function make_sqrt_x_graph(n)
 
 end
 
-caption = L"""
-
-Area under $1/\sqrt{x}$ over $[a,b]$ increases as $a$ gets closer to $0$. Will it grow unbounded or have a limit?
-
-"""
+caption = ""
 n = 10
 anim = @animate for i=1:n
     make_sqrt_x_graph(i)
@@ -69,13 +64,17 @@ plotly()
 ImageFile(imgfile, caption)
 ```
 
+Area under $1/\sqrt{x}$ over $[a,1]$ increases as $a$ gets closer to $0$. Will the area grow unbounded or have a limit?
+
+:::
+
 ## Infinite domains
 
 
 Let $f(x)$ be a reasonable function, so reasonable that for any $a < b$ the function is Riemann integrable, meaning $\int_a^b f(x)dx$ exists.
 
 
-What needs to be the case so that we can discuss the integral over the entire real number line?
+What needs to be the case so that we can discuss the integral of $f(x)$ over the entire real number line?
 
 
 Clearly something. The function $f(x) = 1$ is reasonable by the idea above. Clearly the integral over $[a,b]$ is just $b-a$, but the limit over an unbounded domain would be $\infty$. Even though limits of infinity can be of interest in some cases, not so here. What will ensure that the area is finite over an infinite region?
@@ -84,26 +83,32 @@ Clearly something. The function $f(x) = 1$ is reasonable by the idea above. Clea
 Or is that even the right question. Now consider $f(x) = \sin(\pi x)$. Over every interval of the type $[-2n, 2n]$ the area is $0$, and over any interval, $[a,b]$ the area never gets bigger than $2$. But still this function does not have a well defined area on an infinite domain.
 
 
-The right question involves a limit. Fix a finite $a$. We define the definite integral over $[a,\infty)$ to be
+The right approach involves a limit.
 
+::: {.definition title="Definite integral over an unbounded domain"}
+
+Fix a finite $a$. We define the definite integral over $[a,\infty)$ to be
 
 $$
 \int_a^\infty f(x) dx = \lim_{M \rightarrow \infty} \int_a^M f(x) dx,
 $$
 
-when the limit exists. Similarly, we define the definite integral over $(-\infty, a]$ through
+when the limit exists.
+
+Similarly, we define the definite integral over $(-\infty, a]$ through
 
 
 $$
 \int_{-\infty}^a f(x) dx  = \lim_{M \rightarrow -\infty} \int_M^a f(x) dx.
 $$
 
-For the interval $(-\infty, \infty)$ we have need *both* these limits to exist, and then:
+For the interval $(-\infty, \infty)$ we need *both* these limits to exist, and then:
 
 
 $$
 \int_{-\infty}^\infty f(x) dx  = \lim_{M \rightarrow -\infty} \int_M^a f(x) dx + \lim_{M \rightarrow \infty} \int_a^M f(x) dx.
 $$
+:::
 
 :::{.callout-note}
 ## Note
@@ -118,7 +123,7 @@ When the integral exists, it is said to *converge*. If it doesn't exist, it is s
 
 
 $$
-\lim_{M \rightarrow \infty} \int_1^M \frac{1}{x^2}dx = \lim_{M \rightarrow \infty} -\frac{1}{x}\big|_1^M
+\lim_{M \rightarrow \infty} \int_1^M \frac{1}{x^2}dx = \lim_{M \rightarrow \infty} -\frac{1}{x}\Big|_1^M
 = \lim_{M \rightarrow \infty} 1 - \frac{1}{M} = 1.
 $$
 
@@ -126,7 +131,7 @@ $$
 
 
 $$
-\lim_{M \rightarrow \infty} \int_1^M \frac{1}{x^{1/2}}dx = \lim_{M \rightarrow \infty} \frac{x^{1/2}}{1/2}\big|_1^M
+\lim_{M \rightarrow \infty} \int_1^M \frac{1}{x^{1/2}}dx = \lim_{M \rightarrow \infty} \frac{x^{1/2}}{1/2}\Big|_1^M
 = \lim_{M \rightarrow \infty} 2\sqrt{M} - 2 = \infty.
 $$
 
@@ -152,28 +157,37 @@ $$
 for any finite $a$. This is because, $F(M) = e^x$ and this has a limit as $x$ goes to $-\infty$, but not $\infty$.
 
 
-  * Let $f(x) = x e^{-x^2}$. This function has an integral over $[0, \infty)$ and more generally $(-\infty, \infty)$. To see, we note that as it is an odd function, the area from $0$ to $M$ is the opposite sign of that from $-M$ to $0$. So $\lim_{M \rightarrow \infty} (F(M) - F(0)) = \lim_{M \rightarrow -\infty} (F(0) - (-F(\lvert M\lvert)))$. We only then need to investigate the one limit. But we can see by substitution with $u=x^2$, that an antiderivative is $F(x) = (-1/2) \cdot e^{-x^2}$. Clearly, $\lim_{M \rightarrow \infty}F(M) = 0$, so the answer is well defined, and the area from $0$ to $\infty$ is just $1/2$. From $-\infty$ to $0$ it is $-1/2$ and the total area is $0$, as the two sides "cancel" out.
-  * Let $f(x) = \sin(x)$. Even though $\lim_{M \rightarrow \infty} (F(M) - F(-M) ) = 0$, this function is not integrable. The fact is we need *both* the limit $F(M)$ and $F(-M)$ to exist as $M$ goes to $\infty$. In this case, even though the area cancels if $\infty$ is approached at the same rate, this isn't sufficient to guarantee the two limits exists independently.
+* Let $f(x) = x e^{-x^2}$. This function has an integral over $[0, \infty)$ and more generally $(-\infty, \infty)$. To see, we note that as it is an odd function, the area from $0$ to $M$ is the opposite sign of that from $-M$ to $0$. So:
+$$
+\lim_{M \rightarrow \infty} (F(M) - F(0)) = \lim_{M \rightarrow -\infty} (F(0) - (-F(\lvert M\lvert))).
+$$
+We only then need to investigate the one limit. But we can see by substitution with $u=x^2$, that an antiderivative is $F(x) = (-1/2) \cdot e^{-x^2}$. Clearly, $\lim_{M \rightarrow \infty}F(M) = 0$, so the answer is well defined, and the area from $0$ to $\infty$ is just $1/2$. From $-\infty$ to $0$ it is $-1/2$ and the total area is $0$, as the two sides "cancel" out.
+
+* Let $f(x) = \sin(x)$. Even though $\lim_{M \rightarrow \infty} (F(M) - F(-M) ) = 0$, this function is not integrable. The fact is we need *both* the limit $F(M)$ and $F(-M)$ to exist as $M$ goes to $\infty$. In this case, even though the area cancels if $\infty$ is approached at the same rate, this isn't sufficient to guarantee the two limits exists independently.
 
 
-  * Will the function $f(x) = 1/(x\cdot(\log(x))^2)$ have an integral over $[e, \infty)$?
+
+* Will the function $f(x) = 1/(x\cdot(\log(x))^2)$ have an integral over $[e, \infty)$?
 
 
 We first find an antiderivative using the $u$-substitution $u(x) = \log(x)$:
 
 
 $$
+\begin{align*}
 \int_e^M \frac{1}{x \log(x)^{2}} dx
-= \int_{\log(e)}^{\log(M)} \frac{1}{u^{2}} du
-= \frac{-1}{u} \big|_{1}^{\log(M)}
-= \frac{-1}{\log(M)} - \frac{-1}{1}
-= 1 - \frac{1}{\log(M)}.
+&= \int_{\log(e)}^{\log(M)} \frac{1}{u^{2}} du\\
+&= \frac{-1}{u} \Big|_{1}^{\log(M)}\\
+&= \frac{-1}{\log(M)} - \frac{-1}{1}\\
+&= 1 - \frac{1}{\log(M)}.
+\end{align*}
 $$
 
 As $M$ goes to $\infty$, this will converge to $1$.
 
 
-  * The sinc function $f(x) = \sin(\pi x)/(\pi x)$ does not have a nice antiderivative.  Seeing if the limit exists is a bit of a problem. However, this function is important enough that there is a built-in function, `Si`, that computes $\int_0^x \sin(u)/u\cdot du$. This function can be used through `sympy.Si(...)`:
+
+* The sinc function $f(x) = \sin(\pi x)/(\pi x)$ does not have a nice antiderivative.  Seeing if the limit exists is a bit of a problem^[Well, we could break the answer into an alternating series with clearly shrinking terms, so this is a bit of an exaggeration.]. However, this function is important enough that there is a built-in function, `Si`, that computes $\int_0^x \sin(u)/u\cdot du$. This function can be used through `sympy.Si(...)`:
 
 
 ```{julia}
@@ -192,13 +206,13 @@ $$
 
 we introduce a trick and rely on some theorems that have not been discussed.
 
-First, we notice that $\Si(x)$ is the value of $I(\alpha)$ when $\alpha=0$ where
+First, we notice that $\text{Si}(x)$ is the value of $I(\alpha)$ when $\alpha=0$ where
 
 $$
 I(\alpha) = \int_0^\infty \exp(-\alpha t) \frac{\sin(t)}{t} dt
 $$
 
-We differentiate $I$ in $\alpha$ to get:
+We differentiate $I$ in $\alpha$ to get:^[This is a bit of a fast one, as we move the derivative *inside* the integral.]
 
 $$
 \begin{align*}
@@ -217,8 +231,8 @@ $$
 &=\sin(t) \frac{-\exp(-\alpha t)}{\alpha} \Big|_0^\infty -
 \int_0^\infty \frac{-\exp(-\alpha t)}{\alpha} \cos(t) dt \\
 &= 0 + \frac{1}{\alpha} \cdot  \int_0^\infty \exp(-\alpha t) \cos(t) dt \\
-&= \frac{1}{\alpha} \cdot \cos(t)\frac{-\exp(-\alpha t)}{\alpha} \Big|_0^\infty -
-\frac{1}{\alpha} \cdot \int_0^\infty  \frac{-\exp(-\alpha t)}{\alpha} (-\sin(t)) dt \\
+&= \frac{1}{\alpha} \cdot \cos(t)\frac{-\exp(-\alpha t)}{\alpha} \Big|_0^\infty -\\
+&\quad\frac{1}{\alpha} \cdot \int_0^\infty  \frac{-\exp(-\alpha t)}{\alpha} (-\sin(t)) dt \\
 &= \frac{1}{\alpha^2}  - \frac{1}{\alpha^2} \cdot \int_0^\infty \exp(-\alpha t) \sin(t) dt
 \end{align*}
 $$
@@ -232,7 +246,7 @@ $$
 Solving gives the desired integral as
 
 $$
-I'(\alpha) = -\frac{1}{\alpha^2} / (1 + \frac{1}{\alpha^2}) = -\frac{1}{1 + \alpha^2}.
+I'(\alpha) = -\frac{1}{\alpha^2} / \left(1 + \frac{1}{\alpha^2}\right) = -\frac{1}{1 + \alpha^2}.
 $$
 
 
@@ -242,14 +256,15 @@ As our question is answered by $I(0)$, we get $I(0) = \tan^{-1}(0) + C = C = \pi
 
 The above argument requires two places where a *limit* is passed inside the integral. The first involved the derivative. The [Leibniz integral rule](https://en.wikipedia.org/wiki/Leibniz_integral_rule) can be used to verify the first use is valid:
 
-:::{.callout-note icon=false}
-## Leibniz integral rule
+:::{.theorem title="Leibniz integral rule"}
 If $f(x,t)$ and the derivative in $x$ for a fixed $t$ is continuous (to be discussed later) in a region containing $a(x) \leq t \leq b(x)$ and $x_0 < x < x_1$ and both $a(x)$ and $b(x)$ are continuously differentiable, then
 
 $$
-\frac{d}{dx}\int_{a(x)}^{b(x)} f(x, t) dt =
-\int_{a(x)}^{b(x)} \frac{d}{dx}f(x,t) dt +
-f(x, b(x)) \frac{d}{dx}b(x) - f(x, a(x)) \frac{d}{dx}a(x).
+\begin{align*}
+\frac{d}{dx}\int_{a(x)}^{b(x)} f(x, t) dt
+&= \int_{a(x)}^{b(x)} \frac{d}{dx}f(x,t) dt \\
+&\quad + f(x, b(x)) \frac{d}{dx}b(x) - f(x, a(x)) \frac{d}{dx}a(x).
+\end{align*}
 $$
 
 :::
@@ -296,7 +311,7 @@ Suppose $a < c$, we define $\int_a^c f(x) dx = \lim_{M \rightarrow c-} \int_a^M 
 
 $$
 \lim_{M \rightarrow 0+} \int_M^1 \frac{1}{\sqrt{x}} dx
-= \lim_{M \rightarrow 0+} \frac{\sqrt{x}}{1/2} \big|_M^1
+= \lim_{M \rightarrow 0+} \frac{\sqrt{x}}{1/2} \Big|_M^1
 = \lim_{M \rightarrow 0+} 2(1) - 2\sqrt{M} = 2.
 $$
 
@@ -311,7 +326,7 @@ The cases $f(x) = x^{-n}$ for $n > 0$ are tricky to keep straight. For $n > 1$, 
 
 $$
 \lim_{M \rightarrow 0+} \int_M^1 \frac{1}{x} dx
-= \lim_{M \rightarrow 0+} \log(x) \big|_M^1
+= \lim_{M \rightarrow 0+} \log(x) \Big|_M^1
 = \lim_{M \rightarrow 0+} \log(1) - \log(M) = \infty.
 $$
 
@@ -363,7 +378,7 @@ A probability density is a function $f(x) \geq 0$ which is integrable on $(-\inf
 Probability densities are good example of using improper integrals.
 
 
-  * Show that $f(x) = (1/\pi) (1/(1 + x^2))$ is a probability density function.
+* Show that $f(x) = (1/\pi) (1/(1 + x^2))$ is a probability density function.
 
 
 We need to show that the integral exists and is $1$. For this, we use the fact that $(1/\pi) \cdot \tan^{-1}(x)$ is an antiderivative. Then we have:
@@ -376,7 +391,7 @@ $$
 and as $\tan^{-1}(x)$ is odd, we must have $F(-\infty) = \lim_{M \rightarrow -\infty} f(M) = -(1/\pi) \cdot \pi/2$. All told, $F(\infty) - F(-\infty) = 1/2 - (-1/2) = 1$.
 
 
-  * Show that $f(x) = 1/(b-a)$ for $a \leq x \leq b$ and $0$ otherwise is a probability density.
+* Show that $f(x) = 1/(b-a)$ for $a \leq x \leq b$ and $0$ otherwise is a probability density.
 
 
 The integral for $-\infty$ to $a$ of $f(x)$ is just an integral of the constant $0$, so will be $0$. (This is the only constant with finite area over an infinite domain.) Similarly, the integral from $b$ to $\infty$ will be $0$. This means:
@@ -389,10 +404,10 @@ $$
 (One might also comment that $f$ is Riemann integrable on any $[0,M]$ despite being discontinuous at $a$ and $b$.)
 
 
-  * Show that if $f(x)$ is a probability density then so is $f(x-c)$ for any $c$.
+* Show that if $f(x)$ is a probability density then so is $f(x-c)$ for any $c$.
 
 
-We have by the $u$-substitution
+We have by the $u$-substitution $u(x)=x-c$ that
 
 
 $$
@@ -402,7 +417,7 @@ $$
 The key is that we can use the regular $u$-substitution formula provided $\lim_{M \rightarrow \infty} u(M) = u(\infty)$ is defined. (The *informal* notation $u(\infty)$ is defined by that limit.)
 
 
-  * If $f(x)$ is a probability density, then so is $(1/h) f((x-c)/h)$ for any $c, h > 0$.
+* If $f(x)$ is a probability density, then so is $(1/h) f((x-c)/h)$ for any $c, h > 0$.
 
 
 Again, by a $u$ substitution with, now, $u(x) = (x-c)/h$, we have $du = (1/h) \cdot dx$ and the result follows just as before:
@@ -412,10 +427,10 @@ $$
 \int_{-\infty}^\infty \frac{1}{h}f(\frac{x-c}{h})dx = \int_{u(-\infty)}^{u(\infty)} f(u) du = \int_{-\infty}^\infty f(u) du = 1.
 $$
 
-  * If $F(x) = 1 - e^{-x}$, for $x \geq 0$, and $0$ otherwise,  find $f(x)$.
+* If $F(x) = 1 - e^{-x}$, for $x \geq 0$, and $0$ otherwise,  find $f(x)$.
 
 
-We want to just say $F'(x)= e^{-x}$ so $f(x) = e^{-x}$. But some care is needed. First, that isn't right. The derivative for $x<0$ of $F(x)$ is $0$, so $f(x) = 0$ if $x < 0$. What about for $x>0$? The derivative is $e^{-x}$, but is that the right answer? $F(x) = \int_{-\infty}^x f(u) du$, so we have to at least discuss if the $-\infty$ affects things. In this case, and in general the answer is *no*. For any $x$ we can find $M < x$ so that we have $F(x) = \int_{-\infty}^M f(u) du + \int_M^x f(u) du$. The first part is a constant, so will have derivative $0$, the second will have derivative $f(x)$, if the derivative exists (and it will exist at $x$ if the derivative is continuous in a neighborhood of $x$).
+We want to just say $F'(x)= e^{-x}$ so $f(x) = e^{-x}$. But some care is needed. First, that isn't right. The derivative for $x<0$ of $F(x)$ is $0$, so $f(x) = 0$ if $x < 0$. What about for $x>0$? The derivative is $e^{-x}$, but is that the right answer? $F(x) = \int_{-\infty}^x f(u) du$, so we have to at least discuss if the $-\infty$ affects things. In this case, and in general, the answer is *no*. For any $x$ we can find $M < x$ so that we have $F(x) = \int_{-\infty}^M f(u) du + \int_M^x f(u) du$. The first part is a constant, so will have derivative $0$, the second will have derivative $f(x)$, if the derivative exists (and it will exist at $x$ if the derivative is continuous in a neighborhood of $x$).
 
 
 Finally, at $x=0$ we have an issue, as $F'(0)$ does not exist. The left limit of the secant line approximation is $0$, the right limit of the secant line approximation is $1$. So, we can take $f(x) = e^{-x}$ for $x > 0$ and $0$ otherwise, noting that redefining $f(x)$ at a point will not effect the integral as long as the point is finite.
@@ -424,14 +439,43 @@ Finally, at $x=0$ we have an issue, as $F'(0)$ does not exist. The left limit of
 ## Application to series
 
 
-In this application, we compare a series to a related integral to decide convergence or divergence of the series.
+In this application, we compare a series to a related integral to decide convergence or divergence of the series. @fig-integral-test-figure motivates the following theorem.
 
-:::{.callout-note appearance="minimal"}
-#### The integral test
+:::{.theorem title="The integral test"}
+
 Consider a continuous, monotone decreasing function $f(x)$ defined on some interval of the form $[N,\infty)$. Let $a_n = f(n)$ and $s_n = \sum_{k=N}^n a_n$.
 
 * If $\int_N^\infty f(x) dx < \infty$ then the partial sums converge.
 * If $\int_N^\infty f(x) dx = \infty$ then the partial sums diverge.
+:::
+
+::: {#fig-integral-test-figure}
+```{julia}
+#| echo: false
+let
+	# integral test
+    gr()
+	f(x) = 1/x
+	p1 = plot(; legend=false, framestyle=:origin, xticks=1:8, yaxis=([], false))
+	p2 = plot(; legend=false, framestyle=:origin, xticks=1:8, yaxis=([], false))
+	plot!(p1, f, 0.75, 8.25; line=(1, :black))
+	plot!(p2, f, 0.75, 8.25; line=(1, :black))
+
+	for k in 1:7
+		plot!(p1, [(k,0), (k+1,0), (k+1, f(k)), (k, f(k)), (k,0)]; line=(1, :black, :dot))
+		annotate!(p1, [(k+1/2, f(k+1)/2, latexstring("a_{$k}"))])
+	end
+
+	for k in 1:7
+		plot!(p2, [(k,0), (k+1,0), (k+1, f(k+1)), (k, f(k+1)),(k,0)]; line=(1, :black, :dot))
+		annotate!(p2, [(k+1/2, f(k+2)/2, latexstring("a_{$(k+1)}"))])
+	end
+    plotly()
+	plot(p1, p2)
+end
+```
+
+Illustration of the integral test, where a series $a_1 + a_2 + \cdots$ is bounded *below* by $\int_1^\infty f(x)dx$ and the series $a_2 + a_3 + \cdots$ is bounded *above* by $\int_1^\infty f(x)dx$ where $a_i=f(i)$. In either case, converge/divergence of the integral forces convergence/divergence of the series.
 :::
 
 By the monotone nature of $f(x)$, we have on any interval of the type $[i, i+1)$ for $i$ an integer, that $f(i) \geq f(x) \geq f(i+1)$ when $x$ is in the interval. For integrals, this leads to
@@ -491,8 +535,7 @@ That this is finite shows the series converges.
 
 The integral of a power series can be computed easily for some $x$:
 
-:::{.callout-note appearance="minimal"}
-### The integral of a power series
+:::{.theorem title="The integral of a power series"}
 
 Suppose $f(x) = \sum_n a_n (x-c)^n$ is a power series about $x=c$ with radius of convergence $r > 0$. [Then](https://en.wikipedia.org/wiki/Power_series#Differentiation_and_integration) the limits of the integral and the sum can be switched around when $x$ is within the radius of convergence:
 
@@ -501,7 +544,7 @@ $$
 \int f(x) dx
 &= \int \sum_n a_n(x-c)^n dx\\
 &= \sum_{n=0}^\infty \int a_n(x-c)^n dx\\
-= \sum_{n=0}^\infty a_n \frac{(x-c)^{n+1}}{n+1}
+&= \sum_{n=0}^\infty a_n \frac{(x-c)^{n+1}}{n+1}
 \end{align*}
 $$
 
@@ -621,7 +664,7 @@ numericq(val)
 ###### Question
 
 
-Compute the the integral $\int_1^\infty \log(x)/x^2 dx$.
+Compute the integral $\int_1^\infty \log(x)/x^2 dx$.
 
 
 ```{julia}
@@ -649,12 +692,37 @@ numericq(val)
 
 ###### Question
 
+Consider the integral $\int_{-\infty}^\infty f(x) dx$. We do a change of variable with $x = t/(1-t^2)$. This gives:
+
+$$
+\int_a^b f\left(\frac{t}{1-t^2}\right) \frac{t^2 + 1}{t^2 - 1} dt
+$$
+
+What are the values of $a$ and $b$?
+
+```{julia}
+#| echo: false
+choices = [
+L"$a=-1$ and $b=1$",
+L"$a=1$ and $b=-1$",
+L"$a=1$ and $b=0$",
+L"$a=0$ and $b=1$",
+]
+answer = 1
+explanation = "As ``t`` goes to ``1`` from the left, ``x`` goes to what?"
+buttonq(choices, answer; explanation)
+```
+
+
+###### Question
+
 
 From the relationship that if $0 \leq f(x) \leq g(x)$ then $\int_a^b f(x) dx \leq \int_a^b g(x) dx$ it can be deduced that
 
 
-  * if $\int_a^\infty f(x) dx$ diverges, then so does $\int_a^\infty g(x) dx$.
-  * if $\int_a^\infty g(x) dx$ converges, then so does $\int_a^\infty f(x) dx$.
+* if $\int_a^\infty f(x) dx$ diverges, then so does $\int_a^\infty g(x) dx$.
+
+* if $\int_a^\infty g(x) dx$ converges, then so does $\int_a^\infty f(x) dx$.
 
 
 Let $f(x) = \lvert \sin(x)/x^2 \rvert$.
@@ -670,8 +738,8 @@ choices =[
 "It is convergent",
 "It is divergent",
 "Can't say"]
-answ = 1
-radioq(choices, answ, keep_order=true)
+answer = 1
+radioq(choices, answer, keep_order=true)
 ```
 
 ---
@@ -690,8 +758,8 @@ choices =[
 "It is convergent",
 "It is divergent",
 "Can't say"]
-answ = 3
-radioq(choices, answ, keep_order=true)
+answer = 3
+radioq(choices, answer, keep_order=true)
 ```
 
 ---
@@ -707,8 +775,8 @@ choices =[
 "It is convergent",
 "It is divergent",
 "Can't say"]
-answ = 2
-radioq(choices, answ, keep_order=true)
+answer = 2
+radioq(choices, answer, keep_order=true)
 ```
 
 ---
@@ -724,8 +792,8 @@ choices =[
 "It is convergent",
 "It is divergent",
 "Can't say"]
-answ = 1
-radioq(choices, answ, keep_order=true)
+answer = 1
+radioq(choices, answer, keep_order=true)
 ```
 
 ---
@@ -741,8 +809,8 @@ choices =[
 "It is convergent",
 "It is divergent",
 "Can't say"]
-answ = 1
-radioq(choices, answ, keep_order=true)
+answer = 1
+radioq(choices, answer, keep_order=true)
 ```
 
 ###### Question
@@ -759,8 +827,8 @@ choices = [
 "``\\int_0^1 u^{2/3} \\cdot du``",
 "``\\int_0^\\infty 1/u \\cdot du``"
 ]
-answ = 1
-radioq(choices, answ)
+answer = 1
+radioq(choices, answer)
 ```
 
 ###### Question

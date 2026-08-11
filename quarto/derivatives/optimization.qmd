@@ -30,8 +30,11 @@ For example,
 
 The main tool is the extreme value theorem of Bolzano and Fermat's theorem about critical points, which combined say:
 
+::: {.relationship title="Bolazano plus Fermat"}
 
-> If the function $f(x)$ is continuous on $[a,b]$ and differentiable on $(a,b)$, then the extrema exist and must occur at either an end point or a critical point.
+If the function $f(x)$ is continuous on $[a,b]$ then the extrema exist and must occur at either an end point or a critical point.
+
+:::
 
 
 
@@ -52,14 +55,14 @@ With the computer we can take some shortcuts, as we will be able to graph our fu
 The simplest way to investigate the maximum or minimum value of a function over a closed interval is to just graph it and look.
 
 
-We began with the question of which rectangles of perimeter $20$ have the largest area? The figure shows a few different rectangles with this perimeter and their respective areas.
+We began with the question of which rectangles of perimeter $20$ have the largest area? @fig-fixed-perimeter-different-shapes-give-different-areas shows a few different rectangles with this perimeter and their respective areas.
 
-
+::: {#fig-fixed-perimeter-different-shapes-give-different-areas}
 ```{julia}
 #| hold: true
 #| echo: false
 #| cache: true
-### {{{perimeter_area_graphic}}}
+#| fig-alt: Some possible rectangles that satisfy the constraint on the perimeter and their area.
 
 gr()
 function perimeter_area_graphic_graph(n)
@@ -74,11 +77,7 @@ function perimeter_area_graphic_graph(n)
     plt
 end
 
-caption = """
-
-Some possible rectangles that satisfy the constraint on the perimeter and their area.
-
-"""
+caption = ""
 n = 5
 anim = @animate for i=1:n
     perimeter_area_graphic_graph(i-1)
@@ -89,6 +88,9 @@ gif(anim, imgfile, fps = 1)
 plotly()
 ImageFile(imgfile, caption)
 ```
+
+Some possible rectangles that satisfy the constraint on the perimeter and their area.
+:::
 
 The basic mathematical approach is to find a function of a single variable to maximize or minimize. In this case we have two variables describing a rectangle: a base $b$ and height $h$. Our formulas are the area of a rectangle:
 
@@ -110,13 +112,16 @@ From this last one, we see that $b$ can be no bigger than $10$ and no smaller th
 Maximize $A(b) = b \cdot (10 - b)$ over the interval $[0,10]$.
 
 
-This is exactly the form needed to apply our theorem about the existence of extrema (a continuous function on a closed interval). Rather than solve analytically by taking a derivative, we simply graph to find the value:
+This is exactly the form needed to apply our theorem about the existence of extrema (a continuous function on a closed interval). Rather than solve analytically by taking a derivative, in @fig-plot-Area-over-0-10 we simply graph to find the value.
 
-
+::: {#fig-plot-Area-over-0-10}
 ```{julia}
 Area(b) = b * (10 - b)
 plot(Area, 0, 10)
 ```
+
+Plot of `Area` over possible values for `b`; $[0,10]$
+:::
 
 You should see the maximum occurs at $b=5$ by symmetry, so $h=5$ as well, and the maximum area is then $25$. This gives the satisfying answer that among all rectangles of fixed perimeter, that with the largest area is a square. As well, this indicates a common result: there is often some underlying symmetry in the answer.
 
@@ -177,9 +182,10 @@ Here is a similar, though more complicated, example where the analytic approach 
 Let a "[Norman](https://en.wikipedia.org/wiki/Norman_architecture)" window consist of a rectangular window of top length $x$ and side length $y$ and a half circle on top. The goal is to maximize the area for a fixed value of the perimeter. Again, assume this perimeter is $20$ units.
 
 
-This figure shows two such windows, one with base length given by $x=3$, the other with base length given by $x=4$. The one with base length $4$ seems to have much bigger area, what value of $x$ will lead to the largest area?
+This figure shows two such windows, one with base length given by $x=3,$ the other with base length given by $x=4$. The one with base length $4$ seems to have much bigger area, what value of $x$ will lead to the largest area?
 
 
+::: {#fig-norman-window-figure}
 ```{julia}
 #| hold: true
 #| echo: false
@@ -197,6 +203,9 @@ plot!(p, delta .+ x1/2 .+ x1/2*cos.(ts), y1.+x1/2*sin.(ts), linetype=:polygon, f
 plot!(p, x2/2 .+ x2/2*cos.(ts), y2 .+ x2/2*sin.(ts),         linetype=:polygon, fillcolor=:red)
 p
 ```
+
+Figure of two possible Norman windows each with the same, fixed perimeter
+:::
 
 For this problem, we have two equations.
 
@@ -242,30 +251,37 @@ Of course both $x$ and $y$ are non-negative. The latter forces $x$ to be no more
 This leaves us the calculus problem of finding an absolute maximum of a continuous function over the closed interval $[0, 20/(1+\pi/2)]$. Our theorem tells us this maximum must occur, we now proceed to find it.
 
 
-We begin by simply graphing and estimating the values of the maximum and where it occurs.
+We begin by simply graphing `A` in @fig-plot-area-over-0-20-over-1-plus-pi-over-2 and estimating the values of the maximum and where it occurs.
 
-
+::: {#fig-plot-area-over-0-20-over-1-plus-pi-over-2}
 ```{julia}
+#| echo: false
 plot(A, 0, 20/(1+pi/2))
 ```
+
+Plot of area function `A` over the range of possible values for `x`, $[0, 20/(1 + \pi/2)]$
+:::
 
 The naked eye sees that maximum value is somewhere around $27$ and occurs at $x\approx 5.6$. Clearly from the graph, we know the maximum value happens at the critical point and there is only one such critical point.
 
 
-As reading the maximum from the graph is more difficult than reading a $0$ of a function, we plot the derivative using our approximate derivative.
+As reading the maximum from the graph is more difficult than reading a $0$ of a function, In @fig-plot-of-derivative-of-A-over-5-point-5-to-5-point-7 we plot the derivative using our approximate derivative, confirming that the critical point is around $5.6$.
 
-
+::: {#fig-plot-of-derivative-of-A-over-5-point-5-to-5-point-7}
 ```{julia}
+#| echo: false
 plot(A', 5.5, 5.7)
 ```
 
-We confirm that the critical point is around $5.6$.
+Plot of `A'` over $[5.5, 5.7]$
+:::
+
 
 
 #### Using `find_zero` to locate critical points.
 
 
-Rather than zoom in graphically, we now use a root-finding algorithm, to find a more precise value of the zero of $A'$. We know that the maximum will occur at a critical point, a zero of the derivative. The `find_zero` function from the `Roots` package provides a non-linear root-finding algorithm based on the bisection method. The only thing to keep track of is that solving $f'(x) = 0$ means we use the derivative and not the original function.
+Rather than zoom in graphically, we now use a root-finding algorithm, to find a more precise value of the zero of $A'$. $A$ is differentiable so  the maximum will occur at a critical point that is a zero of the derivative. The only thing to keep track of is that solving $f'(x) = 0$ means we use the derivative and not the original function.
 
 
 In a few sections we will see how to use `find_zero` to find a zero *near* an initial guess, but for now we will use `find_zero` to find a zero *between* two values which form a bracketing interval.
@@ -309,9 +325,9 @@ We could also do the above problem symbolically with the aid of `SymPy`. Here ar
 
 A₀    = w₀ * h₀ + pi * (w₀/2)^2 / 2
 Perim = 2*h₀ + w₀ + pi * w₀/2
-h₁    = solve(Perim - 20, h₀)[1]
+h₁    = first(solve(Perim - 20, h₀))
 A₁    = A₀(h₀ => h₁)
-w₁    = solve(diff(A₁,w₀) ~ 0, w₀)[1]
+w₁    = first(solve(diff(A₁,w₀) ~ 0, w₀))
 ```
 
 We know that `w₀` is the maximum in this example from our previous work. We shall see soon, that just knowing that the second derivative is negative at `w₀` would suffice to know this. Here we check that condition:
@@ -349,17 +365,38 @@ The figure shows a trapezoid inscribed in a circle. By adjusting the point ``P_3
 nothing
 ```
 
+::: {#fig-trapezoid-inscribed-in-half-circle}
 ```{julia}
 #| hold: true
 #| echo: false
-function trapezoid(r)
-    plot(x -> sqrt(1 - x^2), -1, 1, legend=false, aspect_ratio=:equal)
-    plot!([-1,1,r,-r,-1], [0,0,sqrt(1-r^2), sqrt(1-r^2), 0], lw=3, color=:red)
+let
+    gr()
+    function trapezoid(r)
+        plot(; empty_style..., aspect_ratio=:equal)
+        plot!([(-1.1, 0), (1.1, 0)]; arrow=true, side=:right, line=(1, :gray))
+        plot!([(0, -0.1), (0, 1.1)]; arrow=true, side=:right, line=(1, :gray))
+        plot!(x -> sqrt(1 - x^2), -1, 1; line=(2, :black))
+        L, R, X, Y = (-1,0), (1,0), (r, sqrt(1-r^2)), (-r, sqrt(1-r^2))
+        plot!([L, R, X, Y, L], line=(3, :red))
+        scatter!([X], marker=(3,))
+        annotate!([
+            (X..., text(L"(x,y)", :bottom, :left)),
+            (0, 0, text(L"(0,0)", :top, :left)),
+            (-1, 0, text(L"-r", :top)),
+            ( 1, 0, text(L"r", :top))
+        ])
+    end
+    plt = trapezoid(0.75)
+    plotly()
+    plt
 end
-trapezoid(0.75)
 ```
 
-A trapezoid is *inscribed* in the upper-half circle of radius $r$. The trapezoid is found be connecting the points $(x,y)$ (in the first quadrant) with $(r, 0)$, $(-r,0)$, and $(-x, y)$. Find the maximum area. (The above figure has $x=0.75$ and $r=1$.)
+A trapezoid inscribed in a upper-half circle with key point $(x,y)$ laying in quadrant $I$
+:::
+
+
+A trapezoid is *inscribed* in the upper-half circle of radius $r$. The trapezoid is found be connecting the points $(x,y)$ (in the first quadrant) with $(r, 0)$, $(-r,0)$, and $(-x, y)$. Find the maximum area. (@fig-trapezoid-inscribed-in-half-circle shows $x=0.75$ and $r=1$.)
 
 
 Here the constraint is simply $r^2 = x^2 + y^2$ with $x$ and $y$ being non-negative. The area is then found through the average of the two lengths times the height. Using `height` for `y`, we have:
@@ -367,17 +404,18 @@ Here the constraint is simply $r^2 = x^2 + y^2$ with $x$ and $y$ being non-negat
 
 ```{julia}
 @syms x::positive r::positive
-hₜ = sqrt(r^2 - x^2)
-aₜ = (2x + 2r)/2 * hₜ
-possible_sols = solve(diff(aₜ, x) ~ 0, x) # possibly many solutions
+height = sqrt(r^2 - x^2)
+a = (2x + 2r)/2 * height
+possible_sols = solve(diff(a, x) ~ 0, x) # possibly many solutions
 x0 = first(possible_sols)  # only solution is also found from first or [1] indexing
 ```
 
 The other values of interest can be found through substitution. For example:
 
 
+
 ```{julia}
-hₜ(x => x0)
+height(x => x0)
 ```
 
 ## Trigonometry problems
@@ -389,9 +427,9 @@ Many maximization and minimization problems involve triangles, which in turn use
 A ladder is to be moved through a two-dimensional hallway which has a bend and gets narrower after the bend. The hallway is $8$ feet wide then $5$ feet wide. What is the longest such ladder that can be navigated around the corner?
 
 
-The figure shows a ladder of length $l_1 + l_2$ that got stuck - it was too long.
+@fig-ladder-length-l1-l2 shows a ladder of length $l_1 + l_2$ that got stuck - it was too long.
 
-
+::: {#fig-ladder-length-l1-l2}
 ```{julia}
 #| hold: true
 #| echo: false
@@ -401,7 +439,7 @@ let
 			 xticks = [0,5, 15],
 			 yticks = [0,8, 12],
 			 line=(:blue, 2),
-			 legend=false)
+             legend=false)
     plot!(p, [5, 5, 15], [15, 8, 8]; line=(:blue,2))
     plot!(p, [0,14.53402874075368], [12.1954981558864, 0], linewidth=3)
     plot!(p, [0,5], [8,8], color=:orange)
@@ -419,6 +457,10 @@ end
 plotly()
 nothing
 ```
+
+Figure illustrating top view of a ladder of some length being moved around a corner in two dimensions. The ladder in the figure would be too big, as it is stuck in this position.
+:::
+
 
 We approach this problem in reverse. It is easy to see when a ladder is too long. It gets stuck at some angle $\theta$. So for each $\theta$ we find that ladder length that is just too long. Then we find the minimum length of all these ladders that are too long. If a ladder is this length or more it will get stuck for some angle. However, if it is less than this length it will not get stuck. So to maximize a ladder length, we minimize a different function. Neat.
 
@@ -445,13 +487,16 @@ Our goal is to minimize this function for all angles between $0$ and $90$ degree
 
 This is not a continuous function on a closed interval - it is undefined at the endpoints. That being said, a quick plot will convince us that the minimum occurs at a critical point and there is only one critical point in $(0, \pi/2)$.
 
-
+::: {#fig-plot-l-over-0-pi-over-2}
 ```{julia}
-delta = 0.2
-plot(l, delta, pi/2 - delta)
+#| echo: false
+plot(rangeclamp(l, 40), 0, pi/2; legend=false)
 ```
 
-The graph shows the minimum occurs between $0.50$ and $1.00$ radians, a bracket for the derivative. Here we find $x$ and the minimum value:
+Plot of `l`, the maximum length ladder stuck at angle $\theta$, over $(0, \pi/2)$
+:::
+
+@fig-plot-l-over-0-pi-over-2 shows the minimum occurs between $0.50$ and $1.00$ radians, a bracket for the derivative. Here we find $x$ and the minimum value:
 
 
 ```{julia}
@@ -470,7 +515,7 @@ Ethan Hunt, a top secret spy, has a mission to chase a bad guy. Here is what we 
 
 
   * Ethan likes to run. He can run at $10$ miles per hour.
-  * He can drive a car - usually some concept car by BMW - at $30$ miles per hour, but only on the road.
+  * He can drive a car---usually some concept car by BMW---at $30$ miles per hour, but only on the road.
 
 
 For his mission, he needs to go $10$ miles west and $5$ miles north. He can do this by:
@@ -497,30 +542,28 @@ $$
 
 With the endpoints given by $T(0) = \sqrt{10^2 + 5^2}/10$ and $T(10) = (10 + 5)/30$.
 
+@fig-ethan-hunts-time-over-0-10 shows a plot of $T(x)$ over the interval $(0,10)$.
 
-Let's plot $T(x)$ over the interval $(0,10)$ and look:
 
 
+::: {#fig-ethan-hunts-time-over-0-10}
 ```{julia}
+#| echo: false
 T(x) = x/30 + sqrt(5^2 + (10-x)^2)/10
-```
-
-```{julia}
 plot(T, 0, 10)
 ```
 
-The minimum happens way out near 8. We zoom in a bit:
+Plot of $T$ over $[0,10]$.
+:::
+
+The lone minimum happens way out near 8.
+
+
+We now use `find_zero` to refine our guess at the critical point using $[0, 10]$, as there is only one obvious solution:
 
 
 ```{julia}
-plot(T, 7, 9)
-```
-
-It appears to be around $8.3$. We now use `find_zero` to refine our guess at the critical point using $[7,9]$:
-
-
-```{julia}
-α = find_zero(T', (7, 9))
+α = find_zero(T', (0, 10))
 ```
 
 Okay, got it. Around $8.23$. So is our minimum time.
@@ -540,9 +583,9 @@ sqrt(10^2 + 5^2)/10, T(α), (10+5)/30
 Ahh, we see that $T(x)$ is not continuous on $[0, 10]$, as it jumps at $x=10$ down to an even smaller amount of $1/2$.  It may not look as impressive as a miles-long sprint, but Mr. Hunt is advised by Benji to drive the whole way.
 
 
-### Rate times time ... the origin story
+### Rate times time---the origin story
 
-
+::: {#fig-lhospital-image-43}
 ```{julia}
 #| hold: true
 #| echo: false
@@ -558,7 +601,7 @@ region on the side of $C$, they cover distance $a$ in time $c$, and
 that on the other, on the side of $F$, distance $b$ in the same time
 $c$. We ask through which point $E$ on the line $AEB$ they should pass,
 so as to take the least possible time to get from $C$ to $F$? (From
-http://www.ams.org/samplings/feature-column/fc-2016-05.)
+[AMS.org](http://www.ams.org/samplings/feature-column/fc-2016-05).)
 
 
 """
@@ -566,15 +609,17 @@ http://www.ams.org/samplings/feature-column/fc-2016-05.)
 nothing
 ```
 
-![Image number $43$ from l'Hospital's calculus book (the first). A
+![](./figures/fcarc-may2016-fig43-250.png){fig-alt="Image number 43 from l'Hospital's calculus book"}
+
+Image number $43$ from l'Hospital's calculus book (the first). A
 traveler leaving location $C$ to go to location $F$ must cross two
 regions separated by the straight line $AEB$. We suppose that in the
 region on the side of $C$, he covers distance $a$ in time $c$, and
 that on the other, on the side of $F$, distance $b$ in the same time
 $c$. We ask through which point $E$ on the line $AEB$ he should pass,
 so as to take the least possible time to get from $C$ to $F$? (From
-http://www.ams.org/samplings/feature-column/fc-2016-05.)](./figures/fcarc-may2016-fig43-250.png)
-
+[AMS.org](http://www.ams.org/samplings/feature-column/fc-2016-05).)
+:::
 
 The last example is a modern day illustration of a problem of calculus dating back to l'Hospital. His parameterization is a bit different. Let's change his by taking two points $(0, a)$ and $(L,-b)$, with $a,b,L$ positive values. Above the $x$ axis travel happens at rate $r_0$, and below, travel happens at rate $r_1$, again, both positive. What value $x$ in $[0,L]$ will minimize the total travel time?
 
@@ -598,7 +643,7 @@ The answer will occur at a critical point or an endpoint, either $x=0$ or $x=L$.
 The structure of `dt` is too complicated for simply calling `solve` to find the critical points. Instead we help `SymPy` out a bit. We are solving an equation of the form $a/b + c/d = 0$. These solutions will also be solutions of $(a/b)^2 - (c/d)^2=0$ or even $a^2d^2 - c^2b^2 = 0$. This follows as solutions to $u+v=0$, also solve $(u+v)\cdot(u-v)=0$, or $u^2 - v^2=0$. Setting $u=a/b$ and $v=c/d$ completes the comparison.
 
 
-We can get these terms - $a$, $b$, $c$, and $d$ - as follows:
+We can get these terms---$a$, $b$, $c$, and $d$---as follows:
 
 
 ```{julia}
@@ -620,7 +665,7 @@ p = sympy.Poly(ex, x) # a0 + a1⋅x + a2⋅x^2 + a3⋅x^3 + a4⋅x^4
 p.coeffs()
 ```
 
-Fourth degree polynomials can be solved. The critical points of the original equation will be among the $4$ solutions given. However, the result is complicated.  The [article](http://www.ams.org/samplings/feature-column/fc-2016-05) – from which the figure came – states that "In today's textbooks the problem, usually involving a river, involves walking along one bank and then swimming across; this corresponds to setting $g=0$ in l'Hospital's example, and leads to a quadratic equation." Let's see that case, which we can get in our notation by taking $b=0$:
+Fourth degree polynomials can be solved. The critical points of the original equation will be among the $4$ solutions given. However, the result is complicated.  The [article](http://www.ams.org/samplings/feature-column/fc-2016-05)---from which the figure came---states that "In today's textbooks the problem, usually involving a river, involves walking along one bank and then swimming across; this corresponds to setting $g=0$ in l'Hospital's example, and leads to a quadratic equation." Let's see that case, which we can get in our notation by taking $b=0$:
 
 
 ```{julia}
@@ -707,22 +752,30 @@ Here the extreme value theorem doesn't technically apply, as we don't have a clo
 In general, for an optimization problem of a continuous function on the interval $(a,b)$ if the right limit at $a$ and left limit at $b$ can be ruled out as candidates, the optimal value must occur at a critical point.)
 
 
-So to approach this problem we first graph it over a wide interval.
+So to approach this problem we first graph it over a wide interval in @fig-plot-of-x-exp-minus-x-squared-over-wide-interval.
 
-
+::: {#fig-plot-of-x-exp-minus-x-squared-over-wide-interval}
 ```{julia}
+#| echo: false
 f(x) = x * exp(-x^2)
 plot(f, 0, 100)
 ```
 
+Plot of $f(x) = x \cdot e^{-x^2}$ over $[0, 100]$, a wide interval
+:::
+
 Clearly the action is nearer to $1$ than $100$. We try graphing the derivative near that area:
 
-
+::: {#fig-plot-of-x-exp-minus-x-squared-over-interval-of-interest}
 ```{julia}
+#| echo: false
 plot(f', 0, 5)
 ```
+Plot of the *derivative$ of $f(x) = x \cdot e^{-x^2}$ over $[0, 5]$, an interval where the values of interest lie
+:::
 
-This shows the value of interest near $0.7$ for a critical point. We use `find_zero` with $[0,1]$ as a bracket
+
+@fig-plot-of-x-exp-minus-x-squared-over-interval-of-interest shows the value of interest near $0.7$ for a critical point. We use `find_zero` with $[0,1]$ as a bracket
 
 
 ```{julia}
@@ -780,12 +833,16 @@ SA(r) = SA(canheight(r), r)
 This is minimized subject to the constraint that $r \geq 0$. A quick glance shows that as $r$ gets close to $0$, the can must get infinitely tall to contain that fixed volume, and would have infinite surface area as the $1/r^2$ in the first term implies. On the other hand, as $r$ goes to infinity, the height must go to $0$ to make a really flat can. Again, we would have infinite surface area, as the $r^2$ term at the end indicates. With this observation, we can rule out the endpoints as possible minima, so any minima must occur at a critical point.
 
 
-We start by making a graph, making an educated guess that the answer is somewhere near a real life answer, or around $3$-$5$ cms in radius:
+We start by making the graph in @fig-plot-of-surface-area-of-can-over-2-10 using an educated guess that the answer is somewhere near a real life answer, or around $3$-$5$ cms in radius.
 
-
+::: {#fig-plot-of-surface-area-of-can-over-2-10}
 ```{julia}
+#| echo: false
 plot(SA, 2, 10)
 ```
+
+Plot of surface area of a can over $[2, 10]$
+:::
 
 The minimum looks to be around $4$cm and is clearly between $2$cm and $6$cm. We can use `find_zero` to zero in on the value of the critical point:
 
@@ -848,18 +905,26 @@ numericq(val)
 
 A rancher with $10$ meters of fence wishes to make a pen adjacent to an existing fence. The pen will be a rectangle with one edge using the existing fence. Say that has length $x$, then $10 = 2y + x$, with $y$ the other dimension of the pen. What is the maximum area that can be made?
 
-
+::: {#fig-plot-of-stupid-rancher-figure-for-fencing}
 ```{julia}
 #| hold: true
 #| echo: false
-	p = plot(; legend=false, aspect_ratio=:equal, axis=nothing, border=:none)
+let
+    gr()
+    p = plot(; legend=false, aspect_ratio=:equal, axis=nothing, border=:none)
 
-plot!([0,10, 10, 0, 0], [0,0,10,10,0]; linewidth=3)
-plot!(p, [10,14,14,10], [2, 2, 8,8]; linewidth = 1)
+    plot!([0,10, 10, 0, 0], [0,0,10,10,0]; linewidth=3)
+    plot!(p, [10,14,14,10], [2, 2, 8,8]; linewidth = 1)
 
-annotate!(p, [(14-0.1, 5, text("x", :right)), (12,2, text("y",:bottom))])
-p
+    annotate!(p, [(14-0.1, 5, text(L"x", :right)), (12,2, text(L"y",:bottom))])
+    plotly()
+    p
+end
 ```
+
+Plot of rancher's adjacent pen
+:::
+
 
 ```{julia}
 #| hold: true
@@ -917,8 +982,8 @@ choices = [
 "It is also 20",
 "``17.888``"
 ]
-answ = 1
-radioq(choices, answ)
+answer = 1
+radioq(choices, answer)
 ```
 
 ###### Question
@@ -1054,22 +1119,31 @@ val = y(x0)
 numericq(val) # 0
 ```
 
-###### Question (Thanks https://www.math.ucdavis.edu/~kouba)
+###### Question
 
 
-A movie screen projects on a wall 20 feet high beginning 10 feet above the floor.  This figure shows $\theta$ for $x=30$:
+A movie screen projects on a wall 20 feet high beginning 10 feet above the floor. @fig-plot-movie-screen-projector shows $\theta$ for $x=30$:
 
-
+::: {#fig-plot-movie-screen-projector}
 ```{julia}
 #| hold: true
 #| echo: false
-p = plot([0, 30,30], [0,0,10], xlim=(0, 32), color=:blue, legend=false)
-plot!(p, [30, 30], [10, 30], color=:blue, linewidth=4)
-plot!(p, [0, 30,30,0], [0,10,30,0], color=:orange)
-annotate!(p, [(x,y,l) for (x,y,l) in zip([15, 5, 31, 31], [1.5, 3.5, 5, 20], ["x=30", "θ", "10", "20"])])
+let
+    gr()
+    p = plot([0, 30,30], [0,0,10], xlim=(0, 32), color=:blue, legend=false)
+    plot!(p, [30, 30], [10, 30], color=:blue, linewidth=4)
+    plot!(p, [0, 30,30,0], [0,10,30,0], color=:orange)
+    annotate!(p, [(x,y,l) for (x,y,l) in zip([15, 5, 31, 31], [1.5, 3.5, 5, 20], [L"x=30", L"\theta", L"10", L"20"])])
+
+    plotly()
+    p
+end
 ```
 
-What value of the largest angle $\theta$ that $x$ gives? (In degrees.)
+Plot of a $20$-foot movie screen from $30$ feet away and the angle subtended
+:::
+
+What value of the largest angle $\theta$ in degrees that $x$ gives? (Thanks https://www.math.ucdavis.edu/~kouba).)
 
 
 ```{julia}
@@ -1107,8 +1181,8 @@ Now if $Likhood(t) = \exp(-3t) \cdot \exp(-2t) \cdot \exp(-4t), \quad 0 \leq t \
 choices=["It does work and the answer is x = 2.27...",
 	 L" $Likhood(t)$ is not continuous on $0$ to $10$",
          L" $Likhood(t)$ takes its maximum at a boundary point - not a critical point"];
-answ = 3;
-radioq(choices, answ)
+answer = 3;
+radioq(choices, answer)
 ```
 
 ##### Question
@@ -1139,8 +1213,8 @@ choices=[
 "The median, or middle number, of the values",
 L"The square roots of the values squared, $(x_1^2 + \cdots + x_n^2)^2$"
 ]
-answ = 1
-radioq(choices, answ)
+answer = 1
+radioq(choices, answer)
 ```
 
 ###### Question
@@ -1231,22 +1305,30 @@ numericq(hstar)
 ###### Question
 
 
-Find the value $x > 0$ which minimizes the distance from the graph of $f(x) = \log_e(x) - x$ to the origin $(0,0)$.
+Find the value $x > 0$ which minimizes the distance from the graph of $f(x) = \ln(x) - x$ to the origin $(0,0)$.
 
-
+::: {#fig-minimize-distance-from-logx-minus-x}
 ```{julia}
 #| hold: true
 #| echo: false
-f(x) = log(x) - x
-p = plot(f, 0.2, 2, ylim=(-2,0.25), legend=false, linewidth=3)
-plot!(p, [0,0], [-2, 0.25], color=:blue)
-plot!(p, [0,2],[0,0], color=:blue)
-xs = [0,1]; ys = [0, f(1)]
-scatter!(p, xs,ys, color=:orange)
-plot!(p, xs, ys, color=:orange, linewidth=3)
-annotate!(p, [(.75, f(.5)/2, "d = $(round(sqrt(.5^2 + f(.5)^2), digits=2))")])
-p
+let
+    gr()
+    f(x) = log(x) - x
+    p = plot(f, 0.2, 2, ylim=(-2,0.25), legend=false, linewidth=3)
+    plot!(p, [0,0], [-2, 0.25], color=:blue)
+    plot!(p, [0,2],[0,0], color=:blue)
+    xs = [0,1/2]; ys = [0, f(1/2)]
+    O, P = (0,0), (1/2, f(1/2))
+    scatter!(p, [O, P], color=:orange)
+    plot!(p, [O, P], color=:orange, linewidth=3)
+    annotate!(p, [(.28, f(0.5)/2, text(L"d = 1.29\cdots", :left))])
+    plotly()
+    p
+end
 ```
+
+Plot of $f(x) = \ln(x) - x$ and the distance, $d$, of the point $(1/2, f(1/2)$ to the origin $(0,0)$
+:::
 
 ```{julia}
 #| hold: true
@@ -1274,10 +1356,14 @@ Image number $40$ from l'Hospital's calculus book (the first calculus book). Amo
 nothing
 ```
 
-![Image number $40$ from l'Hospital's calculus book (the first calculus book). Among all the cones that can be inscribed in a sphere, determine which one has the largest lateral area. (From [AMS](http://www.ams.org/samplings/feature-column/fc-2016-05)).](./figures/fcarc-may2016-fig40-300.png)
+::: {#fig-lhospital-image-40-optimization}
+![](./figures/fcarc-may2016-fig40-300.png){fig-alt="L'Hospital image 40"}
+
+Image number $40$ from l'Hospital's calculus book (the first calculus book). Among all the cones that can be inscribed in a sphere, determine which one has the largest lateral area. (From [AMS](http://www.ams.org/samplings/feature-column/fc-2016-05)).
+:::
 
 
-The figure above poses a problem about cones in spheres, which can be reduced to a two-dimensional problem. Take a sphere of radius $r=1$, and imagine a secant line of length $l$ connecting $(-r, 0)$ to another point $(x,y)$ with $y>0$. Rotating that line around the $x$ axis produces a cone and its lateral surface is given by $SA=\pi \cdot y \cdot l$. Write $SA$ as a function of $x$ and solve.
+@fig-lhospital-image-40-optimization poses a problem about cones in spheres, which can be reduced to a two-dimensional problem. Take a sphere of radius $r=1$, and imagine a secant line of length $l$ connecting $(-r, 0)$ to another point $(x,y)$ with $y>0$. Rotating that line around the $x$ axis produces a cone and its lateral surface is given by $SA=\pi \cdot y \cdot l$. Write $SA$ as a function of $x$ and solve.
 
 
 The largest lateral surface area is:
@@ -1306,8 +1392,8 @@ choices = ["exactly four times",
 L"exactly $\pi$ times",
 L"about $2.6$ times as big",
 "about the same"]
-answ = 3
-radioq(choices, answ)
+answer = 3
+radioq(choices, answer)
 ```
 
 ###### Question
@@ -1354,35 +1440,45 @@ choices = [
 "``e/a``",
 "``a \\cdot e``"
 ]
-answ=2
-radioq(choices, answ)
+answer=2
+radioq(choices, answer)
 ```
 
 ###### Question
 
 
-The ladder problem has an trigonometry-free solution. We show one attributed to [Asma](http://www.mathematische-basteleien.de/ladder.htm).
+The ladder problem has a trigonometry-free solution. We show one attributed to [Asma](http://www.mathematische-basteleien.de/ladder.htm).
 
-
+::: {#fig-ladder-problem-look-ma-no-trigonometry}
 ```{julia}
 #| hold: true
 #| echo: false
-plt = plot(; axis=nothing, border=:none, legend=false, aspect_ratio=:equal)
-a,b = 1, 2
-p = 1/2
-x = a/p
-plot!(plt, [0, b*(1+p), 0, 0], [0, 0, a+x, 0])
-plot!(plt, [b,b,0,0],[0,a,a,0])
-annotate!(plt, [
-	(b/2,0,     text("b",:top)),
-	(0,a/2,     text("a",:right)),
-	(0,a+x/2,   text("x",:right)),
-	(b+b*p/2,0, text("bp",:top))
-])
-plt
+let
+    gr()
+    plt = plot(; axis=nothing, border=:none, legend=false, aspect_ratio=:equal)
+    a,b = 1, 2
+    p = 1/2
+    x = a/p
+    O, P, Q = (0,0), (b*(1+p), 0), (0, a+x)
+    plot!(plt, [Q,O,P]; line=(1, :blue))
+    plot!(plt, [Q,P]; line=(3, :green))
+    plot!(plt, [b,b,0,0],[0,a,a,0])
+    annotate!(plt, [
+	    (b/2,0,     text(L"b",:top)),
+	    (0,a/2,     text(L"a",:right)),
+	    (0,a+x/2,   text(L"x",:right)),
+	    (b+b*p/2,0, text(L"b\cdot p",:top)),
+        ((b + b*p)/2, (a+x)/2, text(L"c", :bottom, :left))
+    ])
+    plotly()
+    plt
+end
 ```
 
-Introducing a variable $p$, we get, following the above figure, the ladder of length $c$  touching the wall at $b+bp$ and $a + x$.
+Figure to solve a ladder problem with Pythagorean's theorem
+:::
+
+Introducing a variable $p$, we get, following @fig-ladder-problem-look-ma-no-trigonometry, the ladder of length $c$  touching the wall at $b+bp$ and $a + x$.
 
 
 Using similar triangles, we have:

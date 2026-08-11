@@ -1,0 +1,2592 @@
+---
+title: "Symbolic math with Giac"
+engine: julia
+format:
+  html:
+    embed-resources: true
+    standalone: true
+---
+
+# Using the Giac symbolic math engine within Julia
+
+This page  describes the use of symbolic math for some topics of Calculus within `Julia` utilizing the [Giac](http://www-fourier.ujf-grenoble.fr/~parisse/giac.html) library. Giac is accessed through `Giac.jl`. Giac is a computer algebra system (CAS) implemented in C++; `Giac.jl` is an interface. See this [pdf documentation](https://www-fourier.univ-grenoble-alpes.fr/~parisse/giac/cascmd_en.pdf) for a comprehensive set of topics or the `Julia` documentation for the different commands discussed.
+
+There are other possible choices for symbolic math within the Julia ecosystem:
+
+* `SymPy.jl`: a package using either `PyCall` or `PythonCall` to connect to the sympy Python library. This is full featured computer algebra system, but does require the underlying python installation to work within `Julia`.
+* `Symbolics.jl`: a numeric-oriented computer algebra system written in `Julia`, well suited for its intended use, but not a feature rich as either `Giac` or sympy.
+* `SymEngine.jl`: a symbolic manipulation library designed for performance, written in C++, but is not intended to be full featured computer algebra systems, as any of the others mentioned.
+
+Whereas, Giac is a mature CAS and `Giac.jl` a natural interface from the perspective of `Julia` that does not require a glue package, as `SymPy` does.
+
+----
+
+The `Giac` package is loaded as any other package is package is. We also add the `Plots` package to handle our plotting needs.^[Other plotting packages can be used]
+
+
+```{julia}
+using Giac
+using Plots
+```
+
+There are a few basic ideas behind the package:
+
+* Symbolic variables and values can be easily created (`@giac_var`, `giac_eval`).
+* Generic operations, such as math operations, have specialized methods for symbolic values and expressions that utilize the underlying Giac library to manipulate or create new symbolic expressions.
+* Commands specific to the Giac library are accessed through the `Commands` submodule and are specialized on the first argument being of type `GiacExpr`.
+* Most data exchange between `Julia` and the C++ library is done through strings.
+
+
+## Symbolic variables
+
+The main way to create a symbolic object in `Giac` is the `@giac_var` macro
+
+```{julia}
+@giac_var x
+```
+
+
+One or more variables can be created.
+
+```{julia}
+@giac_var x y
+```
+
+In this example, this command creates a range of values:
+
+```{julia}
+@giac_several_vars z 3
+```
+
+
+Symbolic functions can be naturally specified
+
+```{julia}
+@giac_var u(t)
+u(x)
+```
+
+::: {.callout-note}
+## GiacExpr
+
+`Giac` has a few basic types for its objects, the primary one being `GiacExpr`. This type may appear in some display methods and may be necessary for certain methods, such as `collect`.
+
+```{julia}
+isa(x, GiacExpr), isa(sin(x^2), GiacExpr)
+```
+:::
+
+
+## Giac commands, Julia methods
+
+
+Giac has over 2000 commands available. Many of these have counterparts within `Julia`. Commands in `Giac` which have base `Julia` counterparts or `LinearAlgebra` counterparts are extended to have methods defined for when the first argument is of type `GiacExpr`. For example, the trigonometric functions all have methods for `Giac` expressions:
+
+```{julia}
+sin(x), cos(x), tan(x), asin(x), acos(x), atan(x)
+```
+
+The above method calls all return unevaluated symbolic expressions.
+
+Basic math operations do as well:
+
+```{julia}
+x*y^(1/2)/(1 + x^2 + y^2)
+```
+
+Those commands which do not have a counterpart in base `Julia` or the `LinearAlgebra` module, do have new methods defined that narrow the type of the first argument to  `GiacExpr`. These  methods are generated in the `Giac.Commands` module and are available within that module. For example, the `simplify` command is defined along the lines of:^[With a notable absence not illustrated---the Giac documentation string is given to the automatically generated methods.]
+
+```{julia}
+#| eval: false
+simplify(first_arg::GiacExpr, rest...) = Giac.invoke_cmd(:simplify, first_arg, rest...)
+```
+
+(There are no keyword arguments passed.)
+
+The `Giac.Commands` module can be brought into scope via `using Giac.Commands` and all the commands would then be available, as they are exported when generated.
+
+However, this approach can cause many conflicts with methods defined in other packages---such as `Plots`, as `Giac` has underlying plotting functionality.
+
+We selectively import commands as needed. The basic syntax for importing a method looks like the following and will be used in the sequel:
+
+```{julia}
+using Giac.Commands: factor, simplify, expand
+```
+
+
+## Symbolic numbers
+
+If `x` is symbolic, the expression `2x` will also be symbolic
+
+```{julia}
+2x
+```
+
+Behind the scenes, before multiplying, `2` and `x` the `2` is converted to the `GiacExpr` type^[Via `convert(GiacExpr, 2)`] and the two arguments are passed to an underlying C++ call^[`GiacCxxBindings.giac_eval(...)`] after a conversion to a string. So most regular `Julia` expressions involving one or more symbolic values will simply yield symbolic answers without modification. Integers and rational numbers promote to exact counterparts; floating point numbers convert to floating point values.
+
+Symbolic numbers can be directly produced *from strings* using `giac_eval`, for example:
+
+```{julia}
+giac_eval("42")
+```
+
+There are some constants that can be produced this way. The following are in `Giac.Constants`:
+
+```{julia}
+giac_eval("e"), giac_eval("pi"), giac_eval("i")
+```
+
+Values for infinity can be constructed from their names:
+
+```{julia}
+giac_eval("infinity"),  giac_eval("-infinity"), giac_eval("+infinity")
+```
+
+A more common `Julia` idiom would be to convert the number to the `GiacExpr` type, and this too can be done:
+
+```{julia}
+convert(GiacExpr, 42), convert(GiacExpr, pi), convert(GiacExpr, Inf)
+```
+
+----
+
+Care must be taken with some expressions, as the conversion to `GiacExpr` and back to `Float64` may not agree, given the digits used by `Giac` and the conversion to string. For example, this expression below fails with many inputs:
+
+```{julia}
+v =  1.000000000222
+convert(Float64, convert(GiacExpr, v)) == v
+```
+
+----
+
+Care must be taken to ensure promotion occurs before expressions are evaluated with `Julia`:
+
+```{julia}
+x/2 == x * (1/2), x/2 == x * (1//2)
+```
+
+In the calculation `x * (1/2)` the value of `1/2` is evaluated returning a floating point value `0.5` and `x * 0.5` is not equal to `x/2` in `Giac`.
+
+
+Similarly, ensuring the promotion occurs beforehand can be used:
+
+```{julia}
+2*pi*x, 2*(pi*x)
+```
+
+In the following, we define `PI` to be the result of converting `pi` to a `Giac` expression so that such considerations need not be made.
+
+::: {.callout-note}
+## giac_eval
+
+`Giac.jl` is a `Julia` interface to an underlying `C++` library. The primary protocol to transfer data from a `Julia` session to this library is to pass values after converting them to strings. The `giac_eval` command parses a string and produces a Giac expression in the `C++` library, which is then referenced with the `Julia` session.
+
+The `giac_eval` command can be used to quickly create symbolic expressions, and symbolic values. It is especially useful to avoid early floating point conversions:
+
+```{julia}
+giac_eval("2 * pi * x"), giac_eval("sqrt(2)")
+```
+
+:::
+
+## Giac expressions
+
+Symbolic expressions can be created by applying functions to symbolic variables. For example
+
+```{julia}
+@giac_var F
+C = 9//5 * (F - 32)
+```
+
+A complicated expression is abstractly a tree with an enclosing operation and various arguments. Such expressions can be systematically iterated over until the arguments are either just symbolic variables or symbolic numbers.
+
+```{julia}
+using Giac: arguments, operation # names from TermInterface
+op, args = (operation(C), arguments(C))
+operation(last(args)), arguments(last(args))
+```
+
+## Substitution
+
+Expressions are like function bodies---and not like regular Julia expressions---in that the symbols are evaluated only on request. For functions this is when the function is called; for expressions this is when values are substituted.
+
+Substituting one value in for another, is done in a few ways, for example there is `substitute`, called with a dictionary of substitutions. These substitutions can also be specified as pairs, as in `substitute(ex, old => new)`.
+
+The `substitute` function (or object method) replaces an old value for a new value after conversion to a symbolic object^[The `giac_eval` function takes a string  and makes it symbolic, which can be used to convert numbers to symbolic numbers or strings into variables.] the arguments.
+
+```{julia}
+@giac_var a b c x y
+ex = a * x^2 + b * x + c
+substitute(ex, x => y-1)
+```
+
+```{julia}
+substitute(ex, a => 2)
+```
+
+```{julia}
+substitute(ex, a=>3, b=>2, c=>1)
+```
+
+The latter is akin to function evaluation. As such, the call notation for symbolic expressions is defined to use `substitute` when called with paired data:
+
+```{julia}
+ex(a=>3, b=>2, c=>1)
+```
+
+(There is a different method followed with non-paired data which can be used to create unevaluated function objects.)
+
+::: {.callout-note}
+## Inconsistency with the variable `x`
+
+In this example, we show that `x` variables in substitution in Giac have a special priority, which can be hard to describe and hence best to be avoided.
+
+First, let's discuss that these two commands are not necessarily the same:
+
+```{julia}
+ex(a=>3, b=>2, c=>1), ex(a=>3)(b=>2)(c=>1)
+```
+
+The reason being is the order *need not* be preserved in the first case, but in the second proceeds from left to right.
+
+Now we show that the variable name can make a difference when substitution is performed.
+
+```{julia}
+@giac_var t x(t) y(t) u(t) v(t)
+ex = sin(x(t))/cos(y(t))
+ex1 = sin(u(t))/cos(v(t))
+```
+
+We compare the output of *identical operations*:
+
+```{julia}
+ex(t=>2)(y(2)=>3)(x(2)=>4)
+```
+
+and
+
+```{julia}
+ex1(t=>2)(v(2)=>3)(u(2)=>4)
+```
+
+The latter returns the expected result; the former has an unexpected warning.
+
+Next we compare the output of another *identical operation*
+
+```{julia}
+ex(t=>2)(y(t)=>3)(x(t)=>4)
+```
+
+```{julia}
+ex1(t=>2)(v(t)=>3)(u(t)=>4)
+```
+
+The latter again is what is expected. Once `ex1(t=>1)` is evaluated, there are no `v(t)` or `u(t)` variables to substitute. Not so with the initial case. In fact, we have this oddity
+
+```{julia}
+ex(t=>2), ex(t=>2)(y(t) => 3)
+```
+
+The first substitution acting exactly as expected, the second replacing `x(t)` with `2`, which makes no sense.
+
+A similar oddity occurs just with `giac_eval`:
+
+```{julia}
+giac_eval("x(2)"), giac_eval("y(2)")
+```
+
+:::
+
+### Domain of a univariate expression
+
+The domain of a univariate function is the set of $x$ for which the function is defined. Many functions have domains that are the entire real line, but not all functions do. The `domain` command returns the domain of an algebraic expression:
+
+```{julia}
+using Giac.Commands: domain
+@giac_var x
+u = domain(log1p(x))
+```
+
+We can check if a value is in the domain, through substitution. For example, this shows `-1` is not:
+
+```{julia}
+u(x => -1)
+```
+
+The `domain` function works a little bit to try and sort this out.
+
+```{julia}
+u = domain(log1p(sin(x)))
+```
+
+The result is more complicated than the previous. We can substitute in a value, `1` below, and then call any with a predicate.
+
+```{julia}
+TRUE, FALSE = giac_eval("true"), giac_eval("false")
+any(==(TRUE), u(x=>1))
+```
+
+So `1` is in the interval, but not $3\pi/2$, which makes the interior `sin` function `-1` and hence out of the domain of the enclosing `log1p`:
+
+```{julia}
+PI = giac_eval("pi")
+any(==(TRUE), u(x => 3*PI/2))
+```
+
+(This pattern with `any`, will work for all of the examples shown.)
+
+## Numerical evaluation
+
+An exact symbolic value may be the result of a computation, but it may be of interest to convert that value to a number (e.g. `1.414...` instead of $\sqrt{2}$).
+
+Giac has an `evalf` command that finds a floating-point value.
+
+```{julia}
+t = giac_eval("2")
+u = exp(t) - exp(-t)
+u
+```
+
+The value of `u` is exact. In this next cell, we call the `evalf` command---after importing---and compare to a computation within `Julia`:
+
+```{julia}
+using Giac.Commands: evalf
+evalf(u), exp(2) - exp(-2)
+```
+
+The default for `evalf()` is 12 digits after the decimal point; similar but not the same as for Julia. The method allows a specification of the number of digits in its second argument.
+
+```{julia}
+evalf(u, 50)
+```
+
+
+::: {.callout-note}
+## DIGITS
+
+The number of significant digits in `Giac` is stored in a configuration variable `DIGITS`. The value of 12 is the default, it can be changed with `giac_eval`, for example `giac_eval("DIGITS := 16")`.
+:::
+
+### Conversion to a Julia numeric type
+
+The result of `evalf` looks numeric, but internally the values are still of the `GiacExpr` type. In `Giac.jl` the `to_julia` function converts the exact value to a number type in `Julia`, as does `convert`, `unwrap_const`, and the generic method `float`.
+
+
+```{julia}
+u = giac_eval("1 / 1000")
+evalf(u), to_julia(u), convert(Float64, u), Giac.unwrap_const(u)#, float(u)
+```
+
+The differences are slight, and mostly due to other conventions:
+
+* `to_julia` is defined in `Giac.jl`. If the underlying Giac storage type is a number type, then a value is defined by conversion.^[The underlying number types known to `to_julia` are `INT`, `DOUBLE`, `REAL`, `ZINT`, `CPLX`, `FRAC`, `VECT`, and `STRING`.] For example a big integer is returned by `parse(BigInt, string(x))`. Otherwise, the `evalf` command is called and that value is converted.
+* `unwrap_constant` is just `to_julia` with semantics that it will return non-constant values, to match its use in `Symbolics`
+* `Base.convert(T,x)` uses the same machinery as `to_julia` with an additional call of `T`.
+* `float` also uses a similar approach, but following its generic usage, will convert `VECT` types as well (lists of numbers).
+
+
+
+## Programming
+
+Both `Giac` and `Julia` implement the building blocks of computer programming such as typed numbers, strings, Boolean values, lists, arrays, conditional statements, flow control, etc. A key design of `Julia` is that there are generic methods to deal in a standard manner with different underlying data types. As much as possible, this set of notes defers to `Julia` the programming concepts necessary to prepare data or  manipulate outputs.
+
+For example, iterable objects could be iterated within `Giac`, but as `GiacExpr` objects have an `iterate` interface, iteration can happen within `Julia` functions.
+
+This example gives a small taste. Here we define a list of numbers and show that it can easily be passed to `sum`, which supports summation of iterable objects, ultimately because `mapreduce` does:
+
+```{julia}
+lst = Giac.Commands.list(1:8)
+sum(lst)
+```
+
+The `map` function and list comprehensions work:
+
+```{julia}
+map(sqrt, lst)
+```
+
+and
+
+```{julia}
+[x^2 for x in lst if iseven(to_julia(x))]
+```
+
+### Broadcasting
+
+Broadcasting over symbolic containers should work as expected.
+
+For example:
+
+```{julia}
+lst = Giac.Commands.list([1,2,3])
+lst .^ 2
+```
+
+Or
+
+```{julia}
+(lst .* lst')/2
+```
+
+
+## Plotting expressions
+
+`Giac` expressions do not plot directly within the `Plots` framework. To work with expressions as functions, we provide this `Plots` recipe:
+
+```{julia}
+Plots.RecipesBase.@recipe f(::Type{T}, v::T) where {T<:GiacExpr} = lambdify(v)
+```
+
+The `lambdify` function creates a `Julia` function from a symbolic expressions. The work is done by
+the `build_function` method whose basic pattern is `build_function(expr, vars)`. The default approach is convenient, but not performant. For more performant usage, the `Symbolics` package extension provides an alternate.
+
+
+Below we write a `lambdify` function that identifies the free variable, if present, to create a univariate function from an expression. The `free_symbols` call  extracts all the variables in the expression. If there are none, the expression is constant, if there is more than one, the order is dependent on `free_symbols` and might be a surprise.^[As such, we avoid this function when we plot multivariate functions.]
+
+```{julia}
+function lambdify(v::GiacExpr)
+    vars = Giac.free_symbols(v)
+    isempty(vars) && return (val = Giac.unwrap_const(v); x -> val)
+    build_function(v, vars...)
+end
+```
+
+
+(The `lambdify` function isn't meant to be a general solution, just a convenience for this specific act of plotting an expression.).
+
+With this set up,  we see that passing a Giac expression of a single variable to `plot` works as though a function were passed:
+
+
+```{julia}
+@giac_var x
+plot(x^5 - x - 1, -1, 5/4; legend=false)
+plot!(zero(x))
+```
+
+## Polynomials
+
+Polynomials provide a very structured, yet flexible, family of functions. Their flexibility leads to widespread usage, the structure allows key properties to be defined and analyzed. Rational functions, or ratios of polynomials, add even more flexibility.
+
+Computer algebra systems use *algebraic extensions* of fields of numbers to perform many of the advanced tasks. These extensions are constructed as polynomials with more general fields of coefficients. As such, `Giac` has several methods for polynomials and rational expressions.
+
+### Construction
+
+Here we begin with how to create a polynomial object from its coefficients.
+
+A sparse, dense, univariate polynomial may be written as
+
+$$
+p = a_n x^n + a_{n-1}x^{n-1} + \cdots a_2 x^2 + a_1 x + a_0, \quad a_n \neq 0
+$$
+
+
+The $a_n$ above are the  coefficients of $p$. These can be readily identified with the entries of a vector. Giac uses *decreasing* order (starting with $a_n$) and not *ascending* order (starting with $a_0$---more of a Julian convention). The `poly2symb` method is used.
+
+To construct the polynomial $x^5 -  2x - 3$ the coefficients are specified with $1,0,0,0,-2,-3$ and we can pass these in a vector to the constructor along with a variable:
+
+```{julia}
+using Giac.Commands: poly2symb
+p = poly2symb([1,0,0,0,-2,-3], x)
+p, expand(p)
+```
+
+
+Using base Julia commands, the same polynomial might be constructed directly, as follows, with $5$ being the degree for the polynomial and $5$ and $i-1$ for the traditional $0$-based indexing of a polynomial's powers.
+
+```{julia}
+sum(cᵢ * x^(5 - (i - 1)) for (i, cᵢ) ∈ enumerate([1,0,0,0,-2,-3]))
+```
+
+
+Similarly, the base `evalpoly` function can
+
+```{julia}
+evalpoly(x, reverse([1,0,0,0,-2,-3]))
+```
+
+Both `poly2symb` and `evalpoly` use the efficient [Horner's](https://en.wikipedia.org/wiki/Horner%27s_method) method to evaluate a polynomial.
+
+----
+
+For multivariate polynomials, a sparse format is used. In `Julia` it is natural to describe a monomial, $a x_1^{n_1}\cdot x_2^{n_2} \cdots x_m^{n_m}$ through the powers $\{n_1, n_2, \dots, n_m\}$ and the coefficient $a$. As---after combining---the powers are unique, a dictionary with keys given by the powers and coefficient given by the value is a natural data structure.
+
+In `Giac` a monomial is represented by a special container consisting of the coefficient and a vector of the powers (again, given some ordering of the variables). The syntax (paired delimiters `%%%{` and `%%%}`) has no natural counterpart, so this mapping using strings is useful:
+
+
+```{julia}
+function sparse_polynomial(d, vars)
+    coeffs = join(["%%%{$v,$k%%%}" for (k,v) in d], "+")
+    Giac.Commands.poly2symb(coeffs, vars)
+end
+```
+
+To construct $3x^2\cdot y + x\cdot y^2 + y^3$ we have:
+
+```{julia}
+@giac_var x y
+d = Dict([2,1]=>3, [1,2] => 1, [0,3] => 1)
+s = sparse_polynomial(d, [x,y])
+```
+
+The Giac command `symb2poly` is the reverse, returning a "list" from a polynomial. The "list" in Julia for sparse polynomials can be easily converted to a readable format with the Giac `convert` method, which, again, does not follow Julia's generic calling pattern.
+
+```{julia}
+sc = Giac.Commands.symb2poly(s, [x,y])
+```
+
+```{julia}
+l = convert(sc)
+```
+
+More directly, the `coeff` method can be used:
+
+```{julia}
+using Giac.Commands: coeff
+coeff(p, x)
+```
+
+We specified the variable `x` and we see the coefficients are returned starting with the highest order. For the multi-variate polynomial, `s`, the specification of coefficients is important:
+
+```{julia}
+coeff(s, x), coeff(s, y)
+```
+
+The `coeff(s,y)` output mirrors $s = (1)\cdot y^3 + (x) \cdot y^2 + (3x^2) \cdot y + (0)\cdot y^0$ treating a multivariate polynomial as a univariate polynomial with a wider set of coefficients (polynomials in the other variables).
+
+The coefficients of the sparse representation used in construction of the polynomial can be returned for each monomial ($x^ny^m$) by specifying the unique powers with a vector:
+
+```{julia}
+coeff(s, [x,y], [2,1])
+```
+
+To avoid specifying the powers, the `op` command will break a polynomial into monomials, then `coeff` can be applied:
+
+```{julia}
+[coeff(mᵢ, [x,y]) for mᵢ ∈ Giac.Commands.op(s)]
+```
+
+----
+
+The degree of a univariate polynomial is returned by `degree`. For a multivariate polynomial it returns the degrees when treated as polynomials over a single variable:
+
+```{julia}
+using Giac.Commands: degree
+degree(p), degree(s, [x,y])
+```
+
+Combining the above, we might get the original structure from the sparse polynomial with
+
+```{julia}
+vars = [x,y]
+Dict(degree(m, vars) => only(coeff(m,vars)) for m in Giac.Commands.op(s))
+```
+
+
+----
+
+The leading coefficient of a univariate polynomial is the coefficient of the monomial of highest degree. This
+can be extracted by `lcoeff`. The `tcoeff` finds the trailing coefficient, defined by the coefficient of the monomial of lowest degree.
+
+### Polynomial evaluation
+
+To evaluate a polynomial, substitution can be used:
+
+```{julia}
+s(x=>3, y=>5)
+```
+
+For univariate polynomials, the `horner` method will use the efficient Horner algorithm for evaluation:
+
+```{julia}
+using Giac.Commands: horner
+horner(p, 2)
+```
+
+To use `evalpoly` from base `Julia` requires more effort:
+
+```{julia}
+evalpoly(2, reverse(collect(GiacExpr, coeff(p))))
+```
+
+### Polynomial shifts
+
+Univariate polynomials are represented in the standard basis $1, x, x^2, \dots$. This basis can be shifted around a point, say $a$, using the basis $1, (x-a), (x-a)^2, \dots$. The `ptayl` function (finding the polynomial Taylor series) does this computation.
+
+```{julia}
+using Giac.Commands: ptayl
+a = 2
+cs = ptayl(coeff(p), a)
+```
+
+We can see this polynomial with a bit of work
+
+```{julia}
+pa = sum(cᵢ * (x-a)^((1 + degree(p)) - i) for (i, cᵢ) ∈ enumerate(cs))
+```
+
+The two polynomials are indeed the same:
+
+```{julia}
+p == pa
+```
+
+### simplify
+
+The fact that `p` and `pa` are equal can be checked as above, but could also have been done by *simplifying* both expressions. There are a number of related commands for simplification:
+
+```{julia}
+using Giac.Commands: simplify, expand, collect, factor, factors, sqrfree
+simplify(p), simplify(pa)
+```
+
+The `simplify` method simplifies an expression, in this case a polynomial. There are other means to do this, we mention `factor` and Giac's `collect`; there are others like `normal`.
+
+
+### collect
+
+The `collect` generic of `Julia` is used to take an iterator and realize it as an Vector/Matrix/Array. In `Giac` we have seen that `collect(GiacExpr, expr)` will collect an underlying `GiacExpr` which is iterable into a vector.
+
+
+However, the `collect` method for `GiacExpr` has different semantics. In particular, `collect` collects like terms in a polynomial expression. The method returns something very similar to `factor`, though for polynomials of degree $2$ factor will factor over the real numbers:
+
+```{julia}
+collect(x^4 - 1), collect(x^4 - 4)
+```
+
+### factor
+
+Factoring a polynomial is the task of `factor`, though `collect` also does this task. In an algebra class, factoring of a polynomial over the integers  over rational terms is learned. But, there are other techniques available. The factor command works more or less as expected:
+
+```{julia}
+factor(x^4 - 1)
+```
+
+This could have been done by hand, as the terms are integers (hence rational). However, `factor` can also do more, in this case recognize a perfect square and then factor `x^2 - 2`:
+
+```{julia}
+factor(x^4 - 4)
+```
+
+#### factors
+
+The `factors` command returns a list of each identified factor *along* with its multiplicity. This has no new information over `factor`, but allows subsequent manipulation of the individual factors:
+
+```{julia}
+factor(x^6-14*x^5+80*x^4-238*x^3+387*x^2-324*x+108)
+```
+
+```{julia}
+u = factors(x^6-14*x^5+80*x^4-238*x^3+387*x^2-324*x+108)
+```
+
+```{julia}
+(irreducible_factors = u[1:2:end], multiplicities=u[2:2:end])
+```
+
+
+### Square-free factorization
+
+The square-free factorization of a polynomial is needed for some algorithms. In the above, the polynomial formed by just multiplying the factors together without their multiplicities gives a polynomial with the exact same set of roots as $p$, though without the multiplicities. What characterizes a square-free factor is the factor and its derivative have no common root.
+
+The `sqrfree` function returns a factorization where each factor has that property. As seen is it may not factor as far as `factor`, which returns irreducible factors:
+
+```{julia}
+using Giac.Commands: sqrfree
+u = (x^2-1)^2*(x-1)*(x+2)^2
+sqrfree(u)
+```
+
+Whereas, `factor` returns
+
+```{julia}
+factor(u)
+```
+
+### Roots of univariate polynomials
+
+Suppose $p = (x-r)\cdot q$ where $p$ and $q$ are polynomials in the symbol $x$. The term $(x-r)$ is called a factor of $p$, the value $r$ is called a root of $r$. When $r$ is substituted in for $x$, then $p$ is zero. The factor theorem states a bit more: $r$ is a root if and only if $(x-r)$ is a factor.
+
+By the fundamental theorem of algebra, the roots of a univariate polynomial of degree $n$ with real coefficients must be $n$ in number and either real or in complex conjugate pairs.
+
+Finding the roots of such polynomials if of interest and Giac provides different methods. The `roots` function returns a list of roots and their multiplicities:
+
+```{julia}
+using Giac.Commands: roots
+roots(u)
+```
+
+The above can be read off from the output of `factor`.
+
+The values alone can be accessed as follows:
+
+```{julia}
+rts = map(first, roots(u))
+mults = map(last, roots(u))
+(; rts, mults)
+```
+
+The variable can be passed as a second argument allowing parameters to be used. This example shows the quadratic equation in action:
+
+```{julia}
+@giac_var a b c d
+roots(a*x^2 + b*x + c, x)
+```
+
+The roots of a cubic polynomial, known in part for [centuries](https://en.wikipedia.org/wiki/Cubic_equation#History), are not identified in this example:
+
+```{julia}
+roots(a*x^3 + b*x^2 + c*x + d, x)
+```
+
+
+
+#### Real roots
+
+There is one real root of the polynomial $x^5 - x - 1$ and four complex ones:
+
+```{julia}
+collect(GiacExpr, roots(x^5 - x - 1))
+```
+
+There are methods to isolate the one real root, which is irrational in this case, so doesn't have an algebraic formulation such as results with the quadratic formula.
+
+Giac uses the [Vincent-Akritas-Strzebonski](https://en.wikipedia.org/wiki/Vincent%27s_theorem) algorithm to isolate the real roots of a square-free polynomial through a series of transformations and a simple test on whether a polynomial has a single sign variation in its coefficients.
+
+A necessary ingredient is a bound on the size of any real roots. A few algorithms are implemented in Giac, here we see "a (non-optimal) upper bound"
+
+```{julia}
+Giac.Commands.posubLMQ(x^5 - x - 1)
+```
+
+This says any positive real root is no more than $2$ in value. In this case, the lone real root is around $1.167\cdots$.
+
+The roots can *isolated* in intervals, after which a numeric algorithm like the bisection method can be used to numerically approximate the root. The *maximum* size of the isolating interval is specified:
+
+```{julia}
+using Giac.Commands: realroot
+realroot(x^5 - x - 1, 1/10)
+```
+
+This polynomial has nearby real roots:
+
+```{julia}
+p = expand(poly2symb([1, 0, 0, 0, 0, -16129, 254, -1], x))
+u = realroot(p, 1/10)
+```
+
+The real roots can be filtered out, though cumbersomely, by:
+
+```{julia}
+rs = map(first, roots(p))
+rs′ = filter(isreal∘to_julia, rs)
+```
+
+We can see that the first two differ in the seventh decimal point. The value `1/127` separates the two:
+
+```{julia}
+r₁, r₂ = [first(u) for u in rs′[1:2]]
+r₁ < 1//127, 1//127 < r₂
+```
+
+Passing a smaller value for the interval, will identify smaller isolating intervals:
+
+```{julia}
+ϵ = 1e-10
+u = realroot(p, ϵ)
+```
+
+Which we can see has narrow intervals, for example, the first identified one is:
+
+```{julia}
+-(first(first(u))...) < ϵ
+```
+
+
+## Rational functions
+
+Polynomial long division is an algorithm mirroring the familiar long division algorithm. If $p$ and $q$ are polynomials, then the algorithm produces polynomials $d$ and $r$ with $p = q \cdot d + r$ where the degree of $r$ is less than the degree of $q$.
+
+The `Julia` generic is `divrem`. In Giac, the commands are `quo`, `rem`, and `quorem`:
+
+```{julia}
+using Giac.Commands: quo, quorem # rem is overloaded
+p = (x-1) * (x-2) * (x-3)^3
+q = (x-1) * (x-2)
+d, r = quorem(p, q)
+```
+
+Confirming the two key assumptions:
+
+
+```{julia}
+simplify(d *q + r - p), degree(r) < degree(q)
+```
+
+Or with larger polynomials with random coefficients:
+
+```{julia}
+ps, qs, = rand(Int, 25), rand(Int, 15)
+p, q = evalpoly(x, ps), evalpoly(x, qs)
+d, r = quorem(p, q)
+simplify(d *q + r - p), degree(r) < degree(q)
+```
+
+Polynomial long division means $p/q = d + r/q$. This form can be directly returned by the `propfrac` command applied to a rational function.
+
+```{julia}
+q = x^2 + 3x + 4
+p = 2q + (x-3)
+Giac.Commands.propfrac(p/q)
+```
+
+Alternatively, given a rational function `p/q`, this could be done with:
+
+```{julia}
+using Giac.Commands: numer, denom
+u = p / q
+p′, q′ = numer(u), denom(u)
+d, r = quorem(p, q)
+d + r / q′
+```
+
+
+
+
+The `numer` and `denom` commands find the numerator and denominator **after** the rational function has been reduced by simplifying. For the above use, this detail isn't important. However, to retrieve the terms *before* a reduction, the `getNum` and `getDenom` commands are available.
+
+```{julia}
+p = (x-1)*(x^2 + x + 1)
+q = (x-1)*(x^3 - x - 1)
+numer(p/q), Giac.Commands.getNum(p/q)
+```
+
+and
+
+```{julia}
+denom(p/q), Giac.Commands.getDenom(p/q)
+```
+
+When the remainder is $0$, for rational expressions, the `simplify` function re-expresses in a canonical, *reduced* form.
+
+```{julia}
+p/q, simplify(p/q)
+```
+
+
+Related to polynomial division are the notions of a greatest common divisor (`gcd`) or least common multiple (`lcm`). These are generic methods in base `Julia` and given methods for Giac expressions:
+
+```{julia}
+gcd(p, q)
+```
+
+and
+
+```{julia}
+lcm(p, q)  # just one (x-1) term
+```
+
+### Partial fractions
+
+A partial fraction decomposition of a rational function expresses a rational function as polynomial plus a sum of other rational functions of a certain type.
+
+A formal statement says the for polynomials $f(x)$ and $g(x) = p_1(x)^{n_1} \cdot p_2(x) \cdots p_k(x)^{n_k}$, each $p_i$ being *irreducible*. Then there are unique polynomials $b(x)$ and $a_{ij}(x)$ with
+
+$$
+\frac{f(x)}{g(x)} = b(x) + \sum_{i=1}^k \sum_{j=1}^{n_i} \frac{a_{ij}(x)}{p_i(x)^j}
+$$
+
+where for each $j$,  $a_{ij}(x)$ has degree less than the degree of $p_i(x)$.
+
+
+```{julia}
+using Giac.Commands: partfrac
+p,q = 3x + 5, (1 - 2x)^2 * (x + 2)
+u = partfrac(p/q)
+collect(GiacExpr, Giac.Commands.op(u))
+```
+
+
+For polynomials with real coefficients, a partial fractions decomposition has then $p_i(x)$ being linear or quadratic and $a_{ij}(x)$ being linear or constant.
+
+## Algebraic manipulation
+
+
+`Giac` provides other tools to algebraically manipulate expressions, even non-polynomial ones. Common algebraic manipulations include
+
+* `simplify`: simplify expressions.
+* `expand`: expand algebraic expressions .
+* `combine`: joins subexpressions of various types.
+
+### Trigonometry
+
+There are trigonometric variants: `trigsimplify`, `texpand`
+
+As well:
+
+* `tcollect`: linearizes trigonometric expressions in terms of sin(nx) and
+cos(nx) and combines sines and cosines of the same angle.
+* `tlin`: linearizes products and integer powers of the trigonometric functions
+* `trigsin`: trigonometric functions rewritten in terms of sines and cosines, with as many cosines as possible transformed to sines. Also `acos2asin` and `atan2asin`.
+* `trigcos`: trigonometric functions rewritten in terms of sines and cosines, with as many sines as possible transformed to cosines. Also `asin2acos` and `atan2acos`.
+* `trigtan`: rewrites trigonometric expressions into expressions where as many trigonometric functions as possible are written in terms of tangents. Also `acos2atan` and `asin2atan`.
+* `tan2sincos`: writes `tan` as `sin/cos`, similarly `sin2costan` and `cos2sintan`.
+* `halftan` rewrites `sin`, `cos`, and `tan` terms using `tan(x/2)`.
+
+### Logs, exponentials, and powers
+
+* `expexpand`: expands $e^{x+y}$ as a product,
+* `powexpand`: expands $a^{x+y}$ as a product
+* `lnexpand`: expands $\log(xy)$ as a sum.
+* `texpand`: combines `expexpand`, `lnexpand`, and `trigexpand`
+
+Also
+
+* `pow2exp`: changes base of $a^x$ to $e$.
+* `exp2pow`: changes $e^{n\log(x)}$ to $x^n$
+* `lncollect`: rewrites sums of logs as a product
+
+In addition:
+
+* `lin`: linearize expressions involving exponentials; namely, it will replace products of exponentials by exponentials of sums; replace any hyperbolic functions by exponentials.
+* `exp2trig` rewrites $e^{ix}$ using sines and cosines; `trig2exp` reverses.
+* `atrig2ln` writes inverse trigonometric functions in terms of logarithms
+* `hyp2exp` rewrites hyperbolic functions in terms of exponentials
+
+
+### Examples
+
+```{julia}
+using Giac.Commands: simplify, expand, factor
+```
+
+Symbolic expressions are not routinely simplified in `Giac`.
+
+In this example, the `Gamma` function^[This is `gamma` in `SpecialFunctions.jl`] is $\Gamma(n) = (n-1)!$ for integer $n > 0$. We see by simplifying, the cancellation occurs:
+
+```{julia}
+using Giac.Commands: Gamma
+@giac_var n
+Giac.Commands.assume(n, "integer") # assume n is integer
+u = Gamma(n) / Gamma(n-1)
+u, simplify(u)
+```
+
+
+The `expand` function takes an expression and basically multiplies it out. If new *default* cancellations occur, expand can actually result in shorter expressions:
+
+```{julia}
+expand((x-1)^3)
+```
+
+```{julia}
+ex = (x + 1) * (x - 2) - (x - 1) * x
+ex, expand(ex)
+```
+
+The `factor` function applied to  polynomials is the opposite of expand. In Giac, factorization of polynomials isn't limited to rational terms:
+
+```{julia}
+factor(x^2 - 4), factor(x^2 - 3)
+```
+
+
+## Solving equations
+
+`Giac` can be used to solve many algebraically solvable equations and many numerically solvable equations.
+
+The `solve` function is used.
+
+Equations are specified with a left- and right-hand side using a tilde, `~`. Later we illustrate the commands `left` and `right` to access the two sides of an equation.
+
+
+Here the equation $x^2 = 2$ is solved for:
+
+
+```{julia}
+using Giac.Commands: solve
+@giac_var x
+solve(x^2 ~ 2, x)
+```
+
+Equations can have symbolic variables included. In which case, passing in the second argument the variable(s) to solve for is done:
+
+```{julia}
+@giac_var a b c
+out = solve(a*x^2 + b*x + c ~ 0, x)
+collect(GiacExpr, out)
+```
+
+The use of `collect`, as used above, iterates over the `Giac` container to produce a vector (in this case).
+
+Systems of equations are specified using vectors, as are the variables:
+
+```{julia}
+@giac_var a b c d x y
+system = [a*x + b*y ~ 1, c*x + d*y ~ 1]
+out = solve(system, [x,y])
+```
+
+The return value is a `list` holding `[x,y]` pairs. As above, these can be "collected" into a `GiacExpr` values as follows^[For a list with a single object, the generic `only` method can return the single object as a `GiacExpr`, as the underlying list is iterable.]:
+
+```{julia}
+collect(GiacExpr, out)
+```
+
+This example shows a possible pattern to collect multiple solutions, each into a dictionary keyed by the variables solved for:
+
+```{julia}
+@giac_var x y
+vars = [x, y]
+eqns = [x^2 + y^2 ~ 1, y ~ x^2]
+out = solve(eqns, vars)
+[Dict(zip(vars, u)) for u in out]
+```
+
+
+### Assumptions
+
+Assumptions on variables can be made through `assume`.
+These assumptions are locked and can't be modified through `assume`, rather `additionally` is used to add additional assumptions; `purge` is used to remove all assumptions. The current assumptions on a variable can be queried with `about`.
+
+```{julia}
+using Giac.Commands: assume, additionally, purge, about
+@giac_var r
+purge(r) # clean out any assumptions
+assume(r >= -1)
+about(r)
+```
+
+The `line[-1,+infinity]` indicates the domain for `r`. We can also put an upper limit
+
+```{julia}
+additionally(r < 100)
+about(r)
+```
+
+
+We see the lower bound impacts what is solved for in these two examples:
+
+```{julia}
+solve(r^2 ~ 1, r)
+```
+
+The above finds the negative solution, `-1`, but not in the following, as it is $-2$ is not greater or equal to $-1$:
+
+```{julia}
+solve(r^2 ~ 4, r)
+```
+
+Compound assumptions can be specified using strings, such as: `"(a>=2 and a<4) or a>6"`.
+
+```{julia}
+@giac_var a
+purge(a)
+assume("(a>=2 and a<4) or a>6")
+a < -1
+```
+
+----
+
+The output can be narrowed to a certain *domain*. Compare the two solution sets to the same equation once `r` is assumed to be an integer:
+
+```{julia}
+solve(r^2 ~ 1//2, r)
+```
+
+```{julia}
+additionally(r, "integer")
+solve(r^2 ~ 1//2, r)
+```
+
+The possible domains are `"real"`, `"complex"`, `"integer"`, and `"rational"`.
+
+### Numerically solving an equation
+
+Not all equations can be solved symbolically. For example, finding the solution(s) to $\cos(x) = x$ will result in a numeric approximation:
+
+```{julia}
+solve(cos(x) ~ x)
+```
+
+The `solve` call resolves to `fsolve`, as can be read in the provided output, `fsolve` attempts to find all solutions over the real line, as the mapping $x = \tan(t)$ over $(-\pi/2, \pi/2)$ scans over the original equation over $(-\infty, \infty)$. In this case, there is just one solution. However, with a flatter slope of the right hand side, we will see more:
+
+```{julia}
+eqn = cos(x) ~ x/3
+out = solve(eqn)
+```
+
+Numeric solutions are typically "approximate" zeros. In this case, we can see the residuals through:
+
+```{julia}
+import Giac.Commands: left, right
+u = left(eqn) - right(eqn)        # also just equal2diff(eqn)
+[u(x => a) for a in out]
+```
+
+::: {.callout-note}
+## Roots
+The `Roots` package is used in the sequel, when `fsolve` doesn't work as desired. The `fsolve` function works similarly to `Roots.find_zeros` but can miss some zeros.
+:::
+
+
+## Calculus-specific functions
+
+Giac provides functions for specific topics of Calculus I and II. Here we import some commands for illustration purposes below:
+
+```{julia}
+using Giac.Commands: limit, diff, integrate
+using Giac: D
+```
+
+### Limits
+
+Limits may be taken symbolically using `limit`. The standard notation for a limit involves 3 things---an expression, a value of `c` and a variable name, a direction, when given, adds a fourth:
+
+$$
+\lim_{x \rightarrow c} f(x) = L
+$$
+
+If `ex` is `f(x)` in the above, then the call to `limit` looks like `lim(ex, x, c)`. Right limits have a fourth positional argument of `1`, left limits of `-1`:
+
+```{julia}
+limit(sin(x)/x, x, 0), limit(sign(x), x, 0, 1), limit(sign(x), x, 0, -1)
+```
+
+The variable and `c` (the $x \rightarrow c$ part) can be paired off with equation notation:
+
+```{julia}
+limit((1 + x)^(1/x), x ~ 0)
+```
+
+
+#### Errors
+
+A limit exists if the left- and right-hand limits exist and are equal. The above showed the left and right and limits at `0` of `sign(x)` are different. The shows the resulting error message if a direction is not specified:
+
+```{julia}
+#| eval: false
+limit(sign(x), x ~ 0)
+```
+
+```
+ERROR: Unidirectional limits are distinct -1,1 Error: Bad Argument Value
+```
+
+#### Infinite limits
+
+Infinite limits can use `Inf` or `Inf` as the value for `c`:
+
+```{julia}
+@giac_var n
+assume(n > 0)
+limit(x^n * exp(-x), x ~ Inf)
+```
+
+Not all limit problems have an answer. This shows how the oscillating `sin` function is treated at infinity
+
+```{julia}
+limit(sin(x), x ~ Inf)
+```
+
+
+::: {.callout-note}
+##### Conversion of arguments
+
+Function calls for Giac methods are processed by `invoke_cmd(:fn_symbol, args...)`.
+The argument values passed to a Giac function call are processed by conversion to a string by `_arg_to_giac_string`. Passing a floating point value, like `Inf`, is not an issue as it converts to an underlying infinity in `Giac`, as shown here after evaluation of the string:
+
+```{julia}
+a,b,c = giac_eval(Giac._arg_to_giac_string(Inf)), giac_eval("inf"), giac_eval("Inf")
+```
+
+We see `a` and `b` are equivalent, but `c` is not. The value assigned to `c` is **not** infinite, rather just a name. The `is_constant` method shows if a value has a free symbol or not:
+
+```{julia}
+Giac.is_constant(b), Giac.is_constant(c)
+```
+
+(The command `convert(GiacExpr, Inf)` takes essentially the same code path, but this special case is handled by an `isinf` test.)
+
+:::
+
+#### Limits with parameters
+
+The following shows that limits can be computed with parameters.
+
+
+
+```{julia}
+@giac_var a b c x
+purge(a); purge(b)
+assume(a > 0); assume(b > 0)
+ex = ((a^x - x*log(a)) / (b^x - x*log(b)))^(1/x^2)
+L = limit(ex, x ~ 0, 1)
+```
+
+For a given set of values of `a` and `b`, we can see different answers:
+
+```{julia}
+L(a=>2, b=>3)
+```
+
+::: {.callout-note}
+## Watch out for early conversion!
+
+The above example will fail if instead of making `a` and `b` symbolic and then substituting values of `2` and `3`, the expression were substituted in at the outset:
+
+```{julia}
+@giac_var x
+a, b = 2, 3
+ex = ((a^x - x*log(a)) / (b^x - x*log(b)))^(1/x^2)
+L = limit(ex, x ~ 0, 1)
+```
+
+This is because both `log(a)` and `log(b)` are then inexact values for $\log(2)$ and $\log(3)$ respectively.
+:::
+
+
+### Differentiation
+
+Derivatives are taken through `diff(ex, var, ...)` with variants for multiple or mixed derivatives. The basic usage is pretty straightforward. The derivative with respect to $x$ of an expression is found as follows:
+
+```{julia}
+@giac_var x a b
+ex = sin(a*x - b)
+diff(ex, x)
+```
+
+Second derivatives can be more succinctly expressed than repeated usage of `diff` by adding more variables:
+
+```{julia}
+diff(ex, x, x) # 2nd derivative
+```
+
+
+Alternatively, an order can be specified after the variable
+
+```{julia}
+diff(ex, x, 30)
+```
+
+For mixed partials, the variables are specified sequentially
+
+```{julia}
+diff(ex, x, a)
+```
+
+#### Symbolic functions and derivatives
+
+A symbolic function can be defined as follows:
+
+```{julia}
+@giac_var u(t)
+```
+
+XXX -- update to Differential(t) ----XXX
+The `D` function differentiates this formally:
+
+```{julia}
+D(u)
+```
+
+#### Critical points
+
+The zeros of the derivative are critical points of a function (in addition to where a derivative is undefined in the domain of the function).
+
+
+Here is an example of finding critical points of the periodic function $f(x) = \sin(x) + 3 \cdot \sin(5x)$:
+
+```{julia}
+ex = sin(x) + 3 * sin(5x)
+u = solve(diff(ex, x) ~ 0, x)
+to_julia(u)
+```
+
+Critical points can also occur when the derivative is undefined at a point in the domain of the original function. For this example, we can see that $-1$ and $1$ are critical points with some squinting:
+
+```{julia}
+ex = sqrt(abs(1 - x^2))
+solve(diff(ex,x) ~ 0, x)
+```
+
+That is $0$ is a critical point. But also are $1$ and $-1$:
+
+```{julia}
+u = domain(ex, x)
+```
+
+Which is an odd way of writing all $x$ (as the union of $x \leq -1$, $-1 \leq x \leq 1$, and $1 \leq x$.
+
+However, this domain excludes $-1$ and $1$ (through `x<>-1` and `x<>1`):
+
+```{julia}
+domain(diff(ex,x), x)
+```
+
+The `tabvar` function generates data for a table of variations, but it doesn't pretty print as easily as would be useful.
+
+```{julia}
+using Giac.Commands: tabvar
+ex = sqrt(abs(1-x^2))
+u = tabvar(ex, x)
+```
+
+Here is a possible pattern to print the output in a structured manner:
+
+```{julia}
+function print_tabvar(u)
+    v = [string.(ui) for ui in  u]
+    N = length(first(v))
+    ls =  [maximum(length(vi[j]) for vi in v) for j in 1:N] .+ 2
+    nms = ["𝑥", "𝑓′(𝑥)", "𝑓(𝑥)", "𝑓′′(𝑥)"]
+    function centerprintline(io, x, n)
+        m,r = divrem(n-length(x), 2)
+        Δ = startswith(x, "-") ? 1 : 0
+        print(io, " "^(m-Δ), x, " "^(m+r+Δ))
+    end
+    io = IOBuffer()
+    println(io, "====================\n")
+    for (vi,nm) in zip(v, nms)
+        for j in 2:N
+            centerprintline(io, replace(vi[j], "\"" => " "), ls[j])
+        end
+    println(io, "\t⋮ ", nm, "\n")
+    end
+    print(String(take!(io)))
+end
+print_tabvar(u)
+```
+
+This output shows the behavior at the key points $0$, $1$ and $\infty$ (this is an *even* function, so the behavior at $-1$ and $-\infty$ can be inferred).
+
+Reading down, we see that at $0$ there is a critical point with $f'(0) = 0$,  $f(0) = 1$, and $f''(0) = -1$. On $(0,1)$, reading down we see: $f'(x)$ is negative, $f(x)$ is decreasing and concave down , and $f''(x)$ is negative.
+
+At $1$, we see $f'(1)$ is "`||`" or undefined, $f''(1)$  as well.
+On the interval $(1, \infty)$ the derivative is positive, the function is increasing, and the function is concave down.
+
+At $\infty$ we see the limit of $f'(x)$ is $1$, the limit of $f(x)$ is $\infty$,  the limit of $f''(x)$ is $0$.
+
+This should match this graph, the bounds of which are suggested from the printed output of `tabvar`:
+
+```{julia}
+plot(ex, -1.64897066667,  1.67903066667)
+```
+
+Here is another example for a polynomial:
+
+```{julia}
+u = tabvar(x^5 - x - 1)
+print_tabvar(u)
+```
+
+
+
+#### Optimization
+
+Optimization problems can be solved with familiar commands.
+
+Consider the task
+
+> Find the rectangle with largest area amongst all rectangles with perimeter $P$.
+
+Below, we set up a constraint and objective equation. Using `solve` we first
+
+* solve for `h` from the constraint in terms of `w`; then
+* substitute that into the objective;  and then
+* find a critical point in the area as a function of `w`.
+
+```{julia}
+@giac_var w h P A
+constraint = P ~ 2w + 2h
+objective  = A ~ w * h
+h0 = solve(constraint, h) |> only
+dA = diff(objective(h=>h0), w)
+w0 = solve(dA, w) |> only
+```
+
+Finally, we find values for the width, height, and area:
+
+```{julia}
+w0, h0(w=>w0), objective(w => w0, h=>h0)
+```
+
+----
+
+The following is another example.
+
+> What angle $\theta$ between two edges of length $x$ will result in an isosceles triangle with the largest area?
+
+We define two variables and then package them to get an expression for the area, `a`:
+
+```{julia}
+@giac_var x θ
+b = x*sin(θ)
+h = x*cos(θ)
+a = b*h
+```
+
+Solving for critical points is easy:
+
+```{julia}
+u = solve(diff(a, θ), θ)
+```
+
+We filter out the negative values:
+
+```{julia}
+θs = filter(x -> to_julia(x > 0), collect(GiacExpr, u))
+```
+
+There are still two critical points. Which leads to a maxima? We compute the area for each and observe, seeing $\pi/4$, as might have been guessed:
+
+```{julia}
+[θs [simplify(a(θ => u)) for u in θs]]
+```
+
+
+
+#### Implicit differentiation
+
+The implicit function theorem provides conditions so that the graph defined through the equation $F(x,y) =0$ can---in part---be described by the graph of a function $y=f(x)$. The function $f(x)$ being *implicitly* defined. (The function $F$ is continuously differentiable and the *partial* of $F$ in $y$ at $(x_0,y_0)$ is non zero.)
+
+Implicit differentiation is a technique to find the derivative of $y$ with respect to $x$ without needing to solve for $y$ in terms of $x$. The method is implemented in the function `implicitdiff`. The simplest calling pattern is `implicitdiff(eqn, y, x)` to differentiate the variable `y` with respect to `x`.
+
+This illustrates that when $y = f(x)$ the function returns $f'(x)$:
+
+```{julia}
+using Giac.Commands: implicitdiff
+@giac_var x y
+implicitdiff(y ~ sin(x), y, x)
+```
+
+Now for a figure eight curve:
+
+```{julia}
+@giac_var a
+eqn = x^4 ~ a^2*(x^2 - y^2)
+dy_dx = implicitdiff(eqn, y, x)
+```
+
+We can plot this for a given value of `a` in the following way (this graphic will be discussed later):
+
+```{julia}
+using Giac.Commands: left, right
+
+eqn′ = eqn(a => 2)
+u = build_function(left(eqn′)-right(eqn′), x, y)
+
+xs = ys = range(-3, 3, 100)
+contour(xs, ys, u, levels=[0]; legend=false)
+
+# find tangent line expression at a point
+P = (x0, y0) = (giac_eval("sqrt(2)"), giac_eval("1"))
+m = dy_dx(a=>2, x=>x0, y=>y0)
+tl = y0 + m*(x-x0)
+
+# plot a tangent line at a point on the curve
+plot!(tl)
+scatter!([to_julia.(P)]; markersize=5)
+```
+
+We added a tangent line at a known point, but the pattern could be used at any point on the curve, save for $x=2, 0$, and $-2$ where the partial derivative in $y$ is undefined.
+
+
+### Integration
+
+In Calculus II there are techniques of integration to be learned:
+
+* integration by parts
+* trigonometric integrals
+* partial fractions
+* The definition of integration can be extended to incorporate infinities, or improper integrals
+
+Save for special cases, such techniques and extensions are handled by `Giac` and its `integrate` command.
+
+Further, there are several formulas where an integral takes on a geometric meaning beyond the area under a curve, including:
+
+
+* Area between 2 curves: $A = \int_a^b (f(x) - g(x)) dx$.
+* volume of revolution: $V = \int_a^b \pi r(x)^2 dx$.
+* cylindrical shell: $V = \int_a^b 2\pi x f(x) dx$.
+* arc length: $L = \int_a^b \sqrt{1 + f'(x)^2} dx$,
+* surface area: $SA = \int_a^b 2\pi f(x) \sqrt{1+ f'(x)^2} dx$.
+
+
+
+In `Giac`, the `integrate` function computes integrals symbolically by finding an anti-derivative. The Risch algorithm is used and can be directly called through `risch`. Bear in mind, not all integrands have an antiderivative that can be algebraically expressed, the Risch algorithm only works for certain functions.
+
+The *indefinite integral*, $\int f(x) dx$, is computed with `integrate(f(x), x)` where `f(x)` is some expression depending on `x` and may have symbolic parameters.
+
+Definite integrals, $\int_a^b f(x)dx$, are computed with `integrate(f(x), x, a, b)`.
+
+For example:
+
+```{julia}
+@giac_var x c a b
+integrate(x * exp(x^2), x) # integration by parts
+```
+
+```{julia}
+integrate(sin(x)^2, x)  # integration by parts
+```
+
+
+```{julia}
+integrate(x^5/(36x^2 + 1)^(3//2), x, 0, 1//6) # trig subs with x = tan(theta)/6
+```
+
+
+```{julia}
+ex = (x^4 + 1) / ( (x^2 + 1)^2 * (x^2 - 4)^2)
+integrate(ex, x) # partial fraction
+```
+
+We can see how this is done by taking the partial fraction decomposition provided by `partfrac`:
+
+```{julia}
+us = partfrac(ex)
+```
+
+and then integrating term-by-term:
+
+```{julia}
+[integrate(a, x) for a in Giac.arguments(us)]
+```
+
+For polynomials with real-valued coefficients, the partial fraction decomposition leads to terms that can always be integrated:
+
+```{julia}
+@giac_var a b c d e x
+u = (a + b*x) / (c + d*x + e*x^2)
+integrate(u, x)
+```
+
+The underlying algorithm to integrate rational functions doesn't necessarily need the factorization of the denominator into *irreducible* factors, as only a [square-free factorization](https://www.researchgate.net/profile/Sam-Blake-6/publication/259815903_Symbolic_Integration_I_Transcendental_Functions_by_Manuel_Bronstein/links/5e5fab4c92851cefa1dc85c6/Symbolic-Integration-I-Transcendental-Functions-by-Manuel-Bronstein.pdf) is needed.
+
+
+#### Examples of integration
+
+This example finds the area bounded by two parabolas:
+
+```{julia}
+f(x) = 1 - 2x^2
+g(x) = x^2
+purge(x); assume(x, "real")
+as = solve(f(x) ~ g(x), x)
+a,b = sort(as)
+integrate(f(x) - g(x), x, a, b)
+```
+
+----
+
+Following an example from an [AP](https://apcentral.collegeboard.org/media/pdf/Volumes_of_Solids_of_Revolution_Calculus_CM.pdf) calculus test, we look at the solid formed by rotating the region bounded by $y = \sqrt{x+2}$ and $y=e^x$ about the line $y = -2$.
+
+We first find the intersection points, solutions to $f(x) = g(x)$.
+We numerically solve for these with the `Roots` package, as `solve` had no success and `fsolve` only identifies the value we assign to `b` below.
+
+```{julia}
+@giac_var x
+f(x) = exp(x)
+g(x) = sqrt(x + 2)
+import Roots
+a,b = Roots.find_zeros(x -> f(x) - g(x), (-2, 10))
+```
+
+
+The integral requires two radii from the line $y=-2$. We have on $(a,b)$ that $g(x) > f(x) > 0$, so the distance of $g(x)$ from $y=-2$ is greater than that of $f(x)$, hence the ordering below:
+
+```{julia}
+r1, r2 = (g(x) - (-2)), (f(x) - (-2))
+v = integrate(pi * (r1^2 - r2^2) ,x ,a, b)
+```
+
+----
+
+This example finds the length of the graph of $x^2$ between $0$ and $1$:
+
+```{julia}
+f(x) = x^2
+dL = sqrt(1 + diff(f(x),x)^2)
+p = integrate(dL, x, 0, 1)
+```
+
+----
+
+To find the surface area of the volume formed by rotating the graph of $f(x) = \sqrt{9 - x^2}$ between $-1 \leq x \leq 2$ we have:
+
+```{julia}
+f(x) = sqrt(9 - x^2)
+dSA = 2 * (pi * f(x)) * sqrt(1 + diff(f(x), x)^2)
+```
+
+And
+
+```{julia}
+integrate(dSA, x, -1, 2)
+```
+
+### Taylor polynomial
+
+A Taylor polynomial is a polynomial expansion of a function at a point, $c$,  up to an given order $n$. For a function $f(x)$ with $n+1$ derivatives on an open interval including $c$ the $n$th-order Taylor polynomial is:
+
+$$
+T_n(x) = f(c) + f'(c)(x-c) + \frac{f^{2}(c)}{2!}(x-c)^2 + \cdots + \frac{f^{n}(c)}{n!}(x-c)^n
+$$
+
+The Taylor series is the is the expansion is the "best" polynomial of degree $n$ (or less) that approximates the function at the point. Let the remainder be $R_n(x) = f(x) - T_n(x)$. Then using the mean value there exists a $\xi$ in the open interval such that
+
+$$
+R_{n+1}(x) = \frac{f^{n+1}(\xi)}{(n+1)!}(x - c)^{n+1}
+$$
+
+This is a constant times $(x-c)^{n+1}$ and is shortened to $O((x-c)^{n+1})$.
+
+The Taylor polynomial is computed by `series`.^[The Taylor series is a formal power series with infinitely many terms, the `n`th term in the series  of the type above.] The calling pattern is `series(ex, var, c, n)`.
+
+This computes the Taylor expansion about $0$ up to order $n=4$:
+
+```{julia}
+using Giac.Commands: series
+@giac_var x
+series(exp(x), x, 0, 4)
+```
+
+
+
+A series around `0` is also called a Maclaurin series.
+
+The following computes the expansion about $c=1$:
+
+
+```{julia}
+series(exp(x), x, 1, 3)
+```
+
+----
+
+To convert a Taylor series (with the error term as above) to a polynomial can be done with a `convert` method for `GiacExpr` values---which does not follow the semantics of `Base.convert`.
+
+We illustrate the pattern:
+
+```{julia}
+p₃ = series(exp(x), x, 1, 3)
+POLYNOM = giac_eval("polynom")       # polynomial type
+P₃ = convert(p₃, POLYNOM)            # not convert(T, x)!
+```
+
+This new object can be manipulated as any other symbolic expression.
+
+
+
+## Parametric description of functions
+
+Vectors can be used to describe curves parametrically (where the $x$ and $y$ motions are modeled by a third variable, typically $t$ for time). We describe this in a bit more detail later when discussing univariate, vector-valued functions.
+
+
+Consider a person on an advanced ferris wheel with coordinates $x(t)$ and $y(t)$ describing position. The wheel of radius $r$ is centered $R$ units above and circles at radius $\omega$, the car has radius $r_0$ and rotates $6$ times faster.
+
+The car has axis described by:
+
+$$
+(r\sin(\omega\cdot t), R - r\cos(\omega \cdot t)).
+$$
+
+The rotation of the car around the axis by:
+
+$$
+(r_0 \sin(6\omega \cdot t), r_0 \cos(6 \omega\cdot t)
+$$
+
+(This could be modified by adjusting the starting angle.)
+
+The superposition (or addition) of these two give the position:
+
+```{julia}
+@giac_var R r r0 t ω
+ρ = [r*sin(ω*t), R - r*cos(ω*t)] + [r0*sin(6ω*t), r0*cos(6ω*t)]
+```
+
+We can plot for specific values:
+
+```{julia}
+PI = Giac.Constants.pi           # symbolic pi, or giac_eval("pi")
+d = Dict(R => 35, r => 30, r0 => 4, ω => 2PI/120)
+rt = substitute.(ρ, Ref(d)) # broadcast over `rho` not `d`
+```
+
+```{julia}
+plot(rt..., 0, 100)              # uses lambdify through a recipe
+```
+
+::: {.callout-note}
+## Symbolic constants
+Just as `Julia` has some constants made available in its `Base.MathConstants` module, `Giac` has some constants available in its `Giac.Constants` module. In the above, `pi` is retrieved and assigned to `PI`, so as not to conflict with the value of `pi` from `Base.MathConstants`.
+:::
+
+
+## Polar coordinates
+
+Polar coordinates are a special case of a representation. They are an alternate to Cartesian descriptions and use $(r,\theta)$ as an alternate to $(x,y)$. The translation is straightforward: $(x,y) = (r\cdot \cos(\theta), r\cdot\sin(\theta))$.
+
+
+There isn't much special support for polar coordinates within `Giac` or `Julia`. The `plot` function has a `projection=:polar` argument that plots polar plots where $r=r(\theta)$.
+
+For example,
+
+```{julia}
+rho(theta) = 1 + cos(theta) * sin(theta)^2
+@giac_var θ
+```
+```{julia}
+plot(rho(θ), 0, 2pi; projection=:polar, legend=false)
+```
+
+
+
+## Sequences and series
+
+A finite sequence can be generated in a `Julia`n manner using a comprehension. For example,
+
+```{julia}
+[1/giac_eval("$i")^2 for i in 1:10]
+```
+
+The `seq` command can also be used to generate sequences. The syntax is `seq(expr, var, from ,to)`. The above could be computed through:
+
+```{julia}
+using Giac.Commands: seq
+@giac_var j
+s = seq(1/j^2, j, 1, 10)
+collect(GiacExpr, s)
+```
+
+The use of `seq` is a convenience, but it seems more idiomatic to just use comprehensions.
+
+
+::: {.callout-note}
+### Symbolic endpoints
+
+The number of terms is not symbolic, as can be the case in `SymPy`.
+
+:::
+
+
+
+## Differential equations
+
+A differential equation is an equation involving a variable, a function, and its derivatives.
+
+The `desolve` command can solve several different types of differential equations^[
+the [documentation](https://www-fourier.univ-grenoble-alpes.fr/~parisse/giac/doc/en/cascmd_en/cascmd_en458.html) says: linear differential equations with constant coefficients,
+first order linear differential equations,
+first order differential equations without `y`,
+first order differential equations without `x`,
+first order differential equations with separable variables,
+first order homogeneous differential equations: `y′=F(y/x)`,
+first order differential equations with integrating factor,
+first order Bernoulli differential equations: `a(x)y′+b(x)y=c(x)y^n`,
+first order Clairaut differential equations: `y=x\cdot y′+f(y′)`.]
+
+In the following we define an operator, using `D` to simplify the specification of the equation $y'(x) = y(x)$.^[`D` is to be *deprecated* in favor of `Differential`] Alternatively, `diff` can be used to specify a formal derivative which gives some flexibility in the variable name.
+
+
+```{julia}
+@giac_var x u(t)
+eqn = D(u) ~ u
+```
+
+
+
+The `desolve` function is then used to solve differential equations. It is illustrated by passing in the equation (or a vector of equations including initial conditions) and the unknown function. The variable is inferred from the function object, or can be passed through, e.g. `u` or `u(x)`
+
+```{julia}
+using Giac.Commands: desolve
+desolve(eqn, u)
+```
+
+The constants come from integration. Initial conditions reduce the number of constants. These are specified as extra equations using a vector:
+
+```{julia}
+desolve([eqn, u(0) ~ 3], u)
+```
+
+----
+
+
+The initial conditions can also involve constraints on derivatives,
+etc. as with this next example, which comes from the `Giac.jl`
+documentation.
+
+
+The [damped harmonic oscillator](https://en.wikipedia.org/wiki/Harmonic_oscillator#Damped_harmonic_oscillator) models what happens to oscillating motion in a drag force. The basic form of the equation is
+
+$$
+\frac{d^2x}{dt^2} + 2\zeta \omega_0 \frac{dx}{dt} + \omega_0^2 x = 0.
+$$
+
+The value $\zeta$ is the damping ratio; the value $\omega_0$ is the angular frequency. Solutions will exhibit different behaviors depending on the damping ratio.
+
+To setup this problem, we have:
+
+```{julia}
+@giac_var t x u(t) ω₀ ζ
+uₜ = D(u)
+uₜₜ = D(D(u))
+damped = uₜₜ + 2 *  ζ * ω₀ * uₜ + ω₀^2 * u ~ 0
+```
+
+The initial conditions are:
+
+```{julia}
+ics = [u(0) ~ 1,  # start at 1
+       uₜ(0) ~ 0] # no initial velocity
+```
+
+We can now solve:
+
+```{julia}
+out = desolve([damped, ics...], u)
+```
+
+We can plot for given values of $\zeta$. For values bigger than $1$ the oscillator just decays, for values less than $1$ it oscillates:
+
+```{julia}
+sol = out(ω₀ => 1)
+p1 = plot(sol(ζ => 3/2), 0, 15; title="ζ = 3/2")
+p2 = plot(sol(ζ => 1/8), 0, 15; title="ζ = 1/8")
+plot(p1, p2)
+```
+
+----
+
+
+We follow with a more involved example. The following equations model projectile motion using Newton's laws and projectile motion with a drag force proportional to velocity. This proportion is given by a constant $\gamma$.
+
+We use `u` and `v` to model the $x$ and $y$ coordinates of motion over time, $t$. Inverting $x$ to get $t$, allows the solution of $y$ in terms of $t$.
+
+```{julia}
+@giac_var x0 y0 v0 γ 𝑔
+@giac_var t x u(t) v(t)
+Dₜu = D(u)
+Dₜₜu = D(D(u))
+Dₜv = D(v)
+Dₜₜv = D(D(v))
+eq₁ = Dₜₜu ~    -γ * Dₜu
+eq₂ = Dₜₜv ~ -𝑔 -γ * Dₜv
+```
+
+If we set $\gamma = 0$ and solve, we get the $y$ values as a function of $t$:
+
+```{julia}
+a1 = desolve(eq₁(γ=>0), u(t))
+a2 = desolve(eq₂(γ=>0), v(t))
+tₓ = only(solve(a1 ~ x, t)) # invert; only one solution
+yₓ = a2(t => tₓ)
+```
+
+We can see the form of a parabola, with two parameters adjusting its shape related to the initial conditions. This is anticipated from physics, where projectile motion s an early example.
+
+Here, we specify initial values on position and velocity so that we can ultimately plot a solution:
+
+```{julia}
+@giac_var α v₀
+icx = (u(0) ~ 0, Dₜu(0) ~ v₀*cos(α))
+icy = (v(0) ~ 0, Dₜv(0) ~ v₀*sin(α))
+
+a1 = desolve([eq₁(γ => 0), icx...], u(t))
+a2 = desolve([eq₂(γ => 0), icy...], v(t))
+
+tₓ = only(solve(x ~ a1, t)) # only one solution
+yₓ = a2(t => tₓ)
+```
+
+
+If there is a positive $\gamma$, there will be drag and the formulas will change to reflect that.
+
+```{julia}
+𝑎1 = desolve([eq₁, icx...], u(t))
+𝑎2 = desolve([eq₂, icy...], v(t))
+
+𝑡ₓ = only(solve(x ~ 𝑎1, t)) # only one solution
+𝑦ₓ = 𝑎2(t => 𝑡ₓ)
+```
+
+The difference can be visualized through plotting. The proper way to get the values for the constants is to specify numeric values in the initial conditions:
+
+
+```{julia}
+PI = giac_eval("pi")
+a = yₓ(𝑔 => 32, v₀ => 200, α => PI/4)
+M = maximum(solve(a ~ 0))
+```
+
+```{julia}
+plot(a, 0, to_julia(M))
+```
+
+```{julia}
+𝑎 = 𝑦ₓ(𝑔 => 32, v₀ => 200, α => PI/4, γ => 1//2)
+M = maximum(solve(𝑎 ~ 0))
+```
+
+Peeking at the values show they are explicit, but complicated:
+
+```{julia}
+𝑎, M
+```
+
+Adding the plot with a drag force, shows the models track each other initially, but evenutally the drag force leads to a big difference:
+
+```{julia}
+plot!(𝑎, 0, to_julia(M))
+```
+
+----
+
+There are other methods available for other types of equations in this [Giac documentation](https://www-fourier.univ-grenoble-alpes.fr/~parisse/giac/doc/en/cascmd_en/index.html#sec1024).
+
+
+## Vectors and matrices
+
+Julia has an `AbstractArray` type which can be used to store vectors and matrices. Similarly, `Giac` has internal vector and matrix structures. These have an iteration protocol that usually allows them to be treated as a Julia vector or matrix.
+
+For example, a solution returned by `solve` might be in an internal list (vector) and below we see how to filter the value.
+
+```{julia}
+out = solve(cos(x) ~ x/4, x)
+```
+
+To find just the positive solutions, we have:
+
+```{julia}
+filter(>(0) ∘ to_julia, collect(GiacExpr, out))
+```
+
+Or, perhaps if `Float64` values are preferred over `GiacExpr` values:
+
+```{julia}
+filter(>(0), collect(Float64, out))
+```
+
+The collection is necessary as `filter` doesn't specialize on its second argument being of type `GiacExpr`.^[Other functional programming operations, like `map`, `reduce`, `foldr`, work, but the generic `filter` is defined for `AbstractArray` and not a general iterator.]   The `collect` call turns the list into a vector of `GiacExpr` objects or `Float64` objects.
+
+Alternatively, a comprehension could have been used:
+
+```{julia}
+v = [x for x in out if 0 < to_julia(x)]
+```
+
+Giac vectors can also be directly produced by the `list `command.
+
+```{julia}
+using Giac.Commands: list
+vv = list([1,2,3,x])
+```
+
+----
+
+
+Vectors have a *dot* product and a `dot` command is available for `GiacExpr` objects in addition to a generic `dot` method for vectors of `GiacExpr` type:
+
+```{julia}
+using LinearAlgebra # gives access to methods dot, cross, ... that Giac extends
+dot(vv, vv), dot(out,out)
+```
+
+----
+
+Three-dimensional vectors have a *cross* product and a `cross` command is available for `GiacExpr` objects in addition to a generic `cross` method for vectors of `GiacExpr` type:
+
+```{julia}
+v,w = [0,1,x], [2,1,x^2]
+vv, ww = list(v), list(w)
+cross(v, w), cross(vv, ww)
+```
+
+### Matrices
+
+Some Giac commands return "matrices".
+
+For example, consider the roots of this polynomial $p=  x^5-9*x^4+30*x^3-46*x^2+33*x-9$:
+
+```{julia}
+p = x^5-9*x^4+30*x^3-46*x^2+33*x-9
+Giac.Commands.roots(p)
+```
+
+This is a vector of vectors, but cam also be viewed as a matrix with each row given by a vector. Matrices can be approached in several different manners.
+
+----
+
+Matrices with `GiacExpr` elements are produced as any other matrix in `Julia`:
+
+```{julia}
+@giac_var x
+M = [1 2; 3 x]
+```
+
+Some, but decidedly not all, generic linear algebra operations will work with such matrices. (E.g, `tr` will, `det` will not.)
+
+----
+
+Matrices stored as a Giac object are directly produced by calling `giac_eval` with the matrix specified as a vector of row vectors:
+
+```{julia}
+mat_string = "matrix[[1,2], [2,3], [3,4]]"
+m = giac_eval(mat_string)
+```
+
+We have the expected values:
+
+```{julia}
+size(m), length(m), eachindex(m)
+```
+
+The iteration protocol should respect the shape:
+
+```{julia}
+sin.(m)
+```
+
+----
+
+`Giac.jl` provides a `GiacMatrix` class to turn a `Julia` array into a symbolic matrix that has methods defined for it:
+
+```{julia}
+M = GiacMatrix([1 2; 3 4])
+```
+
+```{julia}
+using LinearAlgebra
+det(M), tr(M)
+```
+
+In particular, there is support for `det`, `inv`, `tr`, and `transpose` along with other commands from `Giac`---which may not follow Julia's patterns---such as `lu`.
+
+::: {.callout-note}
+## But not all
+There are some generic linear algebra functions which *will not* work with either a vector of `GiacExpr`s or a `GiacMatrix`. Notably, `norm` which will fail with a recursion. There are specific `Giac` commands for norms: `maxnorm`, `l1norm`, `l2norm`, ...
+:::
+
+#### Switching between matrix forms
+
+As an example of the different data structures, we return to the output for the roots of a polynomial:
+
+```{julia}
+u = Giac.Commands.roots(p)
+```
+
+This vector of vectors, can be viewed as a matrix, but needs to be manipulated into being one.
+
+To get an internal Giac matrix, we create a string for the matrix constructor using interpolation and then evaluate:
+
+```{julia}
+m_giac = giac_eval("matrix$u")
+```
+
+To get a Julia matrix, we collect each row into a `Julia` vector, transpose (or permute dimensions) into row vectors, and then concatenate with `vcat(collection...)` or by a reduction:
+
+```{julia}
+m_julia = reduce(vcat, transpose.(collect.(GiacExpr, u)))
+```
+
+To get a `GiacMatrix`, the last result can be passed to `GiacMatrix`:
+
+```{julia}
+GiacMatrix(m_julia)
+```
+
+`GiacMatrix` has a method for a `GiacExpr` object of the proper form allowing the value `u` to be passed directly to the constructor:
+
+```{julia}
+GiacMatrix(u)
+```
+
+Finally, `GiacMatrix` has a method for `Vector{<:Vector}` which might be convenient, depending on the data. This structure is returned by broadcasting `collect` over `u`:
+
+```{julia}
+m_GiacMatrix = GiacMatrix(collect.(GiacExpr, u))
+```
+
+Finally, a `GiacMatrix` objected can be collected to produce a `Julia` matrix with `GiacExpr` entries:
+
+```{julia}
+collect(GiacExpr, m_GiacMatrix)
+```
+
+
+
+## Functions from $R^n \rightarrow R^m$
+
+We turn to discussing scalar-or-vector-valued functions of one or more input variables.
+
+### $R \rightarrow R^m$
+
+Earlier, we discussed parameterized curves, which are an example of a univariate vector-valued function, in that case with $m=2$. For different value of $m$, univariate, vector-valued functions can also be represented by vectors of symbolic expressions using `Julia` vectors.
+
+#### Visualize
+
+For $m=2$ or $3$, a typical plot is to plot the vectors as though they are anchored a the origin. The `plot(f1,f2,[f3], t0, t1)` recipe will do this, as was illustrated in the case $m=2$. In this example, we let $m=3$ to get a space curve:
+
+```{julia}
+@giac_var r R a b t
+spiral = [(R + r*cos(b*t))*cos(a*t), (R + r*cos(b*t))*sin(a*t), r*sin(b*t)]
+```
+
+Broadcasting is used to conveniently substitute in values for the parameters so that a specific expression can be plotted. The prime in the name is just notation---not a derivative---derivatives will be illustrated shortly.
+
+```{julia}
+spiral′ = substitute.(spiral,R=>3, r=>1, a=>3, b=>2)
+plot(spiral′..., 0, 2pi)
+```
+
+ The splatting done in the `plot` command turns the 3-dimensional vector into 3 symbolic expressions which `plot` treats as function objects by the previously defined recipe. (As an alternative to calling `build_function` on each component.)
+
+
+#### Derivatives
+
+Univariate, Vector-valued functions have derivatives that are taken component by component. As such, simply broadcasting `diff` over a vector will yield the derivative:
+
+```{julia}
+dv = diff.(spiral′, t)
+```
+
+To add the tangent vector to the curve, we might do:
+
+```{julia}
+plot(spiral′..., 0, 2pi)
+t0 = 1
+p0 = to_julia.(Tuple(substitute.(spiral′, t=>t0)))
+p1 = to_julia.(Tuple(substitute.(dv, t=>t0)))
+plot!([p0, p1]; arrow=true)
+```
+
+The above line is added as a vector of tuples, each tuple representing a point. The `arrow=true` is only hopeful, as 3-dimensional arrows are not supported for all backends.
+
+XXX --- a float method would avoid broadcasting `to_julia`
+
+#### Integration
+
+Component-by-component integration, like differentiation, can be done by broadcasting the `integrate` command over the data structure.:
+
+```{julia}
+using Giac.Commands: integrate
+integrate.(spiral, t, 0, pi)
+```
+
+##### Line integrals
+
+A line integral might be generically written over a curve $C$ or with a parameterization, $r(t)$, of $C$, yielding
+
+$$
+I = \int_C f(\vec{x}) ds = \int_a^b f(r(t)) dt
+$$
+
+An example is the computation of arc-length which is found by integrating the *norm* of the tangent vector:
+
+$$
+L = \int_a^b \lVert r'(t) \rVert dt.
+$$
+
+The `spiral` curve doesn't have an analytical anti-derivative; instead we look at the parameterization of a circle, with its known arc-length of $2\pi*r$:
+
+```{julia}
+@giac_var r t
+purge(r); assume(r > 0)
+PI = giac_eval("pi")
+v = [r*cos(t), r*sin(t)]
+```
+
+We avoid calling `norm` to form `dL` below, as that method isn't happy with a vector of `GiacExpr` objects (though we could do this internally with `Giac` commands):
+
+```{julia}
+dL = sqrt(sum(xi^2 for xi in diff.(v, t)))
+integrate(dL, t, 0, 2PI)
+```
+
+We avoided using `LinearAlgebra.norm`, as that method fails due some expected generic assumptions. `Giac` provides a norm function `l2norm` which we might have used, after converting `v` to a Giac list:
+
+```{julia}
+using Giac.Commands: list, l2norm
+vv = list(v)
+dL = l2norm(diff(vv, t))   # no need to broadcast within Giac
+integrate(dL, t, 0, 2PI)
+```
+
+----
+
+Another integral along a path is the work integral:
+
+$$
+W = \int_C F \cdot dr = \int_a^b F(r(t)) \cdot r'(t) dt,
+$$
+
+where $r$ is a space-curve describing the path and $F$ some field (a function from $R^m$ into $R^m$).
+
+Here is an example: compute the work moving around a circle at the origin of radius $\rho$ through the field $F(x,y) = [x, 3xy]$.
+
+A parameterization is simply
+
+```{julia}
+@giac_var ρ t
+r = ρ .* [cos(t), sin(t)]
+```
+
+We set up $F$:
+
+
+```{julia}
+@giac_var x y
+F = [x, 3*x*y]
+```
+
+The composition $F(r(t))$ can be done through substitution, here we combine with a dot product using the infix operation. Notice the broadcasting in the first two commands:
+
+```{julia}
+Fr = substitute.(F, x=>r[1], y=>r[2])
+dr = diff.(r, t)
+dW = Fr ⋅ dr
+```
+
+Finally we integrate `dW` over $[0,2\pi]$ to get the work done:
+
+```{julia}
+W = integrate(dW, t, 0, 2PI)
+```
+
+### $R^n \rightarrow R$
+
+Functions taking $R^n$ to $R$ are called multivariate, scalar-valued functions.
+
+#### Define
+
+An expression with $n$ free variables that yields a scalar quantity can be viewed as a function from $R^n$ into $R$. The `build_function` method can make a concrete function which takes and returns `Julia` values with its rule being the expression.
+
+For example,
+
+$$
+F(x,y) = (y-5)\cdot \cos(4\cdot \sqrt{(4-x)^2 + y^2}) - x\cdot \sin(2\sqrt{x^2 + y^2})
+$$
+
+could be modeled with:
+
+```{julia}
+@giac_var x y
+ex = (y-5)*cos(4*sqrt((4-x)^2 + y^2)) - x*sin(2sqrt(x^2 + y^2))
+```
+
+Evaluation can be achieved through substitution:
+
+```{julia}
+ex(x=>1, y=>2)
+```
+
+or after calling `build_function` and calling the new function within `Julia`:
+
+```{julia}
+λ = build_function(ex, x, y)
+λ(1, 2)
+```
+
+#### Visualization
+
+The common graphics for visualization are contour plots and surface plots. For each, the call is similar and we defer the work to the function that was built.
+
+```{julia}
+xs = ys = range(-10, 10, 250)
+surface(xs, ys, λ)
+```
+
+```{julia}
+contour(xs, ys, λ)
+```
+
+##### Implicit plots
+
+The contour plot graphs $F(x,y) = c$ for different values of $c$. The set of zeros of $F$, solutions to $F(x,y)=0$, is often of particular interest. For this equation, a plot *implicitly* defines a function $y(x)$ where $F(x, y(x)) = 0$ for neighborhoods around most points of the resulting curve.
+
+We can generate the plot by passing in a value to the `levels` argument:
+
+```{julia}
+contour(xs, ys, λ; levels=[0])
+```
+
+Through some algebra, the same approach can be used to plot the solution set to any equation involving two variables.
+
+
+
+
+#### Derivatives
+
+For multivariate functions the partial derivatives are important. These are found using `diff` and specifying the variable to differentiate by:
+
+For example,
+
+```{julia}
+diff(ex, x)
+```
+
+The mixed partial, can be computed by, say, `diff(ex, x, y)`. Under assumptions, the order doesn't matter, as this computation illustrates:
+
+
+```{julia}
+diff(ex, x, y) - diff(ex, y, x) |> simplify
+```
+
+
+The gradient, is the vector of partial derivatives. For an expression, this can be computed through a comprehension:
+
+```{julia}
+[diff(ex, xᵢ) for xᵢ ∈ (x,y)]
+```
+
+Or, the `grad` command can be used:
+
+```{julia}
+using Giac.Commands: grad
+grad(ex, [x,y])
+```
+
+The *hessian* is the matrix of mixed partials, which, again, can be computed through a comprehension. As the output is lengthy, we compare just one term computed in two different ways:
+
+```{julia}
+vars = [x,y]
+out = [diff(ex, xᵢ, xⱼ) for (xᵢ, xⱼ) ∈ Iterators.product(vars, vars)]
+out[1,1] - diff(ex, x, x) |> simplify
+```
+
+Or, using the built-in `hessian` command:
+
+```{julia}
+using Giac.Commands: hessian
+out = hessian(ex, [x,y])
+out[1][1] - diff(ex, x, x) |> simplify
+```
+
+The `hessian` command returns a Giac vector of vectors (not a matrix, though related) hence, the double call to `getindex` above.
+
+#### integration
+
+Integration of a multivariate, scalar valued function is typically performed by Fubini's theorem, which allows the integration to be performed variable by variable:
+
+$$
+\int_{X \times Y} f(x,y) dA = \int_X (\int_Y f(x,y) dy) dx =
+\int_Y (\int_X f(x,y) dx) dy.
+$$
+
+For example, to integrate $F(x,y) = x^2 \cdot y^3$ over the triangular region formed by the vertices $(0,0)$, $(1,0)$, $(0,1)$ we might have:
+
+```{julia}
+@giac_var x y
+F = x^2 * y^3
+I_y = integrate(F, y, 0, 1-x)  # integrating int_{x=0}^1 int_{y=0}^{1-x} F(x,y) dy dx
+integrate(I_y, x, 0, 1)
+```
+
+(Integrating is made easy, but *not* the task of identifying valid endpoints to describe the region integrated over.)
+
+### $R^n \rightarrow R^m,\quad m,n > 1$
+
+Multivariate, vector-valued functions can be modeled as vector-valued functions where the expressions are multivariate scalar-valued functions.
+
+
+There are two special operations for such functions, the divergence (`divergence`) and the the curl (`curl`) (when $n = m= 3$).
+
+```{julia}
+using Giac.Commands: divergence, curl, grad
+@giac_var x y z
+vars = [x, y, z]
+F = [x*sin(y), x*cos(y), z]
+divergence(F, vars)
+```
+
+The divergence, $\nabla \cdot F$ can also be realized via a dot product:
+
+```{julia}
+sum(diff(Fi, v) for (Fi, v) ∈ zip(F, vars))
+```
+
+The above commands used a vector of `GiacExpr` objects. The same works for an internal `Giac` vector. Here we use `list` to create such:
+
+```{julia}
+divergence(list(F), list(vars))
+```
+
+
+The `curl` command is similarly called as `divergence`:
+
+```{julia}
+curl(F, vars)
+```
+
+This $F$ has rotation about the $z$ axis, so the $x$--$y$ terms of the curl are $0$.
+
+#### Visualization
+
+The visualization of vector fields is most familiar in the $2\times 2$ case, in which each point in the $x$--$y$ plane has a $2$-dimensional vector, $F(x,y)$, anchored at the point.
+
+The `quiver` function can be used to draw arrows in two dimensions. It is passed the $x$ values and $y$ values of the positions, and the $u$ and $v$ values of the directions. These can be produced with comprehensions as follows.^[The construction of `F = [y/d, -x/d]` would be more succinctly performed by `[x,y]/d` but that fails, as there isn't (currently) a specialized operation for such vector-scalar operations. However, broadcasting would still work, `[x,y] ./ d`.]
+
+```{julia}
+@giac_var x y
+d = 1 + x^2 + y^2 # scale factor
+F = [y/d, -x/d]
+us = build_function.(F, (x,), (y,))
+xs = ys = range(-2, 2, 10)
+```
+
+That sets up a function, $F$, from $R^2$ to $R^2$ and the $x$ and $y$ values for the grid of points. To expand this grid, we generate fours vectors looping over the paired values:
+
+```{julia}
+xxs = [x for x in xs for y in ys]
+yys = [y for x in xs for y in ys]
+uus = [us[1](x,y) for x in xs for y in ys]
+vvs = [us[2](x,y) for x in xs for y in ys];
+```
+
+These vectors can then be passed along to `quiver`:
+
+```{julia}
+quiver(xxs, yys, quiver=(uus, vvs))
+```
+
+As an aside, an alternate means to produce the four vectors could be to use `invert` from `SplitApplyCombine`:
+
+```{julia}
+#| eval: false
+import SplitApplyCombine: invert
+uu = build_function(list(F), x, y)
+
+xxs, yys = invert([(x,y) for x in xs for y in ys])
+uus, vvs = invert([uu(x,y) for x in xs for y in ys]);
+```
+
+
+#### Derivatives
+
+The Jacobian of a vector-valued function is defined by
+
+$$
+J_F = [\frac{\partial F_1}{\partial x_1} \cdots \frac{\partial F_n}{\partial x_n}]
+= \left[
+\begin{array}{c}
+\nabla F_1^T \\
+\nabla F_2^T \\
+\cdots       \\
+\nabla F_n^T \\
+\end{array}
+\right]
+$$
+
+The Jacobian is the *best* linear approximation in the sense
+
+$$
+\lVert(F(x) - F(a)) - J \cdot (x - a)\rVert = o(\lVert x - a\rVert)
+$$
+
+
+If we express our vector-valued function using a vector of `GiacExpr` objects, we can compute this with a comprehension:^[The comprehension syntax `[F(x,y) for x in xs, y in ys]` creates a 2-d dense matrix, with additional variables leading to higher dimensional arrays. The comprehension syntax `[F(x,y) for x in xs for y in ys]` is like a short cut to two `for` loops and produces a vector with the last iteration happening for each value of the inner variable (as would be done with nested `for` loops). Alternatively, something like `vcat(map(F, Iterators.product(ys, xs)))` will also work similarly, though `F` would be passed a tuple.]
+
+```{julia}
+[diff(Fi, vj) for Fi in F,  vj in vars]
+```
+
+If the function is a giac vector, the syntax shifts and gets a bit cumbersome.
+
+To compare, we take an easier example:
+
+```{julia}
+F = [x, 2x*y]
+J = [diff(Fi, vj) for Fi in F,  vj in vars]
+```
+
+To compute with a the gradient, we might have:
+
+```{julia}
+out = [grad(Fi, vars) for Fi in F]
+```
+
+We see a vector of vectors, but we convert to a `Vector` to pass to `GiacMatrix`
+
+```{julia}
+JJ = GiacMatrix(collect.(GiacExpr, out))
+```
+
+This compares with `J` above.
+
+
+#### Integration
+
+Let's illustrate integration via a confirmation of  Stokes' Theorem:
+
+$$
+\int_C F \cdot dr = \iint_S (\nabla \times F) \cdot n dS.
+$$
+
+
+Let $F = \langle x + y, 2xy, y^2 \rangle$.
+
+Suppose, we have a curve that sits on the plane given by $f(x.y) = c - (a*x + b*y)$ above the circle of radius $\rho$ centered at the origin. Then we can write $r(t)$ by putting the parameterization $\langle \rho \cos(t), \rho \sin(t)\rangle$ through $f$:
+
+```{julia}
+@giac_var a b c ρ t x y
+PI = giac_eval("pi")
+F = [x + y, 2x*y, y^2]
+f(x,y) = c - (a*x + b*y)
+𝑟 = ρ .* [cos(t), sin(t)]
+r = vcat(𝑟, f(𝑟...))
+```
+
+The line integral can be computed as follows:
+
+```{julia}
+Fr = substitute.(F, x=>r[1], y=>r[2], z=>r[3])
+dr = diff.(r, t)
+line_integral = integrate(Fr ⋅ dr, t, 0, 2PI)
+```
+
+This simplifies to:
+
+```{julia}
+line_integral = simplify(line_integral)
+```
+
+For the surface integral, we take the disc to be the surface. A parameterization for that comes from $r(u,v) = \langle u\cdot\cos(t), u\cdot\sin(t), c - (a\cdot u\cdot\cos(t) + b\cdot u \cdot\sin(t)) \rangle$, where $0 \leq u \leq \rho$ and $0 \leq v \leq 2 \pi$.
+
+With the surface so parameterized, we compute:
+
+$$
+\oint_S (\nabla \times F) \cdot dS = \iint_D (\nabla \times F)(r(u,v)) \cdot (r_u \times r_v) du dv,
+$$
+
+With $r_u$ and $r_v$ the partial derivatives. Continuing:
+
+```{julia}
+@giac_var u v
+𝑟 = u .* [cos(v), sin(v)]
+r = vcat(𝑟, f(𝑟...))
+ru, rv = diff.(r, u), diff.(r, v)
+curlF = substitute.(curl(F, [x,y,z]), x=>r[1], y=>r[2], z=>r[3])
+surface_integral = integrate(integrate(curlF ⋅ (ru × rv), v, 0, 2PI), u, 0, ρ)
+```
+
+The two integrals being equal, Stokes' theorem is confirmed for this example.
+
+
+::: {.callout-note collapse="true"}
+## Environment of `Julia` when generated
+
+`Julia` version:
+
+```{julia}
+VERSION
+```
+
+Packages and versions:
+
+```{julia}u
+sing Pkg
+Pkg.status()
+```
+
+:::

@@ -1,0 +1,861 @@
+# Numeric approximations to definite integrals
+
+
+{{< include ../_common_code.qmd >}}
+
+This section uses these add-on packages:
+
+
+
+```{julia}
+using CalculusWithJulia
+using Plots; plotly()
+using QuadGK
+using Roots
+```
+
+## Numeric integration
+
+The fundamental theorem of calculus gives an easy to compute answer to the value of a definite integral *when* a computable (elementary) anti-derivative can be found. This is not always the case. See [Liousville's theorem](https://en.wikipedia.org/wiki/Liouville's_theorem_(differential_algebra)) to read more. If there is no computable anti-derivative the definite integral can be *approximated* numerically, as discussed in this section, where we begin with a Riemann sum approach, but end with a much more efficient Gauss-quadrature approach we will utilize in subsequent sections.
+
+
+The Riemann sum approach gives a method to approximate the value of a definite integral. We just compute an approximating sum for a large value of $n$, so large that the limiting value and the approximating sum are close.
+
+
+To see the mechanics, let's again return to Archimedes' problem and *approximate* $\int_0^1 x^2 dx$.
+
+
+Let us fix some values, $a$, $b,$ and $f$ are part of the question, $n$ is related to the approximation.
+
+
+```{julia}
+a, b = 0, 1
+f(x) = x^2
+
+n = 5
+```
+
+Then for a given $n$ we have some steps to do: create the partition, find the $c_i$, multiply the pieces, and add them up. Here is one way to do all this:
+
+
+```{julia}
+xs = a:(b-a)/n:b       # also range(a, b, length=n)
+deltas = diff(xs)      # forms x2-x1, x3-x2, ..., xn-xn-1
+cs = xs[1:end-1]       # finds left-hand end points. xs[2:end] would be right-hand ones.
+```
+
+We want to sum the products $f(c_i)\Delta_i$. Here is one way to do so using `zip` to iterate over the paired off values in `cs` and `deltas`.
+
+
+```{julia}
+sum(f(ci)*Δi for (ci, Δi) in zip(cs, deltas))
+```
+
+Our answer is not so close to the value of $1/3$, but what did we expect---we only used $n=5$ intervals. Trying again with $50,000$ gives us:
+
+
+```{julia}
+#| hold: true
+n = 50_000
+xs = a:(b-a)/n:b
+deltas = diff(xs)
+cs = xs[1:end-1]
+sum(f(ci)*Δi for (ci, Δi) in zip(cs, deltas))
+```
+
+This value is about $10^{-5}$ off from the actual answer of $1/3$.
+
+
+We should expect that larger values of $n$ will produce better approximate values, as long as numeric issues don't get involved.
+
+
+Before continuing, we define a function to compute approximating sums for us with an extra argument to specifying one of four common methods for estimating $\int_{x_{i-1}}^{x_i}f(x)dx$. Leaving explanations for later, @fig-various-integration-methods shows the different approximations.
+
+
+```{julia}
+#| eval: false
+function riemann(f, xs; method="right")
+    Ms = (left      = (f,a,b) -> f(a),
+          right     = (f,a,b) -> f(b),
+          trapezoid = (f,a,b) -> (f(a) + f(b))/2,
+          simpsons  = (f,a,b) -> (c = a/2 + b/2; (1/6) * (f(a) + 4*f(c) + f(b)))
+          )
+    M = Ms[Symbol(method)}
+    xs′ = zip(xs[1:end-1], xs[2:end])
+    sum(M(f, a, b) * (b-a) for (a,b) ∈ xs′)
+end
+
+riemann(f, a, b, n; method="right") =
+    riemann(f, range(a,b,n+1); method)
+```
+
+(This function is defined in `CalculusWithJulia` and need not be copied over if that package is loaded.)
+
+::: {#fig-various-integration-methods}
+```{julia}
+#| echo: false
+let
+	gr()
+    f(x) = sin(x/3) + sin(x/1.5)
+	plt = plot(; legend=false, xaxis=([], false),
+                yaxis=([], false))#, empty_style...)
+	plot!(plt, [(-0.5, 0), (6.5,0)]; line=(1, :black), arrow=true)
+	plot!(f, 0, 6)
+	left = [(1,0), (2,0), (2, f(1)), (1, f(1))]
+	push!(left, first(left))
+
+	right = [(2,0), (3,0), (3, f(3)), (2, f(3))]
+	push!(right, first(right))
+
+	trapezoid = [(3,0), (4,0), (4, f(4)), (3, f(3))]
+	push!(trapezoid, first(trapezoid))
+
+	l1(x) = (x-4.5)*(x-5) / (4 - 4.5) / (4 - 5)
+	l2(x) = (x-4) * (x-5) / (4.5-4) / (4.5 - 5)
+	l3(x) = (x-4) * (x-4.5) / (5-4) / (5-4.5)
+	s(x) = f(4)*l1(x) + f(4.5)*l2(x) + f(5)*l3(x)
+	ts = range(4,5, 15)
+	simpsons = [(4,0), tuple.(ts, s.(ts))..., (5, 0)]
+	push!(simpsons, first(simpsons))
+
+	plot!(plt, left; line=(1, :blue))
+	plot!(plt, right; line=(1, :red))
+	plot!(plt, trapezoid, line=(1, :green))
+	plot!(plt, simpsons; line=(1, :brown))
+
+    annotate!(plt, [
+    (1.5, .5, text("left riemann", 90.0)),
+    (2.5, .5, text("right riemann", 90.0)),
+    (3.5, .5, text("trapezoid", 90.0)),
+    (4.5, .5, text("Simpson's", 90.0))])
+
+	plotly()
+	plt
+end
+```
+
+Plot of a $f(x)$ showing (from left to right) a left Riemann sum approximation, a right Riemann sum approximation, a trapezoid approximation, and Simpson's approximation. The error in the Simpson's approximation (barely discernible) appears to be less than that of the trapezoid approximation which is less than either the left- or right-Riemann sum approximations.
+:::
+
+
+With this, we can easily find an approximate answer for a definite integral. We wrote the function to use the familiar template `action(function, arguments...)`, so we pass in a function and arguments to describe the problem (`a`, `b`, and  `n` and, optionally, the `method`):
+
+
+```{julia}
+f(x) = exp(x)
+riemann(f, 0, 5, 10)
+```
+
+Or with more intervals in the partition
+
+
+```{julia}
+riemann(f, 0, 5, 50_000)
+```
+
+(The answer is $e^5 - e^0 = 147.4131591025766\dots$, which shows that even $50,000$ partitions is not enough to guarantee many digits of accuracy.)
+
+
+
+##### Example
+
+
+Numerically estimate the definite integral $\int_0^2 x\log(x) dx$.
+
+
+This particular integrand is continuous on $(0,2]$ *but* we can redefine it to be $0$ at $0$ to make it continuous on $[0,2]$, hence the integral above is well defined. Numerically though, we have to be a bit careful with the Riemann sum, as the left Riemann sum will have an issue at $0=x_0$---`0*log(0)` returns `NaN` which will poison any subsequent arithmetic operations, so the value returned will be `NaN` and not an approximate answer. We could define our function with a check, instead we avoid this value by using the right Riemann sum:
+
+
+```{julia}
+h(x) = x * log(x)
+riemann(h, 0, 2, 50_000; method="right")
+```
+
+(The default is `"right"`, so no method specified would also work.)
+
+
+## Error estimate
+
+
+The Riemann sum above is actually extremely inefficient in that it can take a large number of rectangles to produce an "accurate" approximation for a definite integral, even for nice functions. To see how much so, we can derive an estimate for the error in approximating the value using an arithmetic progression as the partition. Let's assume that our function $f(x)$ is increasing, so that the right sum gives an upper estimate and the left sum a lower estimate, so the error in any Riemann sum estimate will be smaller than the distance between these two values:
+
+
+$$
+\begin{align*}
+\text{error}
+&\leq \text{upper sum} - \text{lower sum}\\
+&=
+\left(f(x_1) \cdot (x_{1} - x_0)  + f(x_2) \cdot  (x_{2} - x_1) + \cdots \right.\\
+&\quad + \left. f(x_{n-1})(x_{n-1} - x_{n-2}) + f(x_n) \cdot (x_n - x_{n-1})\right)\\
+&\quad -
+\left(f(x_0) \cdot (x_{1} - x_0)  + f(x_1) \cdot  (x_{2} - x_1) + \cdots \right.\\
+&\quad + \left. f(x_{n-1})(x_n - x_{n-1}) \right)\\
+&=
+\left(f(x_1) \cdot \Delta  + f(x_2) \cdot  \Delta + \cdots + f(x_{n-1})\Delta + f(x_n) \cdot \Delta y\right)\\
+&\quad -
+\left(f(x_0) \cdot \Delta + f(x_1) \cdot  \Delta + \cdots + f(x_{n-1})\Delta\right) \\
+&= \left(\left[f(x_1) + f(x_2) + \cdots + f(x_n)\right] - \left[f(x_0) + \cdots + f(x_{n-1})\right]\right) \cdot \Delta \\
+&= \left(f(b) - f(a)\right) \cdot \frac{b-a}{n}.
+\end{align*}
+$$
+
+
+We see the error goes to $0$ at a rate of $1/n$ with the constant depending on $b-a$ and the function $f$. In general, a similar bound holds when $f$ is not monotonic.
+
+### The trapezoid rule
+
+There are other ways to approximate the integral that use fewer points in the partition. Riemann sums approximate the definite integral over each "piece" of the partition---$\int_{x_{i-1}}^{x_i} f(x) dx$---using a rectangle. Other geometric shapes are possible.
+
+The *trapezoid* rule uses a trapezoid formed to approximate this area, namely the one formed by $(x_{i-1}, 0)$, $(x_{i-1}, f(x_{i-1}))$, $(x_i, f(x_i))$, and $(x_i, 0)$ with area
+
+$$
+\frac{1}{2} \left(f(x_{i-1}) + f(x_i) \right) \cdot (x_i - x_{i-1}).
+$$
+
+If we use an equally spaced partition ($\Delta=(b-a)/n$) and add all the $n$ terms, we get single contributions from the endpoints and double from the others giving
+
+$$
+A \approx (\frac{f(x_0)}{2} + \frac{f(x_n)}{2})\Delta + \sum_{i=1}^{n-1}  f(x_i) \Delta/
+$$
+
+In a later section, we will see that the error in using trapezoids to
+estimate the area is bounded, for some constant $K$:
+
+
+$$
+\text{error} \leq \frac{K (b-a)^3}{12n^2}.
+$$
+
+The $n^2$ means *roughly* that the error in the estimate using a Riemann sum with $n$ terms is similar to the error in the estimate using the trapezoid rule with $\sqrt{n}$ terms.^[There are functions where the trapezoid method has much faster convergence, even exponential. (cf. [this article](https://people.maths.ox.ac.uk/trefethen/sirev56-3_385.pdf) and [these notes](https://math.mit.edu/~stevenj/trap-iap-2011.pdf) for some background.)]
+
+
+##### Example
+
+Consider the integral
+
+$$
+\int_0^2 x e^{-x} dx = 1 - 3 e^{-2} = 0.59399415\cdots
+$$
+
+For comparison sake, we define the exact answer as a constant:
+
+```{julia}
+A = 1 - 3 * exp(-2)
+```
+
+The error of a Riemann sum with $n=10^4$ is then:
+
+```{julia}
+a, b = 0, 2
+f(x) = x * exp(-x)
+riemann(f, a, b, 10^4; method="right") - A
+```
+
+and this is comparable to the error of the trapezoid method with $n=10^2$:
+
+```{julia}
+riemann(f, a, b, 10^2; method="trapezoid") - A
+```
+
+
+
+### Simpson's rule
+
+ [Simpson's](http://tinyurl.com/7b9pmu) rule is one, where instead of approximating the area with rectangles that go through some $c_i$ in $[x_{i-1}, x_i]$ instead the function is approximated by the quadratic polynomial going through $x_{i-1}$, $(x_i + x_{i-1})/2$, and $x_i$ and the exact area under that polynomial is used in the approximation. The explicit formula for a single partition is^[The `riemann` function sums this expression, but this approach is inefficient computationally. Alternative formulations would be suggested.]
+
+$$
+\int_{x_{i-1}}^{x_i} f(x) dx \approx \frac{x_i - x_{i-1}}{6}\left(f(x_{i-1}) + 4f(\frac{x_{i-1} + x_i}{2}) + f(x_i)\right)
+$$
+
+
+
+The error in this approximation can be shown to be
+
+
+$$
+\text{error} \leq \frac{(b-a)^5}{180n^4} \text{max}_{\xi \text{ in } [a,b]} \lvert f^{(4)}(\xi) \rvert.
+$$
+
+That is, the error is like $1/n^4$ with constants depending on the length of the interval, $(b-a)^5$, and the maximum value of the fourth derivative over $[a,b]$. This is significant, the error in $10$ steps of Simpson's rule is on the scale of the error of $10,000$ steps of the Riemann sum for well-behaved functions.
+
+
+:::{.callout-note}
+## Note
+The Wikipedia article mentions that Kepler used a similar formula $100$ years prior to Simpson, or about $200$ years before Riemann published his work. Again, the value in Riemann's work is not the computation of the answer, but the framework it provides in determining if a function is Riemann integrable or not.
+
+:::
+
+
+##### Example
+
+Continuing the previous example, the accuracy of Simpson's rule with $10$ steps is comparable to that of a Riemann sum with $10^4$ steps:
+
+```{julia}
+riemann(f, a, b, 10; method="simpsons") - A
+```
+
+
+## Gauss quadrature
+
+There are function types where the above approximations are actually exact:
+
+* Riemann sums are exact for *constant* functions (polynomials with order $0$)
+* The trapezoid method is exact for *linear* functions (polynomials with order $1$)
+* Simpson's rule is exact for *quadratic* functions (polynomials with degree $2$)
+
+This pattern could be extended by taking more intermediate points.  In fact an entire family of similar approximations using $n$ points can be made exact for any polynomial of degree $n-1$ or lower.
+However, by choosing points judiciously---not necessarily evenly spaced out and not necessarily including the end points---$n$ points can be exact for polynomials of degree higher than $n$. (Simpson' rule actually being exact for *cubic* polynomials is something that hints at this.)
+
+The formulas for an approximation to the integral $\int_{-1}^1 f(x) dx$ discussed so far can be written as:
+
+
+$$
+\begin{align*}
+S &= f(x_1) \Delta_1 + f(x_2) \Delta_2 + \cdots + f(x_n) \Delta_n\\
+  &= w_1 f(x_1) + w_2 f(x_2) + \cdots + w_n f(x_n)\\
+  &= \sum_{i=1}^n w_i f(x_i).
+\end{align*}
+$$
+
+
+The $w$s are "weights" and the $x$s are nodes. Restricting to the interval $[-1,1]$ presents no loss in generality.
+
+A [Gaussian](http://en.wikipedia.org/wiki/Gaussian_quadrature) *quadrature rule* is a set of weights and nodes for $i=1, \dots n$ for which the sum is *exact* for any $f$ which is a polynomial of degree $2n-1$ or less. Such choices then also approximate well the integrals of functions which are not polynomials of degree $2n-1$ or less, provided $f$ can be well approximated by a polynomial over $[-1,1]$. (Which is the case for the "nice" functions we encounter, though not for highly oscillatory functions.) More details are discussed in the section on *orthogonal polynomials* and some examples are given in the questions.
+
+
+### The quadgk function
+
+
+In `Julia` a modification of the Gauss quadrature rule is implemented in the `quadgk` function (from the `QuadGK` package) to give numeric approximations to integrals. The `quadgk` function also has the familiar interface `action(function, arguments...)`. Unlike our `riemann` function, there is no `n` specified, as the number of steps is *adaptively* determined. (There is more partitioning occurring where the function is changing rapidly.) Instead, the algorithm outputs an estimate on the possible error along with the answer. Instead of $n$, some trickier problems require a specification of an error threshold.
+
+
+To use the function to integrate `f` over an interval `[a,b]` we have:
+
+
+```{julia}
+#| hold: true
+f(x) = x * log(x)
+quadgk(f, 0, 2)
+```
+
+As mentioned, there are two values returned: an approximate answer, and an error estimate. In this example we see that the value of $0.3862943610307017$ is accurate to within $10^{-9}$.  (The actual answer is $-1 + 2\cdot \log(2)$ and the error is only $10^{-11}$. The reported error is an estimated upper bound, and may be conservative, as with this problem.)  Our previous answer using $50,000$ right-Riemann sums was $0.38632208884775737$ and is only accurate to $10^{-5}$. By contrast, this method uses just $256$ function evaluations in the above problem.
+
+
+The method should be exact for polynomial functions:
+
+
+```{julia}
+#| hold: true
+f(x) = x^5 - x + 1
+quadgk(f, -2, 2)
+```
+
+The error term is $0$, the answer is $4$ up to the last unit of precision (1 ulp), so any error is only in floating point approximations.
+
+
+For the numeric approximation of a definite integral, the `quadgk` function should be preferred over the other methods previously discussed.
+
+
+Here are some sample integrals computed with `quadgk`:
+
+----
+
+$$
+\int_0^\pi \sin(x) dx
+$$
+
+```{julia}
+quadgk(sin, 0, pi)
+```
+
+(Again, the actual answer is off only in the last digit, the error estimate is an upper bound.)
+
+----
+
+$$
+\int_0^5 e^x dx
+$$
+
+```{julia}
+quadgk(exp, 0, 5)
+```
+
+----
+
+$$
+\int_0^2 x^x dx
+$$
+
+```{julia}
+u(x) = x^x
+quadgk(u, 0, 2)
+```
+
+The function $x^x$ is not continuous at $0$, but can be defined to be so. In this case, the numeric definition of `0^0` matches the limit, so no discussion of redefining the function is necessary, as was done earlier with the function $x\cdot \log(x)$.
+
+In fact, the specified endpoints to `quadgk` are *never* evaluated, so such concerns are not needed. (Which can be exploited when integrals involving functions with vertical asymptotes are discussed.) This is why the first example---which integrated `x*log(x)`---did not return `NaN` but rather an estimate for the integral.
+
+#### Dropping the error term
+
+When composing the answer with other functions it may be desirable to drop the error in the answer, we discuss three styles that can be used for this. The first is to just name the two returned values:
+
+
+```{julia}
+#| hold: true
+A, err = quadgk(cos, 0, pi/4)
+A
+```
+
+The second is to ask for just the first component of the returned value:
+
+
+```{julia}
+#| hold: true
+A = first(quadgk(tan, 0, pi/4))
+```
+
+Finally, direct indexing can be applied, as with
+
+```{julia}
+quadgk(tan, 0, pi/4)[1]
+```
+
+Though we try to avoid this style in favor of being more explicit when that is convenient.
+
+##### Example
+
+In probability theory, a *univariate density* is a function, $f(x)$ such that $f(x) \geq 0$ and $\int_a^b f(x) dx = 1$, where $a$ and $b$ are the range of the distribution.
+
+The [Von Mises](http://en.wikipedia.org/wiki/Von_Mises_distribution) distribution, takes the form
+
+
+$$
+k(x) = C \cdot \exp(\cos(x)), \quad -\pi \leq x \leq \pi.
+$$
+
+Compute $C$ (numerically).
+
+
+The fact that $1 = \int_{-\pi}^\pi C \cdot \exp(\cos(x)) dx = C \int_{-\pi}^\pi \exp(\cos(x)) dx$ implies that $C$ is the reciprocal of the definite integral:
+
+
+```{julia}
+k(x) = exp(cos(x))
+A, err = quadgk(k, -pi, pi)
+```
+
+So
+
+
+```{julia}
+C = 1/A
+k₁(x) = C * exp(cos(x))
+```
+
+The *cumulative distribution function* for $k(x)$ is $K(x) = \int_{-\pi}^x k(u) du$, $-\pi \leq x \leq \pi$. We just showed that $K(\pi) = 1$ and it is trivial that $K(-\pi) = 0$. The quantiles of the distribution are the values $q_1$, $q_2$, and $q_3$ for which $K(q_i) = i/4$. Can we find these?
+
+
+First we define a function, that computes $K(x)$. We only need the first of the two answers given by `quadgk`.
+
+
+```{julia}
+K(x) = first(quadgk(k₁, -pi, x))
+```
+
+
+The question asks us to solve $K(x) = 0.25$, $K(x) = 0.5$ and $K(x) = 0.75$. The `Roots` package can be used for such work, in particular `find_zero`. We will use a bracketing method, as clearly $K(x)$ is increasing, as $k(u)$ is positive, so we can just bracket our answer with $-\pi$ and $\pi$. (We solve $K(x) - p = 0$, so $K(\pi) - p > 0$ and $K(-\pi)-p < 0$.). We could do this with a comprehension, but for variety use broadcasting with `solve` below.
+
+
+```{julia}
+#| hold: true
+Z = ZeroProblem((x,p) -> K(x) - p, (-pi, pi))
+solve.(Z, (1/4, 1/2, 3/4))
+```
+
+The middle one is clearly $0$. This distribution is symmetric about $0$, so half the area is to the right of $0$ and half to the left, so clearly when $p=0.5$, $x$ is $0$. The other two show that the area to the left of $-0.809767$ is equal to the area to the right of $0.809767$ and equal to $0.25$.
+
+
+#### Visualizing the nodes chosen by `quadgk`
+
+To visualize the choice of nodes by the algorithm, In @fig-visualize-node-choice-quadgk-algorithm-sin-x the nodes chosen are shown for $f(x)=\sin(x)$ over $[0,\pi]$. Relatively few nodes used to get a high-precision estimate.
+
+::: {#fig-visualize-node-choice-quadgk-algorithm-sin-x}
+```{julia}
+#| echo: false
+function FnWrapper(f)
+	xs=Any[]
+	ys=Any[]
+	x -> begin
+		fx = f(x)
+		push!(xs, x)
+		push!(ys, fx)
+		fx
+	end
+end
+nothing
+```
+
+```{julia}
+#| hold: true
+#| echo: false
+let
+	a, b= 0, pi
+	f(x) = sin(x)
+	F = FnWrapper(f)
+	ans,err = quadgk(F, a, b)
+	plot(f, a, b, legend=false, title="Error ≈ $(round(err,sigdigits=2))")
+	scatter!(F.xs, F.ys)
+end
+```
+The nodes chosen by `quadgk` for $f(x) = \sin(x)$ over $[0, \pi]$
+:::
+
+
+For a more oscillatory function, more nodes are chosen, as seen in @fig-visualize-quadgk-nodes-more-osciallations.
+
+::: {#fig-visualize-quadgk-nodes-more-osciallations}
+```{julia}
+#| hold: true
+#| echo: false
+let
+	a, b= 0, pi
+	f(x) = exp(-x)*sinpi(x)
+	F = FnWrapper(f)
+	ans,err = quadgk(F, a, b)
+	plot(f, a, b, legend=false, title="Error ≈ $(round(err,sigdigits=2))")
+	scatter!(F.xs, F.ys)
+end
+```
+
+Visualization nodes chosen by `quadgk` for $f(x) = e^{x} \sin(\pi x)$ over $[0, \pi]$. There are more nodes chosen then for the function $\sin(x)$, as seen in @fig-visualize-node-choice-quadgk-algorithm-sin-x
+:::
+
+In both @fig-visualize-node-choice-quadgk-algorithm-sin-x and @fig-visualize-quadgk-nodes-more-osciallations it can be verified that no node is one of the endpoints.
+
+##### Example: Gauss nodes
+
+The `QuadGK.gauss(n)` function returns a pair of $n$ quadrature points and weights to integrate a function over the interval $(-1,1)$, with an option to use a different interval $(a,b)$. For a given $n$, these values exactly integrate any polynomial of degree $2n-1$ or less. In this example, these $5$ points produce an answer accurate already to the $5$th decimal point.
+
+
+```{julia}
+xs, ws = QuadGK.gauss(5)
+```
+
+```{julia}
+f(x) = exp(cos(x))
+sum(w * f(x) for (x, w) in zip(xs, ws))
+```
+
+The pattern to integrate can be expressed in other ways, but  using the `zip` function to iterate over the `xs` and `ws` as pairs of values is pretty direct.
+
+## Questions
+
+
+###### Question
+
+
+For the function $f(x) = \sin(\pi x)$, estimate the integral for $-1$ to $1$ using a left-Riemann sum with the partition $-1 < -1/2 < 0 < 1/2 < 1$.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = sin(pi*x)
+xs = -1:1/2:1
+deltas = diff(xs)
+val = sum(map(f, xs[1:end-1]) .* deltas)
+numericq(val)
+```
+
+
+###### Question
+
+
+For the right Riemann sum approximating $\int_0^{10} e^x dx$ with $n=100$ subintervals, what would  be a good estimate for the error?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+"``(10 - 0)/100 \\cdot (e^{10} - e^{0})``",
+"``10/100``",
+"``(10 - 0) \\cdot e^{10} / 100^4``"
+]
+answ = 1
+radioq(choices, answ)
+```
+
+###### Question
+
+
+Use `quadgk` to find the following definite integral:
+
+
+$$
+\int_1^4 x^x dx   .
+$$
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = x^x
+a, b = 1, 4
+val, _ = quadgk(f, a, b)
+numericq(val)
+```
+
+###### Question
+
+
+Use `quadgk` to find the following definite integral:
+
+
+$$
+\int_0^3 e^{-x^2} dx   .
+$$
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = exp(-x^2)
+a, b = 0, 3
+val, _ = quadgk(f, a, b)
+numericq(val)
+```
+
+###### Question
+
+
+Use `quadgk` to find the following definite integral:
+
+
+$$
+\int_0^{9/10} \tan(u \frac{\pi}{2}) du.
+$$
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = tan(x*pi/2)
+a, b = 0, 9/10
+val, _ = quadgk(f, a, b)
+numericq(val)
+```
+
+###### Question
+
+
+Use `quadgk` to find the following definite integral:
+
+
+$$
+\int_{-1/2}^{1/2} \frac{1}{\sqrt{1 - x^2}} dx
+$$
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = 1/sqrt(1 - x^2)
+a, b =-1/2, 1/2
+val, _ = quadgk(f, a, b)
+numericq(val)
+```
+
+###### Question
+
+Let $A=1.98$ and $B=1.135$ and
+
+$$
+f(x) = \frac{1 - e^{-Ax}}{B\sqrt{\pi}x} e^{-x^2}.
+$$
+
+Find $\int_0^1 f(x) dx$
+
+```{julia}
+#| echo: false
+let
+    A,B = 1.98, 1.135
+    f(x) = (1 - exp(-A*x))*exp(-x^2)/(B*sqrt(pi)*x)
+    val,_ = quadgk(f, 0, 1)
+    numericq(val)
+end
+```
+
+###### Question
+
+A bound for the complementary error function ( positive function) is
+
+$$
+\text{erfc}(x)  \leq \frac{1}{2}e^{-2x^2} + \frac{1}{2}e^{-x^2} \leq e^{-x^2}
+\quad x \geq 0.
+$$
+
+Let $f(x)$ be the first bound, $g(x)$ the second.
+Assuming this is true, confirm numerically using `quadgk` that
+
+$$
+\int_0^3 f(x) dx \leq \int_0^3 g(x) dx
+$$
+
+
+The value of $\int_0^3 f(x) dx$ is
+
+```{julia}
+#| echo: false
+let
+    f(x) = 1/2 * exp(-2x^2) + 1/2 * exp(-x^2)
+    val,_ = quadgk(f, 0, 3)
+    numericq(val)
+end
+```
+
+The value of $\int_0^3 g(x) dx$ is
+
+```{julia}
+#| echo: false
+let
+    g(x) = exp(-x^2)
+    val,_ = quadgk(g, 0, 3)
+    numericq(val)
+end
+```
+
+
+
+###### Question
+
+::: {#fig-jsxgraph-riemann-sum-illustration}
+```{=html}
+<div id="jsxgraph" style="width: 500px; height: 500px;"></div>
+```
+
+```{ojs}
+//| echo: false
+//| output: false
+JXG = require("jsxgraph");
+
+b = JXG.JSXGraph.initBoard('jsxgraph', {
+    boundingbox: [-0.5,0.3,1.5,-1/4], axis:true
+});
+
+g = function(x) { return x*x*x*x +  10*x*x - 60* x + 100}
+f = function(x) {return 1/Math.sqrt(g(x))};
+
+type = "right";
+l = 0;
+r = 1;
+rsum = function() {
+    return JXG.Math.Numerics.riemannsum(f,n.Value(), type, l, r);
+};
+n =   b.create('slider', [[0.1, -0.05],[0.75,-0.05], [2,1,50]],{name:'n',snapWidth:1});
+
+graph = b.create('functiongraph', [f, l, r]);
+os = b.create('riemannsum',
+                  [f,
+                   function(){ return n.Value();},
+                   type, l, r
+                  ],
+                  {fillColor:'#ffff00', fillOpacity:0.3});
+
+b.create('text', [0.1,0.25, function(){
+    return 'Riemann sum='+(rsum().toFixed(4));
+}]);
+```
+
+Interactive graphic showing the area of a right-Riemann sum for different partitions.
+:::
+
+
+The function in the interactive graph of @fig-jsxgraph-riemann-sum-illustration is
+
+$$
+f(x) = \frac{1}{\sqrt{ x^4 +  10x^2 - 60x + 100}}.
+$$
+
+When $n=5$ what is the area of the Riemann sum?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+numericq(0.1224)
+```
+
+When $n=50$ what is the area of the Riemann sum?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+numericq(0.1187)
+```
+
+Using `quadgk` what is the area under the curve?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+g(x) = 1/sqrt(x^4 + 10x^2 - 60x + 100)
+val, tmp = quadgk(g, 0, 1)
+numericq(val)
+```
+
+###### Question
+
+
+Gauss nodes for approximating the integral $\int_{-1}^1 f(x) dx$ for $n=4$ are:
+
+
+```{julia}
+ns = [-0.861136, -0.339981, 0.339981, 0.861136]
+```
+
+The corresponding weights are
+
+
+```{julia}
+wts = [0.347855, 0.652145, 0.652145, 0.347855]
+```
+
+Use these to estimate the integral $\int_{-1}^1 \cos(\pi/2 \cdot x)dx$ with $w_1f(x_1) + w_2 f(x_2) + w_3 f(x_3) + w_4 f(x_4)$.
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = cos(pi/2*x)
+val = sum([f(ni)*wi for (wi, ni) in zip(wts, ns)])
+numericq(val)
+```
+
+The actual answer is $4/\pi$. How far off is the approximation based on 4 points?
+
+
+```{julia}
+#| hold: true
+#| echo: false
+choices = [
+L"around $10^{-1}$",
+L"around $10^{-2}$",
+L"around $10^{-4}$",
+L"around $10^{-6}$",
+L"around $10^{-8}$"]
+answ = 4
+radioq(choices, answ, keep_order=true)
+```
+
+###### Question
+
+
+Using the Gauss nodes and weights from the previous question, estimate the integral of $f(x) = e^x$ over $[-1, 1]$. The value is:
+
+
+```{julia}
+#| hold: true
+#| echo: false
+f(x) = exp(x)
+val = sum([f(ni)*wi for (wi, ni) in zip(wts, ns)])
+numericq(val)
+```

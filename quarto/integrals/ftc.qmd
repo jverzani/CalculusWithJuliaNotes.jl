@@ -8,90 +8,82 @@ This section uses these add-on packages:
 
 ```{julia}
 using CalculusWithJulia
-using Plots
-plotly()
+using Plots; plotly()
 using SymPy
 using Roots
 using QuadGK
 ```
 
 
+
 ---
 
-
-We refer to the example from the section on [transformations](../precalc/transformations.html#two_operators_D_S) where two operators on functions were defined:
-
-
-$$
-D(f)(k) = f(k) - f(k-1), \quad S(f)(k) = f(1) + f(2) + \cdots + f(k).
-$$
-
-It was remarked that these relationships hold: $D(S(f))(k) = f(k)$ and $S(D(f))(k) = f(k) - f(0)$. These being a consequence of the inverse relationship between addition and subtraction.  These two relationships are examples of a more general pair of relationships known as the [Fundamental theorem of calculus](http://en.wikipedia.org/wiki/Fundamental_theorem_of_calculus) or FTC.
-
-
-We will see that with suitable rewriting, the derivative of a function is related to a certain limit of `D(f)` and the definite integral of a function is related to a certain limit of `S(f)`. The addition and subtraction rules encapsulated in the relations of $D(S(f))(k) = f(k)$ and $S(D(f))(k) = f(k) - f(0)$ then generalize to these calculus counterparts.
-
-
-The FTC details the interconnectivity between the operations of integration and differentiation.
-
-
-For example:
-
-
-> What is the definite integral of the derivative?
-
-
-
-That is, what is $A = \int_a^b f'(x) dx$? (Assume $f'$ is continuous.)
-
-
-To investigate, we begin with the right Riemann sum using $h = (b-a)/n$:
-
-
-$$
-A \approx S_n = \sum_{i=1}^n f'(a + ih) \cdot h.
-$$
-
-But the mean value theorem says that for small $h$ we have $f'(x) \approx (f(x) - f(x-h))/h$. Using this approximation with $x=a+ih$ gives:
-
-
-$$
-A \approx
-\sum_{i=1}^n \left(f(a + ih) - f(a + (i-1)h)\right).
-$$
-
-If we let $g(i) = f(a + ih)$, then the summand above is just $g(i) - g(i-1) = D(g)(i)$ and the above then is just the sum of the $D(g)(i)$s, or:
-
-
-$$
-A \approx S(D(g))(n) = g(n) - g(0).
-$$
-
-But $g(n) - g(0) = f(a + nh) - f(a + 0h) = f(b) - f(a)$. That is, we expect that the $\approx$ in the limit becomes $=$, or:
-
-
-$$
-\int_a^b f'(x) dx = f(b) - f(a).
-$$
-
-This is indeed the case.
-
-
-The other question would be
-
+The Fundamental Theorem of Calculus (FTC) details the interconnectivity between the operations of integration and differentiation. Two questions come up. First:
 
 > What is the derivative of the integral?
 
+That is, can we find the derivative of $\int_a^x f(u) du$ for some fixed $a$? (The derivative in $x$, the variable $u$ is a dummy variable of integration.)
 
 
-That is, can we find the derivative of $\int_0^x f(u) du$? (The derivative in $x$, the variable $u$ is a dummy variable of integration.)
+The other question is:
+
+> What is the definite integral of the derivative?
+
+That is, what is $A = \int_a^b f'(x) dx$? (Assuming $f'$ is continuous.)
+
+These questions are answered in the following theorem:
+
+::: {.theorem title="The fundamental theorem of calculus"}
+
+Part 1: Let $f$ be a continuous function on a closed interval $[a,b]$ and define $F(x) = \int_a^x f(u) du$ for $a \leq x \leq b$. Then $F$ is continuous on $[a,b]$, differentiable on $(a,b)$ and moreover, $F'(x) =f(x)$.
+
+Part 2: Now suppose $f$ is any integrable function on a closed interval $[a,b]$ and $F(x)$ is *any* differentiable function on $[a,b]$ with $F'(x) = f(x)$. Then $\int_a^b f(x)dx=F(b)-F(a)$.
+
+:::
 
 
-Let's look first at the integral using the right-Riemann sum, again using $h=(b-a)/n$:
+
+
+:::{.callout-note}
+## Note
+In Part 1, the integral $F(x) = \int_a^x f(u) du$ is defined for any Riemann integrable function, $f$. If the function is not continuous, then it is true the $F$ will be continuous, but it need not be true that it is differentiable at all points in $(a,b)$. Forming $F$ from $f$ is a form of *smoothing*. It makes a continuous function out of an integrable one, a differentiable function from a continuous one, and a $k+1$-times differentiable function from a $k$-times differentiable one.
+
+:::
+
+To motivate these statements, we refer to the example from the section on transformations^[XXX(../precalc/transformations.html#two_operators_D_S)] where two operators on functions were defined by what they do to some $k$:
 
 
 $$
-\int_a^b f(u) du \approx f(a + 1h)h + f(a + 2h)h + \cdots + f(a +nh)h = S(g)(n),
+\begin{align*}
+D(f)(k) &= f(k) - f(k-1),\\
+S(f)(k) &= f(1) + f(2) + \cdots + f(k).
+\end{align*}
+$$
+
+It was remarked that the following relationships hold, a consequence of the inverse relationship between addition and subtraction:
+
+$$
+\begin{align*}
+D(S(f))(k) &= f(k),\\
+S(D(f))(k) &= f(k) - f(0).
+\end{align*}
+$$
+
+These two relationships analogs of the [Fundamental theorem of calculus](http://en.wikipedia.org/wiki/Fundamental_theorem_of_calculus).
+
+
+We will see that with suitable rewriting, the derivative of a function is related to a certain limit of `D(f)` and the definite integral of a function is related to a certain limit of `S(f)`. The addition and subtraction rules encapsulated in the relations above then generalize to these calculus counterparts.
+
+---
+
+To explore the first part of the FTC, let's look first at the integral using the right-Riemann sum, again using $h=(b-a)/n$:
+
+
+$$
+\begin{align*}
+\int_a^b f(u) du &\approx f(a + 1h)h + f(a + 2h)h + \cdots + f(a +nh)h \\
+&= S(g)(n),
+\end{align*}
 $$
 
 where we define $g(i) = f(a + ih)h$. In the above, $n$ relates to $b$, but we could have stopped accumulating at any value. The analog for $S(g)(k)$ would be $\int_a^x f(u) du$ where $x = a + kh$. That is we can make a function out of integration by considering the mapping $(x, \int_a^x f(u) du)$. This might be written as $F(x) = \int_a^x f(u)du$.  With this definition, can we take a derivative in $x$?
@@ -131,33 +123,43 @@ $$
 That is $F'(x) \approx f(x)$.
 
 
-In the limit, then, we would expect that
+In the limit as $n\rightarrow \infty$, we would expect that:
 
 
 $$
 \frac{d}{dx} \int_a^x f(u) du = f(x).
 $$
 
-With these heuristics, we now have:
 
-::: {.callout-note icon=false}
-## The fundamental theorem of calculus
+To investigate the integral of a derivative, we begin with the right Riemann sum for $\int_a^b f'(x)dx$ using $h = (b-a)/n$:
 
-Part 1: Let $f$ be a continuous function on a closed interval $[a,b]$ and define $F(x) = \int_a^x f(u) du$ for $a \leq x \leq b$. Then $F$ is continuous on $[a,b]$, differentiable on $(a,b)$ and moreover, $F'(x) =f(x)$.
+$$
+A \approx S_n = \sum_{i=1}^n f'(a + ih) \cdot h.
+$$
 
-Part 2: Now suppose $f$ is any integrable function on a closed interval $[a,b]$ and $F(x)$ is *any* differentiable function on $[a,b]$ with $F'(x) = f(x)$. Then $\int_a^b f(x)dx=F(b)-F(a)$.
+But the mean value theorem says that for small $h$ we have $f'(x) \approx (f(x) - f(x-h))/h$. Using this approximation with $x=a+ih$ gives, after canceling an $h$:
 
-:::
+$$
+A \approx
+\sum_{i=1}^n \left(f(a + ih) - f(a + (i-1)h)\right).
+$$
 
-
-:::{.callout-note}
-## Note
-In Part 1, the integral $F(x) = \int_a^x f(u) du$ is defined for any Riemann integrable function, $f$. If the function is not continuous, then it is true the $F$ will be continuous, but it need not be true that it is differentiable at all points in $(a,b)$. Forming $F$ from $f$ is a form of *smoothing*. It makes a continuous function out of an integrable one, a differentiable function from a continuous one, and a $k+1$-times differentiable function from a $k$-times differentiable one.
-
-:::
+If we let $g(i) = f(a + ih)$, then the summand above is just $g(i) - g(i-1) = D(g)(i)$ and the above then is just the sum of the $D(g)(i)$s, or:
 
 
-This figure relating the area under some continuous $f(x)$ from $a$ to both $x$ and $x+h$ for some small $h$ helps to visualize the two fundamental theorems.
+$$
+A \approx S(D(g))(n) = g(n) - g(0).
+$$
+
+But $g(n) - g(0) = f(a + nh) - f(a + 0h) = f(b) - f(a)$. That is, we expect that the $\approx$ in the limit as $n\rightarrow \infty$ becomes $=$, or:
+
+
+$$
+\int_a^b f'(x) dx = f(b) - f(a).
+$$
+
+
+@fig-FTC-derivative relates the area under some continuous $f(x)$ from $a$ to both $x$ and $x+h$ for some small $h$ to help visualize the two fundamental theorems.
 
 ::: {#fig-FTC-derivative}
 ```{julia}
@@ -189,7 +191,7 @@ let
 		(b, 0, text(L"x", :top)),
 		(b+h,0,text(L"x+h", :top)),
 		(2b/3, 1/2, text(L"A(x)")),
-		(b + h/2, 1/2, text(L"f(x)\cdot h \approx A(x+h)-A(x)", rotation=90))
+		(b + h/2, 1/2, text(L"A(x+h)-A(x) \approx f(x)\cdot h", rotation=90))
 
 	])
 
@@ -224,20 +226,20 @@ That is $A(x)$ satisfies the two parts of the fundamental theorem.
 ## Using the fundamental theorem of calculus to evaluate definite integrals
 
 
-The most visible use of the FTC is the computation of definite integrals, $\int_a^b f(x) dx$. Rather than resort to Riemann sums or geometric arguments, there is an alternative - *when possible*, find a function $F$ with $F'(x) = f(x)$ and compute $F(b) - F(a)$.
+The most visible use of the FTC is the computation of definite integrals, $\int_a^b f(x) dx$. Rather than resort to Riemann sums or geometric arguments, there is an alternative---*when possible*: find a function $F$ with $F'(x) = f(x)$ and compute $F(b) - F(a)$.
 
 
 Some examples:
 
 
-  * Consider the problem of Archimedes, $\int_0^1 x^2 dx$. Clearly, we have with $f(x) = x^2$ that $F(x)=x^3/3$ will satisfy the assumptions of the FTC, so that:
+* Consider the problem of Archimedes, $\int_0^1 x^2 dx$. Clearly, we have with $f(x) = x^2$ that $F(x)=x^3/3$ will satisfy the assumptions of the FTC, so that:
 
 
 $$
 \int_0^1 x^2 dx = F(1) - F(0) = \frac{1^3}{3} - \frac{0^3}{3} = \frac{1}{3}.
 $$
 
-  * More generally, we know if $n\neq-1$ that if $f(x) = x^{n}$, that
+* More generally, we know if $n\neq-1$ that if $f(x) = x^{n}$, that
 
 
 $$
@@ -264,7 +266,7 @@ $$
 \int_a^b \frac{1}{x} dx = \log(b) - \log(a).
 $$
 
-  * Let $f(x) = \cos(x)$. How much area is between $-\pi/2$ and $\pi/2$? We have that $F(x) = \sin(x)$ will have $F'(x) = f(x)$, so:
+* Let $f(x) = \cos(x)$. How much area is between $-\pi/2$ and $\pi/2$? We have that $F(x) = \sin(x)$ will have $F'(x) = f(x)$, so:
 
 
 $$
@@ -281,7 +283,7 @@ $$
 \int_a^b f(x) dx = F(b) - F(a) = F(x)\Big|_{x=a}^b, \text{ or just expr}\Big|_{x=a}^b.
 $$
 
-The vertical bar is used for the *evaluation* step, in this case the $a$ and $b$ mirror that of the definite integral. This notation lends itself to working inline, as we illustrate with this next problem where we "know" a function "$F$", so just express it "inline":
+The vertical bar is used for the *evaluation* step, in this case the $a$ and $b$ mirror that of the definite integral. This notation lends itself to working "inline", as we illustrate with this next problem where we "know" a function "$F$", so just express it inline:
 
 
 $$
@@ -301,7 +303,7 @@ This says nothing more than $F(b)-F(a) = -F(a) - (-F(b))$, though more compactly
 ## The indefinite integral
 
 
-A function $F(x)$ with $F'(x) = f(x)$ is known as an *antiderivative* of $f$. For a given $f$, there are infinitely many antiderivatives: if $F(x)$ is one, then so is $G(x) = F(x) + C$. But - due to the mean value theorem - all antiderivatives for $f$ differ at most by a constant.
+A function $F(x)$ with $F'(x) = f(x)$ is known as an *antiderivative* of $f$. For a given $f$, there are infinitely many antiderivatives: if $F(x)$ is one, then so is $G(x) = F(x) + C$. But---due to the mean value theorem---all antiderivatives for $f$ differ at most by a constant.
 
 
 The **indefinite integral** of $f(x)$ is denoted by:
@@ -331,7 +333,7 @@ where $C$ is the *constant of integration* and isn't really a fixed constant, bu
   * `integrate(ex, (var, a, b))` to find the definite integral. This integrates the expression in the variable `var` from `a` to `b`.
 
 
-To illustrate, we have, this call finds an antiderivative:
+To illustrate, this call finds an antiderivative for $\sin(x)$:
 
 
 ```{julia}
@@ -339,7 +341,7 @@ To illustrate, we have, this call finds an antiderivative:
 integrate(sin(x),x)
 ```
 
-Whereas this call computes the "area" under $f(x)$ between `a` and `b`:
+Whereas, this call computes the "area" under $f(x)$ between `a` and `b`:
 
 
 ```{julia}
@@ -398,40 +400,42 @@ Different cases explored by `integrate` are mentioned after the questions.
 There are some "rules" of integration that allow indefinite integrals to be re-expressed.
 
 
-  * The integral of a constant times a function:
-
+::: {.relationship title = "The integral of a constant times a function"}
 
 $$
 \int c \cdot f(x) dx = c \cdot \int f(x) dx.
 $$
+:::
 
 This follows as if $F(x)$ is an antiderivative of $f(x)$, then $[cF(x)]' = c f(x)$ by rules of derivatives.
 
 
-  * The integral of a sum of functions:
+::: {.relationship title="The integral of a sum of functions"}
 
 
 $$
 \int (f(x) + g(x)) dx = \int f(x) dx + \int g(x) dx.
 $$
+:::
 
 This follows immediately as if $F(x)$ and $G(x)$ are antiderivatives of $f(x)$ and $g(x)$, then $[F(x) + G(x)]' = f(x) + g(x)$, so the right hand side will have a derivative of $f(x) + g(x)$.
 
 
 In fact, this more general form where $c$ and $d$ are constants covers both cases and referred to by the linearity of the integral:
 
-
+::: {.relationship title="The integral of a linear combination of functions"}
 $$
 \int (cf(x) + dg(x)) dx = c \int f(x) dx + d \int g(x) dx.
 $$
+:::
 
-This statement is nothing more than the derivative formula $[cf(x) + dg(x)]' = cf'(x) + dg'(x)$. The product rule gives rise to a technique called *integration by parts* and the chain rule gives rise to a technique of *integration by substitution*, but we defer those discussions to other sections.
+This statement is nothing more than the derivative formula for a linear combination of functions, $[cf(x) + dg(x)]' = cf'(x) + dg'(x)$. The product rule gives rise to a technique called *integration by parts* and the chain rule gives rise to a technique of *integration by substitution*, but we defer those discussions to other sections.
 
 
 ##### Examples
 
 
-  * The antiderivative of the polynomial $p(x) = a_n x^n + \cdots + a_1 x + a_0$ follows from the linearity of the integral and the general power rule:
+* The antiderivative of the polynomial $p(x) = a_n x^n + \cdots + a_1 x + a_0$ follows from the linearity of the integral and the general power rule:
 
 
 $$
@@ -444,7 +448,7 @@ $$
 $$
 
 
-  * More generally, a [Laurent](https://en.wikipedia.org/wiki/Laurent_polynomial) polynomial allows for terms with negative powers. These too can be handled by the above. For example
+* More generally, a [Laurent](https://en.wikipedia.org/wiki/Laurent_polynomial) polynomial allows for terms with negative powers. These too can be handled by the above. For example
 
 
 $$
@@ -475,14 +479,21 @@ So the answer to the question is
 
 
 $$
-\int_0^\pi 100 \sin(x) dx = (100 (-\cos(\pi)))  - (100(-\cos(0))) = (100(-(-1))) - (100(-1)) = 200.
+\begin{align*}
+\int_0^\pi 100 \sin(x) dx &= (100 (-\cos(\pi)))  - (100(-\cos(0)))\\
+&= (100(-(-1))) - (100(-1)) \\
+&= 200.
+\end{align*}
 $$
 
 This seems like a lot of work, and indeed it is more than is needed. The following would be more typical once the rules are learned:
 
 
 $$
-\int_0^\pi 100 \sin(x) dx = 100(-\cos(x)) \Big|_0^{\pi} = 100 \cos(x) \Big|_{\pi}^0 = 100(1) - 100(-1) = 200.
+\begin{align*}
+\int_0^\pi 100 \sin(x) dx &= 100(-\cos(x)) \Big|_0^{\pi} = 100 \cos(x) \Big|_{\pi}^0 \\
+&= 100(1) - 100(-1) = 200.
+\end{align*}
 $$
 
 ## The derivative of the integral
@@ -769,7 +780,7 @@ xstar, x0
 The asymptotic answer agrees with the answer in the first four decimal places.
 
 
-As an aside, we ask how many function evaluations were taken? We can track this with a trick - using a closure to record when $f$ is called:
+As an aside, we ask how many function evaluations were taken? We can track this with a trick---using a closure to record when $f$ is called:
 
 
 ```{julia}
@@ -870,10 +881,10 @@ This has the advantage that each "dot" still represents a calorie burned, so tha
 Sadly though, users didn't like it. Instead of a set of dots being, say, 5 high, they were now 3 high and 2 high. It "looked" like they were doing less work! What to do?
 
 
-The users actually were not responding to the number of dots, which hadn't changed, but rather the *area* that they represented - and this shrank in half. (It is much easier to visualize area than count dots when tired.) How to adjust for that?
+The users actually were not responding to the number of dots, which hadn't changed, but rather the *area* that they represented---and this shrank in half. (It is much easier to visualize area than count dots when tired.) How to adjust for that?
 
 
-Well our engineer knew - double the dots and count each as half a calorie. This makes the "area" constant.  She also generalized letting `n` be the number of updates per minute, in anticipation of even further improvements in the display technology:
+Well our engineer knew---double the dots and count each as half a calorie. This makes the "area" constant.  She also generalized letting `n` be the number of updates per minute, in anticipation of even further improvements in the display technology:
 
 
 ```{julia}
@@ -885,7 +896,7 @@ end
 Then the "area" represented by the dots stays fixed over this time frame.
 
 
-The engineer then thought a bit more, as the form of her answer seemed familiar. She decides to parameterize it in terms of $t$ and found with $h=1/n$: `c(t) = (C(t) - C(t-h))/h`. Ahh - the derivative approximation. But then what is the "area"? It is no longer just the sum of the dots, but in terms of the functions she finds that each column represents $c(t)\cdot h$, and the sum is just $c(t_1)h + c(t_2)h + \cdots + c(t_n)h$ which looks like an approximate integral.
+The engineer then thought a bit more, as the form of her answer seemed familiar. She decides to parameterize it in terms of $t$ and found with $h=1/n$: `c(t) = (C(t) - C(t-h))/h`. Ahh---the derivative approximation. But then what is the "area"? It is no longer just the sum of the dots, but in terms of the functions she finds that each column represents $c(t)\cdot h$, and the sum is just $c(t_1)h + c(t_2)h + \cdots + c(t_n)h$ which looks like an approximate integral.
 
 
 If the display were to reach the modern age and replace LED "dots" with a higher-pixel display, then the function to display would be $c(t) = C'(t)$ and the area displayed would be $\int_{t-10}^t c(u) du$.
@@ -987,8 +998,8 @@ choices = [
 "``-x^2\\cos(x) + 2x\\sin(x)``",
 "``-x^2\\cos(x) + 2x\\sin(x) + 2\\cos(x)``"
 ]
-answ = 3
-radioq(choices, answ, keep_order=true)
+answer = 3
+radioq(choices, answer, keep_order=true)
 ```
 
 ###### Question
@@ -1006,8 +1017,8 @@ choices = [
 "``-(1+x) e^{-x}``",
 "``-(1 + x + x^2) e^{-x}``"
 ]
-answ = 3
-radioq(choices, answ, keep_order=true)
+answer = 3
+radioq(choices, answer, keep_order=true)
 ```
 
 ###### Question
@@ -1023,6 +1034,7 @@ Using `SymPy`, integrate the function $\int_0^{2\pi} e^x \cdot \sin(x) dx$.
 val = N(integrate(exp(x) * sin(x), (x, 0, 2pi)))
 numericq(val)
 ```
+
 
 ###### Question
 
@@ -1054,9 +1066,9 @@ numericq(f(pi/2))
 ###### Question
 
 
-The position of a particle is given by $x(t) = \int_0^t g(u) du$, where $x(0)=0$ and $g(u)$ is given by this piecewise linear graph:
+The position of a particle is given by $x(t) = \int_0^t g(u) du$, where $x(0)=0$ and $g(u)$ is given by the piecewise linear graph of @fig-piecewise-linear-graph-for-particle-over-0-to-5.
 
-
+::: {#fig-piecewise-linear-graph-for-particle-over-0-to-5}
 ```{julia}
 #| hold: true
 #| echo: false
@@ -1069,10 +1081,13 @@ function g1(x)
     1 + (1/2)*(x-3)
   end
   end
-plot(g1, 0, 5)
+plot(g1, 0, 5; legend=false)
 ```
 
-  * The velocity of the particle is positive over:
+Plot of piecewise linear function over $[0,5]$
+:::
+
+* The velocity of the particle is positive over:
 
 
 ```{julia}
@@ -1084,11 +1099,11 @@ choices = [
 L"Between $0$ and $1$",
 L"Between $1$ and $5$"
 ]
-answ = 4
-radioq(choices, answ, keep_order=true)
+answer = 4
+radioq(choices, answer, keep_order=true)
 ```
 
-  * The position of the particle is $0$ at $t=0$ and:
+* The position of the particle is $0$ at $t=0$ and:
 
 
 ```{julia}
@@ -1099,11 +1114,11 @@ choices = [
 "``t=2``",
 "``t=3``",
 "``t=4``"]
-answ = 2
-radioq(choices, answ, keep_order=true)
+answer = 2
+radioq(choices, answer, keep_order=true)
 ```
 
-  * The position of the particle at time $t=5$ is?
+* The position of the particle at time $t=5$ is?
 
 
 ```{julia}
@@ -1113,7 +1128,7 @@ val = 4
 numericq(val)
 ```
 
-  * On the interval $[2,3]$:
+* On the interval $[2,3]$:
 
 
 ```{julia}
@@ -1125,8 +1140,8 @@ L"The position, $x(t)$, increases with a slope of $1$",
 L"The position, $x(t)$, increases quadratically from $-1/2$ to $1$",
 L"The position, $x(t)$, increases quadratically from $0$ to $1$"
 ]
-answ = 2
-radioq(choices, answ, keep_order=true)
+answer = 2
+radioq(choices, answer, keep_order=true)
 ```
 
 ###### Question
@@ -1143,8 +1158,8 @@ choices = [
 "``-f(t-10)``",
 "``f(t) - f(t-10)``"
 ]
-answ = 3
-radioq(choices, answ, keep_order=true)
+answer = 3
+radioq(choices, answer, keep_order=true)
 ```
 
 ###### Question
@@ -1160,16 +1175,16 @@ choices = [
 "At a critical point",
 L"At the endpoint $0$",
 L"At the endpoint $1$"]
-answ = 3
-radioq(choices, answ, keep_order=true)
+answer = 3
+radioq(choices, answer, keep_order=true)
 ```
 
 ###### Question
 
 
-Let $F(x) = \int_0^x f(u) du$, where $f(x)$ is given by the graph below. Identify the $x$ values of all *relative maxima* of $F(x)$. Explain why you know these are the values.
+Let $F(x) = \int_0^x f(u) du$, where $f(x)$ is given by in @fig-identify-relative-maxima-from-graph-of-xs-ys. Identify the $x$ values of all *relative maxima* of $F(x)$. Explain why you know these are the values.
 
-
+::: {#fig-identify-relative-maxima-from-graph-of-xs-ys}
 ```{julia}
 #| hold: true
 #| echo: false
@@ -1177,6 +1192,9 @@ xs = [0,1,2,3,4,5,6,7,8,9,10]
 ys = [-1,0,1,0,-1,0,1/2, 0, 1/2, 0, -1]
 plot(xs, ys , linewidth=3, legend=false, xticks=0:10)
 ```
+
+Plot of $f(x)$ over $[-1,1]$
+:::
 
 ```{julia}
 #| hold: true
@@ -1187,8 +1205,8 @@ choices = [
 "The derivative of ``F`` is ``f``, so by the second derivative test, ``x=7``",
 "The graph of ``f`` has relative maxima at ``x=2,6,8``"
 ]
-answ = 2
-radioq(choices, answ)
+answer = 2
+radioq(choices, answer)
 ```
 
 ###### Question
@@ -1391,8 +1409,8 @@ L"At a critical point, either $0$ or $1$",
 L"At a critical point, $1/2$",
 L"At the endpoint $0$",
 L"At the endpoint $1$"]
-answ = 2
-radioq(choices, answ, keep_order=true)
+answer = 2
+radioq(choices, answer, keep_order=true)
 ```
 
 ###### Question
@@ -1401,40 +1419,37 @@ radioq(choices, answ, keep_order=true)
 Barrow presented a version of the fundamental theorem of calculus in a 1670 volume edited by Newton, Barrow's student (cf. [Wagner](http://www.maa.org/sites/default/files/0746834234133.di020795.02p0640b.pdf)). His version can be stated as follows (cf. [Jardine](http://www.maa.org/publications/ebooks/mathematical-time-capsules)):
 
 
-Consider the following figure where $f$ is a strictly increasing function with $f(0) = 0$. and $x > 0$. The function $A(x) = \int_0^x f(u) du$ is also plotted with a dashed red line. The point $Q$ is $f(x)$, and the point $P$ is $A(x)$. The point $T$ is chosen to so that the length between $T$ and $x$ times the length between $Q$ and $x$ equals the length from $P$ to $x$. ($\lvert Tx \rvert \cdot \lvert Qx \rvert = \lvert Px \rvert$.) Barrow showed that the line segment $PT$ is tangent to the graph of $A(x)$. This figure illustrates the labeling for some function:
+Consider the @fig-borrowed-from-barrow where $f$ is a strictly increasing function with $f(0) = 0$. and $x > 0$. The function $A(x) = \int_0^x f(u) du$ is also plotted with a dashed red line. The point $Q$ is $f(x)$, and the point $P$ is $A(x)$. The point $T$ is chosen to so that the length between $T$ and $x$ times the length between $Q$ and $x$ equals the length from $P$ to $x$. ($\lvert Tx \rvert \cdot \lvert Qx \rvert = \lvert Px \rvert$.) Barrow showed that the line segment $PT$ is tangent to the graph of $A(x)$. This figure illustrates the labeling for some function:
 
-
+::: {#fig-borrowed-from-barrow}
 ```{julia}
 #| hold: true
 #| echo: false
 let
     gr()
-f(x) = x^(2/3)
-x = 2
-A(x) = quadgk(f, 0, x)[1]
-m=f(x)
-T = x - A(x)/f(x)
-Q = f(x)
-P = A(x)
-secpt = u -> 0 + P/(x-T) * (u-T)
-xs = range(0, stop=x+1/4, length=50
-)
-p = plot(f, 0, x + 1/4, legend=false, line=(:black,2))
-plot!(p, A, 0, x + 1/4, line=(:red, 2,:dash))
-scatter!(p, [T, x, x, x], [0, 0, Q, P], color=:orange)
-annotate!(p, collect(zip([T, x, x+.1, x+.1], [0-.15, 0-.15, Q-.1, P], [L"T", L"x", L"Q", L"P"])))
-plot!(p,  [T-1/4, x+1/4], map(secpt, [T-1/4, x + 1/4]), color=:orange)
-plot!(p, [T, x, x], [0, 0, P], color=:green)
-
+    f(x) = x^(2/3)
+    x = 2
+    A(x) = quadgk(f, 0, x)[1]
+    m=f(x)
+    T = x - A(x)/f(x)
+    Q = f(x)
+    P = A(x)
+    secpt = u -> 0 + P/(x-T) * (u-T)
+    xs = range(0, stop=x+1/4, length=50
+               )
+    p = plot(f, 0, x + 1/4, legend=false, line=(:black,2))
+    plot!(p, A, 0, x + 1/4, line=(:red, 2,:dash))
+    scatter!(p, [T, x, x, x], [0, 0, Q, P], color=:orange)
+    annotate!(p, collect(zip([T, x, x+.1, x+.1], [0-.15, 0-.15, Q-.1, P], [L"T", L"x", L"Q", L"P"])))
+    plot!(p,  [T-1/4, x+1/4], map(secpt, [T-1/4, x + 1/4]), color=:orange)
+    plot!(p, [T, x, x], [0, 0, P], color=:green)
+    plotly()
     p
 end
 ```
 
-```{julia}
-#| echo: false
-plotly()
-nothing
-```
+Plot illustrating labeling of Barrow
+:::
 
 The fact that $\lvert Tx \rvert \cdot \lvert Qx \rvert = \lvert Px \rvert$ says what in terms of $f(x)$, $A(x)$ and $A'(x)$?
 
@@ -1447,8 +1462,8 @@ choices = [
 "``A(x) / \\lvert Tx \\rvert = A'(x)``",
 "``A(x) \\cdot A'(x) = f(x)``"
 ]
-answ = 1
-radioq(choices, answ, keep_order=true)
+answer = 1
+radioq(choices, answer, keep_order=true)
 ```
 
 The fact that $\lvert PT \rvert$ is tangent says what in terms of $f(x)$, $A(x)$ and $A'(x)$?
@@ -1462,8 +1477,8 @@ choices = [
 "``A(x) / \\lvert Tx \\rvert = A'(x)``",
 "``A(x) \\cdot A'(x) = f(x)``"
 ]
-answ = 2
-radioq(choices, answ, keep_order=true)
+answer = 2
+radioq(choices, answer, keep_order=true)
 ```
 
 Solving, we get:
@@ -1478,8 +1493,8 @@ choices = [
 "``A'(x) = A(x)``",
 "``A(x) = f(x)``"
 ]
-answ = 1
-radioq(choices, answ)
+answer = 1
+radioq(choices, answer)
 ```
 
 ###### Question
@@ -1494,8 +1509,44 @@ According to [Bressoud](http://www.math.harvard.edu/~knill/teaching/math1a_2011/
 choices = [
 L"Part 1: $[\int_a^x f(u) du]' = f$",
 L"Part 2: $\int_a^b f(u) du = F(b)- F(a)$."]
-answ=1
-radioq(choices, answ, keep_order=true)
+answer=1
+radioq(choices, answer, keep_order=true)
+```
+
+###### Question
+
+How does the mean value theorem say that if $F(x)$ and $G(x)$ are two different antiderivatives of $f(x)$ that $F$ and $G$ differ by a constant?
+
+Let $H(x) = F(x) - G(x)$. What is $H'(x)$?
+
+```{julia}
+#| echo: false
+choices = ["It is hard to say, as it depends on ``x``.",
+"It is ``0``."]
+anwwer = 2
+explanation = raw"$H(x)$ has derivative $f'(x) - f'(x) = 0$"
+buttonq(choices, answer; explanation)
+```
+
+The mean value theorem says that for any $a < b$ there is a $c$ in between with  $H'(c) = (H(b)-H(a))/(b-a)$. Why does this imply for any $a$ and $b$ that $H(a) = H(b)$?
+
+```{julia}
+#| echo: false
+choices = [L"As $b-a < 0$ it must be that $H(b) - H(a) = 0$.",
+L"It doesn't really. The value of $H(a)$ and the value of $H(b)$ can be anything."
+]
+answer = 1
+buttonq(choices, answer)
+```
+
+If $H(a) = H(b)$ for any $a < b$ then $H(x)$ must be a constant. Why?
+
+```{julia}
+#| echo: false
+choices = [L"If $H(x)$ is *not* a constant, then some $x$ satisfies $H(a) \neq H(x)$. But take $b=x$ and we see this can't be so.",
+           L"Because the polynomial $H(x)$ must have even degree."]
+answer = 1
+buttonq(choices, answer)
 ```
 
 ## More on SymPy's `integrate`

@@ -22,7 +22,11 @@ nothing
 
 ---
 
-![Device to measure units of distance by units of time](figures/galileo-ramp.png){width=60%}
+::: {#fig-picture-of-galileo-ramp}
+![](figures/galileo-ramp.png){width=60%}
+
+Device to measure units of distance by units of time
+:::
 
 
 Before defining the derivative of a function, let's begin with two motivating examples.
@@ -47,14 +51,17 @@ If the rate is a constant $60$ miles/hour, then in one hour the distance travele
 Of course, the odometer isn't just incrementing once per hour, it is incrementing once every $1/10$th of a mile. How much time does that take? Well, we would need to solve $1/10=60 \cdot t$ which means $t=1/600$ hours, better known as once every $6$ seconds.
 
 
-Using some mathematical notation, would give $x(t) = v\cdot t$, where $x$ is position at time $t$, $v$ is the *constant* velocity and $t$ the time traveled in hours. A simple graph of the first three hours of travel would show:
+Using some mathematical notation, would give $x(t) = v\cdot t$, where $x$ is position at time $t$, $v$ is the *constant* velocity and $t$ the time traveled in hours. The simple graph of @fig-plot-position-time-over-0-3 shows the first three hours of travel.
 
 
+::: {#fig-plot-position-time-over-0-3}
 ```{julia}
 #| hold: true
 position(t) = 60 * t
 plot(position, 0, 3)
 ```
+Plot of position versus time for a constant speed
+:::
 
 Oh no, we hit traffic. In the next $30$ minutes we only traveled $15$ miles. We were so busy looking out for traffic, the speedometer was not checked. What would the average speed have been? Though in the $30$ minutes of stop-and-go traffic, the displayed speed may have varied, the *average speed* would simply be the change in distance over the change in time, or $\Delta x / \Delta t$. That is
 
@@ -63,9 +70,9 @@ Oh no, we hit traffic. In the next $30$ minutes we only traveled $15$ miles. We 
 15/(1/2)
 ```
 
-Now suppose that after $6$ hours of travel the GPS in the car gives us a readout of distance traveled as a function of time. The graph looks like this:
+Now suppose that after $6$ hours of travel the GPS in the car gives us a readout of distance traveled as a function of time. @fig-plot-complicated-position-versus-time-from-0-to-6 shows the graph.
 
-
+::: {#fig-plot-complicated-position-versus-time-from-0-to-6}
 ```{julia}
 #| hold: true
 #| echo: false
@@ -77,6 +84,9 @@ function position(t)
 end
 plot(position, 0, 6)
 ```
+
+Plot of position versus time for a certain non constant speed
+:::
 
 We can see with some effort that the slope is steady for the first three hours, is slightly less between $3$ and $3.5$ hours, then is a bit steeper for the next half hour. After that, it is flat for the about half an hour, then the slope continues on with same value as in the first $3$ hours. What does that say about our speed during our trip?
 
@@ -108,9 +118,9 @@ Okay, so there was some speeding involved.
 The next half hour the car did not move. What was the average speed? Well the change in position was $0$, but the time was $1/2$ hour, so the average was $0$.
 
 
-Perhaps a graph of the speed is a bit more clear. We can do this based on the above:
+Perhaps a graph of the speed is a bit more clear. We can do this based on the above in @fig-plot-non-constant-speed-over-0-6.
 
-
+::: {#fig-plot-non-constant-speed-over-0-6}
 ```{julia}
 function speed(t)
     0 < t <= 3  ? 60  :
@@ -120,6 +130,10 @@ function speed(t)
 end
 plot(speed, 0, 6)
 ```
+
+Plot of non-constant speed over $[0,6]$
+:::
+
 
 The jumps, as discussed before, are artifacts of the graphing algorithm. What is interesting, is we could have derived the graph of `speed` from that of `x` by just finding the slopes of the line segments, and we could have derived the graph of `x` from that of `speed`, just using the simple formula relating distance, rate, and time.
 
@@ -133,42 +147,46 @@ We were pretty loose with some key terms. There is a distinction between "speed"
 ##### Example: Galileo's ball and ramp experiment
 
 
-One of history's most famous experiments was performed by [Galileo](http://en.wikipedia.org/wiki/History_of_experiments) where he rolled balls down inclined ramps, making note of distance traveled with respect to time. As Galileo had no ultra-accurate measuring device, he needed to slow movement down by controlling the angle of the ramp. With this, he could measure units of distance per units of time. (Click through to *Galileo and Perspective* [Dauben](http://www.mcm.edu/academic/galileo/ars/arshtml/mathofmotion1.html).)
+One of history's most famous experiments was performed by [Galileo](http://en.wikipedia.org/wiki/History_of_experiments) where he rolled balls down inclined ramps, like that in @fig-picture-of-galileo-ramp, making note of distance traveled with respect to time. As Galileo had no ultra-accurate measuring device, he needed to slow movement down by controlling the angle of the ramp. With this, he could measure units of distance per units of time.
 
+Suppose that no matter what the incline was, Galileo observed that in units of the distance traveled in the first second that the distance traveled between subsequent seconds was $3$ times, then $5$ times, then $7$ times, ... @tbl-galileo-distance-time-delta summarizes.
 
-Suppose that no matter what the incline was, Galileo observed that in units of the distance traveled in the first second that the distance traveled between subsequent seconds was $3$ times, then $5$ times, then $7$ times, ... This table summarizes.
+::: {#tbl-galileo-distance-time-delta .striped .hover}
+| t     | distance   | delta |
+|:------|:--------|:---------|
+| 0 | 0  | . |
+| 1 | 1  | 1 |
+| 2 | 4  | 3 |
+| 3 | 9  | 5 |
+| 4 | 16 | 7 |
+| 5 | 25 | 9 |
 
+Distance traveled by time $t$ with differences computed
+:::
 
-```{julia}
-#| hold: true
-#| echo: false
-ts = [0,1,2,3,4,5]
-dxs = [0,1,3, 5, 7, 9]
-ds = [0,1,4,9,16,25]
-d = DataFrame(t=ts, delta=dxs, distance=ds)
-table(d)
-```
+The graph of distance versus time in @fig-plot-of-distance-versus-time-galileo-simple-data is found by interpolating between the measured points.
 
-A graph of distance versus time could be found by interpolating between the measured points:
-
-
+::: {#fig-plot-of-distance-versus-time-galileo-simple-data}
 ```{julia}
 ts = [0,1,2,3,4, 5]
 xs = [0,1,4,9,16,25]
 plot(ts, xs)
 ```
 
+Plot of distance traveled versus time
+:::
+
 The graph looks almost quadratic. What would the following questions have yielded?
 
 
-  * What is the average speed between $0$ and $3$?
+* What is the average speed between $0$ and $3$?
 
 
 ```{julia}
 (9-0) / (3-0)  # (xs[4] - xs[1]) / (ts[4] - ts[1])
 ```
 
-  * What is the average speed between $2$ and $3$?
+* What is the average speed between $2$ and $3$?
 
 
 ```{julia}
@@ -188,7 +206,7 @@ xs[2]-xs[1], xs[3] - xs[2], xs[4] - xs[3], xs[5] - xs[4]
 We see it increments by $2$. The acceleration is the rate of change of speed. We see the rate of change of speed is constant, as the speed increments by $2$ each time unit.
 
 
-Based on this - and given Galileo's insight - it appears the acceleration for a falling body subject to gravity will be **constant** and the position as a function of time will be quadratic.
+Based on this---and given Galileo's insight---it appears the acceleration for a falling body subject to gravity will be **constant** and the position as a function of time will be quadratic.
 
 
 ## The slope of the secant line
@@ -196,27 +214,35 @@ Based on this - and given Galileo's insight - it appears the acceleration for a 
 
 In the above examples, we see that the average speed is computed using the slope formula. This can be generalized for any univariate function $f(x)$:
 
+::: {.definition title="Average rate of change"}
 
-> The average rate of change between $a$ and $b$ is $(f(b) - f(a)) / (b - a)$. It is typical to express this as $\Delta y/ \Delta x$, where $\Delta$ means "change".
-
-
-
-Geometrically, this is the slope of the line connecting the points $(a, f(a))$ and $(b, f(b))$. This line is called a [secant](http://en.wikipedia.org/wiki/Secant_line) line, which is just a line intersecting two specified points on a curve.
-
-
-Rather than parameterize this problem using $a$ and $b$, we let $c$ and $c+h$ represent the two values for $x$, then the secant-line-slope formula becomes
-
+For a continuous function $f$ the average rate of change between $a$ and $b$ is defined by
 
 $$
-m = \frac{f(c+h) - f(c)}{h}.
+\frac{f(b) - f(a)}{b - a}.
 $$
+
+It is typical to express this as $\Delta y/ \Delta x$, where $\Delta$ means "change".
+:::
+
+
+Geometrically, the average rate of change is the slope of the line connecting the points $(a, f(a))$ and $(b, f(b))$. This line is called a [secant](http://en.wikipedia.org/wiki/Secant_line) line---a line intersecting two specified points on a curve.
+
 
 ## The slope of the tangent line
+
+Before continuing, we re-parameterize with $a=c$ and $b=c+h$ thinking of $c$ as fixed, and $h$ as varying. The secant-line-slope formula becomes:
+
+
+$$
+\text{slope (of a secant line)} = \frac{f(c+h) - f(c)}{h}.
+$$
+
 
 
 The slope of the secant line represents the average rate of change over a given period, $h$. What if this rate is so variable, that it makes sense to take smaller and smaller periods $h$? In fact, what if $h$ goes to $0$?
 
-
+::: {#fig-secant-line-tangent-line-animation}
 ```{julia}
 #| hold: true
 #| echo: false
@@ -261,14 +287,7 @@ function secant_line_tangent_line_graph(n)
 
     plt
 end
-caption = L"""
-
-The slope of each secant line represents the *average* rate of change between $c$ and $c+h$. As $h$ goes towards $0$, we recover the slope of the tangent line, which represents the *instantatneous* rate of change.
-
-"""
-
-
-
+caption = ""
 n = 6
 anim = @animate for i=0:n
     secant_line_tangent_line_graph(i)
@@ -281,21 +300,41 @@ plotly()
 ImageFile(imgfile, caption)
 ```
 
-The graphic suggests that the slopes of the secant line converge to the slope of a "tangent" line. That is, for a given $c$, this limit exists:
+The slope of each secant line represents the *average* rate of change between $c$ and $c+h$. As $h$ goes towards $0$, we recover the slope of the tangent line, which represents the *instantatneous* rate of change.
+:::
+
+
+@fig-secant-line-tangent-line-animation suggests that for this function and at the point $x=c$ the slopes of the secant line converge to the slope of a "tangent" line. That is this limit exists:
 
 
 $$
 \lim_{h \rightarrow 0} \frac{f(c+h) - f(c)}{h}.
 $$
 
-We will define the tangent line at $(c, f(c))$ to be the line through the point with the slope from the limit above - provided that limit exists. Informally, the tangent line is the line through the point that best approximates the function.
+With this, we define
+
+::: {.definition title="Tangent line at c"}
+
+When the following limit exists, the tangent line to the graph of $f(x)$ at $x=c$ is the line through the point $(c, f(c))$ with slope:
+
+$$
+m = \lim_{h \rightarrow 0} \frac{f(c+h) - f(c)}{h}.
+$$
+
+In point-slope form, the line is described by: $y = f(c) + m \cdot (x-c)$.
+
+Later we will write $f'(c)$ for $m$.
+:::
+
+
+Informally, the tangent line is the line through the point that best approximates the function, as in @fig-tangent_line_approx_graph. The tangent line is not just a line that intersects the graph in one point, nor does it need only intersect the line in just one point.
 
 ::: {#fig-tangent_line_approx_graph}
 
 ```{julia}
 #| echo: false
-gr()
 let
+    gr()
 	function make_plot(Δ)
 		f(x) = 1 + sin(x-c)
 		df(x) = cos(x-c)
@@ -322,61 +361,16 @@ let
 	end
 
 	ps = make_plot.((1.5, 1.0, 0.5, 0.1))
+
+    plotly()
 	plot(ps...)
-
-
 end
 ```
 
-Illustration that the tangent line is the best linear approximation *near* $c$.
+Illustration that the tangent line is the best linear approximation to $f(x)$ *near* $c$.
 :::
 
-```{julia}
-#| echo: false
 
-plotly()
-nothing
-```
-
-```{julia}
-#| hold: true
-#| echo: false
-#| cache: true
-#| eval: false
-gr()
-function line_approx_fn_graph(n)
-    f(x) = sin(x)
-    c = pi/3
-    h = round(2.0^(-n) * pi/2, digits=2)
-    m = cos(c)
-
-    Delta = max(f(c) - f(c-h), f(min(c+h, pi/2)) - f(c))
-
-    p = plot(f, c-h, c+h, legend=false, xlims=(c-h,c+h), ylims=(f(c)-Delta,f(c)+Delta ))
-    plot!(p, x -> f(c) + m*(x-c))
-    scatter!(p, [c], [f(c)])
-    p
-end
-caption = L"""
-
-The tangent line is the best linear approximation to the function at the point $(c, f(c))$. As the viewing window zooms in on $(c,f(c))$ we
-    can see how the graph and its tangent line get more similar.
-
-"""
-
-n = 6
-anim = @animate for i=1:n
-    line_approx_fn_graph(i)
-end
-
-imgfile = tempname() * ".gif"
-gif(anim, imgfile, fps = 1)
-
-plotly()
-ImageFile(imgfile, caption)
-```
-
-The tangent line is not just a line that intersects the graph in one point, nor does it need only intersect the line in just one point.
 
 
 :::{.callout-note}
@@ -391,41 +385,47 @@ This last point was certainly not obvious at first. [Barrow](http://www.maa.org/
 What is the slope of the tangent line to $f(x) = \sin(x)$ at $c=0$?
 
 
-We need to compute the limit $(\sin(c+h) - \sin(c))/h$ which is the limit as $h$ goes to $0$ of $\sin(h)/h.$ We know this to be $1.$
+We need to compute the limit $(\sin(c+h) - \sin(c))/h$ which is the limit as $h$ goes to $0$ of $\sin(h)/h.$ We know this to be $1$. See @fig-plot-sin-tangent-line for a graph of the tangent line to the function.
 
-
+::: {#fig-plot-sin-tangent-line}
 ```{julia}
 #| hold: true
+#| echo: false
 f(x) = sin(x)
 c = 0
 tl(x) = f(c) + 1 * (x - c)
-plot(f, -pi/2, pi/2)
-plot!(tl, -pi/2, pi/2)
+plot(f, -pi/2, pi/2; label="sin(x)")
+plot!(tl; label="Tangent line")
 ```
+
+Plot of $f(x) = \sin(x)$ with its tangent line ($y = 0 + 1 \cdot (x-0)$) at the origin
+:::
 
 ## The derivative
 
 
-The limit of the slope of the secant line gives an operation: for each $c$ in the domain of $f$ there is a number (the slope of the tangent line) or it does not exist. That is, there is a derived function from $f$. Call this function the *derivative* of $f$.
+The limit of the slopes of the secant lines for a fixed $c$ gives an operation: for each $c$ in the domain of $f$ when the limit exists
+associate the slope of the tangent line.
 
+::: {.definition title="The derivative"}
 
-There are many notations for the derivative, mostly we use the "prime" notation:
-
+For each $x$ in the domain of $f(x)$, let $f'(x)$ define a function whose domain is all $x$ for which the following limit exists and whose value is given by:
 
 $$
-f'(x) = \lim_{h \rightarrow 0} \frac{f(x+h) - f(x)}{h}.
+f'(x) = \lim_{h\rightarrow 0} \frac{f(x+h) - f(x)}{h}.
 $$
 
-The limit above is identical, only it uses $x$ instead of $c$ to emphasize that we are thinking of a function now, and not just a value at a point.
+The function $f'(x)$ is called the *derivative* of $f(x)$.
+:::
 
-
-The derivative is related to a function, but at times it is more convenient to write only the expression defining the rule of the function. In that case, we use this notation for the derivative $[\text{expression}]'$.
+There are many notations for the derivative, mostly we use the "prime" notation in the definition, but at times it is more convenient to write only the expression defining the rule of the function. In that case, we use this notation for the derivative $[\text{expression}]'$.
 
 
 ### Some basic derivatives
 
+* **The constant rule**. If $f(x) = c$, some constant, then the graph has zero slope, as $f(x+h) - f(x) = 0$ for all $x$ and $h$. That is the derivative is constantly $0$, or $[c]' = 0$.
 
-  * **The power rule**. What is the derivative of the monomial $f(x) = x^n$? We need to look at $(x+h)^n - x^n$ for positive, integer-value $n$. Let's look at a case, $n=5$
+* **The power rule**. What is the derivative of the monomial $f(x) = x^n$? We need to look at $(x+h)^n - x^n$ for positive, integer-value $n$. Let's look at a case, $n=5$
 
 
 ```{julia}
@@ -451,10 +451,10 @@ $$
 [x^n]' = nx^{n-1}.
 $$
 
-It isn't a special case, but when $n=0$, we also have the above formula applies, as $x^0$ is the constant $1$, and all constant functions will have a derivative of $0$ at all $x$. We will see that in general, the power rule applies for any $n$ where $x^n$ is defined.
+It isn't a special case, but when $n=0$, we also have the above formula applies, as $x^0$ is the constant $1$. We will see later that in general, the power rule applies for any $n$ where $x^n$ is defined.
 
 
-  * What is the derivative of $f(x) = \sin(x)$? We know that $f'(0)= 1$ by the earlier example with $(\sin(0+h)-\sin(0))/h = \sin(h)/h$, here we solve in general.
+* What is the derivative of $f(x) = \sin(x)$? We know that $f'(0)= 1$ by the earlier example with $(\sin(0+h)-\sin(0))/h = \sin(h)/h$, here we solve in general.
 
 
 We need to consider the difference $\sin(x+h) - \sin(x)$:
@@ -464,17 +464,14 @@ We need to consider the difference $\sin(x+h) - \sin(x)$:
 sympy.expand_trig(sin(x+h) - sin(x))  # expand_trig is not exposed in `SymPy`
 ```
 
-That used the formula $\sin(x+h) = \sin(x)\cos(h) + \sin(h)\cos(x)$.
-
-
 We could then rearrange the secant line slope formula to become:
 
 
 $$
-\cos(x) \cdot \frac{\sin(h)}{h} + \sin(x) \cdot \frac{\cos(h) - 1}{h}
+\cos(x) \cdot \frac{\sin(h)}{h} + \sin(x) \cdot \frac{\cos(h) - 1}{h}.
 $$
 
-and take a limit. If the answer isn't clear, we can let `SymPy` do this work:
+We then take a limit as $h \rightarrow 0$. If the answer isn't clear, we can let `SymPy` do this work:
 
 
 ```{julia}
@@ -484,7 +481,7 @@ limit((sin(x+h) - sin(x))/ h, h => 0)
 From the formula $[\sin(x)]' = \cos(x)$ we can easily get the *slope* of the tangent line to $f(x) = \sin(x)$ at $x=0$ by simply evaluating $\cos(0) = 1$.
 
 
-  * Let's see what the derivative of $\ln(x) = \log(x)$ is (using base $e$ for $\log$ unless otherwise indicated). We have
+* Let's see what the derivative of $\ln(x) = \log(x)$ is (using base $e$ for $\log$ unless otherwise indicated). We have
 
 
 $$
@@ -508,37 +505,39 @@ $$
 \frac{e^{x+h} - e^x}{h} = \frac{e^x \cdot(e^h -1)}{h}.
 $$
 
-Earlier,  we saw that $\lim_{h \rightarrow 0}(e^h - 1)/h = 1$. With this, we get $[e^x]' = e^x$, that is it is a function satisfying $f'=f$.
+Earlier,  we saw that $\lim_{h \rightarrow 0}(e^h - 1)/h = 1$. With this, we get $[e^x]' = e^x$, that is it is a function satisfying $f'(x)=f(x)$.
 
 
 ---
 
 
-There are several different [notations](http://en.wikipedia.org/wiki/Notation_for_differentiation) for derivatives. Some are historical, some just add flexibility. We use the prime notation of Lagrange: $f'(x)$, $u'$ and $[\text{expr}]'$, where the first emphasizes that the derivative is a function with a value at $x$, the second emphasizes the derivative operates on functions, the last emphasizes that we are taking the derivative of some expression.
+There are several [notations](http://en.wikipedia.org/wiki/Notation_for_differentiation) for derivatives. Some are historical, some just add flexibility. We use the prime notation of Lagrange: $f'(x)$, $u'$ and $[\text{expr}]'$, where the first emphasizes that the derivative is a function with a value at $x$, the second emphasizes the derivative operates on functions, the last emphasizes that we are taking the derivative of some expression.
 
 
-There are many other notations:
+Some other notations include:
 
 
-  * The Leibniz notation uses the infinitesimals: $dy/dx$ to relate to $\Delta y/\Delta x$. This notation is very common, and especially useful when more than one variable is involved.  `SymPy` uses Leibniz notation in some of its output, expressing somethings such as:
+* The Leibniz notation which uses the infinitesimals, $dy/dx$, to relate to $\Delta y/\Delta x$. This notation is very common, and especially useful when more than one variable is involved.  `SymPy` uses Leibniz notation in some of its output, expressing somethings such as:
 
 
 $$
 f'(x) = \frac{d}{d\xi}(f(\xi)) \big|_{\xi=x}.
 $$
 
-The notation - $\big|$ - on the right-hand side separates the tasks of finding the   derivative and evaluating the derivative at a specific value.
+The notation--$\big|$---on the right-hand side separates the tasks of finding the   derivative and evaluating the derivative at a specific value.
 
 
-  * Euler used `D` for the operator `D(f)`. This was initially used by [Argobast](http://jeff560.tripod.com/calculus.html). The notation `D(f)(c)` would be needed to evaluate the derivative at a point.
-  * Newton used a "dot" above the variable, $\dot{x}(t)$, which is still widely used in physics to indicate  a derivative in time. This indicates first taking the derivative and then plugging in $t$.
-  * The notation $[expr]'(c)$ or $[expr]'\big|_{x=c}$would similarly mean, take the derivative of the expression and **then** evaluate at $c$.
+* Euler used `D` for the operator `D(f)`. This was initially used by [Argobast](http://jeff560.tripod.com/calculus.html). The notation `D(f)(c)` would be needed to evaluate the derivative at a point.
+
+* Newton used a "dot" above the variable, $\dot{x}(t)$, which is still widely used in physics to indicate  a derivative in time. This indicates first taking the derivative and then plugging in $t$.
+
+* The notation $[expr]'(c)$ or $[expr]'\big|_{x=c}$would similarly mean, take the derivative of the expression and **then** evaluate at $c$.
 
 
 ## Rules of derivatives
 
 
-We could proceed in a similar manner – using limits to find other derivatives, but let's not. If we have a function $f(x) = x^5 \sin(x)$, it would be nice to leverage our previous work on the derivatives of $f(x) =x^5$ and $g(x) = \sin(x)$, rather than derive an answer from scratch.
+We could proceed in a similar manner---using limits to find other derivatives, but let's not. If we have a function $f(x) = x^5 \sin(x)$, it would be nice to leverage our previous work on the derivatives of $f(x) =x^5$ and $g(x) = \sin(x)$, rather than derive an answer from scratch.
 
 
 As with limits and continuity, it proves very useful to consider rules that make the process of finding derivatives of combinations of functions a matter of combining derivatives of the individual functions in some manner.
@@ -547,20 +546,20 @@ As with limits and continuity, it proves very useful to consider rules that make
 We already have one such rule:
 
 
-### Power rule
+::: {.relationship title="Power rule"}
 
-
-We have seen for integer $n \geq 0$ the formula:
+For integer $n \geq 0$ the power rule is:
 
 
 $$
 [x^n]' = n x^{n-1}.
 $$
 
-This will be shown true for all real exponents.
+The power rule will be shown true for all real exponents.
+:::
 
 
-### Sum rule
+We now discuss rules which express derivatives of compound expressions in terms of derivatives of different pieces of an expression.
 
 
 Let's consider $k(x) = a\cdot f(x) + b\cdot g(x)$, what is its derivative? That is, in terms of $f$, $g$ and their derivatives, can we express $k'(x)$?
@@ -586,7 +585,16 @@ $$
 That is $[a\cdot f(x) + b \cdot g(x)]' = a\cdot f'(x) + b\cdot g'(x)$.
 
 
+::: {.relationship title="Constant multiple and sum rule"}
+The sum rule applies to constant multiple and sums of functions:
+
+$$
+[a f(x) + b g(x)]' = a f'(x) + b g'(x)
+$$
+
 This holds two rules: the derivative of a constant times a function is the constant times the derivative of the function; and the derivative of a sum of functions is the sum of the derivative of the functions.
+
+:::
 
 
 This example shows a useful template:
@@ -601,21 +609,20 @@ $$
 \end{align*}
 $$
 
+----
 
-### Product rule
+Other rules can be similarly derived. We simply state the rules for products and quotients.
+
+::: {.relationship title="Product rule"}
+The derivative of a product of functions is given by:
+
+$$
+[f(x) \cdot g(x)]' = f'(x)\cdot g(x) + f(x) \cdot g'(x)
+$$
 
 
-Other rules can be similarly derived. `SymPy` can give us them as well. Here we define two symbolic functions `u` and `v` and let `SymPy` derive a formula for the derivative of a product of functions:
-
-
-```{julia}
-#| hold: true
-@syms u() v()
-f(x) = u(x) * v(x)
-limit((f(x+h) - f(x))/h, h => 0)
-```
-
-The output uses the Leibniz notation to represent that the derivative of $u(x) \cdot v(x)$ is the $u$ times the derivative of $v$ evaluated at $x$ plus $v$ times the derivative of $u$ evaluated at $x$. A common shorthand is $[uv]' = u'v + uv'$.
+A common shorthand is $[uv]' = u'v + uv'$.
+:::
 
 
 This example shows a useful template for the product rule:
@@ -629,19 +636,21 @@ $$
 \end{align*}
 $$
 
+----
 
-### Quotient rule
+The derivative of $f(x) = u(x)/v(x)$---a ratio of functions---can be similarly computed.
+
+::: {.relationship title="Quotient rule"}
+The derivative of a ratio of functions can be computed by the quotient rule:
+
+$$
+\left[\frac{f(x)}{g(x)}\right]' = \frac{f'(x)\cdot g(x) - f(x) \cdot g'(x)}{g(x)^2}.
+$$
+
+This is often written as $[u/v]' = (u'v - uv')/v^2$.
+:::
 
 
-The derivative of $f(x) = u(x)/v(x)$ - a ratio of functions - can be similarly computed. The result will be $[u/v]' = (u'v - uv')/v^2$:
-
-
-```{julia}
-#| hold: true
-@syms u() v()
-f(x) = u(x) / v(x)
-limit((f(x+h) - f(x))/h, h => 0)
-```
 
 This example shows a useful template for the quotient rule:
 
@@ -770,7 +779,11 @@ Find the derivative of $x\sin(x)$ evaluated at $\pi$.
 
 
 $$
-[x\sin(x)]'\big|_{x=\pi} = (1\sin(x) + x\cos(x))\big|_{x=\pi} = (\sin(\pi) + \pi \cdot \cos(\pi)) = -\pi.
+\begin{align*}
+[x\sin(x)]'\big|_{x=\pi} &= (1\sin(x) + x\cos(x))\big|_{x=\pi} \\
+&= (\sin(\pi) + \pi \cdot \cos(\pi))                           \\
+&= -\pi.
+\end{align*}
 $$
 
 ### Chain rule
@@ -813,17 +826,24 @@ The left-hand side will converge to the derivative of $u(x)$ or $[f(g(x))]'$.
 The right-most part of the right-hand side would have a limit $g'(x)$, were we to let $h$ go to $0$.
 
 
-It isn't obvious, but the left part of the right-hand side has the limit $f'(g(x))$. This would be clear if *only* $g(x+h) = g(x) + h$, for then the expression would be exactly the limit expression with $c=g(x)$. But, alas, except to some hopeful students and some special cases, it is definitely not the case in general that $g(x+h) = g(x) + h$ - that right parentheses actually means something. However, it is *nearly* the case that $g(x+h) = g(x) + kh$ for some $k$ and this can be used to formulate a proof (one of the two detailed [here](http://en.wikipedia.org/wiki/Chain_rule#Proofs) and [here](http://kruel.co/math/chainrule.pdf)).
+It isn't obvious, but the left part of the right-hand side has the limit $f'(g(x))$. This would be clear if *only* $g(x+h) = g(x) + h$, for then the expression would be exactly the limit expression with $c=g(x)$. But, alas, except to some hopeful students and some special cases, it is definitely not the case in general that $g(x+h) = g(x) + h$---that right parentheses actually means something. However, it is *nearly* the case that $g(x+h) = g(x) + kh$ for some $k$ and this can be used to formulate a proof, like the one sketched below.
 
 
-Combined, we would end up with:
+Combined, we would end up with the chain rule
+
+::: {.relationship title="Chain rule"}
+The *chain rule* is used to find derivatives of compositions:
 
 
-> *The chain rule*: $[f(g(x))]' = f'(g(x)) \cdot g'(x)$. That is the derivative of the outer function evaluated at the inner function times the derivative of the inner function.
+$$
+[f(g(x))]' = f'(g(x)) \cdot g'(x).
+$$
+
+That is the derivative of the outer function evaluated at the inner function times the derivative of the inner function.
+:::
 
 
-
-To see that this works in our specific case, we assume the general power rule that $[x^n]' = n x^{n-1}$ to get:
+To see that the chain rule works in our specific case, we assume the general power rule that $[x^n]' = n x^{n-1}$ (for all real $n$) to get:
 
 
 $$
@@ -848,7 +868,7 @@ $$
 $$
 
 
-This is the same as the derivative of $x$ found by first evaluating the composition. For this problem, the chain rule is not necessary, but typically it is a needed rule to fully differentiate a function.
+This is the same as the derivative of $x$ found by first evaluating the composition. For this problem, the chain rule is not necessary, but typically it is the most important rule to fully differentiate a function.
 
 
 ##### Examples
@@ -875,7 +895,7 @@ $$
 ---
 
 
-Find the derivative of $\log(2 + \sin(x))$. This is a composition $\log(x)$ – with derivative $1/x$ and  $2 + \sin(x)$ – with derivative $\cos(x)$. We get $(1/(2 + \sin(x))) \cos(x)$.
+Find the derivative of $\log(2 + \sin(x))$. This is a composition $\log(x)$---with derivative $1/x$ and  $2 + \sin(x)$---with derivative $\cos(x)$. We get $(1/(2 + \sin(x))) \cos(x)$.
 
 
 In general,
@@ -914,23 +934,29 @@ $$
 
 
 A function is *differentiable* at $a$ if the following limit exists $\lim_{h \rightarrow 0}(f(a+h)-f(a))/h$.
-This is reexpressed as: $f(a+h) - f(a) - f'(a)h = \epsilon_f(h) h$ where as $h\rightarrow 0$, $\epsilon_f(h) \rightarrow 0$.
+This is reexpressed as $f$ is differentitable at $a$ is there exists $\epsilon_f(h) \rightarrow 0$ such that:
+
+$$
+f(a+h) - f(a) - f'(a)h = \epsilon_f(h) h.
+$$
 
 
-With that in mind, we have:
+As $g$ is differentiable, we have:
 
 
 $$
 g(a+h) = g(a) + g'(a)h + \epsilon_g(h) h = g(a) + h',
 $$
 
-Where $h' = (g'(a) + \epsilon_g(h))h \rightarrow 0$ as $h \rightarrow 0$ will be used to simplify the following:
+Where $h' = g'(a)h + \epsilon_g(h)h \rightarrow 0$ as $h \rightarrow 0$ will be used to simplify the following:
+
 $$
 \begin{align*}
 f(g(a+h)) - f(g(a)) &=
 f(g(a) + g'(a)h + \epsilon_g(h)h) - f(g(a)) \\
-&= f(g(a)) + f'(g(a)) (g'(a)h + \epsilon_g(h)h) + \epsilon_f(h')(h') - f(g(a))\\
-&= f'(g(a)) g'(a)h  + f'(g(a))(\epsilon_g(h)h) + \epsilon_f(h')(h').
+&= \textcolor{red}{f(g(a))} + f'(g(a)) (g'(a)h + \epsilon_g(h)h) + \epsilon_f(h')(h') \\
+&\qquad- \textcolor{red}{f(g(a))}\\
+&= f'(g(a)) g'(a)h  + \textcolor{blue}{f'(g(a))(\epsilon_g(h)h) + \epsilon_f(h')(h')}.
 \end{align*}
 $$
 
@@ -939,13 +965,13 @@ Rearranging:
 $$
 \begin{align*}
 f(g(a+h)) &- f(g(a)) - f'(g(a)) g'(a) h\\
-&= f'(g(a))\epsilon_g(h)h + \epsilon_f(h')(h')\\
+&= \textcolor{blue}{f'(g(a))\epsilon_g(h)h + \epsilon_f(h')(h')}\\
 &=(f'(g(a)) \epsilon_g(h)  + \epsilon_f(h') (g'(a) + \epsilon_g(h)))h \\
 &=\epsilon(h)h,
 \end{align*}
 $$
 
-where $\epsilon(h)$ combines the above terms which go to zero as $h\rightarrow 0$ into one. This is the alternative definition of the derivative, showing $(f\circ g)'(a) = f'(g(a)) g'(a)$ when $g$ is differentiable at $a$ and $f$ is differentiable at $g(a)$.
+where $\epsilon(h)$ combines the above terms which go to zero as $h\rightarrow 0$ into one. This is the alternative definition of differentiable, showing $(f\circ g)'(a) = f'(g(a)) g'(a)$ when $g$ is differentiable at $a$ and $f$ is differentiable at $g(a)$.
 
 
 ##### The "chain" rule
@@ -1025,46 +1051,29 @@ $$
 ---
 
 
-We can verify these with `SymPy`. Rather than take a limit, we will use `SymPy`'s `diff` function to compute derivatives.
+We can verify these with `SymPy`.
 
 
 ```{julia}
-diff(x^5 * sin(x))
+diff(x^5 * sin(x), x)
 ```
 
 ```{julia}
-diff(x^5/sin(x))
+diff(x^5/sin(x), x)
 ```
 
 ```{julia}
-diff(sin(x^5))
+diff(sin(x^5), x)
 ```
 
 and finally,
 
 
 ```{julia}
-diff(sin(x)^5)
+diff(sin(x)^5, x)
 ```
 
-:::{.callout-note}
-## Note
-The `diff` function can be called as `diff(ex)` when there is just one free variable, as in the above examples; as `diff(ex, var)` when there are parameters in the expression.
-
-:::
-
 ---
-
-
-The general product rule:  For any $n$ - not just integer values -  we can re-express $x^n$  using $e$: $x^n = e^{n \log(x)}$. Now the chain rule can be applied:
-
-
-$$
-[x^n]' = [e^{n\log(x)}]' = e^{n\log(x)} \cdot (n \frac{1}{x}) = n x^n \cdot \frac{1}{x} = n x^{n-1}.
-$$
-
----
-
 
 Find the derivative of $f(x) = x^3 (1-x)^2$ using either the power rule or the sum rule.
 
@@ -1080,7 +1089,6 @@ the last by the chain rule. Combining with $u' v + u v'$ we get: $f'(x) = (3x^2)
 
 
 Otherwise, the polynomial can be expanded to give $f(x)=x^5-2x^4+x^3$ which has derivative $f'(x) = 5x^4 - 8x^3 + 3x^2$.
-
 
 ---
 
@@ -1131,6 +1139,23 @@ $$
 e^{-1/2} \cdot (-1) = -e^{-1/2}.
 $$
 
+##### Example: the general product rule
+
+The general product rule:  For any real $n$---not just integer values---we can re-express $x^n$  using $e$:
+
+$$
+x^n = e^{\log(x^n)} = e^{n \log(x)}.
+$$
+
+
+Now the chain rule can be applied:
+
+
+$$
+[x^n]' = [e^{n\log(x)}]' = e^{n\log(x)} \cdot (n \frac{1}{x}) = n x^n \cdot \frac{1}{x} = n x^{n-1}.
+$$
+
+
 ##### Example: derivative of inverse functions
 
 
@@ -1141,15 +1166,15 @@ $$
 1 = (\frac{1}{e^x}) \cdot [e^x]'.
 $$
 
-Or solving, $[e^x]' = e^x$. This is a general strategy to find the derivative of an *inverse* function.
+Or solving, $[e^x]' = e^x$. This is a general strategy to find the derivative of an *inverse* function in terms of the derivative of the function.
 
 
 The graph of an inverse function is related to the graph of the function through the symmetry $y=x$.
 
 
-For example, the graph of $e^x$ and $\log(x)$ have this symmetry, emphasized below:
+For example, the graph of $e^x$ and $\log(x)$ have this symmetry, emphasized in @fig-plot-f-inverse-several-points-showing-derivative.
 
-
+::: {#fig-plot-f-inverse-several-points-showing-derivative}
 ```{julia}
 #| hold: true
 #| echo: false
@@ -1171,6 +1196,9 @@ g(y) = 1/f′(f⁻¹(y))
 xs′ = @. x₀ + g(y₀) * (ys - y₀)
 plot!(ys, xs′, linestyle=:dash)
 ```
+
+Plot of $f(x) = e^x$ with its inverse function showing the relationship between tangent lines
+:::
 
 The point $(1, e)$ on the graph of $e^x$ matches the point $(e, 1)$ on the graph of the inverse function, $\log(x)$. The slope of the tangent line at $x=1$ to $e^x$ is given by $e$ as well. What is the slope of the tangent line to $\log(x)$ at $x=e$?
 
@@ -1203,40 +1231,33 @@ So the reciprocal of the slope of the tangent line of $f$ at the mirror image po
 
 This table summarizes the rules of derivatives that allow derivatives of more complicated expressions to be computed with the derivatives of their pieces.
 
+::: {#tbl-rules-of-derivatives .striped .hover}
+|           Name |                                                            Rule |
+| --------------:| ---------------------------------------------------------------:|
+|     Power rule |                                       $[x^n]' = n\cdot x^{n-1}$ |
+|       constant |                                      $[cf(x)]' = c \cdot f'(x)$ |
+| sum/difference |                            $[f(x) \pm g(x)]' = f'(x) \pm g'(x)$ |
+|        product |       $[f(x) \cdot g(x)]' = f'(x)\cdot g(x) + f(x) \cdot g'(x)$ |
+|       quotient | $[f(x)/g(x)]' = (f'(x) \cdot g(x) - f(x) \cdot g'(x)) / g(x)^2$ |
+|          chain |                             $[f(g(x))]' = f'(g(x)) \cdot g'(x)$ |
 
-```{julia}
-#| hold: true
-#| echo: false
-nm = ["Power rule", "constant", "sum/difference", "product", "quotient", "chain"]
-rule = [L"[x^n]' = n\cdot x^{n-1}",
- L"[cf(x)]' = c \cdot f'(x)",
- L"[f(x) \pm g(x)]' = f'(x) \pm g'(x)",
- L"[f(x) \cdot g(x)]' = f'(x)\cdot g(x) + f(x) \cdot g'(x)",
- L"[f(x)/g(x)]' = (f'(x) \cdot g(x) - f(x) \cdot g'(x)) / g(x)^2",
- L"[f(g(x))]' = f'(g(x)) \cdot g'(x)"]
-d = DataFrame(Name=nm, Rule=rule)
-table(d)
-```
+: Table summarizing different rules for derivatives
+:::
 
-This table gives some useful derivatives:
+@tbl-derivatives-of-key-functions shows the derivative of a few key functions.
 
+::: {#tbl-derivatives-of-key-functions .striped .hover}
 
-```{julia}
-#| hold: true
-#| echo: false
-fn = [L"x^n (\text{ all } n)",
-L"e^x",
-L"\log(x)",
-L"\sin(x)",
-L"\cos(x)"]
-a = [L"nx^{n-1}",
-L"e^x",
-L"1/x",
-L"\cos(x)",
-L"-\sin(x)"]
-d = DataFrame(Function=fn, Derivative=a)
-table(d)
-```
+|               Function | Derivative |
+| ----------------------:| ----------:|
+| $x^n (\text{ all } n)$ | $nx^{n-1}$ |
+|                  $e^x$ |      $e^x$ |
+|              $\log(x)$ |      $1/x$ |
+|              $\sin(x)$ |  $\cos(x)$ |
+|              $\cos(x)$ | $-\sin(x)$ |
+
+Derivatives of some functions
+:::
 
 ## Higher-order derivatives
 
@@ -1251,6 +1272,7 @@ Find the first $3$ derivatives of $f(x) = ax^3 + bx^2 + cx + d$.
 
 
 Differentiating a polynomial is done with the sum rule, here we repeat three times:
+
 $$
 \begin{align*}
 f(x)    &= ax^3 + bx^2 + cx + d\\
@@ -1260,7 +1282,7 @@ f'''(x) &= 6a
 \end{align*}
 $$
 
-We can see, the fourth derivative – and all higher order ones – would be identically $0$. This is part of a general phenomenon: an $n$th degree polynomial has only $n$ non-zero derivatives.
+We can see, the fourth derivative---and all higher order ones---would be identically $0$. This is part of a general phenomenon: an $n$th degree polynomial has only $n$ non-zero derivatives.
 
 
 ---
@@ -1294,8 +1316,12 @@ We need the chain rule *and* the product rule:
 
 
 $$
-[e^{-x^2}]'' = [e^{-x^2} \cdot (-2x)]' = \left(e^{-x^2} \cdot (-2x)\right) \cdot(-2x) + e^{-x^2} \cdot (-2) =
-e^{-x^2}(4x^2 - 2).
+\begin{align*}
+[e^{-x^2}]''
+&= [e^{-x^2} \cdot (-2x)]' \\
+&= \left(e^{-x^2} \cdot (-2x)\right) \cdot(-2x) + e^{-x^2} \cdot (-2) \\
+&= e^{-x^2}(4x^2 - 2).
+\end{align*}
 $$
 
 This can be verified:
@@ -1305,14 +1331,23 @@ This can be verified:
 diff(diff(exp(-x^2))) |> simplify
 ```
 
-Having to iterate the use of `diff` is cumbersome. An alternate notation is either specifying the variable twice: `diff(ex, x, x)` or using a number after the variable: `diff(ex, x, 2)`:
+::: {.callout-note}
+## higher order derivatives with `diff`
 
+Having to iterate the use of `diff` is cumbersome. An alternate notation is either
+
+* specifying the variable twice: `diff(ex, x, x)` or
+* using a number after the variable: `diff(ex, x, 2)`:
+
+For example,
 
 ```{julia}
-diff(exp(-x^2), x, x) |> simplify
+diff(exp(-x^2), x, x)
 ```
 
 Higher-order derivatives can become involved when the product or quotient rules becomes involved.
+
+:::
 
 
 ## Questions
@@ -1321,14 +1356,18 @@ Higher-order derivatives can become involved when the product or quotient rules 
 ###### Question
 
 
-The derivative at $c$ is the slope of the tangent line at $x=c$. Answer the following based on this graph:
+The derivative at $c$ is the slope of the tangent line at $x=c$. Answer the following based on @fig-x-expx-sin-pix-over-0-2.
 
 
+::: {#fig-x-expx-sin-pix-over-0-2}
 ```{julia}
+#| echo: false
 fn = x -> -x*exp(x)*sin(pi*x)
 plot(fn, 0, 2)
 ```
 
+Plot of function $f(x)$ over $[0,2]$
+:::
 At which of these points $c= 1/2, 1, 3/2$ is the derivative negative?
 
 
@@ -1363,14 +1402,17 @@ numericq(0, 1e-2)
 ###### Question
 
 
-Consider the graph of the `airyai` function (from `SpecialFunctions`) over $[-5, 5]$.
+Consider the graph of the `airyai` function (from `SpecialFunctions`) over $[-5, 5]$ in @fig-plot-airyai-over-minus5-5-identify-sign-of-derivative.
 
-
+::: {#fig-plot-airyai-over-minus5-5-identify-sign-of-derivative}
 ```{julia}
 #| hold: true
 #| echo: false
 plot(airyai, -5, 5)
 ```
+
+Plot of `airyai` over $[-5,5]$
+:::
 
 At $x = -2.5$  the derivative is positive or negative?
 
@@ -1574,7 +1616,7 @@ radioq(choices, answ)
 ###### Question
 
 
-The rate of change of volume with respect to height is $3h$. The rate of change of height with respect to time is $2t$. At at $t=3$ the height is $h=14$ what is the rate of change of volume with respect to time when $t=3$?
+The rate of change of volume with respect to height is $3h$. The rate of change of height with respect to time is $2t$. At $t=3$ the height is $h=14$ what is the rate of change of volume with respect to time when $t=3$?
 
 
 ```{julia}
@@ -1669,8 +1711,9 @@ radioq(trig_choices, 4)
 ###### Question
 
 
-Consider this picture of composition:
+Consider @fig-composition-of-functions-image, a picture of composition.
 
+::: {#fig-composition-of-functions-image}
 
 ```{julia}
 #| hold: true
@@ -1698,6 +1741,10 @@ plot!(tangent(g,1))
 l = @layout [a b]
 plot(pf, pg, layout=l)
 ```
+
+Plot of function $f(x)$ rotated so $x$ axis is pointing to the left; plot of $g(x)$ on right. This picture allows graphical composition to be computed.
+:::
+
 
 The right graph is of $g(x) = \exp(x)$ at $x=1$, the left graph of $f(x) = \sin(x)$ *rotated* $90$ degrees counter-clockwise. Chasing the arrows shows graphically how $f(g(1))$ can be computed. The nearby values $f(g(1+h))$ are – using the tangent line of $g$ at $x-1$ – approximated by $f(g(1) + g'(1)\cdot h)$, as shown in the graph segment on the left.
 

@@ -8,8 +8,7 @@ This section uses these add-on packages:
 
 ```{julia}
 using CalculusWithJulia
-using Plots
-plotly()
+using Plots; plotly()
 using SymPy
 ```
 
@@ -26,81 +25,82 @@ nothing
 So far we have seen that the *derivative* rules lead to *integration rules*. In particular:
 
 
-  * The sum rule $[au(x) + bv(x)]' = au'(x) + bv'(x)$ gives rise to an integration rule: $\int (au(x) + bv(x))dx = a\int u(x)dx + b\int v(x))dx$. (That is, the linearity of the derivative means the integral has linearity.)
+* The sum rule $[au(x) + bv(x)]' = au'(x) + bv'(x)$ gives rise to an integration rule: $\int (au(x) + bv(x))dx = a\int u(x)dx + b\int v(x))dx$. (That is, the linearity of the derivative means the integral has linearity.)
 
-  * The chain rule $[f(g(x))]' = f'(g(x)) g'(x)$ gives $\int_a^b f(g(x))g'(x)dx=\int_{g(a)}^{g(b)}f(x)dx$. That is, substitution reverses the chain rule.
+
+* The chain rule $[g(u(x))]' = g'(u(x)) u'(x)$ gives $\int_a^b g(u(x))u'(x)dx=\int_{u(a)}^{u(b)}g(x)dx$. That is, $u$-substitution reverses the chain rule.
 
 
 Now we turn our attention to the implications of the *product rule*: $[uv]' = u'v + uv'$. The resulting technique is called integration by parts.
 
-::: {.callout-note}
-## Integration by parts
+::: {.definition title="Integration by parts"}
 
 By the fundamental theorem of calculus:
 
 $$
-[u(x)\cdot v(x)]\Big|_a^b = \int_a^b [u(x) v(x)]' dx = \int_a^b u'(x) \cdot v(x) dx + \int_a^b u(x) \cdot v'(x) dx.
+\begin{align*}
+\left[u(x)\cdot v(x)\right]\Big|_a^b &= \int_a^b [u(x) v(x)]' dx\\
+&= \int_a^b u'(x) \cdot v(x) dx + \int_a^b u(x) \cdot v'(x) dx.
+\end{align*}
 $$
 
 Or,
 
 $$
-\int_a^b u(x) v'(x) dx = [u(x)v(x)]\Big|_a^b - \int_a^b v(x) u'(x)dx.
+\int_a^b u(x) v'(x) dx = \left[u(x)v(x)\right]\Big|_a^b - \int_a^b v(x) u'(x)dx.
 $$
 :::
 
 
-The following visually illustrates integration by parts:
+@fig-visualize-integration-by-parts illustrates integration by parts showing a parametric plot of $(u(t),v(t))$ for $a \leq t \leq b$.
 
 
+::: {#fig-visualize-integration-by-parts}
 ```{julia}
 #| echo: false
-#| label: fig-integration-by-parts
-#| fig-cap: "Integration by parts figure ([original](http://en.wikipedia.org/wiki/Integration_by_parts#Visualization))"
 let
     ## parts picture
     gr()
-u(x) = sin(x*pi/2)
-v(x) = x
-xs = range(0, stop=1, length=50)
-a,b = 1/4, 3/4
+    u(x) = sin(x*pi/2)
+    v(x) = x
+    xs = range(0, stop=1, length=50)
+    a,b = 1/4, 3/4
 
-p = plot(u, v, 0, 1; legend=false, axis=([], false), line=(:black,2))
-plot!([0, u(1)], [0,0]; line=(:gray, 1), arrow=true, side=:head)
-plot!([0, 0], [0, v(1) ]; line=(:gray, 1), arrow=true, side=:head)
+    p = plot(u, v, 0, 1; legend=false, axis=([], false), line=(:black,2))
+    plot!([0, u(1)], [0,0]; line=(:gray, 1), arrow=true, side=:head)
+    plot!([0, 0], [0, v(1) ]; line=(:gray, 1), arrow=true, side=:head)
 
-xs′ = range(a, b, length=50)
-plot!(Shape(vcat(u.(xs′), reverse(u.(xs′))),
-            vcat(zero.(xs′), v.(reverse(xs′)))),
-      fill=(:red, 0.15),
-      xlims=(-0.07, 1)
-      )
-plot!(Shape([0,u(a),u(a),0],[0,0,v(a),v(a)]), fill=(:royalblue, 0.5))
-scatter!(p, [u(a), u(b)], [v(a), v(b)], color=:mediumorchid3, markersize=5)
-plot!(p, [u(a),u(a),0, 0, u(b),u(b),u(a)],
-      [0, v(a), v(a), v(b), v(b), 0, 0],
-      linetype=:polygon, fill=(:brown3, 0.25))
+    xs′ = range(a, b, length=50)
+    plot!(Shape(vcat(u.(xs′), reverse(u.(xs′))),
+                vcat(zero.(xs′), v.(reverse(xs′)))),
+          fill=(:red, 0.15),
+          xlims=(-0.07, 1)
+          )
+    plot!(Shape([0,u(a),u(a),0],[0,0,v(a),v(a)]), fill=(:royalblue, 0.5))
+    scatter!(p, [u(a), u(b)], [v(a), v(b)], color=:mediumorchid3, markersize=5)
+    plot!(p, [u(a),u(a),0, 0, u(b),u(b),u(a)],
+          [0, v(a), v(a), v(b), v(b), 0, 0],
+          linetype=:polygon, fill=(:brown3, 0.25))
 
-annotate!(p, [(0.65, .25, text(L"A")),
-              (0.4, .55, text(L"B")),
-              (u(a),v(a), text(L"(u(a),v(a))", :bottom, :right)),
+    annotate!(p, [(0.65, .25, text(L"A")),
+                  (0.4, .55, text(L"B")),
+                  (u(a),v(a), text(L"(u(a),v(a))", :bottom, :right)),
               (u(b),v(b), text(L"(u(b),v(b))", :bottom, :right)),
-              (u(a),0, text(L"u(a)", :top)),
-              (u(b),0, text(L"u(b)", :top)),
+                  (u(a),0, text(L"u(a)", :top)),
+                  (u(b),0, text(L"u(b)", :top)),
               (0, v(a), text(L"v(a)", :right)),
               (0, v(b), text(L"v(b)", :right)),
-			  (0,0, text(L"(0,0)", :top))
-              ])
+			      (0,0, text(L"(0,0)", :top))
+                  ])
+
+    plotly()
+    p
 end
 ```
 
-```{julia}
-#| echo: false
-plotly()
-nothing
-```
+Integration by parts figure ([original](http://en.wikipedia.org/wiki/Integration_by_parts#Visualization))
+:::
 
-@fig-integration-by-parts shows a parametric plot of $(u(t),v(t))$ for $a \leq t \leq b$..
 
 The total shaded area, a rectangle, is $u(b)v(b)$, the area of $A$ and $B$ combined is just $u(b)v(b) - u(a)v(a)$ or $[u(x)v(x)]\Big|_a^b$. We will show that $A$ is $\int_a^b v(x)u'(x)dx$ and $B$ is $\int_a^b u(x)v'(x)dx$ giving the formula.
 
@@ -225,7 +225,7 @@ $$
 \int_a^b x^2 e^x dx = (x^2 \cdot e^x)\Big|_a^b - \int_a^b 2x e^x dx.
 $$
 
-But we can do $\int_a^b x e^xdx$ the same way:
+But we can compute $\int_a^b x e^xdx$ the same way:
 
 
 $$
@@ -245,8 +245,8 @@ In fact, it isn't hard to see that an integral of $x^m e^x$, $m$ a positive inte
 
 
 ```{julia}
-@syms 𝒙
-integrate(𝒙^10 * exp(𝒙), 𝒙)
+@syms x
+integrate(x^10 * exp(x), x)
 ```
 
 The general answer is $\int x^n e^xdx = p(x) e^x$, where $p(x)$ is a polynomial of degree $n$.
@@ -281,7 +281,10 @@ So:
 
 
 $$
-\int e^x \sin(x)dx = \sin(x) e^x - \int \cos(x) e^x dx = \sin(x)e^x - \cos(x)e^x + \int (-\sin(x))e^x dx.
+\begin{align*}
+\int e^x \sin(x)dx &= \sin(x) e^x - \int \cos(x) e^x dx \\
+&= \sin(x)e^x - \cos(x)e^x + \int (-\sin(x))e^x dx.
+\end{align*}
 $$
 
 But simplifying this gives:
@@ -324,11 +327,11 @@ $$
 This is called a reduction formula as it reduces the problem from an integral with a power of $n$ to one with a power of $n - 2$, so could be repeated until the remaining indefinite integral required knowing either $\int \cos(x) dx$ (which is $-\sin(x)$) or $\int \cos(x)^2 dx$, which by a double angle formula application, is $x/2 + \sin(2x)/4$.
 
 
-`SymPy` is able and willing to do this repeated bookkeeping. For example with $n=10$:
+`SymPy` is willing and able to do this repeated bookkeeping. For example with $n=10$:
 
 
 ```{julia}
-integrate(cos(𝒙)^10, 𝒙)
+integrate(cos(x)^10, x)
 ```
 
 ##### Example
@@ -367,7 +370,7 @@ $$
 Using right triangles to simplify, the last value $\cos(\sin^{-1}(x))$ can otherwise be written as $\sqrt{1 - x^2}$.
 
 
-##### Example
+##### Example: maximum error in the trapezoid rule
 
 
 The [trapezoid](http://en.wikipedia.org/wiki/Trapezoidal_rule) rule is an approximation to the definite integral like a Riemann sum, only instead of approximating the area above $[x_i, x_i + h]$ by a rectangle with height $f(c_i)$ (for some $c_i$), it uses a trapezoid formed by the left and right endpoints. That is, this area is used in the estimation: $(1/2)\cdot (f(x_i) + f(x_i+h)) \cdot h$.
@@ -393,14 +396,17 @@ $$
 $$
 
 
-We choose $A$ to be $-h/2$, any constant is possible, for then the term $f(t+x_i)(t+A)\Big|_0^h$ becomes $(1/2)(f(x_i+h) + f(x_i)) \cdot h$, or the trapezoid approximation. This means, the error over this interval - actual minus estimate - satisfies:
+We choose $A$ to be $-h/2$, any constant is possible, for then the term $f(t+x_i)(t+A)\Big|_0^h$ becomes $(1/2)(f(x_i+h) + f(x_i)) \cdot h$, or the trapezoid approximation. This means, the error over this interval---actual minus estimate---satisfies:
 
 
 $$
-\text{error}_i = \int_{x_i}^{x_i+h}f(x) dx - \frac{f(x_i+h) -f(x_i)}{2} \cdot h  = - \int_0^h (t + A) f'(t + x_i) dt.
+\begin{align*}
+\text{error}_i &= \int_{x_i}^{x_i+h}f(x) dx - \frac{f(x_i+h) -f(x_i)}{2} \cdot h  \\
+&= - \int_0^h (t + A) f'(t + x_i) dt.
+\end{align*}
 $$
 
-For this, we *again* integrate by parts with
+To compute this, we *again* integrate by parts with
 
 
 $$
@@ -415,7 +421,10 @@ Again we added a constant of integration, $B$, to  $v$. The  error becomes:
 
 
 $$
-\text{error}_i = -\left(\frac{(t+A)^2}{2} + B\right)f'(t+x_i)\Big|_0^h + \int_0^h \left(\frac{(t+A)^2}{2} + B\right) \cdot f''(t+x_i) dt.
+\begin{align*}
+\text{error}_i &= -\left(\frac{(t+A)^2}{2} + B\right)f'(t+x_i)\Big|_0^h \\
+&\quad + \int_0^h \left(\frac{(t+A)^2}{2} + B\right) \cdot f''(t+x_i) dt.
+\end{align*}
 $$
 
 With $A=-h/2$, $B$ is chosen so $(t+A)^2/2 + B = 0$ at endpoints, or  $B=-h^2/8$. The error becomes
@@ -429,7 +438,7 @@ Now, we assume the $\lvert f''(t)\rvert$ is bounded by $K$ for any $a \leq t \le
 
 
 $$
-\lvert \text{error}_i  \rvert \leq K \int_0^h \lVert \left(\frac{(t-h/2)^2}{2} - \frac{h^2}{8}\right) \rVert dt.
+\lvert \text{error}_i  \rvert \leq K \int_0^h \lvert \left(\frac{(t-h/2)^2}{2} - \frac{h^2}{8}\right) \rvert dt.
 $$
 
 But what is the function in the integrand? Clearly it is a quadratic in $t$. Expanding gives $1/2 \cdot (t^2 - ht)$.  This is negative over $[0,h]$ (and $0$ at these endpoints, so the integral above is just:
@@ -446,7 +455,7 @@ $$
 \lvert \text{error}\rvert \leq n \cdot \frac{Kh^3}{12} = \frac{K(b-a)^3}{12}\frac{1}{n^2}.
 $$
 
-So the error is like $1/n^2$, in contrast to the $1/n$ error of the Riemann sums. One way to see this, for the Riemann sum it takes twice as many terms to half an error estimate, but for the trapezoid rule only $\sqrt{2}$ as many, and for Simpson's rule, only $2^{1/4}$ as many.
+So the maximum error^[This is a worst-case estimate. There are functions for which the trapezoid method converges exponentially and are discussed in [Trefethen and Weiderman](https://people.maths.ox.ac.uk/trefethen/sirev56-3_385.pdf).]  is like $1/n^2$, in contrast to the $1/n$ error of the Riemann sums. One way to see this, for the Riemann sum it takes twice as many terms to half an error estimate, but for the trapezoid rule only $\sqrt{2}$ as many, and for Simpson's rule, only $2^{1/4}$ as many.
 
 
 ## Area related to parameterized curves
@@ -458,9 +467,9 @@ The figure introduced to motivate the integration by parts formula also suggests
 When $u(t)$ is strictly *increasing*, and hence having an inverse function, then re-parameterizing by $\phi(t) = u^{-1}(t)$ gives a $x=u(u^{-1}(t))=t, y=v(u^{-1}(t))$ and integrating this gives the area by $A=\int_a^b v(t) u'(t) dt$
 
 
-However, the correct answer requires understanding a minus sign.  Consider the area enclosed by $x(t) = \cos(t), y(t) = \sin(t)$:
+However, the correct answer requires understanding a minus sign.  Consider the area enclosed by $x(t) = \cos(t), y(t) = \sin(t)$ in @fig-area-parameterized-curve-example.
 
-
+::: {#fig-area-parameterized-curve-example}
 ```{julia}
 #| echo: false
 let
@@ -477,6 +486,9 @@ let
 end
 ```
 
+Area consideration for a parameterized curve
+:::
+
 We added a rectangle for a Riemann sum for $t_i = \pi/3$ and $t_{i+1} = \pi/3 + \pi/8$. The height of this rectangle is $y(t_i)$, the base is of length $x(t_i) - x(t_{i+1})$ *given* the orientation of how the circular curve is parameterized (counter clockwise here).
 
 
@@ -488,15 +500,17 @@ $$
 A &\approx \sum_i y(t_i) \cdot (x(t_{i}) - x(t_{i+1}))\\
   &= - \sum_i y(t_i) \cdot (x(t_{i+1}) - x(t_{i}))\\
   &= - \sum_i y(t_i) \cdot \frac{x(t_{i+1}) - x(t_i)}{t_{i+1}-t_i} \cdot (t_{i+1}-t_i)\\
-  &\approx -\int_a^b y(t) x'(t) dt.
+  &\approx -\int_a^b y(t) x'(t) dt\\
+  &= \int_a^b x(t) y'(t) dt.
 \end{align*}
 $$
 
-
-So with a counterclockwise rotation, the actual answer for the area includes a minus sign. If the area is traced out in a *clockwise* manner, there is no minus sign.
-
+The last line using integration by parts to reverse the role of $x$ and $y$.
+When traversing a curve in a counter clockwise manner $\int x(t) y'(t) dt$ has no minus sign and when traversing in a clockwise manner $\int y(t) x'(t) dt$ has no minus sign.
 
 This is a case of [Green's Theorem](https://en.wikipedia.org/wiki/Green%27s_theorem#Area_calculation) to be taken up in [Green's Theorem, Stokes' Theorem, and the Divergence Theorem](file:///Users/verzani/julia/CalculusWithJulia/html/integral_vector_calculus/stokes_theorem.html).
+
+We also revisit this in the section on the area between curves where this formula comes from decomposing the area contained within a simple polygon using trapezoids.
 
 
 ##### Example
@@ -510,7 +524,7 @@ Apply the formula to a parameterized circle to ensure, the signed area is proper
 @syms r t
 x = r * cos(t)
 y = r * sin(t)
--integrate(y * diff(x, t), (t, 0, 2PI))
+integrate(x * diff(y, t), (t, 0, 2PI))
 ```
 
 We see the expected answer for the area of a circle.
@@ -539,9 +553,9 @@ integrate(y * diff(x, t), (t, 0, 2PI))
 ##### Example
 
 
-Consider the example $x(t) = \cos(t) + t\sin(t), y(t) = \sin(t) - t\cos(t)$ for $0 \leq t \leq 2\pi$.
+Consider the example $x(t) = \cos(t) + t\sin(t), y(t) = \sin(t) - t\cos(t)$ for $0 \leq t \leq 2\pi$ shown in @fig-area-spiraling-curve-over-0-2pi.
 
-
+::: {#fig-area-spiraling-curve-over-0-2pi}
 ```{julia}
 #| echo: false
 let
@@ -551,17 +565,20 @@ let
     plot(x.(ts), y.(ts))
 end
 ```
+Plot of parameterized spiraling curve over $[0, 2\pi]$
+:::
+
 
 How much area is enclosed by this curve and the $x$ axis? The area is described in a counterclockwise manner, so we have:
 
 
 ```{julia}
 #| hold: true
-let
+let # a let block avoids the issue that `x` has already been used as a constant
     x(t) = cos(t) + t*sin(t)
     y(t) = sin(t) - t*cos(t)
-    yx′(t) = -y(t) * x'(t)  # yx\prime[tab]
-    quadgk(yx′, 0, 2pi)
+    xy′(t) = x(t) * y'(t)  # xy\prime[tab]
+    quadgk(xy′, 0, 2pi)
 end
 ```
 
@@ -584,8 +601,8 @@ choices = [
 "``du=1/x dx \\quad v = x``",
 "``du=x\\log(x) dx\\quad v = 1``",
 "``du=1/x dx\\quad v = x^2/2``"]
-answ = 1
-radioq(choices, answ)
+answer = 1
+radioq(choices, answer)
 ```
 
 ###### Question
@@ -602,8 +619,8 @@ choices = [
 "``du=\\csc(x) dx \\quad v=\\sec(x)^3 / 3``",
 "``du=\\tan(x)  dx \\quad v=\\sec(x)\\tan(x)``"
 ]
-answ = 1
-radioq(choices, answ)
+answer = 1
+radioq(choices, answer)
 ```
 
 ###### Question
@@ -620,8 +637,8 @@ choices = [
 "``du=-e^{-x} dx \\quad v=-\\sin(x)``",
 "``du=\\sin(x)dx \\quad v=-e^{-x}``"
 ]
-answ = 1
-radioq(choices, answ)
+answer = 1
+radioq(choices, answer)
 ```
 
 ###### Question
@@ -683,9 +700,55 @@ choices = [
 "``\\int (\\log(x))^{n+1}/(n+1) dx``",
 "``x(\\log(x))^n - \\int (\\log(x))^{n-1} dx``"
 ]
-answ = 1
-radioq(choices, answ)
+answer = 1
+radioq(choices, answer)
 ```
+
+###### Question
+
+Let $k$ be a positive integer. We can use integration by parts to understand the value of
+
+$$
+I_k = \int x^k \exp(-x) dx
+$$
+
+Let $u = x^k$ and $dv = \exp(-x)$. What becomes of $uv$?
+
+```{julia}
+#| echo: false
+choices = [L"-kx^{k-1} \exp(-x)",
+           L"-x^{k+1}/(k+1) \exp(-x)",
+           L"-x^k \exp(-x)"]
+answer = 3
+buttonq(choices, answer)
+```
+
+What becomes of $\int v du$?
+
+```{julia}
+#| echo: false
+choices = [L"\int k x^{k-1} (-\exp(-x)) dx",
+           L"\int x^{k+1}/(k+1) (-\exp(-x)) dx",
+           L"\int x^k (-\exp(-x)) dx"]
+answer = 1
+buttonq(choices, answer)
+```
+
+Does this show that $I_k = -x^k \exp(-x) + k I_{k-1}$?
+
+```{julia}
+#| echo: false
+choices = ["Yes", "No"]
+answer = 1
+buttonq(choices, answer)
+```
+
+
+If so them be repeating the above until $k=0$, we can see that $I_k = p_k \exp(-x)$ for some polynomial $p_k$ of degree $k$.
+
+
+
+
 
 ###### Question
 
@@ -700,8 +763,8 @@ Consider the integral $\int x \cos(x) dx$. Which letter should be tried first?
 #| hold: true
 #| echo: false
 choices = ["L", "I", "A", "T", "E"]
-answ = 3
-radioq(choices, answ, keep_order=true)
+answer = 3
+radioq(choices, answer, keep_order=true)
 ```
 
 ---
@@ -714,8 +777,8 @@ Consider the integral $\int x^2\log(x) dx$. Which letter should be tried first?
 #| hold: true
 #| echo: false
 choices = ["L", "I", "A", "T", "E"]
-answ = 1
-radioq(choices, answ, keep_order=true)
+answer = 1
+radioq(choices, answer, keep_order=true)
 ```
 
 ---
@@ -728,8 +791,8 @@ Consider the integral $\int x^2 \sin^{-1}(x) dx$. Which letter should be tried f
 #| hold: true
 #| echo: false
 choices = ["L", "I", "A", "T", "E"]
-answ = 2
-radioq(choices, answ, keep_order=true)
+answer = 2
+radioq(choices, answer, keep_order=true)
 ```
 
 ---
@@ -742,8 +805,8 @@ Consider the integral $\int e^x \sin(x) dx$. Which letter should be tried first?
 #| hold: true
 #| echo: false
 choices = ["L", "I", "A", "T", "E"]
-answ = 4
-radioq(choices, answ, keep_order=true)
+answer = 4
+radioq(choices, answer, keep_order=true)
 ```
 
 ###### Question
@@ -759,6 +822,51 @@ choices = [
 "``x\\cos^{-1}(x)-\\sqrt{1 - x^2}``",
 "``x^2/2 \\cos^{-1}(x) - x\\sqrt{1-x^2}/4 - \\cos^{-1}(x)/4``",
 "``-\\sin^{-1}(x)``"]
-answ = 1
-radioq(choices, answ)
+answer = 1
+radioq(choices, answer)
 ```
+
+
+###### Question
+
+In [notes by S.G. Johnson](https://math.mit.edu/~stevenj/trap-iap-2011.pdf) we find a simpler means to estimate the maximum error in the (composite) trapezoid rule.
+
+Each trapezoid estimate uses a line between two points, $x_{i-1}$ and $x_i$ so deviates from a Taylor polynomial how?
+
+```{julia}
+#| echo: false
+choices = ["In the constant term",
+           "In the linear term",
+           "In the quadratic term"]
+answer = 3
+explanation = "The constant and linear terms can match off, leaving a quadratic."
+buttonq(choices, answer; explanation)
+```
+
+The worst case error in a single approximation is then around $\Delta_x^2$ times a constant depending on $f''$.
+
+The error in the approximation---up to a constant---over the interval is:
+
+```{julia}
+#| echo: false
+choices = [L"Basically $\Delta_x$",
+           L"Basically $\Delta_x^2$",
+           L"Basically $\Delta_x^2 \cdot \Delta_x$"]
+answer = 3
+explanation = "The worst case is the error *times* the length of the base"
+buttonq(choices, answer; explanation)
+```
+
+In terms of $n$, the error in each sub-interval is like $1/n^3$. The total error in the approximation is then
+
+```{julia}
+#| echo: false
+choices = [L"Basically $1/n^3$",
+           L"Basically $1/n^2 = 1/n^3 \cdot n$",
+           L"Basically $1/n = 1/n^3 \cdot n^2$"]
+answer = 2
+explanation = "There are ``n`` terms each with error like ``1/n^3``"
+buttonq(choices, answer; explanation)
+```
+
+This is a worst case estimate, of course, as it doesn't account for individual errors canceling each other off.
